@@ -1,13 +1,12 @@
-﻿using OrderSphere.Domain.Enums;
+﻿using OrderSphere.Domain.Abstraction;
+using OrderSphere.Domain.Enums;
 
 namespace OrderSphere.Domain.Entities;
 
-public class Order(Guid customerId)
+public class Order(Guid customerId) : Entity
 {
-    public Guid Id { get; private set; } = Guid.NewGuid();
     public Guid CustomerId { get; private set; } = customerId;
     public OrderStatus Status { get; private set; } = OrderStatus.Created;
-    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
     public List<OrderItem> Items { get; private set; } = [];
 
     public void AddItem(Guid productId, int quantity, decimal price)

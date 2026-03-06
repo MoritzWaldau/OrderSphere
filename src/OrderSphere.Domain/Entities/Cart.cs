@@ -1,9 +1,9 @@
-﻿using System;
+﻿using OrderSphere.Domain.Abstraction;
+using System;
 namespace OrderSphere.Domain.Entities;
 
-public sealed class Cart(Guid userId)
+public sealed class Cart(Guid userId) : Entity
 {
-    public Guid Id { get; private set; } = Guid.NewGuid();
     public Guid UserId { get; private set; } = userId;
     public List<CartItem> Items { get; private set; } = [];
 

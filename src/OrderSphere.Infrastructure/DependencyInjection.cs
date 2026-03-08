@@ -1,7 +1,7 @@
-﻿
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OrderSphere.Infrastructure.Interceptors;
 using OrderSphere.Infrastructure.Persistence;
 
 namespace OrderSphere.Infrastructure;
@@ -14,6 +14,7 @@ public static class DependencyInjection
         {
             options.UseNpgsql(configuration.GetConnectionString("postgres"));
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            options.AddInterceptors(new AuditSaveChangesInterceptor());
         });
             
         return services;

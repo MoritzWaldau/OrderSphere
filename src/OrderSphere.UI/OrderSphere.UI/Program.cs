@@ -1,11 +1,12 @@
 using OrderSphere.Infrastructure;
 using OrderSphere.Infrastructure.Persistence;
-using OrderSphere.UI.Client.Pages;
+using OrderSphere.UI;
 using OrderSphere.UI.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults();
+builder.AddServiceDefaults()
+    .AddLogging();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

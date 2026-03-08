@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OrderSphere.Domain.Entities;
 
-public class Order(Guid customerId) : Entity
+public class Order(Guid customerId) : AuditableEntity
 {
     public Guid CustomerId { get; private set; } = customerId;
     public OrderStatus Status { get; private set; } = OrderStatus.Created;

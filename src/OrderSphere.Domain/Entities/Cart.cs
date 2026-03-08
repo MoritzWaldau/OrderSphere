@@ -2,7 +2,7 @@
 using System;
 namespace OrderSphere.Domain.Entities;
 
-public sealed class Cart(Guid userId) : Entity
+public sealed class Cart(Guid userId) : AuditableEntity
 {
     public Guid UserId { get; private set; } = userId;
     public List<CartItem> Items { get; private set; } = [];

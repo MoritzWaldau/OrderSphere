@@ -13,6 +13,9 @@
     <ProjectReference Include="..\OrderSphere.UI.Client\OrderSphere.UI.Client.csproj" />
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Extensions.Logging" />
+    <PackageReference Include="Serilog.Sinks.OpenTelemetry" />
   </ItemGroup>
 
 </Project>

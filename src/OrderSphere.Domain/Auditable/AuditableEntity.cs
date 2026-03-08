@@ -2,7 +2,7 @@
 
 namespace OrderSphere.Domain.Abstraction;
 
-public abstract class Entity : IEntity
+public abstract class AuditableEntity : IAuditableEntity
 {
     [Key]
     public Guid Id { get; set; }

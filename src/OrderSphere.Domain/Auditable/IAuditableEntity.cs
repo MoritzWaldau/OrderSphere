@@ -1,6 +1,6 @@
 ﻿namespace OrderSphere.Domain.Abstraction;
 
-public interface IEntity
+public interface IAuditableEntity
 {
     Guid Id { get; set; }
     public DateTime CreatedAt { get; set; }

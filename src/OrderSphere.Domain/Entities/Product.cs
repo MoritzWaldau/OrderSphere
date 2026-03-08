@@ -1,4 +1,5 @@
 ﻿using OrderSphere.Domain.Abstraction;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OrderSphere.Domain.Entities;
 

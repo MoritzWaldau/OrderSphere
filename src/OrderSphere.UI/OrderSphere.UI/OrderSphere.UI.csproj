@@ -8,8 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\OrderSphere.Infrastructure\OrderSphere.Infrastructure.csproj" />
     <ProjectReference Include="..\..\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
     <ProjectReference Include="..\OrderSphere.UI.Client\OrderSphere.UI.Client.csproj" />
+    <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
   </ItemGroup>
 

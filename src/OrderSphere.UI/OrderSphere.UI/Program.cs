@@ -1,3 +1,5 @@
+using OrderSphere.Infrastructure;
+using OrderSphere.Infrastructure.Persistence;
 using OrderSphere.UI.Client.Pages;
 using OrderSphere.UI.Components;
 
@@ -9,6 +11,8 @@ builder.AddServiceDefaults();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+
+builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
@@ -29,6 +33,11 @@ app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages:
 app.UseHttpsRedirection();
 
 app.UseAntiforgery();
+
+
+using var scope = app.Services.CreateScope();
+var dbContext = scope.ServiceProvider.GetRequiredService<OrderSphereDbContext>();
+dbContext.Database.EnsureCreated();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

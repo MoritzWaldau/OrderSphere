@@ -4,6 +4,9 @@
     {
         IProductRepository Products { get; }
         IOutboxRepository Outbox { get; }
-        Task<int> CommitAsync();
+
+        Task BeginTransactionAsync();
+        Task CommitAsync();
+        Task RollbackAsync();
     }
 }

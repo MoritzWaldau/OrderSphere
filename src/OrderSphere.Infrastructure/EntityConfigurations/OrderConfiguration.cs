@@ -13,6 +13,10 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.CustomerId)
             .IsRequired();
 
+        builder.Property(o => o.PaymentMethod)
+            .HasConversion<int>()
+            .IsRequired();
+
         builder.Property(o => o.Status)
             .HasConversion<int>()
             .IsRequired();

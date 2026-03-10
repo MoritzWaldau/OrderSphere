@@ -8,6 +8,7 @@ public class Order(Guid customerId) : AuditableEntity
 {
     public Guid CustomerId { get; private set; } = customerId;
     public OrderStatus Status { get; private set; } = OrderStatus.Created;
+    public PaymentMethod PaymentMethod { get; private set; }
     public ICollection<OrderItem> Items { get; private set; } = [];
 
     public void AddItem(Guid productId, int quantity, decimal price)

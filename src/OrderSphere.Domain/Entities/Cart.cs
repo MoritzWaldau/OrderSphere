@@ -2,9 +2,9 @@
 using System;
 namespace OrderSphere.Domain.Entities;
 
-public sealed class Cart(Guid userId) : AuditableEntity
+public sealed class Cart(Guid customerId) : AuditableEntity
 {
-    public Guid UserId { get; private set; } = userId;
+    public Guid CustomerId { get; private set; } = customerId;
     public List<CartItem> Items { get; private set; } = [];
 
     public void AddItem(Guid productId, int quantity)

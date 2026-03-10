@@ -13,14 +13,32 @@ public class OrderSphereDbContext(DbContextOptions<OrderSphereDbContext> options
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
 
-    public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default)
+    private IDbContextTransaction? dbContextTransaction = null;
+
+    public async Task BeginTransactionAsync(CancellationToken ct = default)
     {
-        return await Database.BeginTransactionAsync(ct);
+        if (Database.CurrentTransaction != null)
+            throw new InvalidOperationException("No active transaction");
+
+        dbContextTransaction = await Database.BeginTransactionAsync(ct);
     }
 
-    public async Task CommitAsync(IDbContextTransaction transaction, CancellationToken ct = default)
+    public async Task CommitAsync(CancellationToken ct = default)
     {
-        await transaction.CommitAsync(ct);
+        if (dbContextTransaction == null)
+             throw new InvalidOperationException("No active transaction");
+
+        try
+        {
+            // Persistiere Änderungen vor dem Commit
+            await SaveChangesAsync(ct);
+            await dbContextTransaction.CommitAsync(ct);
+        }
+        finally
+        {
+            await dbContextTransaction.DisposeAsync();
+            dbContextTransaction = null;
+        }
     }
 
     public bool IsTransactionRunning()
@@ -30,7 +48,18 @@ public class OrderSphereDbContext(DbContextOptions<OrderSphereDbContext> options
 
     public async Task RollbackAsync(CancellationToken ct = default)
     {
-        await Database.RollbackTransactionAsync(ct);
+        if (dbContextTransaction == null)
+            return;
+
+        try
+        {
+            await dbContextTransaction.RollbackAsync(ct);
+        }
+        finally
+        {
+            await dbContextTransaction.DisposeAsync();
+            dbContextTransaction = null;
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

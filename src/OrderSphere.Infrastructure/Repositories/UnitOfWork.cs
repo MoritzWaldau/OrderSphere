@@ -30,7 +30,7 @@ public sealed class UnitOfWork(
             await _transaction.CommitAsync();
     }
 
-    public void Dispose() => Context.Dispose();
+    public void Dispose() => ((IDisposable)Context).Dispose();
 
     public async Task RollbackAsync()
     {

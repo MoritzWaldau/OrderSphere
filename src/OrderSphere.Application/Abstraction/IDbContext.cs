@@ -12,8 +12,8 @@ public interface IDbContext
 
     public bool IsTransactionRunning();
 
-    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default);
-    public Task CommitAsync(IDbContextTransaction transaction, CancellationToken ct = default);
+    public Task BeginTransactionAsync(CancellationToken ct = default);
+    public Task CommitAsync(CancellationToken ct = default);
     public Task RollbackAsync(CancellationToken ct = default);
 
 }

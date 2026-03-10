@@ -12,12 +12,14 @@ public class OrderSphereDbContext(DbContextOptions<OrderSphereDbContext> options
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
+    public DbSet<Cart> Carts => Set<Cart>();
+    public DbSet<CartItem> CartItems => Set<CartItem>();
 
     private IDbContextTransaction? dbContextTransaction = null;
 
     public async Task BeginTransactionAsync(CancellationToken ct = default)
     {
-        if (Database.CurrentTransaction != null)
+        if (dbContextTransaction != null)
             throw new InvalidOperationException("No active transaction");
 
         dbContextTransaction = await Database.BeginTransactionAsync(ct);
@@ -39,11 +41,6 @@ public class OrderSphereDbContext(DbContextOptions<OrderSphereDbContext> options
             await dbContextTransaction.DisposeAsync();
             dbContextTransaction = null;
         }
-    }
-
-    public bool IsTransactionRunning()
-    {
-        return Database.CurrentTransaction != null;
     }
 
     public async Task RollbackAsync(CancellationToken ct = default)

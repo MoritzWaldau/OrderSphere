@@ -9,8 +9,8 @@ public interface IDbContext
     public DbSet<Product> Products { get; }
     public DbSet<Order> Orders { get; }
     public DbSet<OrderItem> OrderItems { get; }
-
-    public bool IsTransactionRunning();
+    public DbSet<Cart> Carts { get; }
+    public DbSet<CartItem> CartItems { get; }
 
     public Task BeginTransactionAsync(CancellationToken ct = default);
     public Task CommitAsync(CancellationToken ct = default);

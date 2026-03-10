@@ -1,5 +1,4 @@
 ﻿using OrderSphere.Domain.Abstraction;
-using System;
 namespace OrderSphere.Domain.Entities;
 
 public sealed class Cart(Guid customerId) : AuditableEntity

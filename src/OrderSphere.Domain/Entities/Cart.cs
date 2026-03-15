@@ -1,4 +1,5 @@
-﻿using OrderSphere.Domain.Abstraction;
+﻿using Microsoft.EntityFrameworkCore;
+using OrderSphere.Domain.Abstraction;
 namespace OrderSphere.Domain.Entities;
 
 public sealed class Cart(Guid customerId) : AuditableEntity
@@ -6,13 +7,13 @@ public sealed class Cart(Guid customerId) : AuditableEntity
     public Guid CustomerId { get; private set; } = customerId;
     public List<CartItem> Items { get; private set; } = [];
 
-    public void AddItem(Guid productId, int quantity)
+    public void AddItem(CartItem item)
     {
-        var existing = Items.FirstOrDefault(x => x.ProductId == productId);
+        var existing = Items.FirstOrDefault(x => x.ProductId == item.ProductId);
 
         if (existing != null)
-            existing.Increase(quantity);
+            existing.Increase(item.Quantity);
         else
-            Items.Add(new CartItem(productId, quantity));
+            Items.Add(item);
     }
 }

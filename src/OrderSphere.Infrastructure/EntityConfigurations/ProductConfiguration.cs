@@ -8,7 +8,7 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
     public void Configure(EntityTypeBuilder<Product> builder)
     {
-        builder.HasAnnotation("Relational:TableName", "Products");
+        builder.ToTable("products");
 
         builder.HasKey(p => p.Id);
 

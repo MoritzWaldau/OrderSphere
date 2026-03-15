@@ -1,6 +1,8 @@
-﻿namespace OrderSphere.Application.ServiceBus;
+﻿using OrderSphere.Application.Models.Events;
+
+namespace OrderSphere.Application.ServiceBus;
 
 public interface IServiceBusPublisher
 {
-    Task PublishAsync(string eventType, string payload);
+    Task PublishCheckoutCartEventAsync(CheckoutCartEvent checkoutCartEvent);
 }

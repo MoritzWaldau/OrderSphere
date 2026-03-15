@@ -1,28 +1,33 @@
 ﻿using OrderSphere.Domain.Abstraction;
 using OrderSphere.Domain.Enums;
+using OrderSphere.Domain.ValueObjects;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OrderSphere.Domain.Entities;
 
-public class Order(Guid customerId) : AuditableEntity
+public class Order: AuditableEntity
 {
-    public Guid CustomerId { get; private set; } = customerId;
+    public Guid CustomerId { get; private set; }
+    public Address ShippingAddress { get; private set; }
     public OrderStatus Status { get; private set; } = OrderStatus.Created;
     public PaymentMethod PaymentMethod { get; private set; }
-    public ICollection<OrderItem> Items { get; private set; } = [];
 
-    public void AddItem(Guid productId, int quantity, decimal price)
-    {
-        Items.Add(new OrderItem(productId, quantity, price));
-    }
+    private readonly List<OrderItem> _items = [];
+    public IReadOnlyCollection<OrderItem> Items => _items;
 
-    public void MarkAsPaid()
-    {
-        Status = OrderStatus.Paid;
-    }
+    private Order() { }
 
-    public void Ship()
+    public Order(
+        Guid customerId,
+        Address shippingAddress,
+        PaymentMethod paymentMethod,
+        IEnumerable<OrderItem> items)
     {
-        Status = OrderStatus.Shipped;
+        Id = Guid.NewGuid();
+        CustomerId = customerId;
+        ShippingAddress = shippingAddress;
+        PaymentMethod = paymentMethod;
+        _items.AddRange(items);
+        Status = OrderStatus.Created;
     }
 }

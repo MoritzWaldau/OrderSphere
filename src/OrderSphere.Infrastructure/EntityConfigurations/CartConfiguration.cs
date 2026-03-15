@@ -8,10 +8,12 @@ public sealed class CartConfiguration : IEntityTypeConfiguration<Cart>
 {
     public void Configure(EntityTypeBuilder<Cart> builder)
     {
+        builder.ToTable("carts");
+
         builder.HasKey(x => x.Id);
 
-        builder.HasIndex(x => x.CustomerId)
-            .IsUnique();
+        //builder.HasIndex(x => x.CustomerId)
+        //    .IsUnique();
 
         builder.Property(x => x.CustomerId)
             .IsRequired();

@@ -2,16 +2,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using OrderSphere.Application.Abstraction;
 using OrderSphere.Domain.Entities;
-using OrderSphere.Domain.Outbox;
 
 namespace OrderSphere.Infrastructure.Persistence;
 
-public class OrderSphereDbContext(DbContextOptions<OrderSphereDbContext> options) : DbContext(options), IDbContext
+public sealed class OrderSphereDbContext(DbContextOptions<OrderSphereDbContext> options) : DbContext(options), IDbContext
 {
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
-    public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
 
@@ -20,7 +18,7 @@ public class OrderSphereDbContext(DbContextOptions<OrderSphereDbContext> options
     public async Task BeginTransactionAsync(CancellationToken ct = default)
     {
         if (dbContextTransaction != null)
-            throw new InvalidOperationException("No active transaction");
+            throw new InvalidOperationException("A transaction is already active");
 
         dbContextTransaction = await Database.BeginTransactionAsync(ct);
     }
@@ -32,7 +30,6 @@ public class OrderSphereDbContext(DbContextOptions<OrderSphereDbContext> options
 
         try
         {
-            // Persistiere Änderungen vor dem Commit
             await SaveChangesAsync(ct);
             await dbContextTransaction.CommitAsync(ct);
         }

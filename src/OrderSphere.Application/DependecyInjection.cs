@@ -1,9 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OrderSphere.Application;
 
@@ -17,8 +13,6 @@ public static class DependecyInjection
             cfg.RegisterServicesFromAssembly(typeof(DependecyInjection).Assembly);
         });
 
-
         return services;
     }
-
 }

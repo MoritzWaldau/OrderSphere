@@ -4,5 +4,6 @@ using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Application.Features.Order.CreateOrder;
 
-public sealed record CreateOrderCommand : ICommand<Result>;
+public sealed record CreateOrderCommand() 
+    : ICommand<Result>;
 

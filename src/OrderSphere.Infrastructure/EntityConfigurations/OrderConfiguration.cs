@@ -8,6 +8,8 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
 {
     public void Configure(EntityTypeBuilder<Order> builder)
     {
+        builder.ToTable("orders");
+
         builder.HasKey(o => o.Id);
 
         builder.Property(o => o.CustomerId)
@@ -26,5 +28,26 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasForeignKey("OrderId")
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.OwnsOne(o => o.ShippingAddress, address =>
+        {
+            address.Property(a => a.FirstName)
+                   .HasColumnName("shipping_first_name");
+        
+            address.Property(a => a.LastName)
+                   .HasColumnName("shipping_last_name");
+        
+            address.Property(a => a.Street)
+                   .HasColumnName("shipping_street");
+        
+            address.Property(a => a.City)
+                   .HasColumnName("shipping_city");
+        
+            address.Property(a => a.PostalCode)
+                   .HasColumnName("shipping_postal_code");
+        
+            address.Property(a => a.Country)
+                   .HasColumnName("shipping_country");
+        });
     }
 }

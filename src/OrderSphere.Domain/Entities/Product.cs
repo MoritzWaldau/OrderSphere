@@ -10,11 +10,19 @@ public sealed class Product(string name, string description, decimal price, int 
     public decimal Price { get; private set; } = price;
     public int Stock { get; private set; } = stock;
 
-    public void UpdateStock(int quantity)
+    public void AddToStock(int quantity)
     {
         if (quantity < 0 && Math.Abs(quantity) > Stock)
             throw new InvalidOperationException("Not enough stock");
 
         Stock += quantity;
+    }
+
+    public void RemoveFromStock(int quantity)
+    {
+        if (quantity < 0 && Math.Abs(quantity) > Stock)
+            throw new InvalidOperationException("Not enough stock");
+
+        Stock -= quantity;
     }
 }

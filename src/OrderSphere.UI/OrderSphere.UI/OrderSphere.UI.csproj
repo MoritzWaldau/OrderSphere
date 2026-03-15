@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\OrderSphere.Application\OrderSphere.Application.csproj" />
     <ProjectReference Include="..\..\OrderSphere.Infrastructure\OrderSphere.Infrastructure.csproj" />
     <ProjectReference Include="..\..\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
     <ProjectReference Include="..\OrderSphere.UI.Client\OrderSphere.UI.Client.csproj" />

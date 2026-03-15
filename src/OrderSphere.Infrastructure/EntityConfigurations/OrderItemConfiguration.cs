@@ -8,6 +8,8 @@ public sealed class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
 {
     public void Configure(EntityTypeBuilder<OrderItem> builder)
     {
+        builder.ToTable("orderitems");
+
         builder.HasKey(i => i.Id);
 
         builder.Property(i => i.ProductId)
@@ -20,7 +22,6 @@ public sealed class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
             .HasPrecision(18, 2)
             .IsRequired();
 
-        // Shadow-FK zur Order-Tabelle
         builder.HasOne<Order>()
             .WithMany(o => o.Items)
             .HasForeignKey("OrderId")

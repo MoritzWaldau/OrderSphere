@@ -20,7 +20,7 @@ public sealed class UpdateCartCommandHandler(IDbContext context, ILogger<UpdateC
 
             foreach (var item in request.Cart.Items)
             {
-                cart.AddItem(item.ProductId, item.Quantity);
+                cart.AddItem(new Domain.Entities.CartItem(item.ProductId, item.Quantity));
             }
 
             await context.CommitAsync(cancellationToken);

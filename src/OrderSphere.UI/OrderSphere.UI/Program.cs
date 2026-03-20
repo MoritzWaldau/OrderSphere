@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MudBlazor.Services;
 using OrderSphere.Application;
 using OrderSphere.Application.Abstraction;
 using OrderSphere.Application.Features.Checkout;
@@ -25,6 +26,8 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddApplicationServices(builder.Configuration)
     .AddInfrastructureServices(builder.Configuration);
+
+builder.Services.AddMudServices();
 
 var app = builder.Build();
 

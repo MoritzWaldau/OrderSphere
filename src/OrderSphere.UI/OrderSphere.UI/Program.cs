@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
@@ -101,6 +102,21 @@ app.MapGet("/GetProducts", async ([FromServices] IDbContext context) =>
         return Results.Ok(products);
     }
     return Results.BadRequest();
+});
+
+app.MapGet("/CreateProduct", async ([FromServices] IDbContext context) =>
+{
+    await context.BeginTransactionAsync();
+
+    for (int i = 1; i < 10; i++)
+    {
+        Product product = new($"Product {i}", $"Description for Product {i}", 9.99m + i, 10 + i);
+        await context.Products.AddAsync(product);
+    }
+
+    await context.CommitAsync();
+
+    return TypedResults.Ok("Products created successfully");
 });
 
 app.MapPost("/CheckoutCart", async ([FromServices] ISender sender, CheckoutCartDto checkouDto) =>

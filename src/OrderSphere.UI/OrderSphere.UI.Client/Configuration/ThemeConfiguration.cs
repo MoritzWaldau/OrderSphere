@@ -6,247 +6,158 @@ public static class ThemeConfiguration
 {
     public static MudTheme ApplicationTheme()
     {
-        var theme = new MudTheme()
+        return new MudTheme()
         {
             PaletteLight = new PaletteLight
             {
-                // **Primary Colors**
-                Primary = "#7C4DFF", // Adjusted purple, used for highlights and key elements
-                Secondary = "#9E9E9E", // Dark gray, secondary color
+                // 🌟 PRIMARY BRAND
+                Primary = "#6366F1",           // modern indigo (sehr beliebt aktuell)
+                PrimaryContrastText = "#FFFFFF",
 
-                // **Background and Surface**
-                Background = "#F5F5F5", // Standard light background color
-                Surface = "#FFFFFF", // Light gray, used for surfaces like cards
+                Secondary = "#64748B",         // slate gray
 
-                // **Text Colors**
-                TextPrimary = "#424242", // Dark gray, primary text color
-                TextSecondary = "#6D6D6D", // Medium gray, secondary text color
-                TextDisabled = "rgba(0,0,0,0.38)", // Semi-transparent black, disabled text color
+                // 🎨 BACKGROUND
+                Background = "#F8FAFC",        // sehr helles grau (moderner als #F5F5F5)
+                Surface = "#FFFFFF",
 
-                // **Accent Colors**
-                Success = "#4CAF50", // Green, used for success messages
-                Warning = "#FF9800", // Orange, used for warning messages
-                Error = "#F44336", // Red, used for error messages
-                Info = "#2196F3", // Blue, used for informational messages
+                // 📝 TEXT
+                TextPrimary = "#0F172A",       // fast schwarz (besser lesbar)
+                TextSecondary = "#475569",
+                TextDisabled = "rgba(15,23,42,0.38)",
 
-                // **Contrast Text for Accent Colors**
-                SuccessContrastText = "#FFFFFF", // White, text color for success messages
-                WarningContrastText = "#FFFFFF", // White, text color for warning messages
-                ErrorContrastText = "#FFFFFF", // White, text color for error messages
-                InfoContrastText = "#FFFFFF", // White, text color for informational messages
+                // ✅ STATES
+                Success = "#22C55E",
+                Warning = "#F59E0B",
+                Error = "#EF4444",
+                Info = "#3B82F6",
 
-                // **Dividers and Borders**
-                Divider = "rgba(0,0,0,0.12)", // Semi-transparent black, used for dividers
+                SuccessContrastText = "#FFFFFF",
+                WarningContrastText = "#FFFFFF",
+                ErrorContrastText = "#FFFFFF",
+                InfoContrastText = "#FFFFFF",
 
-                // **Hover and Ripple Effects**
-                HoverOpacity = 0.04, // Opacity for hover effects
-                RippleOpacity = 0.08, // Opacity for ripple effects
+                // 📏 UI
+                Divider = "#E2E8F0",
 
-                // **Overlay**
-                OverlayLight = "rgba(255,255,255,0.5)", // Semi-transparent white, used for overlays
+                // 🧊 EFFECTS
+                HoverOpacity = 0.04,
+                RippleOpacity = 0.06,
 
-                // **App Bar and Navigation**
-                AppbarBackground = "#FFFFFF", // Light surface
-                AppbarText = "#424242", // Dark gray, app bar text color
-                DrawerBackground = "#F5F5F5", // Light surface
-                DrawerText = "#424242", // Dark gray, drawer text color
+                // 🧱 LAYOUT
+                AppbarBackground = "#FFFFFF",
+                AppbarText = "#0F172A",
 
-                // **Contrast Text for Primary Color**
-                PrimaryContrastText = "#FFFFFF", // White, text on primary color
+                DrawerBackground = "#FFFFFF",
+                DrawerText = "#0F172A",
             },
 
             PaletteDark = new PaletteDark
             {
-                // **Primary Colors**
-                Primary = "#8a2be2", // Deep blue, used for highlights and key elements
-                Secondary = "#B0BEC5", // Light gray, secondary text color
+                // 🌟 PRIMARY
+                Primary = "#818CF8",           // helleres indigo für dark mode
+                PrimaryContrastText = "#0F172A",
 
-                // **Background and Surface**
-                Background = "#121212", // Standard dark mode background color
-                Surface = "#1E1E1E", // Slightly lighter dark gray, used for surfaces like cards
+                Secondary = "#94A3B8",
 
-                // **Text Colors**
-                TextPrimary = "#FFFFFF", // White, primary text color
-                TextSecondary = "#B0BEC5", // Light gray, secondary text color
-                TextDisabled = "rgba(255,255,255,0.38)", // Semi-transparent white, disabled text color
+                // 🎨 BACKGROUND
+                Background = "#0B1120",        // tiefes blau/schwarz (moderner als #121212)
+                Surface = "#111827",
 
-                // **Accent Colors**
-                Success = "#4CAF50", // Green, used for success messages
-                Warning = "#FFC107", // Amber, used for warning messages
-                Error = "#F44336", // Red, used for error messages
-                Info = "#2196F3", // Blue, used for informational messages
+                // 📝 TEXT
+                TextPrimary = "#E2E8F0",
+                TextSecondary = "#94A3B8",
+                TextDisabled = "rgba(226,232,240,0.38)",
 
-                // **Contrast Text for Accent Colors**
-                SuccessContrastText = "#FFFFFF", // White, text color for success messages
-                WarningContrastText = "#000000", // Black, text color for warning messages
-                ErrorContrastText = "#FFFFFF", // White, text color for error messages
-                InfoContrastText = "#FFFFFF", // White, text color for informational messages
+                // ✅ STATES
+                Success = "#22C55E",
+                Warning = "#FBBF24",
+                Error = "#F87171",
+                Info = "#60A5FA",
 
-                // **Dividers and Borders**
-                Divider = "rgba(255,255,255,0.12)", // Semi-transparent white, used for dividers
+                SuccessContrastText = "#FFFFFF",
+                WarningContrastText = "#000000",
+                ErrorContrastText = "#FFFFFF",
+                InfoContrastText = "#FFFFFF",
 
-                // **Hover and Ripple Effects**
-                HoverOpacity = 0.08, // Opacity for hover effects
-                RippleOpacity = 0.12, // Opacity for ripple effects
+                // 📏 UI
+                Divider = "#1F2937",
 
-                // **Overlay**
-                OverlayDark = "rgba(0,0,0,0.5)", // Semi-transparent black, used for overlays
-                OverlayLight = "rgba(30,30,30,0.4)",
-                // **App Bar and Navigation**
-                AppbarBackground = "#1E1E1E", // Same as surface color
-                AppbarText = "#FFFFFF", // White, app bar text color
-                DrawerBackground = "#1E1E1E", // Same as surface color
-                DrawerText = "#FFFFFF", // White, drawer text color
+                // 🧱 LAYOUT
+                AppbarBackground = "#111827",
+                AppbarText = "#E2E8F0",
 
-                // **Contrast Text for Primary Color**
-                PrimaryContrastText = "#FFFFFF", // White, text on primary color
+                DrawerBackground = "#111827",
+                DrawerText = "#E2E8F0",
 
-
+                // Overlay
+                OverlayDark = "rgba(0,0,0,0.6)",
+                OverlayLight = "rgba(17,24,39,0.5)"
             },
-            Shadows = new Shadow
-            {
-                Elevation =
-                [
-                    "none",
-            "0 2px 4px -1px rgba(6, 24, 44, 0.2)",
-            "0px 3px 1px -2px rgba(0,0,0,0.2),0px 2px 2px 0px rgba(0,0,0,0.14),0px 1px 5px 0px rgba(0,0,0,0.12)",
-            "0 30px 60px rgba(0,0,0,0.12)",
-            "0 6px 12px -2px rgba(50,50,93,0.25),0 3px 7px -3px rgba(0,0,0,0.3)",
-            "0 50px 100px -20px rgba(50,50,93,0.25),0 30px 60px -30px rgba(0,0,0,0.3)",
-            "0px 3px 5px -1px rgba(0,0,0,0.2),0px 6px 10px 0px rgba(0,0,0,0.14),0px 1px 18px 0px rgba(0,0,0,0.12)",
-            "0px 4px 5px -2px rgba(0,0,0,0.2),0px 7px 10px 1px rgba(0,0,0,0.14),0px 2px 16px 1px rgba(0,0,0,0.12)",
-            "0px 5px 5px -3px rgba(0,0,0,0.2),0px 8px 10px 1px rgba(0,0,0,0.14),0px 3px 14px 2px rgba(0,0,0,0.12)",
-            "0px 5px 6px -3px rgba(0,0,0,0.2),0px 9px 12px 1px rgba(0,0,0,0.14),0px 3px 16px 2px rgba(0,0,0,0.12)",
-            "0px 6px 6px -3px rgba(0,0,0,0.2),0px 10px 14px 1px rgba(0,0,0,0.14),0px 4px 18px 3px rgba(0,0,0,0.12)",
-            "0px 6px 7px -4px rgba(0,0,0,0.2),0px 11px 15px 1px rgba(0,0,0,0.14),0px 4px 20px 3px rgba(0,0,0,0.12)",
-            "0px 7px 8px -4px rgba(0,0,0,0.2),0px 12px 17px 2px rgba(0,0,0,0.14),0px 5px 22px 4px rgba(0,0,0,0.12)",
-            "0px 7px 8px -4px rgba(0,0,0,0.2),0px 13px 19px 2px rgba(0,0,0,0.14),0px 5px 24px 4px rgba(0,0,0,0.12)",
-            "0px 7px 9px -4px rgba(0,0,0,0.2),0px 14px 21px 2px rgba(0,0,0,0.14),0px 5px 26px 4px rgba(0,0,0,0.12)",
-            "0px 8px 9px -5px rgba(0,0,0,0.2),0px 15px 22px 2px rgba(0,0,0,0.14),0px 6px 28px 5px rgba(0,0,0,0.12)",
-            "0px 8px 10px -5px rgba(0,0,0,0.2),0px 16px 24px 2px rgba(0,0,0,0.14),0px 6px 30px 5px rgba(0,0,0,0.12)",
-            "0px 8px 11px -5px rgba(0,0,0,0.2),0px 17px 26px 2px rgba(0,0,0,0.14),0px 6px 32px 5px rgba(0,0,0,0.12)",
-            "0px 9px 11px -5px rgba(0,0,0,0.2),0px 18px 28px 2px rgba(0,0,0,0.14),0px 7px 34px 6px rgba(0,0,0,0.12)",
-            "0px 9px 12px -6px rgba(0,0,0,0.2),0px 19px 29px 2px rgba(0,0,0,0.14),0px 7px 36px 6px rgba(0,0,0,0.12)",
-            "0px 10px 13px -6px rgba(0,0,0,0.2),0px 20px 31px 3px rgba(0,0,0,0.14),0px 8px 38px 7px rgba(0,0,0,0.12)",
-            "0px 10px 13px -6px rgba(0,0,0,0.2),0px 21px 33px 3px rgba(0,0,0,0.14),0px 8px 40px 7px rgba(0,0,0,0.12)",
-            "0px 10px 14px -6px rgba(0,0,0,0.2),0px 22px 35px 3px rgba(0,0,0,0.14),0px 8px 42px 7px rgba(0,0,0,0.12)",
-            "0 50px 100px -20px rgba(50, 50, 93, 0.25), 0 30px 60px -30px rgba(0, 0, 0, 0.30)",
-            "2.8px 2.8px 2.2px rgba(0, 0, 0, 0.02),6.7px 6.7px 5.3px rgba(0, 0, 0, 0.028),12.5px 12.5px 10px rgba(0, 0, 0, 0.035),22.3px 22.3px 17.9px rgba(0, 0, 0, 0.042),41.8px 41.8px 33.4px rgba(0, 0, 0, 0.05),100px 100px 80px rgba(0, 0, 0, 0.07)",
-            "0px 0px 20px 0px rgba(0, 0, 0, 0.05)"
-                ]
-            },
+
+            // 🌫️ SHADOWS (viel moderner)
+
             LayoutProperties = new LayoutProperties
             {
-                DefaultBorderRadius = "4px",
-                AppbarHeight = "68px",
+                DefaultBorderRadius = "10px",   // moderner!
+                AppbarHeight = "72px"
             },
-            ZIndex = new ZIndex(),
+
+            // ✍️ TYPOGRAPHY (wichtiger als man denkt!)
             Typography = new Typography
             {
-
                 Default = new DefaultTypography
                 {
-                    FontSize = ".8125rem",
-                    FontWeight = "400",
-                    LineHeight = "1.4",
-                    LetterSpacing = "normal",
-                    FontFamily = ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Noto Sans", "Helvetica", "Arial", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji"]
+                    FontFamily = new[]
+                    {
+                    "Inter",
+                    "-apple-system",
+                    "BlinkMacSystemFont",
+                    "Segoe UI",
+                    "Roboto",
+                    "Arial",
+                    "sans-serif"
                 },
+                    FontSize = "0.875rem",
+                    LineHeight = "1.5"
+                },
+
                 H1 = new H1Typography
                 {
-                    FontSize = "2.2rem",
-                    FontWeight = "700",
-                    LineHeight = "2.5",
-                    LetterSpacing = "-.01562em"
+                    FontSize = "2.5rem",
+                    FontWeight = "700"
                 },
                 H2 = new H2Typography
                 {
                     FontSize = "2rem",
-                    FontWeight = "600",
-                    LineHeight = "2.3",
-                    LetterSpacing = "-.00833em"
+                    FontWeight = "600"
                 },
                 H3 = new H3Typography
                 {
                     FontSize = "1.75rem",
-                    FontWeight = "600",
-                    LineHeight = "2.2",
-                    LetterSpacing = "0"
+                    FontWeight = "600"
                 },
                 H4 = new H4Typography
                 {
                     FontSize = "1.5rem",
-                    FontWeight = "500",
-                    LineHeight = "2.2",
-                    LetterSpacing = ".00735em"
+                    FontWeight = "600"
                 },
                 H5 = new H5Typography
                 {
                     FontSize = "1.25rem",
-                    FontWeight = "500",
-                    LineHeight = "1.8",
-                    LetterSpacing = "0"
+                    FontWeight = "500"
                 },
                 H6 = new H6Typography
                 {
                     FontSize = "1rem",
-                    FontWeight = "500",
-                    LineHeight = "1.6",
-                    LetterSpacing = ".0075em"
+                    FontWeight = "500"
                 },
+
                 Button = new ButtonTypography
                 {
-                    FontSize = ".8125rem",
-                    FontWeight = "500",
-                    LineHeight = "1.75",
-                    LetterSpacing = ".02857em",
-                    TextTransform = "uppercase"
-                },
-                Subtitle1 = new Subtitle1Typography
-                {
-                    FontSize = ".875rem",
-                    FontWeight = "400",
-                    LineHeight = "1.5",
-                    LetterSpacing = "normal",
-                    FontFamily = ["Public Sans", "Roboto", "Arial", "sans-serif"]
-                },
-                Subtitle2 = new Subtitle2Typography
-                {
-                    FontSize = ".8125rem",
-                    FontWeight = "500",
-                    LineHeight = "1.57",
-                    LetterSpacing = ".00714em"
-                },
-                Body1 = new Body1Typography
-                {
-                    FontSize = "0.8125rem",
-                    FontWeight = "400",
-                    LineHeight = "1.5",
-                    LetterSpacing = ".00938em"
-                },
-                Body2 = new Body2Typography
-                {
-                    FontSize = ".75rem",
-                    FontWeight = "300",
-                    LineHeight = "1.43",
-                    LetterSpacing = ".01071em"
-                },
-                Caption = new CaptionTypography
-                {
-                    FontSize = "0.625rem",
-                    FontWeight = "400",
-                    LineHeight = "1.5",
-                    LetterSpacing = ".03333em"
-                },
-                Overline = new OverlineTypography
-                {
-                    FontSize = "0.625rem",
-                    FontWeight = "300",
-                    LineHeight = "2",
-                    LetterSpacing = ".08333em"
+                    FontWeight = "600",
+                    TextTransform = "none" // moderner als UPPERCASE
                 }
-            },
+            }
         };
-        return theme;
     }
 }

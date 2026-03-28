@@ -26,6 +26,7 @@ public sealed class GetProductQueryHandler(IDbContext context, ILogger<GetProduc
                 .ToListAsync(cancellationToken);
 
             
+            
             return Result<IEnumerable<ProductDto>>.Success(products);
         }
         catch (Exception ex)

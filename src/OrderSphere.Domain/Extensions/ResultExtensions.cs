@@ -13,4 +13,15 @@ public static class ResultExtensions
             ? onSuccess(result.Value)
             : onFailure(result.Error);
     }
+
+    public static void Match<T>(
+        this Result<T> result,
+        Action<T> onSuccess,
+        Action<Error> onFailure)
+    {
+        if (result.IsSuccess)
+            onSuccess(result.Value);
+        else
+            onFailure(result.Error);
+    }
 }

@@ -1,0 +1,13 @@
+﻿@page "/products"
+
+
+<MudGrid Justify="Justify.FlexStart">
+    @foreach (var product in products)
+    {
+        <MudItem xs="6" md="4">  
+            <MudPaper Class="d-flex flex-column align-center justify-center py-8">
+                <MudText Typo="Typo.h6" Align="Align.Center" Class="m-2">@product.Name</MudText>
+            </MudPaper>
+        </MudItem>
+    }
+    </MudGrid>

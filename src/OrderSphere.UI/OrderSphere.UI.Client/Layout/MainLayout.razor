@@ -1,26 +1,18 @@
-﻿@inherits LayoutComponentBase
+﻿@using OrderSphere.UI.Client.Configuration
+@inherits LayoutComponentBase
 
-<MudThemeProvider />
+<MudThemeProvider Theme="ThemeConfiguration.ApplicationTheme()" IsDarkMode="true" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 
 <MudLayout>
-    <MudAppBar Elevation="1">
-        <MudGrid>
-            <MudItem md="3">
-                <MudText Typo="Typo.h6" Align="Align.Start">OrderSphere</MudText>
-            </MudItem>
+    <AppBar/>
+    <NavMenu/>
 
-            <MudItem md="6">
-                <MudLink Href="/Products">Products</MudLink>
-            </MudItem>
-        </MudGrid>
-    </MudAppBar>
-
-    <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
+    <MudMainContent Style="padding-top:1.5rem !important">
+        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-10">
             @Body
         </MudContainer>
     </MudMainContent>

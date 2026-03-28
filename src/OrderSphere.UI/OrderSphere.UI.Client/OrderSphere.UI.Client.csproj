@@ -14,4 +14,8 @@
     <PackageReference Include="MudBlazor" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\OrderSphere.Application\OrderSphere.Application.csproj" />
+  </ItemGroup>
+
 </Project>

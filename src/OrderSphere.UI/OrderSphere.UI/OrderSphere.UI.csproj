@@ -19,8 +19,4 @@
     <PackageReference Include="Serilog.Sinks.OpenTelemetry" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Components\Loading\" />
-  </ItemGroup>
-
 </Project>

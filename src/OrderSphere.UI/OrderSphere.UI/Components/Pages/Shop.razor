@@ -97,7 +97,7 @@
                     <QuantityPopup IsOpen="_popupOpen"
                                    MaxQuantity="@(_selectedProduct?.Stock ?? 1)"
                                    OnCancel="ClosePopup"
-                                   OnConfirm="ConfirmAddToCart" />
+                                   OnConfirm="ConfirmAddToCartAsync" />
                 }
             </ChildContent>
 

@@ -18,9 +18,12 @@ public sealed class CartItemConfiguration : IEntityTypeConfiguration<CartItem>
         builder.Property(x => x.Quantity)
             .IsRequired();
 
+        builder.Property(x => x.CartId)
+            .IsRequired();
+
         builder.HasOne<Cart>()
             .WithMany(c => c.Items)
-            .HasForeignKey("CartId")
+            .HasForeignKey(ci => ci.CartId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

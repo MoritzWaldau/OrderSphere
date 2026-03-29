@@ -13,8 +13,9 @@
             CartItemCount="_cartItemCount" />
 
     <CartDrawer IsOpen="_cartOpen"
-                IsOpenChanged="val => _cartOpen = val"
-                OnItemCountChanged="count => _cartItemCount = count" />
+                IsOpenChanged="OnCartOpenChanged"
+                OnItemCountChanged="count => _cartItemCount = count"
+                CustomerId="_customerId" />
 
     <MudMainContent>
         @Body
@@ -28,6 +29,12 @@
 @code {
     private bool _cartOpen = false;
     private int _cartItemCount = 0;
+    private Guid _customerId = Guid.Parse("550e8400-e29b-41d4-a716-446655440000"); // TODO: Use real user ID from authentication
 
     private void ToggleCart() => _cartOpen = !_cartOpen;
+
+    private async Task OnCartOpenChanged(bool value)
+    {
+        _cartOpen = value;
+    }
 }

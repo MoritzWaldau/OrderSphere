@@ -1,5 +1,10 @@
 ﻿@using OrderSphere.Application.Models
+@using OrderSphere.UI.Services
+@using OrderSphere.Application.Features.Cart.GetCart
 @inject IJSRuntime JS
+@inject ICartService CartService
+@inject MediatR.ISender Sender
+@implements IAsyncDisposable
 
 <MudDrawer Open="IsOpen"
            OpenChanged="IsOpenChanged"
@@ -147,16 +152,48 @@
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
     [Parameter] public EventCallback<int> OnItemCountChanged { get; set; }
+    [Parameter] public Guid CustomerId { get; set; }
 
-    private List<CartItemViewModel> _items =
-    [
-        new() { ProductId = Guid.NewGuid(), ProductName = "iPhone 16 Pro", Price = 1199.99m, Quantity = 1 },
-        new() { ProductId = Guid.NewGuid(), ProductName = "MacBook Pro 14 Zoll M4", Price = 2499.99m, Quantity = 2 },
-        new() { ProductId = Guid.NewGuid(), ProductName = "MacBook Pro 14 Zoll M4 Pro", Price = 2999.99m, Quantity = 3 },
-        new() { ProductId = Guid.NewGuid(), ProductName = "MacBook Pro 16 Zoll M4 Max", Price = 3699.99m, Quantity = 4 },
-        new() { ProductId = Guid.NewGuid(), ProductName = "MacBook Pro 14 Zoll M5", Price = 3899.99m, Quantity = 3 },
-        new() { ProductId = Guid.NewGuid(), ProductName = "MacBook Pro 16 Zoll M5 Pro", Price = 4499.99m, Quantity = 7 },
-    ];
+    private List<CartItemViewModel> _items = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        CartService.OnCartUpdated += OnCartUpdated;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Load cart when drawer is opened
+        if (IsOpen && CustomerId != Guid.Empty)
+        {
+            await LoadCartAsync();
+        }
+    }
+
+    private async Task LoadCartAsync()
+    {
+        try
+        {
+            var result = await Sender.Send(new GetCartQuery(CustomerId));
+            if (result.IsSuccess)
+            {
+                CartService.UpdateCart(result.Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading cart: {ex.Message}");
+        }
+    }
+
+    private void OnCartUpdated(CartDto cart)
+    {
+        _items = cart.Items
+            .Select(item => CartItemViewModel.FromDto(item))
+            .ToList();
+        StateHasChanged();
+        _ = UpdateItemCount();
+    }
 
     private async Task IncreaseQuantity(CartItemViewModel item)
     {
@@ -202,5 +239,11 @@
         };
 
         public CardItemDto ToDto() => new(ProductId, ProductName, Price, Quantity);
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        CartService.OnCartUpdated -= OnCartUpdated;
+        await Task.CompletedTask;
     }
 }

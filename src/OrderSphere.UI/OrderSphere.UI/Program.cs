@@ -13,6 +13,7 @@ using OrderSphere.Infrastructure;
 using OrderSphere.Infrastructure.Persistence;
 using OrderSphere.UI;
 using OrderSphere.UI.Components;
+using OrderSphere.UI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +32,8 @@ builder.Services
     .AddInfrastructureServices(builder.Configuration);
 
 builder.Services.AddMudServices();
+
+builder.Services.AddScoped<ICartService, CartService>();
 
 var app = builder.Build();
 

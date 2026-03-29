@@ -11,25 +11,34 @@ public static class ThemeConfiguration
             PaletteLight = new PaletteLight
             {
                 // 🌟 PRIMARY BRAND
-                Primary = "#6366F1",           // modern indigo (sehr beliebt aktuell)
+                Primary = "#0071E3",                    // Apple Blau
                 PrimaryContrastText = "#FFFFFF",
+                PrimaryDarken = "#0051A8",
+                PrimaryLighten = "#3395FF",
 
-                Secondary = "#64748B",         // slate gray
+                Secondary = "#1D1D1F",                  // Apple Dunkelgrau (fast schwarz)
+                SecondaryContrastText = "#FFFFFF",
+                SecondaryDarken = "#000000",
+                SecondaryLighten = "#3D3D3F",
+
+                Tertiary = "#06C167",                   // Amazon Fresh Grün
+                TertiaryContrastText = "#FFFFFF",
 
                 // 🎨 BACKGROUND
-                Background = "#F8FAFC",        // sehr helles grau (moderner als #F5F5F5)
+                Background = "#FFFFFF",                 // Apple: reines Weiß
+                BackgroundGray = "#F5F5F7",            // Apple: sehr helles Grau für Sektionen
                 Surface = "#FFFFFF",
 
                 // 📝 TEXT
-                TextPrimary = "#0F172A",       // fast schwarz (besser lesbar)
-                TextSecondary = "#475569",
-                TextDisabled = "rgba(15,23,42,0.38)",
+                TextPrimary = "#1D1D1F",               // Apple: fast schwarz
+                TextSecondary = "#6E6E73",             // Apple: mittelgrau
+                TextDisabled = "rgba(29,29,31,0.30)",
 
                 // ✅ STATES
-                Success = "#22C55E",
-                Warning = "#F59E0B",
-                Error = "#EF4444",
-                Info = "#3B82F6",
+                Success = "#06C167",
+                Warning = "#FF9F0A",                   // Apple Warning Orange
+                Error = "#FF3B30",                     // Apple Rot
+                Info = "#0071E3",
 
                 SuccessContrastText = "#FFFFFF",
                 WarningContrastText = "#FFFFFF",
@@ -37,42 +46,68 @@ public static class ThemeConfiguration
                 InfoContrastText = "#FFFFFF",
 
                 // 📏 UI
-                Divider = "#E2E8F0",
+                Divider = "#D2D2D7",                   // Apple: helles Grau
+                DividerLight = "#E8E8ED",
 
                 // 🧊 EFFECTS
-                HoverOpacity = 0.04,
-                RippleOpacity = 0.06,
+                HoverOpacity = 0.06,
+                RippleOpacity = 0.08,
 
                 // 🧱 LAYOUT
-                AppbarBackground = "#FFFFFF",
-                AppbarText = "#0F172A",
+                AppbarBackground = "rgba(255,255,255,0.85)",  // Apple: Frosted Glass
+                AppbarText = "#1D1D1F",
 
                 DrawerBackground = "#FFFFFF",
-                DrawerText = "#0F172A",
+                DrawerText = "#1D1D1F",
+                DrawerIcon = "#1D1D1F",
+
+                // 🃏 CARDS / PAPER
+                LinesDefault = "#D2D2D7",
+                TableLines = "#D2D2D7",
+                TableStriped = "rgba(0,0,0,0.02)",
+                TableHover = "rgba(0,0,0,0.04)",
+
+                // 🔲 ACTION
+                ActionDefault = "#1D1D1F",
+                ActionDisabled = "rgba(29,29,31,0.30)",
+                ActionDisabledBackground = "rgba(29,29,31,0.08)",
+
+                // Overlay
+                OverlayDark = "rgba(0,0,0,0.5)",
+                OverlayLight = "rgba(255,255,255,0.7)",
             },
 
             PaletteDark = new PaletteDark
             {
                 // 🌟 PRIMARY
-                Primary = "#818CF8",           // helleres indigo für dark mode
-                PrimaryContrastText = "#0F172A",
+                Primary = "#2997FF",                   // Apple Blau Dark Mode
+                PrimaryContrastText = "#FFFFFF",
+                PrimaryDarken = "#0071E3",
+                PrimaryLighten = "#70BBFF",
 
-                Secondary = "#94A3B8",
+                Secondary = "#F5F5F7",                 // Apple: fast weiß im Dark Mode
+                SecondaryContrastText = "#1D1D1F",
+                SecondaryDarken = "#D2D2D7",
+                SecondaryLighten = "#FFFFFF",
+
+                Tertiary = "#06C167",
+                TertiaryContrastText = "#FFFFFF",
 
                 // 🎨 BACKGROUND
-                Background = "#0B1120",        // tiefes blau/schwarz (moderner als #121212)
-                Surface = "#111827",
+                Background = "#000000",                // Apple Dark: reines Schwarz
+                BackgroundGray = "#1C1C1E",           // Apple: dunkelgrau für Sektionen
+                Surface = "#1C1C1E",                  // Apple: Karten Hintergrund
 
                 // 📝 TEXT
-                TextPrimary = "#E2E8F0",
-                TextSecondary = "#94A3B8",
-                TextDisabled = "rgba(226,232,240,0.38)",
+                TextPrimary = "#F5F5F7",              // Apple: fast weiß
+                TextSecondary = "#98989D",            // Apple: mittelgrau dark
+                TextDisabled = "rgba(245,245,247,0.30)",
 
                 // ✅ STATES
-                Success = "#22C55E",
-                Warning = "#FBBF24",
-                Error = "#F87171",
-                Info = "#60A5FA",
+                Success = "#30D158",                  // Apple Grün Dark
+                Warning = "#FF9F0A",
+                Error = "#FF453A",                    // Apple Rot Dark
+                Info = "#2997FF",
 
                 SuccessContrastText = "#FFFFFF",
                 WarningContrastText = "#000000",
@@ -80,82 +115,152 @@ public static class ThemeConfiguration
                 InfoContrastText = "#FFFFFF",
 
                 // 📏 UI
-                Divider = "#1F2937",
+                Divider = "#3A3A3C",                  // Apple: dunkles Grau
+                DividerLight = "#2C2C2E",
+
+                // 🧊 EFFECTS
+                HoverOpacity = 0.08,
+                RippleOpacity = 0.10,
 
                 // 🧱 LAYOUT
-                AppbarBackground = "#111827",
-                AppbarText = "#E2E8F0",
+                AppbarBackground = "rgba(0,0,0,0.85)",       // Apple: Frosted Glass Dark
+                AppbarText = "#F5F5F7",
 
-                DrawerBackground = "#111827",
-                DrawerText = "#E2E8F0",
+                DrawerBackground = "#1C1C1E",
+                DrawerText = "#F5F5F7",
+                DrawerIcon = "#F5F5F7",
+
+                // 🃏 CARDS / PAPER
+                LinesDefault = "#3A3A3C",
+                TableLines = "#3A3A3C",
+                TableStriped = "rgba(255,255,255,0.02)",
+                TableHover = "rgba(255,255,255,0.04)",
+
+                // 🔲 ACTION
+                ActionDefault = "#F5F5F7",
+                ActionDisabled = "rgba(245,245,247,0.30)",
+                ActionDisabledBackground = "rgba(245,245,247,0.08)",
 
                 // Overlay
-                OverlayDark = "rgba(0,0,0,0.6)",
-                OverlayLight = "rgba(17,24,39,0.5)"
+                OverlayDark = "rgba(0,0,0,0.8)",
+                OverlayLight = "rgba(28,28,30,0.7)",
             },
-
-            // 🌫️ SHADOWS (viel moderner)
 
             LayoutProperties = new LayoutProperties
             {
-                DefaultBorderRadius = "10px",   // moderner!
-                AppbarHeight = "72px"
+                DefaultBorderRadius = "12px",          // Apple: sanfte Rundung
+                AppbarHeight = "72px",
             },
 
-            // ✍️ TYPOGRAPHY (wichtiger als man denkt!)
             Typography = new Typography
             {
                 Default = new DefaultTypography
                 {
                     FontFamily = new[]
                     {
-                    "Inter",
-                    "-apple-system",
-                    "BlinkMacSystemFont",
-                    "Segoe UI",
-                    "Roboto",
-                    "Arial",
-                    "sans-serif"
-                },
-                    FontSize = "0.875rem",
-                    LineHeight = "1.5"
+                        "Inter",
+                        "-apple-system",
+                        "BlinkMacSystemFont",
+                        "SF Pro Display",
+                        "Segoe UI",
+                        "Roboto",
+                        "Arial",
+                        "sans-serif"
+                    },
+                    FontSize = "0.9375rem",            // 15px – Apple Standard
+                    FontWeight = "400",
+                    LineHeight = "1.6"
                 },
 
                 H1 = new H1Typography
                 {
-                    FontSize = "2.5rem",
-                    FontWeight = "700"
+                    FontSize = "3rem",                 // 48px
+                    FontWeight = "700",
+                    LineHeight = "1.1",
+                    LetterSpacing = "-0.02em"          // Apple: enges Letter Spacing bei Headlines
                 },
                 H2 = new H2Typography
                 {
-                    FontSize = "2rem",
-                    FontWeight = "600"
+                    FontSize = "2.25rem",              // 36px
+                    FontWeight = "700",
+                    LineHeight = "1.15",
+                    LetterSpacing = "-0.015em"
                 },
                 H3 = new H3Typography
                 {
-                    FontSize = "1.75rem",
-                    FontWeight = "600"
+                    FontSize = "1.875rem",             // 30px
+                    FontWeight = "600",
+                    LineHeight = "1.2",
+                    LetterSpacing = "-0.01em"
                 },
                 H4 = new H4Typography
                 {
-                    FontSize = "1.5rem",
-                    FontWeight = "600"
+                    FontSize = "1.5rem",               // 24px
+                    FontWeight = "600",
+                    LineHeight = "1.25",
+                    LetterSpacing = "-0.01em"
                 },
                 H5 = new H5Typography
                 {
-                    FontSize = "1.25rem",
-                    FontWeight = "500"
+                    FontSize = "1.25rem",              // 20px
+                    FontWeight = "600",
+                    LineHeight = "1.3"
                 },
                 H6 = new H6Typography
                 {
+                    FontSize = "1.0625rem",            // 17px – Apple body large
+                    FontWeight = "600",
+                    LineHeight = "1.4"
+                },
+
+                Body1 = new Body1Typography
+                {
+                    FontSize = "0.9375rem",            // 15px
+                    FontWeight = "400",
+                    LineHeight = "1.6"
+                },
+                Body2 = new Body2Typography
+                {
+                    FontSize = "0.8125rem",            // 13px
+                    FontWeight = "400",
+                    LineHeight = "1.5"
+                },
+
+                Subtitle1 = new Subtitle1Typography
+                {
                     FontSize = "1rem",
-                    FontWeight = "500"
+                    FontWeight = "500",
+                    LineHeight = "1.5"
+                },
+                Subtitle2 = new Subtitle2Typography
+                {
+                    FontSize = "0.875rem",
+                    FontWeight = "500",
+                    LineHeight = "1.5"
+                },
+
+                Caption = new CaptionTypography
+                {
+                    FontSize = "0.75rem",              // 12px
+                    FontWeight = "400",
+                    LineHeight = "1.4",
+                    LetterSpacing = "0.01em"
                 },
 
                 Button = new ButtonTypography
                 {
-                    FontWeight = "600",
-                    TextTransform = "none" // moderner als UPPERCASE
+                    FontSize = "0.9375rem",
+                    FontWeight = "500",
+                    TextTransform = "none",            // Apple: kein Uppercase
+                    LetterSpacing = "0"
+                },
+
+                Overline = new OverlineTypography
+                {
+                    FontSize = "0.6875rem",            // 11px
+                    FontWeight = "500",
+                    LetterSpacing = "0.08em",
+                    LineHeight = "1.4"
                 }
             }
         };

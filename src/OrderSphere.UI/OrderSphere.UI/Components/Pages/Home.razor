@@ -1,154 +1,152 @@
 ﻿@page "/"
-@using OrderSphere.Application.Models
 
-<MudContainer>
+<!-- HERO -->
+<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 100px 0;">
+    <MudContainer>
+        <MudStack AlignItems="AlignItems.Center" Spacing="4">
+            <MudText Typo="Typo.h1" Align="Align.Center" Style="color: #FFFFFF; letter-spacing: -0.02em;">
+                Die beste Tech.<br />Zum besten Preis.
+            </MudText>
+            <MudText Typo="Typo.h5" Align="Align.Center" Style="color: rgba(255,255,255,0.85); font-weight: 400; max-width: 600px;">
+                Laptops, Tablets und Zubehör – schnell, zuverlässig und smart geliefert.
+            </MudText>
+            <MudStack Row="true" Spacing="3" Class="mt-4">
+                <MudButton Variant="Variant.Filled"
+                           Size="Size.Large"
+                           Href="/products"
+                           Style="background: #FFFFFF; color: #0071E3; font-weight: 600; padding: 12px 32px; border-radius: 100px;">
+                    Jetzt entdecken
+                </MudButton>
+                <MudButton Variant="Variant.Outlined"
+                           Size="Size.Large"
+                           Href="/products"
+                           Style="border-color: rgba(255,255,255,0.6); color: #FFFFFF; padding: 12px 32px; border-radius: 100px;">
+                    Mehr erfahren
+                </MudButton>
+            </MudStack>
+        </MudStack>
+    </MudContainer>
+</section>
 
-    <!-- HERO -->
-
-    <MudPaper Class="pa-10 mt-10 text-center" Elevation="0">
-        <MudText Typo="Typo.h3" Color="Color.Primary">
-            OrderSphere
+<!-- KATEGORIEN -->
+<section style="background: #F5F5F7; padding: 80px 0;">
+    <MudContainer>
+        <MudText Typo="Typo.h3" Align="Align.Center" Class="mb-2" Style="color: #1D1D1F;">
+            Kategorien
+        </MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-8" Style="color: #6E6E73;">
+            Finde genau das Gerät das du suchst
         </MudText>
 
-        <MudText Typo="Typo.h5" Class="mt-2">
-            Dein Shop für moderne IT-Geräte
+        <MudGrid Justify="Justify.Center">
+            @foreach (var category in _categories)
+            {
+                <MudItem xs="6" sm="3">
+                    <MudPaper Elevation="0"
+                              Class="pa-6 text-center"
+                              Style="border-radius: 16px; border: 1px solid #D2D2D7; background: #FFFFFF; cursor: pointer; transition: box-shadow 0.2s ease;"
+                              onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)'"
+                              onmouseout="this.style.boxShadow='none'">
+                        <MudText Style="font-size: 2.5rem;">@category.Icon</MudText>
+                        <MudText Typo="Typo.subtitle1" Class="mt-2" Style="color: #1D1D1F; font-weight: 600;">
+                            @category.Name
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudContainer>
+</section>
+
+<!-- BENEFITS -->
+<section style="background: #FFFFFF; padding: 80px 0;">
+    <MudContainer>
+        <MudText Typo="Typo.h3" Align="Align.Center" Class="mb-2" Style="color: #1D1D1F;">
+            Warum OrderSphere?
+        </MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-8" Style="color: #6E6E73;">
+            Wir machen Shopping einfach und sicher
         </MudText>
 
-        <MudText Class="mt-2">
-            Laptops, Tablets und Zubehör – schnell & zuverlässig
-        </MudText>
+        <MudGrid>
+            @foreach (var benefit in _benefits)
+            {
+                <MudItem xs="12" sm="6" md="3">
+                    <MudPaper Elevation="0"
+                              Class="pa-6 text-center"
+                              Style="border-radius: 16px; background: #F5F5F7; height: 100%;">
+                        <MudText Style="font-size: 2.5rem;">@benefit.Icon</MudText>
+                        <MudText Typo="Typo.h6" Class="mt-3" Style="color: #1D1D1F;">
+                            @benefit.Title
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="mt-1" Style="color: #6E6E73;">
+                            @benefit.Description
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudContainer>
+</section>
 
-        <MudButton Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   Size="Size.Large"
-                   Class="mt-6"
-                   Href="/products">
-            Jetzt entdecken
-        </MudButton>
-    </MudPaper>
+<!-- AI SECTION -->
+<section style="background: #1D1D1F; padding: 80px 0;">
+    <MudContainer>
+        <MudStack AlignItems="AlignItems.Center" Spacing="3">
+            <MudText Style="font-size: 2.5rem;">🤖</MudText>
+            <MudText Typo="Typo.h3" Align="Align.Center" Style="color: #F5F5F7;">
+                Dein persönlicher AI Assistant
+            </MudText>
+            <MudText Typo="Typo.body1" Align="Align.Center" Style="color: #98989D; max-width: 500px;">
+                Nicht sicher welches Gerät zu dir passt? Unser AI Assistant berät dich in Echtzeit.
+            </MudText>
+            <MudButton Variant="Variant.Filled"
+                       Size="Size.Large"
+                       Class="mt-2"
+                       Style="background: #0071E3; color: #FFFFFF; padding: 12px 32px; border-radius: 100px;">
+                Chat starten
+            </MudButton>
+        </MudStack>
+    </MudContainer>
+</section>
 
-    <!-- KATEGORIEN 
-    <MudText Typo="Typo.h4" Class="mt-10 mb-4">
-        Kategorien
-    </MudText>
+<!-- CTA -->
+<section style="background: linear-gradient(135deg, #0051A8 0%, #0071E3 100%); padding: 100px 0;">
+    <MudContainer>
+        <MudStack AlignItems="AlignItems.Center" Spacing="3">
+            <MudText Typo="Typo.h2" Align="Align.Center" Style="color: #FFFFFF;">
+                Bereit zu shoppen?
+            </MudText>
+            <MudText Typo="Typo.body1" Align="Align.Center" Style="color: rgba(255,255,255,0.8);">
+                Entdecke hunderte von IT-Geräten zu unschlagbaren Preisen.
+            </MudText>
+            <MudButton Variant="Variant.Filled"
+                       Size="Size.Large"
+                       Href="/products"
+                       Style="background: #FFFFFF; color: #0071E3; font-weight: 600; padding: 12px 32px; border-radius: 100px; margin-top: 8px;">
+                Jetzt starten
+            </MudButton>
+        </MudStack>
+    </MudContainer>
+</section>
 
-    <MudGrid>
-        <MudItem xs="6" md="3">
-            <MudCard Class="pa-4 text-center">
-                <MudText Typo="Typo.h6">💻</MudText>
-                <MudText>Laptops</MudText>
-            </MudCard>
-        </MudItem>
+@code {
+    private readonly List<CategoryItem> _categories =
+    [
+        new("💻", "Laptops"),
+        new("📱", "Smartphones"),
+        new("📟", "Tablets"),
+        new("🎧", "Zubehör"),
+    ];
 
-        <MudItem xs="6" md="3">
-            <MudCard Class="pa-4 text-center">
-                <MudText Typo="Typo.h6">📱</MudText>
-                <MudText>Smartphones</MudText>
-            </MudCard>
-        </MudItem>
+    private readonly List<BenefitItem> _benefits =
+    [
+        new("🚚", "Schneller Versand", "Lieferung in 1-2 Werktagen direkt zu dir."),
+        new("🔒", "Sichere Zahlung", "SSL-verschlüsselt und DSGVO-konform."),
+        new("⭐", "Top Qualität", "Nur geprüfte Markenprodukte im Sortiment."),
+        new("🤖", "AI Support", "24/7 Beratung durch unseren AI Assistant."),
+    ];
 
-        <MudItem xs="6" md="3">
-            <MudCard Class="pa-4 text-center">
-                <MudText Typo="Typo.h6">📟</MudText>
-                <MudText>Tablets</MudText>
-            </MudCard>
-        </MudItem>
-
-        <MudItem xs="6" md="3">
-            <MudCard Class="pa-4 text-center">
-                <MudText Typo="Typo.h6">🎧</MudText>
-                <MudText>Zubehör</MudText>
-            </MudCard>
-        </MudItem>
-    </MudGrid>
-
-    FEATURED PRODUKTE 
-    <MudText Typo="Typo.h4" Class="mt-10 mb-4">
-        Beliebte Produkte
-    </MudText>
-
-    <MudGrid>
-        @foreach (var product in FeaturedProducts)
-        {
-            <MudItem xs="12" sm="6" md="3">
-                <MudCard Class="pa-4">
-                    <MudText Typo="Typo.h6">@product.Name</MudText>
-                    <MudText>@product.Price €</MudText>
-
-                    <MudButton Variant="Variant.Outlined"
-                               Color="Color.Primary"
-                               Class="mt-2"
-                               OnClick="@(() => NavManager.NavigateTo("/products"))">
-                        Ansehen
-                    </MudButton>
-                </MudCard>
-            </MudItem>
-        }
-    </MudGrid> -->
-
-    <!-- BENEFITS -->
-    <MudText Typo="Typo.h4" Class="mt-10 mb-4">
-        Warum OrderSphere?
-    </MudText>
-
-    <MudGrid>
-        <MudItem xs="12" md="3">
-            <MudPaper Class="pa-4 text-center">
-                <MudText Typo="Typo.h6">🚚</MudText>
-                <MudText>Schneller Versand</MudText>
-            </MudPaper>
-        </MudItem>
-
-        <MudItem xs="12" md="3">
-            <MudPaper Class="pa-4 text-center">
-                <MudText Typo="Typo.h6">🔒</MudText>
-                <MudText>Sichere Zahlung</MudText>
-            </MudPaper>
-        </MudItem>
-
-        <MudItem xs="12" md="3">
-            <MudPaper Class="pa-4 text-center">
-                <MudText Typo="Typo.h6">⭐</MudText>
-                <MudText>Top Qualität</MudText>
-            </MudPaper>
-        </MudItem>
-
-        <MudItem xs="12" md="3">
-            <MudPaper Class="pa-4 text-center">
-                <MudText Typo="Typo.h6">🤖</MudText>
-                <MudText>AI Support</MudText>
-            </MudPaper>
-        </MudItem>
-    </MudGrid>
-
-    <!-- AI SECTION -->
-    <MudPaper Class="pa-8 text-center mt-10" Elevation="0">
-        <MudText Typo="Typo.h5">
-            Fragen? Unser AI Assistant hilft dir sofort.
-        </MudText>
-
-        <MudButton Variant="Variant.Outlined"
-                   Color="Color.Primary"
-                   Class="mt-4">
-            Chat starten
-        </MudButton>
-    </MudPaper>
-
-    <!-- CTA -->
-    <MudPaper Class="pa-10 text-center mt-10 mb-10">
-        <MudText Typo="Typo.h4">
-            Bereit zu shoppen?
-        </MudText>
-
-        <MudButton Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   Size="Size.Large"
-                   Class="mt-4"
-                   Href="/products">
-            Jetzt starten
-        </MudButton>
-    </MudPaper>
-
-</MudContainer>
-
-
+    private record CategoryItem(string Icon, string Name);
+    private record BenefitItem(string Icon, string Title, string Description);
+}

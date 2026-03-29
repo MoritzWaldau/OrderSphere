@@ -4,70 +4,101 @@
 
 <PageTitle>Produkte – OrderSphere</PageTitle>
 
-<MudContainer>
+<!-- PAGE HEADER -->
+<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 60px 0;">
+    <MudContainer>
+        <MudText Typo="Typo.h2" Align="Align.Center" Style="color: #FFFFFF; letter-spacing: -0.02em;">
+            Unsere Produkte
+        </MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center" Style="color: rgba(255,255,255,0.8); margin-top: 8px;">
+            Entdecke unsere Auswahl an hochwertigen IT-Geräten
+        </MudText>
+    </MudContainer>
+</section>
 
-    <MudText Typo="Typo.h4" Class="mb-6">Unsere Produkte</MudText>
+<!-- PRODUCTS -->
+<section style="background: #F5F5F7; padding: 60px 0; min-height: 60vh;">
+    <MudContainer>
 
-    <LoadingWrapper IsLoading="IsLoading">
-        <Loading>
-            <ProductsSkeleton/>
-        </Loading>
+        <LoadingWrapper IsLoading="IsLoading">
 
-        <ChildContent>
-            @if (!_products.Any())
-            {
-                <MudAlert Severity="Severity.Error">
-                    Keine Produkte vorhanden.
-                </MudAlert>
-            }
-            else
-            {
-                <MudGrid>
-                    @foreach (var product in _products)
-                    {
-                        <MudItem xs="12" sm="6" md="4">
-                            <MudCard Outlined="true" Class="h-100 product-card">
+            <Loading>
+                <ProductsSkeleton />
+            </Loading>
 
-                                <MudPaper Outlined="false"
-                                          Class="d-flex align-center justify-center product-image"
-                                          Style="height: 180px; background-color: var(--mud-palette-background-grey);">
-                                    <MudIcon Icon="@Icons.Material.Filled.Devices"
-                                             Style="font-size: 4rem;"
-                                             Color="Color.Secondary" />
+            <ChildContent>
+                @if (!_products.Any())
+                {
+                    <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="min-height: 40vh;">
+                        <MudText Style="font-size: 3rem;">📦</MudText>
+                        <MudText Typo="Typo.h5" Style="color: #1D1D1F;">Keine Produkte vorhanden</MudText>
+                        <MudText Typo="Typo.body1" Style="color: #6E6E73;">
+                            Schau später nochmal vorbei.
+                        </MudText>
+                    </MudStack>
+                }
+                else
+                {
+                    <MudGrid>
+                        @foreach (var product in _products)
+                        {
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudPaper Elevation="0"
+                                          Class="product-card"
+                                          Style="border-radius: 16px; overflow: hidden; background: #FFFFFF; border: 1px solid #D2D2D7; height: 100%; display: flex; flex-direction: column; transition: box-shadow 0.25s ease, transform 0.25s ease;"
+                                          onmouseover="this.style.boxShadow='0 12px 32px rgba(0,0,0,0.12)'; this.style.transform='translateY(-4px)'"
+                                          onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)'">
+
+                                    <!-- Bild -->
+                                    <div class="product-image-wrapper">
+                                        <div style="height: 200px; background: linear-gradient(135deg, #F5F5F7 0%, #E8E8ED 100%); display: flex; align-items: center; justify-content: center;">
+                                            <MudIcon Icon="@Icons.Material.Filled.Devices"
+                                                     Style="font-size: 5rem; color: #D2D2D7;" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Content -->
+                                    <div style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
+                                        <MudText Typo="Typo.h6" Style="color: #1D1D1F; font-weight: 600;">
+                                            @product.Name
+                                        </MudText>
+                                        <MudText Typo="Typo.body2" Style="color: #6E6E73; margin-top: 6px; flex: 1;">
+                                            @product.Description
+                                        </MudText>
+
+                                        <MudDivider Class="my-3" />
+
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                            <MudStack Spacing="0">
+                                                <MudText Typo="Typo.h6" Style="color: #0071E3; font-weight: 700;">
+                                                    @product.Price.ToString("C")
+                                                </MudText>
+                                                <MudText Typo="Typo.caption" Style="@(product.Stock > 0 ? "color: #06C167;" : "color: #FF3B30;")">
+                                                    @(product.Stock > 0 ? $"✓ {product.Stock} verfügbar" : "✕ Ausverkauft")
+                                                </MudText>
+                                            </MudStack>
+
+                                            <MudIconButton Icon="@Icons.Material.Filled.AddShoppingCart"
+                                                           Disabled="@(product.Stock == 0)"
+                                                           OnClick="@(() => OpenQuantityPopup(product))"
+                                                           Style="background: #0071E3; color: #FFFFFF; border-radius: 50%;"
+                                                           Size="Size.Medium" />
+                                        </MudStack>
+                                    </div>
+
                                 </MudPaper>
+                            </MudItem>
+                        }
+                    </MudGrid>
 
-                                <MudCardContent>
-                                    <MudText Typo="Typo.h6">@product.Name</MudText>
-                                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
-                                        @product.Description
-                                    </MudText>
-                                </MudCardContent>
+                    <QuantityPopup IsOpen="_popupOpen"
+                                   MaxQuantity="@(_selectedProduct?.Stock ?? 1)"
+                                   OnCancel="ClosePopup"
+                                   OnConfirm="ConfirmAddToCart" />
+                }
+            </ChildContent>
 
-                                <MudCardActions Class="justify-space-between px-4 pb-3">
-                                    <MudText Typo="Typo.h6" Color="Color.Primary">
-                                        @product.Price.ToString("C")
-                                    </MudText>
-                                    <MudButton Variant="Variant.Outlined"
-                                               Color="Color.Primary"
-                                               StartIcon="@Icons.Material.Filled.AddShoppingCart"
-                                               Disabled="@(product.Stock == 0)"
-                                               OnClick="@(() => OpenQuantityPopup(product))">
-                                        @(product.Stock == 0 ? "Ausverkauft" : "In den Warenkorb")
-                                    </MudButton>
-                                </MudCardActions>
+        </LoadingWrapper>
 
-                            </MudCard>
-                        </MudItem>
-                    }
-                </MudGrid>
-
-                <QuantityPopup IsOpen="_popupOpen"
-                               MaxQuantity="@(_selectedProduct?.Stock ?? 1)"
-                               OnCancel="ClosePopup"
-                               OnConfirm="ConfirmAddToCart" />
-            }
-        </ChildContent>
-
-    </LoadingWrapper>
-
-</MudContainer>
+    </MudContainer>
+</section>

@@ -139,34 +139,33 @@
 @code {
     private readonly List<FooterLink> _shopLinks =
     [
-        new("Startseite", "/"),
-        new("Produkte", "/products"),
-        new("Angebote", "/offers"),
+        new("Home", "/"),
+        new("Shop", "/shop"),
         new("Deals", "/deals"),
     ];
 
     private readonly List<FooterLink> _categoryLinks =
     [
-        new("Laptops", "/categories/laptops"),
-        new("Smartphones", "/categories/smartphones"),
-        new("Tablets", "/categories/tablets"),
-        new("Zubehör", "/categories/accessories"),
+        new("Laptops", "/shop/categories/laptops"),
+        new("Smartphones", "/shop/categories/smartphones"),
+        new("Tablets", "/shop/categories/tablets"),
+        new("Accessories", "/shop/categories/accessories"),
     ];
 
     private readonly List<FooterLink> _legalLinks =
     [
-        new("Impressum", "/imprint"),
-        new("Datenschutz", "/privacy"),
+        new("Imprint", "/imprint"),
+        new("Privacy", "/privacy"),
         new("Cookies", "/cookies"),
-        new("AGB", "/terms"),
+        new("Terms", "/terms"),
     ];
 
     private readonly List<FooterLink> _supportLinks =
     [
         new("AI Assistant", "/assistant"),
-        new("Kontakt", "/contact"),
+        new("Contact", "/contact"),
         new("FAQ", "/faq"),
-        new("Rückgabe", "/returns"),
+        new("Returns", "/returns"),
     ];
 
     private record FooterLink(string Label, string Href);

@@ -8,8 +8,11 @@ using OrderSphere.UI.Configuration;
 
 namespace OrderSphere.UI.Components.Pages;
 
-public partial class Products : OrderSphereComponentBase
+public partial class Shop : OrderSphereComponentBase
 {
+    [Parameter]
+    public string Category { get; set; } = string.Empty;
+
     private IEnumerable<ProductDto> _products = [];
     private bool _popupOpen = false;
     private ProductDto? _selectedProduct;

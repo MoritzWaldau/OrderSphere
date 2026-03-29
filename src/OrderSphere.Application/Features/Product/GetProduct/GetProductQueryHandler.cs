@@ -14,7 +14,9 @@ public sealed class GetProductQueryHandler(IDbContext context, ILogger<GetProduc
     {
         try
         {
-            var products = await context.Products.Where(p => p.Stock > 0)
+            var products = await context.Products
+                .Include(p => p.Category)
+                .Where(p => p.Stock > 0 && p.IsActive)
                 .Select(p => new ProductDto
                 {
                     Id = p.Id,
@@ -22,11 +24,15 @@ public sealed class GetProductQueryHandler(IDbContext context, ILogger<GetProduc
                     Description = p.Description,
                     Price = p.Price,
                     Stock = p.Stock,
+                    CategoryId = p.CategoryId,
+                    CategoryName = p.Category!.Name,
+                    SKU = p.SKU,
+                    IsActive = p.IsActive,
                 })
                 .ToListAsync(cancellationToken);
 
-            
-            
+
+
             return Result<IEnumerable<ProductDto>>.Success(products);
         }
         catch (Exception ex)

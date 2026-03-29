@@ -6,6 +6,7 @@ namespace OrderSphere.Application.Abstraction;
 public interface IDbContext
 {
     public DbSet<Product> Products { get; }
+    public DbSet<Category> Categories { get; }
     public DbSet<Order> Orders { get; }
     public DbSet<OrderItem> OrderItems { get; }
     public DbSet<Cart> Carts { get; }

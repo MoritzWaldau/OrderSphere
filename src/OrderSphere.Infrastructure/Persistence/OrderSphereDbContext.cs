@@ -8,6 +8,7 @@ namespace OrderSphere.Infrastructure.Persistence;
 public sealed class OrderSphereDbContext(DbContextOptions<OrderSphereDbContext> options) : DbContext(options), IDbContext
 {
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<Category> Categories => Set<Category>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Cart> Carts => Set<Cart>();
@@ -32,6 +33,10 @@ public sealed class OrderSphereDbContext(DbContextOptions<OrderSphereDbContext> 
         {
             await SaveChangesAsync(ct);
             await dbContextTransaction.CommitAsync(ct);
+        }
+        catch
+        {
+
         }
         finally
         {

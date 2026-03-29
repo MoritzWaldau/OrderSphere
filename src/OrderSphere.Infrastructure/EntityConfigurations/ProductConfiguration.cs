@@ -25,5 +25,25 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.Property(p => p.Stock)
             .IsRequired();
+
+        builder.Property(p => p.SKU)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder.HasIndex(p => p.SKU)
+            .IsUnique()
+            .HasDatabaseName("IX_products_sku");
+
+        builder.Property(p => p.CategoryId)
+            .IsRequired();
+
+        builder.Property(p => p.IsActive)
+            .IsRequired()
+            .HasDefaultValue(true);
+
+        builder.HasOne(p => p.Category)
+            .WithMany()
+            .HasForeignKey(p => p.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

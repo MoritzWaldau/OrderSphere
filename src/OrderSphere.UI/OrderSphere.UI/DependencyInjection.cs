@@ -1,6 +1,5 @@
 ﻿using MudBlazor;
 using MudBlazor.Services;
-using OrderSphere.UI.Services;
 using Serilog;
 using System.Globalization;
 
@@ -35,7 +34,6 @@ public static class DependencyInjection
         //});
         //
 
-        services.AddScoped<CartStateService>();
         services.ConfigureMudBlazor();
         return services;
     }

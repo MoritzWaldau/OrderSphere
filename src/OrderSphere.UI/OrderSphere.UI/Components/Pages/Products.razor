@@ -26,34 +26,45 @@
                     @foreach (var product in _products)
                     {
                         <MudItem xs="12" sm="6" md="4">
-                            <MudCard Outlined="true" Class="h-100">
+                            <MudCard Outlined="true" Class="h-100 product-card">
+
                                 <MudPaper Outlined="false"
-                                          Class="d-flex align-center justify-center"
+                                          Class="d-flex align-center justify-center product-image"
                                           Style="height: 180px; background-color: var(--mud-palette-background-grey);">
                                     <MudIcon Icon="@Icons.Material.Filled.Devices"
                                              Style="font-size: 4rem;"
                                              Color="Color.Secondary" />
                                 </MudPaper>
+
                                 <MudCardContent>
                                     <MudText Typo="Typo.h6">@product.Name</MudText>
                                     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
                                         @product.Description
                                     </MudText>
                                 </MudCardContent>
+
                                 <MudCardActions Class="justify-space-between px-4 pb-3">
                                     <MudText Typo="Typo.h6" Color="Color.Primary">
                                         @product.Price.ToString("C")
                                     </MudText>
-                                    <MudChip T="string"
-                                             Color="@(product.Stock > 0 ? Color.Success : Color.Error)"
-                                             Size="Size.Small">
-                                        @(product.Stock > 0 ? $"{product.Stock} verfügbar" : "Ausverkauft")
-                                    </MudChip>
+                                    <MudButton Variant="Variant.Outlined"
+                                               Color="Color.Primary"
+                                               StartIcon="@Icons.Material.Filled.AddShoppingCart"
+                                               Disabled="@(product.Stock == 0)"
+                                               OnClick="@(() => OpenQuantityPopup(product))">
+                                        @(product.Stock == 0 ? "Ausverkauft" : "In den Warenkorb")
+                                    </MudButton>
                                 </MudCardActions>
+
                             </MudCard>
                         </MudItem>
                     }
                 </MudGrid>
+
+                <QuantityPopup IsOpen="_popupOpen"
+                               MaxQuantity="@(_selectedProduct?.Stock ?? 1)"
+                               OnCancel="ClosePopup"
+                               OnConfirm="ConfirmAddToCart" />
             }
         </ChildContent>
 

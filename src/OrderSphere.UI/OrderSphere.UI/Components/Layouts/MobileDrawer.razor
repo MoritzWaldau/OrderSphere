@@ -2,67 +2,51 @@
            Anchor="Anchor.Left"
            Elevation="0"
            Variant="DrawerVariant.Temporary"
-           CloseOnEscapeKey="true"
-           Style="border-right: 1px solid #D2D2D7;">
+           CloseOnEscapeKey="true">
 
-    <!-- Header -->
-    <div style="padding: 24px 20px 16px 20px; border-bottom: 1px solid #F5F5F7;">
-        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-            <MudLink Href="/" Underline="Underline.None">
-                <MudText Typo="Typo.h6" Style="color: #1D1D1F; font-weight: 700;">
-                    OrderSphere
-                </MudText>
-            </MudLink>
-            <MudIconButton Icon="@Icons.Material.Filled.Close"
-                           OnClick="@(() => IsOpenChanged.InvokeAsync(false))"
-                           Style="background: #F5F5F7; border-radius: 50%; width: 32px; height: 32px;" />
-        </MudStack>
+    <div class="pa-6 d-flex align-center justify-space-between" style="border-bottom: 1px solid var(--mud-palette-divider);">
+        <MudLink Href="/" Underline="Underline.None">
+            <MudText Typo="Typo.h6" Style="font-weight: 700;">OrderSphere</MudText>
+        </MudLink>
+        <MudIconButton Icon="@Icons.Material.Filled.Close"
+                       OnClick="@(() => IsOpenChanged.InvokeAsync(false))"
+                       Class="mud-background-gray rounded-circle" />
     </div>
 
-    <!-- Nav Links -->
-    <div style="padding: 12px 12px; flex: 1;">
-        <MudText Typo="Typo.caption" Style="color: #6E6E73; padding: 8px 12px; font-weight: 600; letter-spacing: 0.08em;">
-            MENÜ
+    <div class="pa-3 flex-grow-1">
+        <MudText Typo="Typo.overline" Color="Color.Secondary" Class="px-3 pb-2">
+            Menü
         </MudText>
 
         @foreach (var item in _navItems)
         {
-            <MudLink Href="@item.Href" Underline="Underline.None">
-                <div style="display: flex; align-items: center; padding: 12px; border-radius: 12px; margin-bottom: 4px; cursor: pointer; transition: background 0.15s ease;"
-                     onmouseover="this.style.background='#F5F5F7'"
-                     onmouseout="this.style.background='transparent'">
-                    <MudIcon Icon="@item.Icon" Style="color: #0071E3; font-size: 1.25rem;" />
-                    <MudText Typo="Typo.body1" Style="color: #1D1D1F; font-weight: 500; margin-left: 12px;">
-                        @item.Label
-                    </MudText>
-                </div>
+            <MudLink Href="@item.Href" Underline="Underline.None" Class="mobile-nav-item">
+                <MudIcon Icon="@item.Icon" Color="Color.Primary" Class="mr-3" />
+                <MudText Typo="Typo.body1" Style="font-weight: 500; color: var(--mud-palette-text-primary);">
+                    @item.Label
+                </MudText>
             </MudLink>
         }
 
         <MudDivider Class="my-3" />
 
-        <MudText Typo="Typo.caption" Style="color: #6E6E73; padding: 8px 12px; font-weight: 600; letter-spacing: 0.08em;">
-            KONTO
+        <MudText Typo="Typo.overline" Color="Color.Secondary" Class="px-3 pb-2">
+            Konto
         </MudText>
 
         @foreach (var item in _accountItems)
         {
-            <MudLink Href="@item.Href" Underline="Underline.None">
-                <div style="display: flex; align-items: center; padding: 12px; border-radius: 12px; margin-bottom: 4px; cursor: pointer; transition: background 0.15s ease;"
-                     onmouseover="this.style.background='#F5F5F7'"
-                     onmouseout="this.style.background='transparent'">
-                    <MudIcon Icon="@item.Icon" Style="color: #6E6E73; font-size: 1.25rem;" />
-                    <MudText Typo="Typo.body1" Style="color: #1D1D1F; font-weight: 500; margin-left: 12px;">
-                        @item.Label
-                    </MudText>
-                </div>
+            <MudLink Href="@item.Href" Underline="Underline.None" Class="mobile-nav-item">
+                <MudIcon Icon="@item.Icon" Color="Color.Secondary" Class="mr-3" />
+                <MudText Typo="Typo.body1" Style="font-weight: 500; color: var(--mud-palette-text-primary);">
+                    @item.Label
+                </MudText>
             </MudLink>
         }
     </div>
 
-    <!-- Footer -->
-    <div style="padding: 16px 20px; border-top: 1px solid #F5F5F7;">
-        <MudText Typo="Typo.caption" Style="color: #6E6E73;">
+    <div class="pa-4" style="border-top: 1px solid var(--mud-palette-divider);">
+        <MudText Typo="Typo.caption" Color="Color.Secondary">
             © @DateTime.Now.Year OrderSphere
         </MudText>
     </div>
@@ -76,7 +60,7 @@
     private readonly List<NavItem> _navItems =
     [
         new(Icons.Material.Filled.Home, "Startseite", "/"),
-        new(Icons.Material.Filled.Devices, "Produkte", "/products"),
+        new(Icons.Material.Filled.Devices, "Shop", "/shop"),
         new(Icons.Material.Filled.Category, "Kategorien", "/categories"),
         new(Icons.Material.Filled.LocalOffer, "Angebote", "/offers"),
     ];

@@ -1,63 +1,38 @@
 ﻿@using OrderSphere.UI.Configuration
 
-<MudAppBar Elevation="0"
-           Fixed="true"
-           Style="background: rgba(255,255,255,0.85); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid #D2D2D7;">
+<MudAppBar Elevation="0" Fixed="true" Class="header-appbar">
 
-    <!-- Mobile: Burger -->
     <MudHidden Breakpoint="Breakpoint.MdAndUp">
         <MudIconButton Icon="@Icons.Material.Filled.Menu"
                        OnClick="ToggleDrawer"
-                       Style="color: #1D1D1F;" />
+                       Color="Color.Dark" />
     </MudHidden>
 
-    <!-- Logo -->
     <MudLink Href="/" Underline="Underline.None">
-        <MudText Typo="Typo.h5" Style="color: #1D1D1F; font-weight: 700; letter-spacing: -0.01em;">
+        <MudText Typo="Typo.h6" Style="color: var(--mud-palette-text-primary); font-weight: 700;">
             OrderSphere
         </MudText>
     </MudLink>
 
     <MudSpacer />
 
-    <!-- Desktop Navigation -->
     <MudHidden Breakpoint="Breakpoint.SmAndDown">
-        <MudButton Variant="Variant.Text"
-                   Href="/shop"
-                   Style="color: #1D1D1F; font-weight: 400; font-size: 0.9375rem;">
-            Shop
-        </MudButton>
-        <MudButton Variant="Variant.Text"
-                   Href="/categories"
-                   Style="color: #1D1D1F; font-weight: 400; font-size: 0.9375rem;">
-            Kategorien
-        </MudButton>
-        <MudButton Variant="Variant.Text"
-                   Href="/offers"
-                   Style="color: #1D1D1F; font-weight: 400; font-size: 0.9375rem;">
-            Angebote
-        </MudButton>
+        <MudButton Variant="Variant.Text" Href="/shop" Color="Color.Dark">Shop</MudButton>
+        <MudButton Variant="Variant.Text" Href="/categories" Color="Color.Dark">Kategorien</MudButton>
+        <MudButton Variant="Variant.Text" Href="/offers" Color="Color.Dark">Angebote</MudButton>
     </MudHidden>
 
     <MudSpacer />
 
-    <!-- Actions -->
-    <MudIconButton Icon="@Icons.Material.Outlined.Search"
-                   Href="/search"
-                   Style="color: #1D1D1F;" />
+    <MudIconButton Icon="@Icons.Material.Outlined.Search" Href="/search" Color="Color.Dark" />
 
-    <MudBadge Content="@CartItemCount"
-              Color="Color.Error"
-              Overlap="true"
-              Visible="@(CartItemCount > 0)">
+    <MudBadge Content="@CartItemCount" Color="Color.Error" Overlap="true" Visible="@(CartItemCount > 0)">
         <MudIconButton Icon="@Icons.Material.Outlined.ShoppingCart"
                        OnClick="OnCartToggle"
-                       Style="color: #1D1D1F;" />
+                       Color="Color.Dark" />
     </MudBadge>
 
-    <MudIconButton Icon="@Icons.Material.Outlined.AccountCircle"
-                   Href="/account"
-                   Style="color: #1D1D1F;" />
+    <MudIconButton Icon="@Icons.Material.Outlined.AccountCircle" Href="/account" Color="Color.Dark" />
 
 </MudAppBar>
 

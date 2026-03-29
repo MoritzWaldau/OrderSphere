@@ -1,26 +1,27 @@
 ﻿@page "/"
 
 <!-- HERO -->
-<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 100px 0;">
+<section class="section-hero">
     <MudContainer>
         <MudStack AlignItems="AlignItems.Center" Spacing="4">
-            <MudText Typo="Typo.h1" Align="Align.Center" Style="color: #FFFFFF; letter-spacing: -0.02em;">
+            <MudText Typo="Typo.h1" Align="Align.Center" Style="color: #FFFFFF;">
                 Die beste Tech.<br />Zum besten Preis.
             </MudText>
-            <MudText Typo="Typo.h5" Align="Align.Center" Style="color: rgba(255,255,255,0.85); font-weight: 400; max-width: 600px;">
+            <MudText Typo="Typo.h5" Align="Align.Center"
+                     Style="color: rgba(255,255,255,0.85); font-weight: 400; max-width: 600px;">
                 Laptops, Tablets und Zubehör – schnell, zuverlässig und smart geliefert.
             </MudText>
             <MudStack Row="true" Spacing="3" Class="mt-4">
                 <MudButton Variant="Variant.Filled"
                            Size="Size.Large"
                            Href="/products"
-                           Style="background: #FFFFFF; color: #0071E3; font-weight: 600; padding: 12px 32px; border-radius: 100px;">
+                           Class="btn-pill-white">
                     Jetzt entdecken
                 </MudButton>
                 <MudButton Variant="Variant.Outlined"
                            Size="Size.Large"
                            Href="/products"
-                           Style="border-color: rgba(255,255,255,0.6); color: #FFFFFF; padding: 12px 32px; border-radius: 100px;">
+                           Class="btn-pill-outline-white">
                     Mehr erfahren
                 </MudButton>
             </MudStack>
@@ -29,26 +30,21 @@
 </section>
 
 <!-- KATEGORIEN -->
-<section style="background: #F5F5F7; padding: 80px 0;">
+<section class="section-gray">
     <MudContainer>
-        <MudText Typo="Typo.h3" Align="Align.Center" Class="mb-2" Style="color: #1D1D1F;">
+        <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">
             Kategorien
         </MudText>
-        <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-8" Style="color: #6E6E73;">
+        <MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Secondary" Class="mb-8">
             Finde genau das Gerät das du suchst
         </MudText>
-
         <MudGrid Justify="Justify.Center">
             @foreach (var category in _categories)
             {
                 <MudItem xs="6" sm="3">
-                    <MudPaper Elevation="0"
-                              Class="pa-6 text-center"
-                              Style="border-radius: 16px; border: 1px solid #D2D2D7; background: #FFFFFF; cursor: pointer; transition: box-shadow 0.2s ease;"
-                              onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)'"
-                              onmouseout="this.style.boxShadow='none'">
+                    <MudPaper Class="pa-6 text-center category-card" Elevation="0">
                         <MudText Style="font-size: 2.5rem;">@category.Icon</MudText>
-                        <MudText Typo="Typo.subtitle1" Class="mt-2" Style="color: #1D1D1F; font-weight: 600;">
+                        <MudText Typo="Typo.subtitle1" Class="mt-2" Style="font-weight: 600;">
                             @category.Name
                         </MudText>
                     </MudPaper>
@@ -59,27 +55,23 @@
 </section>
 
 <!-- BENEFITS -->
-<section style="background: #FFFFFF; padding: 80px 0;">
+<section class="section-white">
     <MudContainer>
-        <MudText Typo="Typo.h3" Align="Align.Center" Class="mb-2" Style="color: #1D1D1F;">
+        <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">
             Warum OrderSphere?
         </MudText>
-        <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-8" Style="color: #6E6E73;">
+        <MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Secondary" Class="mb-8">
             Wir machen Shopping einfach und sicher
         </MudText>
-
         <MudGrid>
             @foreach (var benefit in _benefits)
             {
                 <MudItem xs="12" sm="6" md="3">
-                    <MudPaper Elevation="0"
-                              Class="pa-6 text-center"
-                              Style="border-radius: 16px; background: #F5F5F7; height: 100%;">
+                    <MudPaper Class="pa-6 text-center mud-height-full" Elevation="0"
+                              Style="background: var(--mud-palette-background-grey); border-radius: 16px;">
                         <MudText Style="font-size: 2.5rem;">@benefit.Icon</MudText>
-                        <MudText Typo="Typo.h6" Class="mt-3" Style="color: #1D1D1F;">
-                            @benefit.Title
-                        </MudText>
-                        <MudText Typo="Typo.body2" Class="mt-1" Style="color: #6E6E73;">
+                        <MudText Typo="Typo.h6" Class="mt-3">@benefit.Title</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
                             @benefit.Description
                         </MudText>
                     </MudPaper>
@@ -90,7 +82,7 @@
 </section>
 
 <!-- AI SECTION -->
-<section style="background: #1D1D1F; padding: 80px 0;">
+<section class="section-dark">
     <MudContainer>
         <MudStack AlignItems="AlignItems.Center" Spacing="3">
             <MudText Style="font-size: 2.5rem;">🤖</MudText>
@@ -101,9 +93,9 @@
                 Nicht sicher welches Gerät zu dir passt? Unser AI Assistant berät dich in Echtzeit.
             </MudText>
             <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
                        Size="Size.Large"
-                       Class="mt-2"
-                       Style="background: #0071E3; color: #FFFFFF; padding: 12px 32px; border-radius: 100px;">
+                       Class="btn-pill mt-2">
                 Chat starten
             </MudButton>
         </MudStack>
@@ -111,7 +103,7 @@
 </section>
 
 <!-- CTA -->
-<section style="background: linear-gradient(135deg, #0051A8 0%, #0071E3 100%); padding: 100px 0;">
+<section class="section-cta">
     <MudContainer>
         <MudStack AlignItems="AlignItems.Center" Spacing="3">
             <MudText Typo="Typo.h2" Align="Align.Center" Style="color: #FFFFFF;">
@@ -123,7 +115,7 @@
             <MudButton Variant="Variant.Filled"
                        Size="Size.Large"
                        Href="/products"
-                       Style="background: #FFFFFF; color: #0071E3; font-weight: 600; padding: 12px 32px; border-radius: 100px; margin-top: 8px;">
+                       Class="btn-pill-white mt-2">
                 Jetzt starten
             </MudButton>
         </MudStack>

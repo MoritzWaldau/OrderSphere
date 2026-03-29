@@ -1,5 +1,6 @@
 ﻿@page "/products"
-@rendermode InteractiveServer
+@using OrderSphere.UI.Components.Component.Loading
+@inherits OrderSphereComponentBase
 
 <PageTitle>Produkte – OrderSphere</PageTitle>
 
@@ -7,64 +8,55 @@
 
     <MudText Typo="Typo.h4" Class="mb-6">Unsere Produkte</MudText>
 
-    @if (_loading)
-    {
-        <MudGrid>
-            @for (int i = 0; i < 8; i++)
+    <LoadingWrapper IsLoading="IsLoading">
+        <Loading>
+            <ProductsSkeleton/>
+        </Loading>
+
+        <ChildContent>
+            @if (!_products.Any())
             {
-                <MudItem xs="12" sm="6" md="4" lg="4">
-                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" />
-                    <MudSkeleton Width="60%" Class="mt-2" />
-                    <MudSkeleton Width="40%" />
-                </MudItem>
+                <MudAlert Severity="Severity.Error">
+                    Keine Produkte vorhanden.
+                </MudAlert>
             }
-        </MudGrid>
-    }
-    else if (!_products.Any())
-    {
-        <MudAlert Severity="Severity.Info">
-            Keine Produkte vorhanden.
-        </MudAlert>
-    }
-    else
-    {
-        <MudGrid>
-            @foreach (var product in _products)
+            else
             {
-                <MudItem xs="12" sm="6" md="4" lg="4">
-                    <MudCard Outlined="true" Class="h-100">
-                        <!--<MudCardMedia Image="/placeholder.png" Height="180" />-->
-
-                        <MudPaper Outlined="false"
-                                  Class="d-flex align-center justify-center"
-                                  Style="height: 180px; background-color: var(--mud-palette-background-grey);">
-                            <MudIcon Icon="@Icons.Material.Filled.Devices"
-                                     Style="font-size: 4rem;"
-                                     Color="Color.Secondary" />
-                        </MudPaper>
-
-
-
-                        <MudCardContent>
-                            <MudText Typo="Typo.h6">@product.Name</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
-                                @product.Description
-                            </MudText>
-                        </MudCardContent>
-                        <MudCardActions Class="justify-space-between px-4 pb-3">
-                            <MudText Typo="Typo.h6" Color="Color.Primary">
-                                @product.Price.ToString("C")
-                            </MudText>
-                            <MudChip T="string"
-                                     Color="@(product.Stock > 0 ? Color.Success : Color.Error)"
-                                     Size="Size.Small">
-                                @(product.Stock > 0 ? $"{product.Stock} verfügbar" : "Ausverkauft")
-                            </MudChip>
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
+                <MudGrid>
+                    @foreach (var product in _products)
+                    {
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudCard Outlined="true" Class="h-100">
+                                <MudPaper Outlined="false"
+                                          Class="d-flex align-center justify-center"
+                                          Style="height: 180px; background-color: var(--mud-palette-background-grey);">
+                                    <MudIcon Icon="@Icons.Material.Filled.Devices"
+                                             Style="font-size: 4rem;"
+                                             Color="Color.Secondary" />
+                                </MudPaper>
+                                <MudCardContent>
+                                    <MudText Typo="Typo.h6">@product.Name</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                                        @product.Description
+                                    </MudText>
+                                </MudCardContent>
+                                <MudCardActions Class="justify-space-between px-4 pb-3">
+                                    <MudText Typo="Typo.h6" Color="Color.Primary">
+                                        @product.Price.ToString("C")
+                                    </MudText>
+                                    <MudChip T="string"
+                                             Color="@(product.Stock > 0 ? Color.Success : Color.Error)"
+                                             Size="Size.Small">
+                                        @(product.Stock > 0 ? $"{product.Stock} verfügbar" : "Ausverkauft")
+                                    </MudChip>
+                                </MudCardActions>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
             }
-        </MudGrid>
-    }
+        </ChildContent>
+
+    </LoadingWrapper>
 
 </MudContainer>

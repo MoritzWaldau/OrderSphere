@@ -1,0 +1,55 @@
+﻿@using OrderSphere.UI.Configuration
+
+<MudAppBar Elevation="1" Color="Color.Primary" Dense="false" Fixed="true">
+
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       OnClick="ToggleDrawer" />
+    </MudHidden>
+
+    <MudLink Href="/" Underline="Underline.None" Color="Color.Inherit">
+        <MudText Typo="Typo.h6">OrderSphere</MudText>
+    </MudLink>
+
+    <MudSpacer />
+
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <MudButton Variant="Variant.Text" Href="/products" Color="Color.Inherit">
+            Produkte
+        </MudButton>
+        <MudButton Variant="Variant.Text" Href="/categories" Color="Color.Inherit">
+            Kategorien
+        </MudButton>
+        <MudButton Variant="Variant.Text" Href="/offers" Color="Color.Inherit">
+            Angebote
+        </MudButton>
+    </MudHidden>
+
+    <MudSpacer />
+
+    <MudIconButton Icon="@Icons.Material.Filled.Search" Href="/search" Color="Color.Inherit" />
+
+    <MudBadge Content="@CartItemCount"
+              Color="Color.Error"
+              Overlap="true"
+              Visible="@(CartItemCount > 0)">
+        <MudIconButton Icon="@Icons.Material.Filled.ShoppingCart"
+                       Color="Color.Inherit"
+                       OnClick="OnCartToggle" />
+    </MudBadge>
+
+    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Href="/account" Color="Color.Inherit" />
+
+</MudAppBar>
+
+<MobileDrawer IsOpen="_drawerOpen" IsOpenChanged="val => _drawerOpen = val" />
+
+@code {
+    [Parameter] public bool IsCartOpen { get; set; }
+    [Parameter] public EventCallback OnCartToggle { get; set; }
+    [Parameter] public int CartItemCount { get; set; }
+
+    private bool _drawerOpen = false;
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+}

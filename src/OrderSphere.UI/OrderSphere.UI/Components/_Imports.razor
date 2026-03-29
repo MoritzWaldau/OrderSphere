@@ -7,8 +7,16 @@
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Microsoft.JSInterop
 @using OrderSphere.UI
-@using OrderSphere.UI.Client
-@using OrderSphere.UI.Client.Layout
 @using OrderSphere.UI.Components
+@using OrderSphere.UI.Components.Layouts
 
 @using MudBlazor
+@using OrderSphere.UI.Components.Component
+@using OrderSphere.UI.Configuration
+
+@using OrderSphere.Application.Models
+@using OrderSphere.UI.Services
+
+@inject NavigationManager NavManager
+@inject ISnackbar Snackbar
+

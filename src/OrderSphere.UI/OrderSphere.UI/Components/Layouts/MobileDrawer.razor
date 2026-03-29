@@ -1,0 +1,42 @@
+﻿<MudDrawer @bind-Open="IsOpen"
+           Anchor="Anchor.Left"
+           Elevation="2"
+           Variant="DrawerVariant.Temporary"
+           CloseOnEscapeKey="true">
+
+    <MudDrawerHeader>
+        <MudLink Href="/" Underline="Underline.None" Color="Color.Primary">
+            <MudText Typo="Typo.h6">OrderSphere</MudText>
+        </MudLink>
+    </MudDrawerHeader>
+
+    <MudNavMenu>
+        <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">
+            Startseite
+        </MudNavLink>
+        <MudNavLink Href="/products" Icon="@Icons.Material.Filled.Devices">
+            Produkte
+        </MudNavLink>
+        <MudNavLink Href="/categories" Icon="@Icons.Material.Filled.Category">
+            Kategorien
+        </MudNavLink>
+        <MudNavLink Href="/offers" Icon="@Icons.Material.Filled.LocalOffer">
+            Angebote
+        </MudNavLink>
+
+        <MudDivider Class="my-2" />
+
+        <MudNavLink Href="/cart" Icon="@Icons.Material.Filled.ShoppingCart">
+            Warenkorb
+        </MudNavLink>
+        <MudNavLink Href="/account" Icon="@Icons.Material.Filled.AccountCircle">
+            Mein Konto
+        </MudNavLink>
+    </MudNavMenu>
+
+</MudDrawer>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+}

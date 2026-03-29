@@ -1,0 +1,71 @@
+﻿@inherits LayoutComponentBase
+@using OrderSphere.UI.Configuration
+
+<MudThemeProvider Theme="ThemeConfiguration.ApplicationTheme()" IsDarkMode="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+
+    <Header IsCartOpen="_cartOpen"
+            OnCartToggle="ToggleCart"
+            CartItemCount="_cartItemCount" />
+
+    <CartDrawer IsOpen="_cartOpen"
+                IsOpenChanged="val => _cartOpen = val"
+                OnItemCountChanged="count => _cartItemCount = count" />
+
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+
+    <!-- Footer -->
+    <MudPaper Class="pa-6 mt-10" Elevation="0" Style="border-top: 1px solid #eee;">
+        <MudGrid>
+            <MudItem xs="12" md="4">
+                <MudLink Href="/" Underline="Underline.None" Color="Color.Primary">
+                    <MudText Typo="Typo.h6" Color="Color.Primary">OrderSphere</MudText>
+                </MudLink>
+                <MudText Class="mt-2">
+                    Dein Shop für moderne IT-Geräte.
+                    Schnell, zuverlässig und smart.
+                </MudText>
+            </MudItem>
+            <MudItem xs="6" md="2">
+                <MudText Typo="Typo.subtitle1">Shop</MudText>
+                <MudLink Href="/products">Produkte</MudLink><br />
+                <MudLink Href="/">Startseite</MudLink><br />
+                <MudLink Href="/offers">Deals</MudLink>
+            </MudItem>
+            <MudItem xs="6" md="2">
+                <MudText Typo="Typo.subtitle1">Kategorien</MudText>
+                <MudLink Href="/categories/laptops">Laptops</MudLink><br />
+                <MudLink Href="/categories/tablets">Tablets</MudLink><br />
+                <MudLink Href="/categories/accessories">Zubehör</MudLink>
+            </MudItem>
+            <MudItem xs="12" md="2">
+                <MudText Typo="Typo.subtitle1">Rechtliches</MudText>
+                <MudLink Href="/imprint">Impressum</MudLink><br />
+                <MudLink Href="/privacy">Datenschutz</MudLink>
+            </MudItem>
+            <MudItem xs="12" md="2">
+                <MudText Typo="Typo.subtitle1">Support</MudText>
+                <MudText>🤖 AI Assistant</MudText>
+                <MudText>📧 support@ordersphere.dev</MudText>
+            </MudItem>
+        </MudGrid>
+        <MudDivider Class="my-4" />
+        <MudText Align="Align.Center" Typo="Typo.caption">
+            © @DateTime.Now.Year OrderSphere — Alle Rechte vorbehalten
+        </MudText>
+    </MudPaper>
+
+</MudLayout>
+
+@code {
+    private bool _cartOpen = false;
+    private int _cartItemCount = 0;
+
+    private void ToggleCart() => _cartOpen = !_cartOpen;
+}

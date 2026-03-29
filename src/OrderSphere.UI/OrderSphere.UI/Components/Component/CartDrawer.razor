@@ -1,0 +1,157 @@
+﻿@using OrderSphere.Application.Models
+@inject IJSRuntime JS
+
+<MudDrawer Open="IsOpen"
+           OpenChanged="IsOpenChanged"
+           Anchor="Anchor.Right"
+           Elevation="2"
+           Variant="DrawerVariant.Temporary"
+           Width="380px"
+           Style="height: 100vh;">
+
+    <MudDrawerHeader Class="d-flex align-center justify-space-between" Style="flex-shrink: 0;">
+        <MudText Typo="Typo.h6">Warenkorb</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Close"
+                       OnClick="@(() => IsOpenChanged.InvokeAsync(false))" />
+    </MudDrawerHeader>
+
+    <MudDivider Style="flex-shrink: 0;" />
+
+    @if (!_items.Any())
+    {
+        <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-8" Style="flex: 1;">
+            <MudIcon Icon="@Icons.Material.Filled.ShoppingCart"
+                     Style="font-size: 4rem;"
+                     Color="Color.Secondary" />
+            <MudText Typo="Typo.body1" Class="mt-4" Align="Align.Center">
+                Dein Warenkorb ist leer.
+            </MudText>
+        </MudStack>
+    }
+    else
+    {
+        <div style="flex: 1; overflow-y: auto; overflow-x: hidden; align-content: start;">
+            <MudList T="CartItemViewModel" Class="px-2" Style="padding-top: 0;">
+                @foreach (var item in _items)
+                {
+                    <MudListItem T="CartItemViewModel">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+
+                            <MudPaper Outlined="true"
+                                      Class="d-flex align-center justify-center"
+                                      Style="width: 56px; height: 56px; min-width: 56px;">
+                                <MudIcon Icon="@Icons.Material.Filled.Devices" Color="Color.Secondary" />
+                            </MudPaper>
+
+                            <MudStack Spacing="0" Style="flex: 1; margin: 0 12px;">
+                                <MudText Typo="Typo.body1">@item.ProductName</MudText>
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mt-1">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Remove"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => DecreaseQuantity(item))" />
+                                    <MudText Typo="Typo.body2">@item.Quantity</MudText>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Add"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => IncreaseQuantity(item))" />
+                                </MudStack>
+                            </MudStack>
+
+                            <MudStack AlignItems="AlignItems.End" Spacing="0">
+                                <MudText Typo="Typo.body1" Color="Color.Primary">
+                                    @((item.Price * item.Quantity).ToString("C"))
+                                </MudText>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Size="Size.Small"
+                                               Color="Color.Error"
+                                               OnClick="@(() => RemoveItem(item))" />
+                            </MudStack>
+
+                        </MudStack>
+                    </MudListItem>
+                    <MudDivider />
+                }
+            </MudList>
+        </div>
+
+        <div style="flex-shrink: 0;">
+            <MudDivider />
+            <MudStack Class="pa-4" Spacing="3">
+                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.h6">Gesamt</MudText>
+                    <MudText Typo="Typo.h6" Color="Color.Primary">
+                        @_items.Sum(x => x.Price * x.Quantity).ToString("C")
+                    </MudText>
+                </MudStack>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           FullWidth="true"
+                           Href="/checkout">
+                    Zur Kasse
+                </MudButton>
+            </MudStack>
+        </div>
+    }
+
+</MudDrawer>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public EventCallback<int> OnItemCountChanged { get; set; }
+
+    private List<CartItemViewModel> _items =
+    [
+        new() { ProductId = Guid.NewGuid(), ProductName = "iPhone 16 Pro", Price = 1199.99m, Quantity = 1 },
+        new() { ProductId = Guid.NewGuid(), ProductName = "MacBook Pro 14 Zoll M4", Price = 2499.99m, Quantity = 2 },
+        new() { ProductId = Guid.NewGuid(), ProductName = "MacBook Pro 14 Zoll M4 Pro", Price = 2999.99m, Quantity = 3 },
+        new() { ProductId = Guid.NewGuid(), ProductName = "MacBook Pro 16 Zoll M4 Max", Price = 3699.99m, Quantity = 4 },
+        new() { ProductId = Guid.NewGuid(), ProductName = "MacBook Pro 14 Zoll M5", Price = 3899.99m, Quantity = 3 },
+        new() { ProductId = Guid.NewGuid(), ProductName = "MacBook Pro 16 Zoll M5 Pro", Price = 4499.99m, Quantity = 7 },
+    ];
+
+    private async Task IncreaseQuantity(CartItemViewModel item)
+    {
+        item.Quantity++;
+        await UpdateItemCount();
+    }
+
+    private async Task DecreaseQuantity(CartItemViewModel item)
+    {
+        if (item.Quantity <= 1) await RemoveItem(item);
+        else item.Quantity--;
+        await UpdateItemCount();
+    }
+
+    private async Task RemoveItem(CartItemViewModel item)
+    {
+        _items.Remove(item);
+        await UpdateItemCount();
+    }
+
+    private async Task UpdateItemCount() =>
+        await OnItemCountChanged.InvokeAsync(_items.Sum(x => x.Quantity));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var method = IsOpen ? "lock" : "unlock";
+        await JS.InvokeVoidAsync(method);
+    }
+
+    private class CartItemViewModel
+    {
+        public Guid ProductId { get; init; }
+        public string ProductName { get; init; } = string.Empty;
+        public decimal Price { get; init; }
+        public int Quantity { get; set; }
+
+        public static CartItemViewModel FromDto(CardItemDto dto) => new()
+        {
+            ProductId = dto.ProductId,
+            ProductName = dto.ProductName,
+            Price = dto.Price,
+            Quantity = dto.Quantity
+        };
+
+        public CardItemDto ToDto() => new(ProductId, ProductName, Price, Quantity);
+    }
+}

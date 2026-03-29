@@ -1,6 +1,6 @@
 ﻿using MudBlazor;
 
-namespace OrderSphere.UI.Client.Configuration;
+namespace OrderSphere.UI.Configuration;
 
 public static class ThemeConfiguration
 {

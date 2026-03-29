@@ -21,9 +21,9 @@ builder.AddServiceDefaults()
     .AddServiceBus();
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents()
-    .AddInteractiveWebAssemblyComponents();
+builder.Services
+    .AddRazorComponents()
+    .AddInteractiveServerComponents();
 
 builder.Services
     .AddServices(builder.Configuration)
@@ -36,17 +36,10 @@ var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseWebAssemblyDebugging();
-}
-else
-{
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
+
+app.UseExceptionHandler("/Error", createScopeForErrors: true);
+app.UseHsts();
+
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
@@ -56,6 +49,16 @@ app.UseAntiforgery();
 using var scope = app.Services.CreateScope();
 var dbContext = scope.ServiceProvider.GetRequiredService<OrderSphereDbContext>();
 dbContext.Database.EnsureCreated();
+
+await dbContext.BeginTransactionAsync();
+
+for (int i = 1; i <= 21; i++)
+{
+    Product product = new($"Product {i}", $"Description for Product {i}", 9.99m + i, 10 + i);
+    await dbContext.Products.AddAsync(product);
+}
+
+await dbContext.CommitAsync();
 
 
 app.MapGet("/Test", async ([FromServices] IDbContext context) =>
@@ -110,7 +113,7 @@ app.MapGet("/CreateProduct", async ([FromServices] IDbContext context) =>
 {
     await context.BeginTransactionAsync();
 
-    for (int i = 1; i < 10; i++)
+    for (int i = 1; i <= 21; i++)
     {
         Product product = new($"Product {i}", $"Description for Product {i}", 9.99m + i, 10 + i);
         await context.Products.AddAsync(product);
@@ -130,8 +133,6 @@ app.MapPost("/CheckoutCart", async ([FromServices] ISender sender, CheckoutCartD
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode()
-    .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(OrderSphere.UI.Client._Imports).Assembly);
+    .AddInteractiveServerRenderMode();
 
 app.Run();

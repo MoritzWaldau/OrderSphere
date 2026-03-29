@@ -1,3 +1,3 @@
 ﻿namespace OrderSphere.Application.Models;
 
-public sealed record CardItemDto(Guid ProductId, int Quantity);
+public sealed record CardItemDto(Guid ProductId, string ProductName, decimal Price, int Quantity);

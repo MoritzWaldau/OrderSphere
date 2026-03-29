@@ -1,7 +1,6 @@
-﻿using Azure.Messaging.ServiceBus;
-using Microsoft.EntityFrameworkCore;
-using MudBlazor;
+﻿using MudBlazor;
 using MudBlazor.Services;
+using OrderSphere.UI.Services;
 using Serilog;
 using System.Globalization;
 
@@ -35,6 +34,8 @@ public static class DependencyInjection
         //    return new ServiceBusClient(connectionString);
         //});
         //
+
+        services.AddScoped<CartStateService>();
         services.ConfigureMudBlazor();
         return services;
     }

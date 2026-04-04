@@ -1,0 +1,223 @@
+﻿@page "/account/profile"
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>Mein Profil – OrderSphere</PageTitle>
+
+<AuthorizeView>
+    <NotAuthorized>
+        <RedirectToLogin />
+    </NotAuthorized>
+    <Authorized>
+        <section class="section-gray" style="min-height: 100vh; padding: 40px 0;">
+            <MudContainer MaxWidth="MaxWidth.Small">
+
+                <!-- Header -->
+                <MudStack AlignItems="AlignItems.Center" Class="mb-8">
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0071E3, #0051A8); display: flex; align-items: center; justify-content: center;">
+                        <MudText Style="font-size: 2rem; color: #FFFFFF; font-weight: 700;">
+                            @_initials
+                        </MudText>
+                    </div>
+                    <MudText Typo="Typo.h5" Style="font-weight: 700;" Class="mt-3">
+                        @_user?.FirstName @_user?.LastName
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        @_user?.Email
+                    </MudText>
+                </MudStack>
+
+                <!-- Name ändern -->
+                <MudPaper Elevation="0" Class="pa-6 mb-4" Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;" Class="mb-4">
+                        Persönliche Daten
+                    </MudText>
+                    <MudStack Spacing="3">
+                        <MudStack Row="true" Spacing="3">
+                            <MudTextField @bind-Value="_nameModel.FirstName"
+                                          Label="Vorname"
+                                          Variant="Variant.Outlined"
+                                          FullWidth="true" />
+                            <MudTextField @bind-Value="_nameModel.LastName"
+                                          Label="Nachname"
+                                          Variant="Variant.Outlined"
+                                          FullWidth="true" />
+                        </MudStack>
+
+                        @if (_nameError is not null)
+                        {
+                            <MudAlert Severity="Severity.Error" Dense="true">@_nameError</MudAlert>
+                        }
+                        @if (_nameSuccess)
+                        {
+                            <MudAlert Severity="Severity.Success" Dense="true">Name erfolgreich geändert.</MudAlert>
+                        }
+
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Class="btn-pill"
+                                   OnClick="HandleNameChange"
+                                   Disabled="_nameLoading">
+                            @if (_nameLoading)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            }
+                            Speichern
+                        </MudButton>
+                    </MudStack>
+                </MudPaper>
+
+                <!-- Email ändern -->
+                <MudPaper Elevation="0" Class="pa-6 mb-4" Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;" Class="mb-4">
+                        E-Mail Adresse
+                    </MudText>
+                    <MudStack Spacing="3">
+                        <MudTextField @bind-Value="_emailModel.NewEmail"
+                                      Label="Neue E-Mail"
+                                      Variant="Variant.Outlined"
+                                      InputType="InputType.Email"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Outlined.Email"
+                                      FullWidth="true" />
+
+                        @if (_emailError is not null)
+                        {
+                            <MudAlert Severity="Severity.Error" Dense="true">@_emailError</MudAlert>
+                        }
+                        @if (_emailSuccess)
+                        {
+                            <MudAlert Severity="Severity.Success" Dense="true">E-Mail erfolgreich geändert.</MudAlert>
+                        }
+
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Class="btn-pill"
+                                   OnClick="HandleEmailChange"
+                                   Disabled="_emailLoading">
+                            @if (_emailLoading)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            }
+                            E-Mail ändern
+                        </MudButton>
+                    </MudStack>
+                </MudPaper>
+
+                <!-- Passwort ändern -->
+                <MudPaper Elevation="0" Class="pa-6 mb-4" Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;" Class="mb-4">
+                        Passwort ändern
+                    </MudText>
+                    <MudStack Spacing="3">
+                        <MudTextField @bind-Value="_passwordModel.CurrentPassword"
+                                      Label="Aktuelles Passwort"
+                                      Variant="Variant.Outlined"
+                                      InputType="@_currentPasswordType"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@_currentPasswordIcon"
+                                      OnAdornmentClick="() => _showCurrentPassword = !_showCurrentPassword"
+                                      FullWidth="true" />
+
+                        <MudTextField @bind-Value="_passwordModel.NewPassword"
+                                      Label="Neues Passwort"
+                                      Variant="Variant.Outlined"
+                                      InputType="@_newPasswordType"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@_newPasswordIcon"
+                                      OnAdornmentClick="() => _showNewPassword = !_showNewPassword"
+                                      FullWidth="true" />
+
+                        <MudTextField @bind-Value="_passwordModel.ConfirmPassword"
+                                      Label="Passwort bestätigen"
+                                      Variant="Variant.Outlined"
+                                      InputType="@_confirmPasswordType"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@_confirmPasswordIcon"
+                                      OnAdornmentClick="() => _showConfirmPassword = !_showConfirmPassword"
+                                      FullWidth="true" />
+
+                        @if (_passwordErrors.Any())
+                        {
+                            <MudAlert Severity="Severity.Error" Dense="true">
+                                <MudStack Spacing="1">
+                                    @foreach (var error in _passwordErrors)
+                                    {
+                                        <MudText Typo="Typo.body2">• @error</MudText>
+                                    }
+                                </MudStack>
+                            </MudAlert>
+                        }
+                        @if (_passwordSuccess)
+                        {
+                            <MudAlert Severity="Severity.Success" Dense="true">Passwort erfolgreich geändert.</MudAlert>
+                        }
+
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Class="btn-pill"
+                                   OnClick="HandlePasswordChange"
+                                   Disabled="_passwordLoading">
+                            @if (_passwordLoading)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            }
+                            Passwort ändern
+                        </MudButton>
+                    </MudStack>
+                </MudPaper>
+
+                <!-- Account löschen -->
+                <MudPaper Elevation="0" Class="pa-6 mb-4" Style="border-radius: 20px; border: 1px solid #FECACA;">
+                    <MudText Typo="Typo.h6" Style="font-weight: 700; color: #FF3B30;" Class="mb-2">
+                        Gefahrenzone
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                        Wenn du deinen Account löschst, werden alle deine Daten unwiderruflich gelöscht.
+                    </MudText>
+
+                    @if (!_showDeleteConfirm)
+                    {
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Error"
+                                   Class="btn-pill"
+                                   OnClick="@(() => _showDeleteConfirm = true)">
+                            Account löschen
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Warning" Class="mb-3">
+                            Bist du sicher? Diese Aktion kann nicht rückgängig gemacht werden.
+                        </MudAlert>
+                        <MudTextField @bind-Value="_deletePassword"
+                                      Label="Passwort zur Bestätigung"
+                                      Variant="Variant.Outlined"
+                                      InputType="InputType.Password"
+                                      FullWidth="true"
+                                      Class="mb-3" />
+                        <MudStack Row="true" Spacing="2">
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Default"
+                                       Class="btn-pill"
+                                       OnClick="@(() => _showDeleteConfirm = false)">
+                                Abbrechen
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Error"
+                                       Class="btn-pill"
+                                       OnClick="HandleDeleteAccount"
+                                       Disabled="_deleteLoading">
+                                @if (_deleteLoading)
+                                {
+                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                }
+                                Endgültig löschen
+                            </MudButton>
+                        </MudStack>
+                    }
+                </MudPaper>
+
+            </MudContainer>
+        </section>
+    </Authorized>
+</AuthorizeView>

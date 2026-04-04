@@ -10,6 +10,7 @@ using OrderSphere.Application.Models;
 using OrderSphere.Application.ServiceBus;
 using OrderSphere.Domain.Entities;
 using OrderSphere.Infrastructure;
+using OrderSphere.Infrastructure.Email;
 using OrderSphere.Infrastructure.Persistence;
 using OrderSphere.UI;
 using OrderSphere.UI.Components;
@@ -38,7 +39,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
-
+app.MapAuthEndpoints();
 
 app.UseExceptionHandler("/Error", createScopeForErrors: true);
 app.UseHsts();
@@ -125,6 +126,13 @@ foreach (var product in computerProducts.Concat(smartphoneProducts).Concat(table
 
 await dbContext.CommitAsync();
 
+
+app.MapGet("/Mail", async ([FromServices] IEmailService emailService) =>
+{
+    await emailService.SendPasswordResetEmailAsync("moritzwaldau99@gmail.com", "www.google.de");
+
+    return TypedResults.Ok("Mail sended");
+});
 
 app.MapGet("/Test", async ([FromServices] IDbContext context) =>
 {

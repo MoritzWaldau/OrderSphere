@@ -1,7 +1,8 @@
 ﻿@page "/shop"
 @page "/shop/category/{category}"
+@attribute [Authorize]
 
-
+@using Microsoft.AspNetCore.Authorization
 @using OrderSphere.UI.Components.Component.Loading
 @inherits OrderSphereComponentBase
 

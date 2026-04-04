@@ -1,8 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Azure.Communication.Email;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using OrderSphere.Application.Abstraction;
 using OrderSphere.Application.ServiceBus;
+using OrderSphere.Domain.Configuration;
+using OrderSphere.Infrastructure.Email;
 using OrderSphere.Infrastructure.Interceptors;
 using OrderSphere.Infrastructure.Persistence;
 using OrderSphere.Infrastructure.ServiceBus;
@@ -21,8 +25,11 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IDbContext, OrderSphereDbContext>();
-
         services.AddScoped<IServiceBusPublisher, ServiceBusPublisher>();
+
+        //Mail service
+        services.AddScoped<IEmailService, EmailService>();
+        services.Configure<MailConfiguration>(configuration.GetSection("MailServiceConfiguration"));
         return services;
     }
 }

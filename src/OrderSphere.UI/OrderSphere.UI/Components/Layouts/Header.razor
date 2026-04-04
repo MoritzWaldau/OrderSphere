@@ -1,4 +1,5 @@
 ﻿@using OrderSphere.UI.Configuration
+@using Microsoft.AspNetCore.Components.Authorization
 
 <MudAppBar Elevation="0" Fixed="true" Class="header-appbar">
 
@@ -32,17 +33,57 @@
                        Color="Color.Dark" />
     </MudBadge>
 
-    <MudIconButton Icon="@Icons.Material.Outlined.AccountCircle" Href="/account" Color="Color.Dark" />
+    <!-- Account Button -->
+    <AuthorizeView>
+        <Authorized>
+            <MudMenu Icon="@Icons.Material.Outlined.AccountCircle"
+                     Color="Color.Dark"
+                     Variant="Variant.Text"
+                     AnchorOrigin="Origin.BottomRight"
+                     TransformOrigin="Origin.TopRight"
+                     Dense="true">
+
+                <!-- User Info -->
+                <div class="pa-4" style="border-bottom: 1px solid var(--mud-palette-divider); min-width: 220px;">
+                    <MudText Typo="Typo.body1" Style="font-weight: 600;">
+                        @context.User.FindFirst("FirstName")?.Value @context.User.FindFirst("LastName")?.Value
+                    </MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @context.User.Identity?.Name
+                    </MudText>
+                </div>
+
+                <MudMenuItem Icon="@Icons.Material.Outlined.Person" Href="/account/profile">
+                    Mein Profil
+                </MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.ShoppingBag" Href="/account/orders">
+                    Meine Bestellungen
+                </MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.Settings" Href="/account/settings">
+                    Einstellungen
+                </MudMenuItem>
+
+                <MudDivider />
+
+                <MudMenuItem Icon="@Icons.Material.Outlined.Logout"
+                             IconColor="Color.Error"
+                             OnClick="HandleLogout">
+                    <MudText Color="Color.Error">Abmelden</MudText>
+                </MudMenuItem>
+
+            </MudMenu>
+        </Authorized>
+        <NotAuthorized>
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Primary"
+                       Href="/account/login"
+                       Class="btn-pill ml-2"
+                       Style="padding: 6px 20px !important;">
+                Anmelden
+            </MudButton>
+        </NotAuthorized>
+    </AuthorizeView>
 
 </MudAppBar>
 
 <MobileDrawer IsOpen="_drawerOpen" IsOpenChanged="val => _drawerOpen = val" />
-
-@code {
-    [Parameter] public bool IsCartOpen { get; set; }
-    [Parameter] public EventCallback OnCartToggle { get; set; }
-    [Parameter] public int CartItemCount { get; set; }
-
-    private bool _drawerOpen = false;
-    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
-}

@@ -9,7 +9,7 @@ using OrderSphere.Domain.Extensions;
 using OrderSphere.UI.Configuration;
 using OrderSphere.UI.Services;
 
-namespace OrderSphere.UI.Components.Pages;
+namespace OrderSphere.UI.Components.Pages.Shopping;
 
 public partial class Shop : OrderSphereComponentBase
 {

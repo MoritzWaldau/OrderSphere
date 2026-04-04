@@ -1,0 +1,85 @@
+﻿@page "/account/login"
+@layout EmptyLayout
+
+<PageTitle>Login – OrderSphere</PageTitle>
+
+<section class="section-gray" style="min-height: 100vh; display: flex; align-items: center;">
+    <MudContainer MaxWidth="MaxWidth.Small">
+        <MudPaper Elevation="0" Class="pa-8" Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+
+            <!-- Header -->
+            <MudStack AlignItems="AlignItems.Center" Class="mb-6">
+                <MudLink Href="/" Underline="Underline.None">
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;">OrderSphere</MudText>
+                </MudLink>
+                <MudText Typo="Typo.h5" Style="font-weight: 700;" Class="mt-2">
+                    Willkommen zurück
+                </MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Melde dich an um fortzufahren
+                </MudText>
+            </MudStack>
+
+            <!-- Form -->
+            <EditForm FormName="login" Model="_model" OnValidSubmit="HandleLogin">
+                <MudStack Spacing="3">
+                    <MudTextField @bind-Value="_model.Email"
+                                  Label="E-Mail"
+                                  Variant="Variant.Outlined"
+                                  InputType="InputType.Email"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Outlined.Email"
+                                  FullWidth="true" />
+
+                    <MudTextField @bind-Value="_model.Password"
+                                  Label="Passwort"
+                                  Variant="Variant.Outlined"
+                                  InputType="@PasswordInputType"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@PasswordIcon"
+                                  OnAdornmentClick="TogglePasswordVisibility"
+                                  FullWidth="true" />
+
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudCheckBox @bind-Value="_model.RememberMe"
+                                     Label="Angemeldet bleiben"
+                                     Color="Color.Primary"
+                                     Dense="true" />
+                        <MudLink Href="/account/forgot-password" Typo="Typo.body2" Color="Color.Primary">
+                            Passwort vergessen?
+                        </MudLink>
+                    </MudStack>
+
+                    @if (_errorMessage is not null)
+                    {
+                        <MudAlert Severity="Severity.Error" Dense="true" Class="mt-1">
+                            @_errorMessage
+                        </MudAlert>
+                    }
+
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               FullWidth="true"
+                               Size="Size.Large"
+                               Class="btn-pill mt-2"
+                               Disabled="_isLoading">
+                        @if (_isLoading)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        }
+                        Anmelden
+                    </MudButton>
+
+                    <MudDivider />
+
+                    <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary">
+                        Noch kein Konto?
+                        <MudLink Href="/account/register" Color="Color.Primary">Jetzt registrieren</MudLink>
+                    </MudText>
+
+                </MudStack>
+            </EditForm>
+        </MudPaper>
+    </MudContainer>
+</section>

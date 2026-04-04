@@ -1,6 +1,16 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using OrderSphere.UI.Components.Component.Auth
+
+
+
+<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Components.Layouts.MainLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Components.Layouts.MainLayout)">
+            <NotAuthorized>
+                <RedirectToLogin />
+            </NotAuthorized>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="routeData" Selector="h1"/>
     </Found>
 </Router>

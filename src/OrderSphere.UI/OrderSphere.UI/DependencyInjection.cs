@@ -1,5 +1,13 @@
-﻿using MudBlazor;
+﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
+
+using Microsoft.AspNetCore.Mvc;
+using MudBlazor;
 using MudBlazor.Services;
+using OrderSphere.Domain.Entities;
+using OrderSphere.Infrastructure.Persistence;
+using OrderSphere.UI.Models.Auth;
+using OrderSphere.UI.Services;
 using Serilog;
 using System.Globalization;
 
@@ -34,8 +42,35 @@ public static class DependencyInjection
         //});
         //
 
+        services.AddScoped(sp =>
+        {
+            return new HttpClient
+            {
+                BaseAddress = new Uri(configuration["BaseUrl"] ?? "https://localhost:7051")
+            };
+        });
+
+        services.AddAuthentication();
         services.ConfigureMudBlazor();
         return services;
+    }
+
+    private static void AddAuthentication(this IServiceCollection services)
+    {
+        services.AddCascadingAuthenticationState();
+        services.AddScoped<AuthenticationStateProvider, AuthenticationStateSerivce>();
+        services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = IdentityConstants.ApplicationScheme;
+            options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+        })
+        .AddIdentityCookies();
+
+        services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
+            .AddEntityFrameworkStores<OrderSphereDbContext>()
+            .AddSignInManager<SignInManager<ApplicationUser>>()
+            .AddClaimsPrincipalFactory<ApplicationUserClaimsFactory>()
+            .AddDefaultTokenProviders();
     }
 
     private static void ConfigureMudBlazor(this IServiceCollection services)
@@ -59,5 +94,21 @@ public static class DependencyInjection
 
         CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
         CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("en-US");
+    }
+
+    public static void MapAuthEndpoints(this WebApplication app)
+    {
+        app.MapPost("/api/account/login", async (
+            SignInManager<ApplicationUser> signInManager,
+            [FromBody] LoginRequest request) =>
+        {
+            var result = await signInManager.PasswordSignInAsync(
+                request.Email, request.Password, request.RememberMe, lockoutOnFailure: true);
+
+            if (result.Succeeded) return Results.Ok();
+            if (result.IsLockedOut) return Results.BadRequest("locked");
+            if (result.IsNotAllowed) return Results.BadRequest("not_allowed");
+            return Results.BadRequest("invalid");
+        });
     }
 }

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using OrderSphere.Domain.Entities;
 using OrderSphere.UI.Models.Auth;
@@ -50,12 +51,12 @@ public partial class Register
 
         if (result.Succeeded)
         {
-            var response = await Http.PostAsJsonAsync("api/account/login", new LoginRequest { Email = user.Email, Password = _model.Password});
 
-            if (response.IsSuccessStatusCode)
-                NavManager.NavigateTo("/", forceLoad: true);
-            else
-                _errors.Add("Registrierung erfolgreich, bitte melde dich an.");
+            var token = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+
+            var confirmationLink = $"{NavManager.BaseUri}confirm/email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+
+            await EmailService.SendLinkAsync(user.Email, confirmationLink);
         }
         else
         {

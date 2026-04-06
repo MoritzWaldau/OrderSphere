@@ -1,12 +1,15 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using OrderSphere.Application.Abstraction;
 using OrderSphere.Domain.Entities;
+using System.Timers;
 
 namespace OrderSphere.Infrastructure.Persistence;
 
-public sealed class OrderSphereDbContext(DbContextOptions<OrderSphereDbContext> options) : IdentityDbContext<ApplicationUser>(options), IDbContext
+public sealed class OrderSphereDbContext(DbContextOptions<OrderSphereDbContext> options) 
+    : IdentityDbContext<ApplicationUser, IdentityRole, string>(options), IDbContext
 {
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Category> Categories => Set<Category>();

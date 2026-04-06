@@ -35,7 +35,7 @@ public partial class ForgotPassword
                 $"/account/reset-password?email={Uri.EscapeDataString(_email)}&token={Uri.EscapeDataString(token)}"
             ).ToString();
 
-            await EmailService.SendPasswordResetEmailAsync(_email, resetLink);
+            await EmailService.SendLinkAsync(_email, resetLink);
         }
 
         _emailSent = true;

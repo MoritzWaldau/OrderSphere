@@ -59,16 +59,15 @@ public static class DependencyInjection
     {
         services.AddCascadingAuthenticationState();
         services.AddScoped<AuthenticationStateProvider, AuthenticationStateSerivce>();
-        services.AddAuthentication(options =>
-        {
-            options.DefaultScheme = IdentityConstants.ApplicationScheme;
-            options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-        })
-        .AddIdentityCookies();
+        //services.AddAuthentication(options =>
+        //{
+        //    options.DefaultScheme = IdentityConstants.ApplicationScheme;
+        //    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+        //})
+        //.AddIdentityCookies();
 
-        services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
+        services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<OrderSphereDbContext>()
-            .AddSignInManager<SignInManager<ApplicationUser>>()
             .AddClaimsPrincipalFactory<ApplicationUserClaimsFactory>()
             .AddDefaultTokenProviders();
     }

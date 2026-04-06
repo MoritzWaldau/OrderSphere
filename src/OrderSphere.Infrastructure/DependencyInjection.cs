@@ -19,7 +19,7 @@ public static class DependencyInjection
     {
         services.AddDbContext<OrderSphereDbContext>(options =>
         {
-            options.UseNpgsql(configuration.GetConnectionString("postgres"));
+            options.UseNpgsql(configuration.GetConnectionString("ordersphere-db"));
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
             options.AddInterceptors(new AuditSaveChangesInterceptor());
         });

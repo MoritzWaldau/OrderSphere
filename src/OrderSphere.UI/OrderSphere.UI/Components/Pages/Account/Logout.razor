@@ -1,0 +1,11 @@
+﻿@page "/account/logout"
+@layout EmptyLayout
+
+
+@code{
+    protected override async Task OnInitializedAsync()
+    {
+        await SignInManager.SignOutAsync();
+        NavManager.NavigateTo("/", true);
+    }
+}

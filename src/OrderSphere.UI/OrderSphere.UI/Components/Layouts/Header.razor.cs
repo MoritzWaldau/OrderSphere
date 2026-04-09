@@ -15,7 +15,6 @@ public partial class Header
 
     private async Task HandleLogout()
     {
-        await SignInManager.SignOutAsync();
-        NavManager.NavigateTo("/", forceLoad: true);
+        NavManager.NavigateTo("/account/logout", true);
     }
 }

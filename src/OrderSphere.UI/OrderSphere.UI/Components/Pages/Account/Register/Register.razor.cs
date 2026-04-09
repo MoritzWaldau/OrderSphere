@@ -3,7 +3,7 @@ using MudBlazor;
 using OrderSphere.Domain.Entities;
 using OrderSphere.UI.Models.Auth;
 
-namespace OrderSphere.UI.Components.Pages.Account;
+namespace OrderSphere.UI.Components.Pages.Account.Register;
 
 public partial class Register
 {

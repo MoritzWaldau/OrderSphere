@@ -1,9 +1,4 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Identity;
-using OrderSphere.Application.Abstraction;
-using OrderSphere.Domain.Entities;
-
-namespace OrderSphere.UI.Components.Pages.Account;
+namespace OrderSphere.UI.Components.Pages.Account.Manage.ForgotPassword;
 
 public partial class ForgotPassword
 {

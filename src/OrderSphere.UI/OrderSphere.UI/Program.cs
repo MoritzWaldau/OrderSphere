@@ -39,11 +39,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 
 var app = builder.Build();
 
-app.UseAuthentication();
-app.UseAuthorization();
-
 app.MapDefaultEndpoints();
-app.MapAuthEndpoints();
 
 app.UseExceptionHandler("/Error", createScopeForErrors: true);
 app.UseHsts();
@@ -55,86 +51,11 @@ app.UseAntiforgery();
 
 await DataSeeder.SeedDataAsync(app);
 
-
-app.MapGet("/Mail", async ([FromServices] IEmailService emailService) =>
-{
-    await emailService.SendLinkAsync("moritzwaldau99@gmail.com", "www.google.de");
-
-    return TypedResults.Ok("Mail sended");
-});
-
-app.MapGet("/Test", async ([FromServices] IDbContext context) =>
-{
-    try
-    {
-        await context.BeginTransactionAsync();
-        var customerId = Guid.NewGuid();
-        Product product = new("iPhone 16 Pro", "Apple iPhone 16 Pro - Neustes Modell", 1199.99m, 5);
-
-        await context.Products.AddAsync(product);
-
-        CartItem cartItem = new(product.Id, 3);
-        Cart cart = new(customerId);
-        cart.AddItem(cartItem);
-
-        await context.Carts.AddAsync(cart);
-        await context.CommitAsync();
-
-        return Results.Ok("Cart created successful");
-    }
-    catch (Exception ex)
-    {
-        await context.RollbackAsync();
-        return Results.Problem(ex.Message);
-    }
-});
-
-app.MapGet("/GetCart", async ([FromServices] IDbContext context) =>
-{
-    var carts = await context.Carts.Include(x => x.Items).ToListAsync();
-
-    if(carts != null)
-    {
-        return Results.Ok(carts);
-    }
-
-    return Results.BadRequest();
-});
-
-app.MapGet("/GetProducts", async ([FromServices] IDbContext context) =>
-{
-    var products = await context.Products.ToListAsync();
-    if(products != null)
-    {
-        return Results.Ok(products);
-    }
-    return Results.BadRequest();
-});
-
-app.MapGet("/CreateProduct", async ([FromServices] IDbContext context) =>
-{
-    await context.BeginTransactionAsync();
-
-    for (int i = 1; i <= 21; i++)
-    {
-        Product product = new($"Product {i}", $"Description for Product {i}", 9.99m + i, 10 + i);
-        await context.Products.AddAsync(product);
-    }
-
-    await context.CommitAsync();
-
-    return TypedResults.Ok("Products created successfully");
-});
-
-app.MapPost("/CheckoutCart", async ([FromServices] ISender sender, CheckoutCartDto checkouDto) =>
-{
-    var result = await sender.Send(new CheckoutCartCommand(checkouDto));
-    return result;
-});
-
-
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapAdditionalIdentityEndpoints();
+app.MapAuthEndpoints();
 
 app.Run();

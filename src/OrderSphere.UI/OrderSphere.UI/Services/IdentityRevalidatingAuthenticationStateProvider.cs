@@ -7,16 +7,18 @@ using System.Security.Claims;
 
 namespace OrderSphere.UI.Services;
 
-public sealed class AuthenticationStateSerivce(
-    ILoggerFactory loggerFactory, 
-    IServiceScopeFactory scopeFactory,
-    IOptions<IdentityOptions> options) 
+public sealed class IdentityRevalidatingAuthenticationStateProvider(
+        ILoggerFactory loggerFactory,
+        IServiceScopeFactory scopeFactory,
+        IOptions<IdentityOptions> options)
     : RevalidatingServerAuthenticationStateProvider(loggerFactory)
 {
     protected override TimeSpan RevalidationInterval => TimeSpan.FromMinutes(30);
 
-    protected override async Task<bool> ValidateAuthenticationStateAsync(AuthenticationState authenticationState, CancellationToken cancellationToken)
+    protected override async Task<bool> ValidateAuthenticationStateAsync(
+        AuthenticationState authenticationState, CancellationToken cancellationToken)
     {
+        // Get the user manager from a new scope to ensure it fetches fresh data
         await using var scope = scopeFactory.CreateAsyncScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         return await ValidateSecurityStampAsync(userManager, authenticationState.User);

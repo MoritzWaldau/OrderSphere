@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using OrderSphere.Domain.Entities;
 
-namespace OrderSphere.UI.Components.Pages.Account;
+namespace OrderSphere.UI.Components.Pages.Account.ConfirmEmail;
 
 public partial class ConfirmEmail
 {

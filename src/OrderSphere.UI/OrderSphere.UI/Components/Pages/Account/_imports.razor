@@ -1,12 +1,1 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.AspNetCore.Identity
-@using OrderSphere.Application.Abstraction
-@using OrderSphere.Domain.Entities
-
-
-
-@inject UserManager<ApplicationUser> UserManager
-@inject SignInManager<ApplicationUser> SignInManager
-@inject AuthenticationStateProvider AuthStateProvider
-@inject IEmailService EmailService
-@inject HttpClient Http
+﻿@attribute [ExcludeFromInteractiveRouting]

@@ -1,12 +1,8 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Azure.Amqp.Framing;
-using MudBlazor;
-using OrderSphere.Domain.Entities;
-using System.Runtime.ConstrainedExecution;
-using static Azure.Core.HttpHeader;
 
-namespace OrderSphere.UI.Components.Pages.Account;
+using MudBlazor;
+
+namespace OrderSphere.UI.Components.Pages.Account.Manage.ResetPassword;
 
 public partial class ResetPassword
 {

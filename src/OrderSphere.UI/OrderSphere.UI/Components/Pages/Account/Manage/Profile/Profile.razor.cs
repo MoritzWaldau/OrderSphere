@@ -1,10 +1,7 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Identity;
 using MudBlazor;
 using OrderSphere.Domain.Entities;
 
-namespace OrderSphere.UI.Components.Pages.Account;
+namespace OrderSphere.UI.Components.Pages.Account.Manage.Profile;
 
 public partial class Profile
 {
@@ -46,19 +43,19 @@ public partial class Profile
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        _user = await UserManager.GetUserAsync(authState.User);
-
-        if (_user is null)
-        {
-            NavManager.NavigateTo("/account/login");
-            return;
-        }
-
-        _nameModel.FirstName = _user.FirstName;
-        _nameModel.LastName = _user.LastName;
-        _emailModel.NewEmail = _user.Email ?? string.Empty;
-        _initials = $"{_user.FirstName[0]}{_user.LastName[0]}".ToUpper();
+        //var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        //_user = await UserManager.GetUserAsync(authState.User);
+        //
+        //if (_user is null)
+        //{
+        //    NavManager.NavigateTo("/account/login");
+        //    return;
+        //}
+        //
+        //_nameModel.FirstName = _user.FirstName;
+        //_nameModel.LastName = _user.LastName;
+        //_emailModel.NewEmail = _user.Email ?? string.Empty;
+        //_initials = $"{_user.FirstName[0]}{_user.LastName[0]}".ToUpper();
     }
 
     private async Task HandleNameChange()

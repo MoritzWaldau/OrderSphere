@@ -8,8 +8,10 @@ using OrderSphere.Domain.Entities;
 using OrderSphere.Infrastructure.Persistence;
 using OrderSphere.UI.Models.Auth;
 using OrderSphere.UI.Services;
+using OrderSphere.UI.Services.Account;
 using Serilog;
 using System.Globalization;
+using System.Security.Principal;
 
 namespace OrderSphere.UI;
 
@@ -35,13 +37,6 @@ public static class DependencyInjection
 
     public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
-        //services.AddSingleton(_ =>
-        //{
-        //    string connectionString = configuration.GetConnectionString("azure-service-bus") ?? throw new Exception("Unable to read connectionString: azure-service-bus");
-        //    return new ServiceBusClient(connectionString);
-        //});
-        //
-
         services.AddScoped(sp =>
         {
             return new HttpClient
@@ -58,18 +53,26 @@ public static class DependencyInjection
     private static void AddAuthentication(this IServiceCollection services)
     {
         services.AddCascadingAuthenticationState();
-        services.AddScoped<AuthenticationStateProvider, AuthenticationStateSerivce>();
-        //services.AddAuthentication(options =>
-        //{
-        //    options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        //    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-        //})
-        //.AddIdentityCookies();
+        services.AddScoped<IdentityRedirectManager>();
+        services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
-        services.AddIdentity<ApplicationUser, IdentityRole>()
-            .AddEntityFrameworkStores<OrderSphereDbContext>()
-            .AddClaimsPrincipalFactory<ApplicationUserClaimsFactory>()
-            .AddDefaultTokenProviders();
+        services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = IdentityConstants.ApplicationScheme;
+            options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+        })
+        .AddIdentityCookies();
+
+        services.AddIdentityCore<ApplicationUser>(options =>
+        {
+            options.SignIn.RequireConfirmedAccount = true;
+            options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+        })
+        .AddRoles<IdentityRole>()
+        .AddEntityFrameworkStores<OrderSphereDbContext>()
+        .AddClaimsPrincipalFactory<ApplicationUserClaimsFactory>()
+        .AddSignInManager()
+        .AddDefaultTokenProviders();
     }
 
     private static void ConfigureMudBlazor(this IServiceCollection services)
@@ -106,8 +109,9 @@ public static class DependencyInjection
 
             if (result.Succeeded) return Results.Ok();
             if (result.IsLockedOut) return Results.BadRequest("locked");
-            if (result.IsNotAllowed) return Results.BadRequest("not_allowed");
+            if (result.IsNotAllowed) return Results.Unauthorized();
             return Results.BadRequest("invalid");
-        });
+        })
+        .DisableAntiforgery();
     }
 }

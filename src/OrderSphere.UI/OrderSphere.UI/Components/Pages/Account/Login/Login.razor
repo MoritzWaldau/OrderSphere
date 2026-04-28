@@ -1,4 +1,5 @@
 ﻿@page "/account/login"
+@layout EmptyLayout
 
 <PageTitle>Login – OrderSphere</PageTitle>
 
@@ -29,8 +30,10 @@
                     <MudTextField @bind-Value="Model.Password"
                                   Label="Passwort"
                                   Variant="Variant.Outlined"
-                                  InputType="InputType.Password"
-                                  AdornmentIcon="@Icons.Material.Outlined.Password"
+                                  InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@(_showPassword ? Icons.Material.Outlined.Visibility : Icons.Material.Outlined.VisibilityOff)"
+                                  OnAdornmentClick="TogglePasswordVisibility"
                                   FullWidth="true" />
 
                     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">

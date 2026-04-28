@@ -26,6 +26,8 @@ public partial class Login
 
     private string? _errorMessage;
 
+    private bool _showPassword = false;
+
     protected override async Task OnInitializedAsync()
     {
         Model ??= new();
@@ -34,29 +36,30 @@ public partial class Login
         {
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
         }
+    }
 
-        await Task.Run(() =>
-        {
-            Thread.Sleep(1000);
-            Snackbar.Add("Email: " + Model.Email, Severity.Info);
-        });
+    private void TogglePasswordVisibility()
+    {
+        _showPassword = !_showPassword;
     }
 
     private async Task HandleLogin()
     {
-        var result = await SignInManager.PasswordSignInAsync(
-            Model.Email, Model.Password, Model.RememberMe, lockoutOnFailure: true);
+        NavManager.NavigateTo("/account/login/processing");
 
-        if (result.Succeeded)
-        {
-            NavManager.NavigateTo(ReturnUrl ?? "/");
-        }
-        else if (result.IsLockedOut)
-            _errorMessage = "Dein Konto ist vorübergehend gesperrt.";
-        else if (result.IsNotAllowed)
-            _errorMessage = "Bitte bestätige zuerst deine E-Mail Adresse.";
-        else
-            _errorMessage = "E-Mail oder Passwort ist falsch.";
+        //var result = await SignInManager.PasswordSignInAsync(
+        //    Model.Email, Model.Password, Model.RememberMe, lockoutOnFailure: true);
+
+       //if (result.Succeeded)
+       //{
+       //    NavManager.NavigateTo(ReturnUrl ?? "/");
+       //}
+       //else if (result.IsLockedOut)
+       //    _errorMessage = "Dein Konto ist vorübergehend gesperrt.";
+       //else if (result.IsNotAllowed)
+       //    _errorMessage = "Bitte bestätige zuerst deine E-Mail Adresse.";
+       //else
+       //    _errorMessage = "E-Mail oder Passwort ist falsch.";
     }
 
     private sealed class LoginModel

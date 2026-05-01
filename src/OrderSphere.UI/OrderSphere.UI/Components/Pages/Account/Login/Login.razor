@@ -26,7 +26,8 @@
                                   InputType="InputType.Email"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Outlined.Email"
-                                  FullWidth="true" />
+                                  FullWidth="true" 
+                                  Class="mb-6"/>
 
                     <MudStaticTextField @bind-Value="Model.Password"
                                   Label="Passwort"
@@ -34,7 +35,9 @@
                                   Variant="Variant.Outlined"
                                   InputType="InputType.Password"
                                   Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Outlined.Lock"
+                                  AdornmentIcon="@Icons.Material.Outlined.VisibilityOff"
+                                  AdornmentToggledIcon="@Icons.Material.Outlined.Visibility"
+                                  AdornmentClickFunction="togglePassword"
                                   FullWidth="true" />
 
                     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">

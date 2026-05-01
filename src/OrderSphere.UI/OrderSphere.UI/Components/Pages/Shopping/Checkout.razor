@@ -1,0 +1,498 @@
+﻿@page "/checkout"
+
+@attribute [Authorize]
+@inherits OrderSphereComponentBase
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Checkout</PageTitle>
+
+<!-- PAGE HEADER -->
+<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 60px 0;">
+    <MudContainer>
+        <MudText Typo="Typo.h2" Align="Align.Center" Style="color: #FFFFFF; letter-spacing: -0.02em;">
+            Checkout
+        </MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center" Style="color: rgba(255,255,255,0.8); margin-top: 8px;">
+            Prüfe deine Angaben, wähle Versand und Zahlung und schließe deine Bestellung ab.
+        </MudText>
+    </MudContainer>
+</section>
+
+<!-- Page content -->
+<section style="background: #F5F5F7; padding: 60px 0; min-height: 60vh;">
+    <MudContainer>
+        <MudGrid Spacing="4">
+            <MudItem xs="12" lg="8">
+                <MudStack Spacing="4">
+
+                    <MudForm @ref="_form" Model="_checkout">
+                        <MudStack Spacing="4">
+                            <MudPaper Elevation="0" Class="pa-6"
+                                      Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                                <MudText Typo="Typo.h5" Class="mb-4">Lieferadresse</MudText>
+
+                                <MudGrid Spacing="3">
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField T="string"
+                                                      Label="Vorname"
+                                                      Variant="Variant.Outlined"
+                                                      FullWidth="true"
+                                                      Required="true"
+                                                      RequiredError="Bitte gib deinen Vornamen ein."
+                                                      @bind-Value="_checkout.FirstName" />
+                                    </MudItem>
+
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField T="string"
+                                                      Label="Nachname"
+                                                      Variant="Variant.Outlined"
+                                                      FullWidth="true"
+                                                      Required="true"
+                                                      RequiredError="Bitte gib deinen Nachnamen ein."
+                                                      @bind-Value="_checkout.LastName" />
+                                    </MudItem>
+
+                                    <MudItem xs="12">
+                                        <MudTextField T="string"
+                                                      Label="Straße und Hausnummer"
+                                                      Variant="Variant.Outlined"
+                                                      FullWidth="true"
+                                                      Required="true"
+                                                      RequiredError="Bitte gib deine Adresse ein."
+                                                      @bind-Value="_checkout.Street" />
+                                    </MudItem>
+
+                                    <MudItem xs="12" md="4">
+                                        <MudTextField T="string"
+                                                      Label="PLZ"
+                                                      Variant="Variant.Outlined"
+                                                      FullWidth="true"
+                                                      Required="true"
+                                                      RequiredError="Bitte gib deine PLZ ein."
+                                                      @bind-Value="_checkout.ZipCode" />
+                                    </MudItem>
+
+                                    <MudItem xs="12" md="5">
+                                        <MudTextField T="string"
+                                                      Label="Stadt"
+                                                      Variant="Variant.Outlined"
+                                                      FullWidth="true"
+                                                      Required="true"
+                                                      RequiredError="Bitte gib deine Stadt ein."
+                                                      @bind-Value="_checkout.City" />
+                                    </MudItem>
+
+                                    <MudItem xs="12" md="3">
+                                        <MudSelect T="string"
+                                                   Label="Land"
+                                                   Variant="Variant.Outlined"
+                                                   FullWidth="true"
+                                                   Required="true"
+                                                   RequiredError="Bitte wähle ein Land."
+                                                   @bind-Value="_checkout.Country">
+                                            <MudSelectItem T="string" Value="@("Deutschland")">Deutschland</MudSelectItem>
+                                            <MudSelectItem T="string" Value="@("Österreich")">Österreich</MudSelectItem>
+                                            <MudSelectItem T="string" Value="@("Schweiz")">Schweiz</MudSelectItem>
+                                        </MudSelect>
+                                    </MudItem>
+
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField T="string"
+                                                      Label="E-Mail"
+                                                      Variant="Variant.Outlined"
+                                                      FullWidth="true"
+                                                      InputType="InputType.Email"
+                                                      Required="true"
+                                                      RequiredError="Bitte gib deine E-Mail-Adresse ein."
+                                                      Validation="@(new Func<string, string?>(ValidateEmail))"
+                                                      @bind-Value="_checkout.Email" />
+                                    </MudItem>
+
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField T="string"
+                                                      Label="Telefon"
+                                                      Variant="Variant.Outlined"
+                                                      FullWidth="true"
+                                                      Required="true"
+                                                      RequiredError="Bitte gib deine Telefonnummer ein."
+                                                      @bind-Value="_checkout.Phone" />
+                                    </MudItem>
+                                </MudGrid>
+                            </MudPaper>
+
+                            <MudPaper Elevation="0" Class="pa-6"
+                                      Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                                <MudText Typo="Typo.h5" Class="mb-4">Versandart</MudText>
+
+                                <MudRadioGroup T="string" @bind-Value="_checkout.ShippingMethod">
+                                    <MudStack Spacing="2">
+                                        <MudPaper Elevation="0" Class="pa-4"
+                                                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+                                            <MudRadio T="string" Value="@("standard")" Color="Color.Primary">
+                                                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="w-100">
+                                                    <MudStack Spacing="0">
+                                                        <MudText Typo="Typo.subtitle1">Standardversand</MudText>
+                                                        <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
+                                                            Lieferung in 3–5 Werktagen
+                                                        </MudText>
+                                                    </MudStack>
+                                                    <MudText Typo="Typo.subtitle2">Kostenlos</MudText>
+                                                </MudStack>
+                                            </MudRadio>
+                                        </MudPaper>
+
+                                        <MudPaper Elevation="0" Class="pa-4"
+                                                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+                                            <MudRadio T="string" Value="@("express")" Color="Color.Primary">
+                                                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="w-100">
+                                                    <MudStack Spacing="0">
+                                                        <MudText Typo="Typo.subtitle1">Expressversand</MudText>
+                                                        <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
+                                                            Lieferung in 1–2 Werktagen
+                                                        </MudText>
+                                                    </MudStack>
+                                                    <MudText Typo="Typo.subtitle2">9,99 €</MudText>
+                                                </MudStack>
+                                            </MudRadio>
+                                        </MudPaper>
+                                    </MudStack>
+                                </MudRadioGroup>
+                            </MudPaper>
+
+                            <MudPaper Elevation="0" Class="pa-6"
+                                      Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                                <MudText Typo="Typo.h5" Class="mb-4">Zahlungsart</MudText>
+
+                                <MudRadioGroup T="string" @bind-Value="_checkout.PaymentMethod">
+                                    <MudStack Spacing="2">
+                                        <MudPaper Elevation="0" Class="pa-4"
+                                                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+                                            <MudRadio T="string" Value="@("card")" Color="Color.Primary">Kreditkarte</MudRadio>
+                                        </MudPaper>
+
+                                        <MudPaper Elevation="0" Class="pa-4"
+                                                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+                                            <MudRadio T="string" Value="@("paypal")" Color="Color.Primary">PayPal</MudRadio>
+                                        </MudPaper>
+
+                                        <MudPaper Elevation="0" Class="pa-4"
+                                                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+                                            <MudRadio T="string" Value="@("invoice")" Color="Color.Primary">Kauf auf Rechnung</MudRadio>
+                                        </MudPaper>
+                                    </MudStack>
+                                </MudRadioGroup>
+
+                                @if (_checkout.PaymentMethod == "card")
+                                {
+                                    <MudGrid Spacing="3" Class="mt-4">
+                                        <MudItem xs="12">
+                                            <MudTextField T="string"
+                                                          Label="Name auf der Karte"
+                                                          Variant="Variant.Outlined"
+                                                          FullWidth="true"
+                                                          Required="true"
+                                                          RequiredError="Bitte gib den Kartennamen ein."
+                                                          @bind-Value="_checkout.CardName" />
+                                        </MudItem>
+
+                                        <MudItem xs="12">
+                                            <MudTextField T="string"
+                                                          Label="Kartennummer"
+                                                          Variant="Variant.Outlined"
+                                                          FullWidth="true"
+                                                          Placeholder="1234 5678 9012 3456"
+                                                          Required="true"
+                                                          RequiredError="Bitte gib die Kartennummer ein."
+                                                          Validation="@(new Func<string, string?>(ValidateCardNumber))"
+                                                          @bind-Value="_checkout.CardNumber" />
+                                        </MudItem>
+
+                                        <MudItem xs="12" md="6">
+                                            <MudTextField T="string"
+                                                          Label="Ablaufdatum"
+                                                          Variant="Variant.Outlined"
+                                                          FullWidth="true"
+                                                          Placeholder="MM/JJ"
+                                                          Required="true"
+                                                          RequiredError="Bitte gib das Ablaufdatum ein."
+                                                          Validation="@(new Func<string, string?>(ValidateExpiry))"
+                                                          @bind-Value="_checkout.CardExpiry" />
+                                        </MudItem>
+
+                                        <MudItem xs="12" md="6">
+                                            <MudTextField T="string"
+                                                          Label="CVC"
+                                                          Variant="Variant.Outlined"
+                                                          FullWidth="true"
+                                                          Placeholder="123"
+                                                          Required="true"
+                                                          RequiredError="Bitte gib den CVC ein."
+                                                          Validation="@(new Func<string, string?>(ValidateCvc))"
+                                                          @bind-Value="_checkout.CardCvc" />
+                                        </MudItem>
+                                    </MudGrid>
+                                }
+                            </MudPaper>
+                        </MudStack>
+                    </MudForm>
+                </MudStack>
+            </MudItem>
+
+            <MudItem xs="12" lg="4">
+                <MudStack Spacing="4">
+                    <MudPaper Elevation="0" Class="pa-6"
+                              Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider); position: sticky; top: 100px;">
+                        <MudText Typo="Typo.h5" Class="mb-4">Bestellübersicht</MudText>
+
+                        <MudStack Spacing="3">
+                            @foreach (var item in _cartItems)
+                            {
+                                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.subtitle2">@item.Name</MudText>
+                                        <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-secondary);">
+                                            Menge: @item.Quantity
+                                        </MudText>
+                                    </MudStack>
+                                    <MudText Typo="Typo.body2">@item.TotalPrice.ToString("0.00") €</MudText>
+                                </MudStack>
+                            }
+
+                            <MudDivider />
+
+                            <MudTextField T="string"
+                                          Label="Gutscheincode"
+                                          Variant="Variant.Outlined"
+                                          FullWidth="true"
+                                          @bind-Value="_couponCode"
+                                          Adornment="Adornment.End"
+                                          AdornmentIcon="@Icons.Material.Outlined.LocalOffer" />
+
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Primary"
+                                       FullWidth="true"
+                                       Class="btn-pill"
+                                       OnClick="ApplyCoupon">
+                                Gutschein anwenden
+                            </MudButton>
+
+                            @if (!string.IsNullOrWhiteSpace(_couponMessage))
+                            {
+                                <MudAlert Severity="@_couponSeverity" Variant="Variant.Outlined" Dense="true">
+                                    @_couponMessage
+                                </MudAlert>
+                            }
+
+                            <MudDivider />
+
+                            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.body1">Zwischensumme</MudText>
+                                <MudText Typo="Typo.body1">@Subtotal.ToString("0.00") €</MudText>
+                            </MudStack>
+
+                            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.body1">Rabatt</MudText>
+                                <MudText Typo="Typo.body1">-@Discount.ToString("0.00") €</MudText>
+                            </MudStack>
+
+                            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.body1">Versand</MudText>
+                                <MudText Typo="Typo.body1">@ShippingCost.ToString("0.00") €</MudText>
+                            </MudStack>
+
+                            <MudDivider />
+
+                            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.h6">Gesamt</MudText>
+                                <MudText Typo="Typo.h6">@Total.ToString("0.00") €</MudText>
+                            </MudStack>
+
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       FullWidth="true"
+                                       Class="btn-pill my-4"
+                                       Size="Size.Large"
+                                       Loading="_isSubmitting"
+                                       OnClick="SubmitOrderAsync">
+                                Bestellung abschließen
+                            </MudButton>
+
+                            <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-secondary);">
+                                Mit dem Abschluss der Bestellung stimmst du unseren AGB und Datenschutzbestimmungen zu.
+                            </MudText>
+                        </MudStack>
+                    </MudPaper>
+
+                    @if (!string.IsNullOrWhiteSpace(_submitMessage))
+                    {
+                        <MudAlert Severity="@_submitSeverity" Variant="Variant.Outlined">
+                            @_submitMessage
+                        </MudAlert>
+                    }
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+    </MudContainer>
+</section>
+
+@code {
+    private MudForm? _form;
+    private bool _isSubmitting;
+    private string _couponCode = string.Empty;
+    private string _couponMessage = string.Empty;
+    private Severity _couponSeverity = Severity.Info;
+    private string _submitMessage = string.Empty;
+    private Severity _submitSeverity = Severity.Success;
+
+    private readonly CheckoutModel _checkout = new()
+    {
+        Country = "Deutschland",
+        ShippingMethod = "standard",
+        PaymentMethod = "card"
+    };
+
+    private readonly List<CartItem> _cartItems =
+    [
+        new CartItem("OrderSphere Headphones", 1, 149.90m),
+        new CartItem("Wireless Charger", 2, 39.95m),
+        new CartItem("Premium Case", 1, 29.90m)
+    ];
+
+    private decimal Subtotal => _cartItems.Sum(x => x.TotalPrice);
+    private decimal ShippingCost => _checkout.ShippingMethod == "express" ? 9.99m : 0m;
+    private decimal Discount => string.Equals(_couponCode, "WELCOME10", StringComparison.OrdinalIgnoreCase) ? 10m : 0m;
+    private decimal Total => Math.Max(0m, Subtotal + ShippingCost - Discount);
+
+    private async Task SubmitOrderAsync()
+    {
+        _submitMessage = string.Empty;
+
+        if (_form is null)
+        {
+            return;
+        }
+
+        await _form.ValidateAsync();
+
+        if (!_form.IsValid)
+        {
+            _submitSeverity = Severity.Error;
+            _submitMessage = "Bitte prüfe deine Eingaben.";
+            return;
+        }
+
+        _isSubmitting = true;
+
+        try
+        {
+            await Task.Delay(1200);
+
+            _submitSeverity = Severity.Success;
+            _submitMessage = "Deine Bestellung wurde erfolgreich übermittelt.";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private void ApplyCoupon()
+    {
+        if (string.IsNullOrWhiteSpace(_couponCode))
+        {
+            _couponSeverity = Severity.Warning;
+            _couponMessage = "Bitte gib einen Gutscheincode ein.";
+            return;
+        }
+
+        if (string.Equals(_couponCode, "WELCOME10", StringComparison.OrdinalIgnoreCase))
+        {
+            _couponSeverity = Severity.Success;
+            _couponMessage = "Gutschein wurde angewendet.";
+            return;
+        }
+
+        _couponSeverity = Severity.Error;
+        _couponMessage = "Dieser Gutscheincode ist ungültig.";
+    }
+
+    private static string? ValidateEmail(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "Bitte gib deine E-Mail-Adresse ein.";
+        }
+
+        return new EmailAddressAttribute().IsValid(value)
+            ? null
+            : "Bitte gib eine gültige E-Mail-Adresse ein.";
+    }
+
+    private static string? ValidateCardNumber(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "Bitte gib die Kartennummer ein.";
+        }
+
+        var digits = new string(value.Where(char.IsDigit).ToArray());
+        return digits.Length is >= 13 and <= 19
+            ? null
+            : "Bitte gib eine gültige Kartennummer ein.";
+    }
+
+    private static string? ValidateExpiry(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "Bitte gib das Ablaufdatum ein.";
+        }
+
+        var parts = value.Split('/');
+        if (parts.Length != 2 ||
+            !int.TryParse(parts[0], out var month) ||
+            !int.TryParse(parts[1], out var year) ||
+            month is < 1 or > 12)
+        {
+            return "Bitte nutze das Format MM/JJ.";
+        }
+
+        return null;
+    }
+
+    private static string? ValidateCvc(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "Bitte gib den CVC ein.";
+        }
+
+        var digits = new string(value.Where(char.IsDigit).ToArray());
+        return digits.Length is 3 or 4
+            ? null
+            : "Bitte gib einen gültigen CVC ein.";
+    }
+
+    private sealed class CheckoutModel
+    {
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Street { get; set; } = string.Empty;
+        public string ZipCode { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
+        public string Country { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string ShippingMethod { get; set; } = string.Empty;
+        public string PaymentMethod { get; set; } = string.Empty;
+        public string CardName { get; set; } = string.Empty;
+        public string CardNumber { get; set; } = string.Empty;
+        public string CardExpiry { get; set; } = string.Empty;
+        public string CardCvc { get; set; } = string.Empty;
+    }
+
+    private sealed record CartItem(string Name, int Quantity, decimal UnitPrice)
+    {
+        public decimal TotalPrice => Quantity * UnitPrice;
+    }
+}

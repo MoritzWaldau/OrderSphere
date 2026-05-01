@@ -18,6 +18,7 @@ public partial class Login
     public LoginModel Model { get; set; } = new();
 
     private string? _errorMessage;
+    private bool _showPassword = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -52,6 +53,11 @@ public partial class Login
             _errorMessage = "E-Mail oder Passwort ist falsch.";
         }
     }
+
+    private void ShowPassword()
+    {
+        _showPassword = !_showPassword;
+    } 
 
     public sealed class LoginModel
     {

@@ -1,5 +1,7 @@
 ﻿@page "/account/login"
+@using MudBlazor.StaticInput
 @layout EmptyLayout
+@attribute [ExcludeFromInteractiveRouting]
 
 <PageTitle>Login – OrderSphere</PageTitle>
 
@@ -14,31 +16,30 @@
                 <MudText Typo="Typo.h5" Style="font-weight: 700;" Class="mt-2">Willkommen zurück</MudText>
                 <MudText Typo="Typo.body2" Color="Color.Secondary">Melde dich an um fortzufahren</MudText>
             </MudStack>
-
-            <EditForm FormName="loginForm" Model="@Model" method="post" OnValidSubmit="HandleLogin">
-                 <DataAnnotationsValidator /> 
-                 <MudStack Spacing="3"> 
-
-                    <MudTextField @bind-Value="Model.Email"
+            <MudStack Spacing="3">
+                <EditForm Model="@Model" OnValidSubmit="HandleLoginAsync" method="post" FormName="loginForm">
+                    <DataAnnotationsValidator />
+                    <MudStaticTextField @bind-Value="Model.Email"
                                   Label="E-Mail"
+                                  For="() => Model.Email"
                                   Variant="Variant.Outlined"
                                   InputType="InputType.Email"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Outlined.Email"
                                   FullWidth="true" />
 
-                    <MudTextField @bind-Value="Model.Password"
+                    <MudStaticTextField @bind-Value="Model.Password"
                                   Label="Passwort"
+                                  For="() => Model.Password"
                                   Variant="Variant.Outlined"
-                                  InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                                  InputType="InputType.Password"
                                   Adornment="Adornment.Start"
-                                  AdornmentIcon="@(_showPassword ? Icons.Material.Outlined.Visibility : Icons.Material.Outlined.VisibilityOff)"
-                                  OnAdornmentClick="TogglePasswordVisibility"
+                                  AdornmentIcon="@Icons.Material.Outlined.Lock"
                                   FullWidth="true" />
 
                     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-                            <InputCheckbox @bind-Value="Model.RememberMe" />
+                            <MudStaticCheckBox @bind-Value="Model.RememberMe" />
                             <label>Angemeldet bleiben</label>
                         </MudStack>
                         <MudLink Href="/account/forgot-password" Typo="Typo.body2">
@@ -51,23 +52,24 @@
                         <MudAlert Severity="Severity.Error" Dense="true">@_errorMessage</MudAlert>
                     }
 
-                    <MudButton ButtonType="ButtonType.Submit"
-                               Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               FullWidth="true"
-                               Size="Size.Large"
-                               Class="btn-pill mt-2">
+                    <MudStaticButton
+                        FormAction="FormAction.Submit" 
+                        Variant="Variant.Filled"
+                        Color="Color.Primary"
+                        FullWidth="true"
+                        Size="Size.Large"
+                        Class="btn-pill mt-2">
                         Anmelden
-                    </MudButton>
+                    </MudStaticButton>
+                </EditForm>
 
-                    <MudDivider />
+                <MudDivider />
 
-                    <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary">
-                        Noch kein Konto?
-                        <MudLink Href="/account/register" Color="Color.Primary">Jetzt registrieren</MudLink>
-                    </MudText>
-                </MudStack>
-             </EditForm>
+                <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary">
+                    Noch kein Konto?
+                    <MudLink Href="/account/register" Color="Color.Primary">Jetzt registrieren</MudLink>
+                </MudText>
+            </MudStack>
         </MudPaper>
     </MudContainer>
 </section>

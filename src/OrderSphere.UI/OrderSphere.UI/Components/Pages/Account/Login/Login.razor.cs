@@ -1,15 +1,8 @@
-
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Identity;
-using MudBlazor;
-using OrderSphere.Domain.Entities;
-using OrderSphere.Domain.Primitives;
-using OrderSphere.UI.Configuration;
 using OrderSphere.UI.Models.Auth;
-using System.ComponentModel.DataAnnotations;
-using System.Net;
 
 namespace OrderSphere.UI.Components.Pages.Account.Login;
 
@@ -21,48 +14,46 @@ public partial class Login
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    [SupplyParameterFromForm(Name = "loginForm")]
-    private LoginModel Model { get; set; } = default!;
+    [SupplyParameterFromForm]
+    public LoginModel Model { get; set; } = new();
 
     private string? _errorMessage;
-
-    private bool _showPassword = false;
 
     protected override async Task OnInitializedAsync()
     {
         Model ??= new();
-        if (!RendererInfo.IsInteractive && HttpContext is not null
-            && HttpMethods.IsGet(HttpContext.Request.Method))
+        if (!RendererInfo.IsInteractive &&
+            HttpContext is not null &&
+            HttpMethods.IsGet(HttpContext.Request.Method))
         {
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
         }
     }
 
-    private void TogglePasswordVisibility()
+    private async Task HandleLoginAsync(EditContext editContext)
     {
-        _showPassword = !_showPassword;
+        var result = await SignInManager.PasswordSignInAsync(
+            Model.Email, Model.Password, Model.RememberMe, lockoutOnFailure: true);
+
+        if (result.Succeeded)
+        {
+            NavManager.NavigateTo(ReturnUrl ?? "/", true);
+        }
+        else if (result.IsLockedOut)
+        {
+            _errorMessage = "Dein Konto ist vorübergehend gesperrt.";
+        }
+        else if (result.IsNotAllowed)
+        {
+            _errorMessage = "Bitte bestätige zuerst deine E-Mail Adresse.";
+        }
+        else
+        {
+            _errorMessage = "E-Mail oder Passwort ist falsch.";
+        }
     }
 
-    private async Task HandleLogin()
-    {
-        NavManager.NavigateTo("/account/login/processing");
-
-        //var result = await SignInManager.PasswordSignInAsync(
-        //    Model.Email, Model.Password, Model.RememberMe, lockoutOnFailure: true);
-
-       //if (result.Succeeded)
-       //{
-       //    NavManager.NavigateTo(ReturnUrl ?? "/");
-       //}
-       //else if (result.IsLockedOut)
-       //    _errorMessage = "Dein Konto ist vorübergehend gesperrt.";
-       //else if (result.IsNotAllowed)
-       //    _errorMessage = "Bitte bestätige zuerst deine E-Mail Adresse.";
-       //else
-       //    _errorMessage = "E-Mail oder Passwort ist falsch.";
-    }
-
-    private sealed class LoginModel
+    public sealed class LoginModel
     {
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;

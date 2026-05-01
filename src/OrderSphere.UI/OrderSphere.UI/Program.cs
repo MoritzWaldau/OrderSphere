@@ -4,14 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using OrderSphere.Application;
-using OrderSphere.Application.Abstraction;
-using OrderSphere.Application.Features.Checkout;
-using OrderSphere.Application.Models;
-using OrderSphere.Application.ServiceBus;
-using OrderSphere.Domain.Entities;
 using OrderSphere.Infrastructure;
-using OrderSphere.Infrastructure.Email;
-using OrderSphere.Infrastructure.Persistence;
 using OrderSphere.UI;
 using OrderSphere.UI.Components;
 using OrderSphere.UI.Configuration;
@@ -24,8 +17,7 @@ builder.AddServiceDefaults()
     .AddServiceBus();
 
 // Add services to the container.
-builder.Services
-    .AddRazorComponents()
+builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services
@@ -39,10 +31,18 @@ builder.Services.AddScoped<ICartService, CartService>();
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseHsts();
+}
+
 app.MapDefaultEndpoints();
 
-app.UseExceptionHandler("/Error", createScopeForErrors: true);
-app.UseHsts();
 
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();

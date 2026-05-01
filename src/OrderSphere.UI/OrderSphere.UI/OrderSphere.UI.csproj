@@ -13,6 +13,7 @@
     <ProjectReference Include="..\..\OrderSphere.Infrastructure\OrderSphere.Infrastructure.csproj" />
     <ProjectReference Include="..\..\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Extensions.MudBlazor.StaticInput" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
     <PackageReference Include="MudBlazor" />
     <PackageReference Include="Serilog.AspNetCore" />

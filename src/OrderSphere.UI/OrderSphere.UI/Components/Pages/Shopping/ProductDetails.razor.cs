@@ -50,7 +50,7 @@ public partial class ProductDetails : OrderSphereComponentBase
         if(_product is null) return;
 
         var currentUser = await CurrentUserService.GetCurrentUserInfoAsync();
-        var result = await Sender.Send(new AddToCartCommand(currentUser.UserId, _product.Id, _quantity));
+        var result = await Sender.Send(new AddToCartCommand((Guid)currentUser.CustomerId!, _product.Id, _quantity));
 
         if (!result.IsSuccess)
             return;

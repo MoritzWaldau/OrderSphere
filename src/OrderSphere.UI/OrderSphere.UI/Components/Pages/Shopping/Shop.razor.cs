@@ -14,8 +14,6 @@ namespace OrderSphere.UI.Components.Pages.Shopping;
 
 public partial class Shop : OrderSphereComponentBase
 {
-    [Inject] private ICartService CartService { get; set; } = null!;
-
     [Parameter]
     public string Category { get; set; } = string.Empty;
 
@@ -67,7 +65,7 @@ public partial class Shop : OrderSphereComponentBase
             var cartResult = await Sender.Send(new GetCartQuery(customerId));
             if (cartResult.IsSuccess)
             {
-                CartService.UpdateCart(cartResult.Value);
+                CartService.UpdateCart(GetCustomerId(), cartResult.Value);
             }
 
             ClosePopup();

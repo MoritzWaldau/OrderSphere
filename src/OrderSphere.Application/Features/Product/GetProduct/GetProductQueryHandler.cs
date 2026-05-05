@@ -21,6 +21,7 @@ public sealed class GetProductQueryHandler(IDbContext context, ILogger<GetProduc
                 {
                     Id = p.Id,
                     Name = p.Name,
+                    Slug = p.Slug,
                     Description = p.Description,
                     Price = p.Price,
                     Stock = p.Stock,

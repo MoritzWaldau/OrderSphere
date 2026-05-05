@@ -12,4 +12,9 @@ public sealed class CartItem(Guid productId, int quantity) : AuditableEntity
     {
         Quantity += amount;
     }
+
+    public void Decrease(int amount = 1)
+    {
+        Quantity -= amount;
+    }
 }

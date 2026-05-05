@@ -18,11 +18,15 @@
 @using OrderSphere.UI.Configuration
 
 @using OrderSphere.Application.Models
+@using OrderSphere.UI.Services
+@using OrderSphere.UI.Services.Auth
 
 @inject NavigationManager NavManager
 @inject ISnackbar Snackbar
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IEmailService EmailService
+@inject ICurrentUserService CurrentUserService
+@inject ICartService CartService
 @inject HttpClient Http
 

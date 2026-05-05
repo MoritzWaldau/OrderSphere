@@ -8,6 +8,7 @@ using OrderSphere.Application.Models;
 using OrderSphere.Domain.Extensions;
 using OrderSphere.UI.Configuration;
 using OrderSphere.UI.Services;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace OrderSphere.UI.Components.Pages.Shopping;
 
@@ -44,6 +45,12 @@ public partial class Shop : OrderSphereComponentBase
         _selectedProduct = null;
     }
 
+    private void OpenDetails(ProductDto product)
+    {
+        _selectedProduct = product;
+         NavManager.NavigateTo($"/shop/{_selectedProduct?.CategoryName}/{_selectedProduct?.Slug}");
+    }
+     
     private async Task ConfirmAddToCartAsync(int quantity)
     {
         if (_selectedProduct is null) return;

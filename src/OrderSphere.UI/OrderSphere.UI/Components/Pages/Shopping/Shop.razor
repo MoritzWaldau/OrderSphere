@@ -48,10 +48,11 @@
                         {
                             <MudItem xs="12" sm="6" md="4">
                                 <MudPaper Elevation="0"
-                                          Class="product-card"
-                                          Style="border-radius: 16px; overflow: hidden; background: #FFFFFF; border: 1px solid #D2D2D7; height: 100%; display: flex; flex-direction: column; transition: box-shadow 0.25s ease, transform 0.25s ease;"
-                                          onmouseover="this.style.boxShadow='0 12px 32px rgba(0,0,0,0.12)'; this.style.transform='translateY(-4px)'"
-                                          onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)'">
+                                    @onclick="@(() => OpenDetails(product))"
+                                    Class="product-card"
+                                    Style="border-radius: 16px; overflow: hidden; background: #FFFFFF; border: 1px solid #D2D2D7; height: 100%; display: flex; flex-direction: column; transition: box-shadow 0.25s ease, transform 0.25s ease;"
+                                    onmouseover="this.style.boxShadow='0 12px 32px rgba(0,0,0,0.12)'; this.style.transform='translateY(-4px)'"
+                                    onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)'">
 
                                     <!-- Bild -->
                                     <div class="product-image-wrapper">

@@ -9,6 +9,7 @@ using OrderSphere.Infrastructure.Persistence;
 using OrderSphere.UI.Models.Auth;
 using OrderSphere.UI.Services;
 using OrderSphere.UI.Services.Account;
+using OrderSphere.UI.Services.Auth;
 using Serilog;
 using System.Globalization;
 using System.Security.Principal;
@@ -55,6 +56,7 @@ public static class DependencyInjection
         services.AddCascadingAuthenticationState();
         services.AddScoped<IdentityRedirectManager>();
         services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         services.AddAuthentication(options =>
         {

@@ -311,6 +311,11 @@ Otherwise, proceed autonomously with confidence in:
 
 ---
 
+## Behavior Summary
+All the timeyou write documents, you write in markdown and use mermaid for diagrams. You only put information that you can validate, if there is something to
+research yyou research, tech concepts must always be researched, you don't guess anything, you don't bullshit around, you are not enthusiastic , no marketing, no advertising, no slogangs, you don't use imaginary comparisions like
+"thats not just... thats bla bla bla...". Your audience are enterprise architects.
+
 **Last Updated**: May 2026
 **Framework**: .NET 10.0
 **Architecture**: Clean Architecture + DDD + CQRS

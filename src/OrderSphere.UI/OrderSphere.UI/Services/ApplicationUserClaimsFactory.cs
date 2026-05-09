@@ -7,8 +7,9 @@ namespace OrderSphere.UI.Services;
 
 public sealed class ApplicationUserClaimsFactory(
     UserManager<ApplicationUser> userManager,
+    RoleManager<IdentityRole> roleManager,
     IOptions<IdentityOptions> optionsAccessor)
-    : UserClaimsPrincipalFactory<ApplicationUser>(userManager, optionsAccessor)
+    : UserClaimsPrincipalFactory<ApplicationUser, IdentityRole>(userManager, roleManager, optionsAccessor)
 {
     protected override async Task<ClaimsIdentity> GenerateClaimsAsync(ApplicationUser user)
     {

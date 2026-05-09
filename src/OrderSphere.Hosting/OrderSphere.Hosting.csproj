@@ -1,20 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>dotnet-OrderSphere.Worker-fd33988e-d575-4b39-95fd-6481ba4e7952</UserSecretsId>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspire.Azure.Messaging.ServiceBus" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\OrderSphere.Application\OrderSphere.Application.csproj" />
-    <ProjectReference Include="..\OrderSphere.Hosting\OrderSphere.Hosting.csproj" />
     <ProjectReference Include="..\OrderSphere.Infrastructure\OrderSphere.Infrastructure.csproj" />
-    <ProjectReference Include="..\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
   </ItemGroup>
+
 </Project>

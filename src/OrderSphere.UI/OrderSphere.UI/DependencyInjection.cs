@@ -30,14 +30,6 @@ public static class DependencyInjection
         return builder;
     }
 
-    public static WebApplicationBuilder AddServiceBus(this WebApplicationBuilder builder)
-    {
-        AppContext.SetSwitch("Azure.Experimental.EnableActivitySource", true);
-        builder.AddAzureServiceBusClient("azure-service-bus");
-
-        return builder;
-    }
-
     public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped(sp =>

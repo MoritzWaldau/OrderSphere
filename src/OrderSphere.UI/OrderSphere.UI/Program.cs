@@ -4,13 +4,12 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
-using OrderSphere.Application;
 using OrderSphere.Application.Models;
 using OrderSphere.Application.Models.Events;
 using OrderSphere.Application.ServiceBus;
 using OrderSphere.Domain.Enums;
 using OrderSphere.Domain.ValueObjects;
-using OrderSphere.Infrastructure;
+using OrderSphere.Hosting;
 using OrderSphere.UI;
 using OrderSphere.UI.Components;
 using OrderSphere.UI.Configuration;
@@ -20,17 +19,15 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults()
-    .AddLogging()
-    .AddServiceBus();
+    .AddLogging();
+
+builder.AddOrderSphereCore();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services
-    .AddServices(builder.Configuration)
-    .AddApplicationServices(builder.Configuration)
-    .AddInfrastructureServices(builder.Configuration);
+builder.Services.AddServices(builder.Configuration);
 
 builder.Services.AddMudServices();
 

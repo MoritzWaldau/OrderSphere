@@ -1,13 +1,9 @@
-﻿using Azure.Communication.Email;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using OrderSphere.Application.Abstraction;
 using OrderSphere.Application.ServiceBus;
 using OrderSphere.Domain.Configuration;
-using OrderSphere.Domain.Entities;
 using OrderSphere.Infrastructure.Email;
 using OrderSphere.Infrastructure.Identity;
 using OrderSphere.Infrastructure.Interceptors;
@@ -30,12 +26,6 @@ public static class DependencyInjection
         services.AddScoped<IDbContext, OrderSphereDbContext>();
         services.AddScoped<IServiceBusPublisher, ServiceBusPublisher>();
         services.AddScoped<IUserEmailLookup, UserEmailLookup>();
-
-        services.AddIdentityCore<ApplicationUser>()
-            .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<OrderSphereDbContext>()
-            .AddDefaultTokenProviders();
-
         services.AddScoped<IUserAdminService, UserAdminService>();
 
         //Mail service

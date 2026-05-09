@@ -1,15 +1,10 @@
-using OrderSphere.Application;
-using OrderSphere.Infrastructure;
+using OrderSphere.Hosting;
 using OrderSphere.Worker.Workers;
 
 var builder = Host.CreateApplicationBuilder(args);
 
 builder.AddServiceDefaults();
-builder.AddAzureServiceBusClient("azure-service-bus");
-
-builder.Services
-    .AddApplicationServices(builder.Configuration)
-    .AddInfrastructureServices(builder.Configuration);
+builder.AddOrderSphereCore();
 
 builder.Services.AddHostedService<OrderProcessor>();
 

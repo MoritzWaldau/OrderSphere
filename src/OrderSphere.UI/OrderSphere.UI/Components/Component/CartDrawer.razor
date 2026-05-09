@@ -1,4 +1,4 @@
-﻿@using OrderSphere.Application.Features.Cart.RemoveCart
+@using OrderSphere.Application.Features.Cart.RemoveCart
 @using OrderSphere.Application.Models
 @using OrderSphere.Application.Features.Cart.AddToCart
 @using OrderSphere.Application.Features.Cart.DecreaseCartItemQuantity
@@ -46,7 +46,7 @@
                 Füge Produkte hinzu um loszulegen.
             </MudText>
             <MudButton Variant="Variant.Filled"
-                       Href="/products"
+                       Href="/shop"
                        Style="background: #0071E3; color: #FFFFFF; border-radius: 100px; padding: 10px 28px; margin-top: 24px; font-weight: 600;">
                 Produkte entdecken
             </MudButton>
@@ -158,20 +158,25 @@
     [Parameter] public EventCallback<int> OnItemCountChanged { get; set; }
 
     private List<CartItemViewModel> _items = [];
+    private bool _wasOpen = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         CartService.OnCartUpdated += OnCartUpdated;
+        var cart = await CartService.GetCartAsync();
+        ApplyCart(cart);
+        await UpdateItemCount();
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        if (!IsOpen)
-            return;
-
-        var cart = await CartService.GetCartAsync();
-        ApplyCart(cart);
-        await UpdateItemCount();
+        if (IsOpen && !_wasOpen)
+        {
+            var cart = await CartService.GetCartAsync();
+            ApplyCart(cart);
+            await UpdateItemCount();
+        }
+        _wasOpen = IsOpen;
     }
 
     private void OnCartUpdated(CartChangedEventArgs args)

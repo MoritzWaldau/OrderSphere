@@ -1,0 +1,88 @@
+@page "/contact"
+@layout MainLayout
+
+<PageTitle>Kontakt — OrderSphere</PageTitle>
+
+<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 60px 0;">
+    <MudContainer>
+        <MudText Typo="Typo.h2" Align="Align.Center" Style="color: #FFFFFF; letter-spacing: -0.02em;">
+            Kontakt
+        </MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center" Style="color: rgba(255,255,255,0.8); margin-top: 8px;">
+            Wir sind für dich da — auf dem Weg, der dir am liebsten ist.
+        </MudText>
+    </MudContainer>
+</section>
+
+<section style="background: #F5F5F7; padding: 60px 0; min-height: 60vh;">
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        <MudGrid Spacing="4">
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="pa-6 text-center"
+                          Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: #FFFFFF; height: 100%;">
+                    <MudIcon Icon="@Icons.Material.Outlined.Email"
+                             Color="Color.Primary"
+                             Style="font-size: 48px;" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">E-Mail</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2 mb-4">
+                        Antwort innerhalb von 24 Stunden.
+                    </MudText>
+                    <MudLink Href="mailto:support@ordersphere.dev" Underline="Underline.Hover">
+                        support@ordersphere.dev
+                    </MudLink>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="pa-6 text-center"
+                          Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: #FFFFFF; height: 100%;">
+                    <MudIcon Icon="@Icons.Material.Outlined.Phone"
+                             Color="Color.Primary"
+                             Style="font-size: 48px;" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Telefon</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2 mb-4">
+                        Mo.–Fr. 9:00–18:00 Uhr
+                    </MudText>
+                    <MudLink Href="tel:+49123456789" Underline="Underline.Hover">
+                        +49 (0) 123 456 789
+                    </MudLink>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="pa-6 text-center"
+                          Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: #FFFFFF; height: 100%;">
+                    <MudIcon Icon="@Icons.Material.Outlined.LocationOn"
+                             Color="Color.Primary"
+                             Style="font-size: 48px;" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Adresse</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        OrderSphere GmbH<br />
+                        Musterstraße 1<br />
+                        12345 Musterstadt
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Elevation="0" Class="pa-8 mt-8"
+                  Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider); background: #FFFFFF;">
+            <MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: 600;">
+                Nachricht senden
+            </MudText>
+
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-6">
+                Das Kontaktformular ist noch in Vorbereitung. In der Zwischenzeit erreichst du uns am schnellsten per E-Mail.
+            </MudAlert>
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Size="Size.Large"
+                       Href="mailto:support@ordersphere.dev"
+                       StartIcon="@Icons.Material.Outlined.Email"
+                       Class="btn-pill">
+                E-Mail schreiben
+            </MudButton>
+        </MudPaper>
+    </MudContainer>
+</section>

@@ -1,0 +1,99 @@
+@page "/account/settings"
+@layout MainLayout
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+
+<PageTitle>Einstellungen — OrderSphere</PageTitle>
+
+<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 60px 0;">
+    <MudContainer>
+        <MudText Typo="Typo.h2" Align="Align.Center" Style="color: #FFFFFF; letter-spacing: -0.02em;">
+            Einstellungen
+        </MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center" Style="color: rgba(255,255,255,0.8); margin-top: 8px;">
+            Verwalte dein Konto und deine Präferenzen.
+        </MudText>
+    </MudContainer>
+</section>
+
+<section style="background: #F5F5F7; padding: 60px 0; min-height: 60vh;">
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        <MudGrid Spacing="4">
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="0" Class="category-card pa-6"
+                          Style="height: 100%; cursor: pointer;"
+                          @onclick="@(() => NavManager.NavigateTo("/account/profile"))">
+                    <MudIcon Icon="@Icons.Material.Outlined.Person"
+                             Color="Color.Primary"
+                             Style="font-size: 48px;" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Profil</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Name, E-Mail und Kontaktdaten anpassen.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="0" Class="category-card pa-6"
+                          Style="height: 100%; cursor: pointer;"
+                          @onclick="@(() => NavManager.NavigateTo("/account/forgot-password"))">
+                    <MudIcon Icon="@Icons.Material.Outlined.Lock"
+                             Color="Color.Primary"
+                             Style="font-size: 48px;" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Passwort</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Passwort zurücksetzen oder ändern.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="0" Class="category-card pa-6"
+                          Style="height: 100%; cursor: pointer;"
+                          @onclick="@(() => NavManager.NavigateTo("/account/orders"))">
+                    <MudIcon Icon="@Icons.Material.Outlined.ShoppingBag"
+                             Color="Color.Primary"
+                             Style="font-size: 48px;" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Bestellungen</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Übersicht deiner bisherigen Bestellungen.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="0" Class="category-card pa-6"
+                          Style="height: 100%; cursor: pointer;"
+                          @onclick="@(() => NavManager.NavigateTo("/privacy"))">
+                    <MudIcon Icon="@Icons.Material.Outlined.PrivacyTip"
+                             Color="Color.Primary"
+                             Style="font-size: 48px;" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Datenschutz</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Wie wir mit deinen Daten umgehen.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Elevation="0" Class="pa-6 mt-6"
+                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: #FFFFFF;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Wrap="Wrap.Wrap">
+                <MudStack Spacing="1">
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Abmelden</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        Beendet deine aktuelle Sitzung auf diesem Gerät.
+                    </MudText>
+                </MudStack>
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Error"
+                           Href="/account/logout"
+                           StartIcon="@Icons.Material.Outlined.Logout"
+                           Class="btn-pill">
+                    Abmelden
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudContainer>
+</section>

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api *)",
+      "WebFetch(domain:github.com)",
+      "Bash(git clone *)",
+      "Bash(where python *)",
+      "Bash(pip install *)",
+      "Bash(uv sync *)",
+      "Bash(curl -sI \"https://esm.sh/@excalidraw/excalidraw?bundle\")",
+      "Bash(dotnet build *)"
+    ]
+  }
+}

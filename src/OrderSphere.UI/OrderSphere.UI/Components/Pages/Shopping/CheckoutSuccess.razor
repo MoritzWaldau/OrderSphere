@@ -1,0 +1,137 @@
+@page "/checkout/success"
+@layout MainLayout
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+
+<PageTitle>Bestellung bestätigt — OrderSphere</PageTitle>
+
+<section class="section-hero">
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        <MudStack AlignItems="AlignItems.Center" Spacing="5" Class="text-center">
+            <MudPaper Elevation="0"
+                      Class="d-flex align-center justify-center"
+                      Style="width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.15);">
+                <MudIcon Icon="@Icons.Material.Outlined.CheckCircle"
+                         Style="font-size: 80px; color: #FFFFFF;" />
+            </MudPaper>
+
+            <MudText Typo="Typo.h2"
+                     Style="color: #FFFFFF; font-weight: 700; letter-spacing: -0.02em;">
+                Vielen Dank!
+            </MudText>
+
+            <MudText Typo="Typo.h5" Style="color: #FFFFFF; font-weight: 500;">
+                Deine Bestellung ist bei uns eingegangen.
+            </MudText>
+
+            @if (!string.IsNullOrWhiteSpace(OrderNumber))
+            {
+                <MudPaper Elevation="0" Class="px-6 py-3"
+                          Style="background: rgba(255,255,255,0.15); border-radius: 100px;">
+                    <MudText Typo="Typo.body1" Style="color: #FFFFFF;">
+                        Bestellnummer: <strong>@OrderNumber</strong>
+                    </MudText>
+                </MudPaper>
+            }
+
+            <MudText Typo="Typo.body1"
+                     Style="color: rgba(255,255,255,0.85); max-width: 580px;">
+                Eine Bestätigung mit allen Details haben wir an deine E-Mail-Adresse gesendet.
+                Sobald deine Bestellung versendet wird, informieren wir dich erneut.
+            </MudText>
+        </MudStack>
+    </MudContainer>
+</section>
+
+<section class="section-white">
+    <MudContainer MaxWidth="MaxWidth.Small">
+        <MudPaper Elevation="0" Class="pa-8"
+                  Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+            <MudText Typo="Typo.h5" Class="mb-6" Style="font-weight: 600;">
+                So geht's weiter
+            </MudText>
+
+            <MudStack Spacing="5">
+                <MudStack Row="true" Spacing="4" AlignItems="AlignItems.Start">
+                    <MudIcon Icon="@Icons.Material.Outlined.MarkEmailRead"
+                             Color="Color.Primary" Style="font-size: 32px;" />
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                            Bestätigung per E-Mail
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Du erhältst gleich eine E-Mail mit der Bestellübersicht und deiner Rechnung.
+                        </MudText>
+                    </MudStack>
+                </MudStack>
+
+                <MudStack Row="true" Spacing="4" AlignItems="AlignItems.Start">
+                    <MudIcon Icon="@Icons.Material.Outlined.Inventory2"
+                             Color="Color.Primary" Style="font-size: 32px;" />
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                            Verpackung &amp; Versand
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Wir verpacken deine Bestellung sorgfältig und übergeben sie an unseren Versandpartner.
+                        </MudText>
+                    </MudStack>
+                </MudStack>
+
+                <MudStack Row="true" Spacing="4" AlignItems="AlignItems.Start">
+                    <MudIcon Icon="@Icons.Material.Outlined.LocalShipping"
+                             Color="Color.Primary" Style="font-size: 32px;" />
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                            Lieferung
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Mit dem Versand schicken wir dir einen Tracking-Link, damit du deine Sendung verfolgen kannst.
+                        </MudText>
+                    </MudStack>
+                </MudStack>
+            </MudStack>
+
+            @if (!string.IsNullOrWhiteSpace(Total))
+            {
+                <MudDivider Class="my-6" />
+                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudText Typo="Typo.body1" Color="Color.Secondary">Gesamtbetrag</MudText>
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">@FormattedTotal</MudText>
+                </MudStack>
+            }
+
+            <MudStack Row="true" Spacing="3" Wrap="Wrap.Wrap" Justify="Justify.Center" Class="mt-8">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Size="Size.Large"
+                           Href="/account/orders"
+                           StartIcon="@Icons.Material.Outlined.ShoppingBag"
+                           Class="btn-pill">
+                    Meine Bestellungen
+                </MudButton>
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           Size="Size.Large"
+                           Href="/shop"
+                           Class="btn-pill">
+                    Weiter einkaufen
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudContainer>
+</section>
+
+@code {
+    [SupplyParameterFromQuery(Name = "orderNumber")]
+    public string? OrderNumber { get; set; }
+
+    [SupplyParameterFromQuery(Name = "total")]
+    public string? Total { get; set; }
+
+    private string FormattedTotal =>
+        decimal.TryParse(Total, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var value)
+            ? value.ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) + " €"
+            : "—";
+}

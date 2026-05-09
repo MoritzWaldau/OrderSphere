@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OrderSphere.UI\OrderSphere.UI\OrderSphere.UI.csproj" />
+    <ProjectReference Include="..\OrderSphere.Worker\OrderSphere.Worker.csproj" />
   </ItemGroup>
 
 </Project>

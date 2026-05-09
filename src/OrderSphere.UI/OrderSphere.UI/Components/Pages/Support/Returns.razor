@@ -1,0 +1,105 @@
+@page "/returns"
+@layout MainLayout
+
+<PageTitle>Rückgabe — OrderSphere</PageTitle>
+
+<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 60px 0;">
+    <MudContainer>
+        <MudText Typo="Typo.h2" Align="Align.Center" Style="color: #FFFFFF; letter-spacing: -0.02em;">
+            Rückgabe &amp; Widerruf
+        </MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center" Style="color: rgba(255,255,255,0.8); margin-top: 8px;">
+            14 Tage Widerrufsrecht. Schnell, einfach, kostenlos.
+        </MudText>
+    </MudContainer>
+</section>
+
+<section style="background: #F5F5F7; padding: 60px 0; min-height: 60vh;">
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        <MudPaper Elevation="0" Class="pa-8"
+                  Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider); background: #FFFFFF;">
+
+            <MudText Typo="Typo.h5" Class="mb-6" Style="font-weight: 600;">
+                So gibst du zurück
+            </MudText>
+
+            <MudStack Spacing="6">
+                <MudStack Row="true" Spacing="4" AlignItems="AlignItems.Start">
+                    <MudPaper Elevation="0"
+                              Class="d-flex align-center justify-center flex-shrink-0"
+                              Style="width: 48px; height: 48px; border-radius: 50%; background: var(--mud-palette-primary); color: #FFFFFF;">
+                        <MudText Typo="Typo.h6" Style="color: #FFFFFF; font-weight: 700;">1</MudText>
+                    </MudPaper>
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                            Rückgabe anmelden
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Schreibe uns eine kurze E-Mail an support@ordersphere.dev mit deiner Bestellnummer und dem Grund der Rückgabe.
+                        </MudText>
+                    </MudStack>
+                </MudStack>
+
+                <MudStack Row="true" Spacing="4" AlignItems="AlignItems.Start">
+                    <MudPaper Elevation="0"
+                              Class="d-flex align-center justify-center flex-shrink-0"
+                              Style="width: 48px; height: 48px; border-radius: 50%; background: var(--mud-palette-primary); color: #FFFFFF;">
+                        <MudText Typo="Typo.h6" Style="color: #FFFFFF; font-weight: 700;">2</MudText>
+                    </MudPaper>
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                            Versandlabel erhalten
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Wir senden dir innerhalb eines Werktags ein kostenloses Rücksende-Etikett zu. Einfach ausdrucken und auf dem Paket befestigen.
+                        </MudText>
+                    </MudStack>
+                </MudStack>
+
+                <MudStack Row="true" Spacing="4" AlignItems="AlignItems.Start">
+                    <MudPaper Elevation="0"
+                              Class="d-flex align-center justify-center flex-shrink-0"
+                              Style="width: 48px; height: 48px; border-radius: 50%; background: var(--mud-palette-primary); color: #FFFFFF;">
+                        <MudText Typo="Typo.h6" Style="color: #FFFFFF; font-weight: 700;">3</MudText>
+                    </MudPaper>
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                            Paket abgeben
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Gib das Paket bei einer Filiale unseres Versandpartners ab. Eine Quittung erhältst du dort als Beleg.
+                        </MudText>
+                    </MudStack>
+                </MudStack>
+
+                <MudStack Row="true" Spacing="4" AlignItems="AlignItems.Start">
+                    <MudPaper Elevation="0"
+                              Class="d-flex align-center justify-center flex-shrink-0"
+                              Style="width: 48px; height: 48px; border-radius: 50%; background: var(--mud-palette-primary); color: #FFFFFF;">
+                        <MudText Typo="Typo.h6" Style="color: #FFFFFF; font-weight: 700;">4</MudText>
+                    </MudPaper>
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                            Erstattung
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Sobald das Paket bei uns eingegangen ist, prüfen wir die Ware und erstatten dir den Kaufpreis innerhalb von 5 Werktagen auf dein Konto.
+                        </MudText>
+                    </MudStack>
+                </MudStack>
+            </MudStack>
+
+            <MudDivider Class="my-8" />
+
+            <MudText Typo="Typo.h6" Class="mb-3" Style="font-weight: 600;">
+                Wichtige Hinweise
+            </MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                • Die Widerrufsfrist beträgt 14 Tage ab Erhalt der Ware.<br />
+                • Artikel sollten möglichst in Originalverpackung zurückgesendet werden.<br />
+                • Das gesetzliche Widerrufsrecht und unsere Kulanzregelung sind voneinander unabhängig.<br />
+                • Vollständige Bedingungen findest du in unseren <MudLink Href="/terms">AGB</MudLink>.
+            </MudText>
+        </MudPaper>
+    </MudContainer>
+</section>

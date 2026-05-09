@@ -4,5 +4,5 @@ using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Application.Features.Checkout;
 
-public sealed record CheckoutCartCommand(CheckoutCartDto CheckoutCartDto) 
-    : ICommand<Result>;
+public sealed record CheckoutCartCommand(CheckoutCartDto CheckoutCartDto)
+    : ICommand<Result<Guid>>;

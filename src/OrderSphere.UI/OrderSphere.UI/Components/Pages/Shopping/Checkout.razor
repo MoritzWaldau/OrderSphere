@@ -1,8 +1,13 @@
 ﻿@page "/checkout"
+@inject NavigationManager Navigation
 
 @attribute [Authorize]
 @inherits OrderSphereComponentBase
 @using System.ComponentModel.DataAnnotations
+@using OrderSphere.Application.Features.Cart.GetCart
+@using OrderSphere.Application.Features.Checkout
+@using OrderSphere.Domain.Enums
+@using OrderSphere.Domain.ValueObjects
 
 <PageTitle>Checkout</PageTitle>
 
@@ -351,12 +356,21 @@
         PaymentMethod = "card"
     };
 
-    private readonly List<CartItem> _cartItems =
-    [
-        new CartItem("OrderSphere Headphones", 1, 149.90m),
-        new CartItem("Wireless Charger", 2, 39.95m),
-        new CartItem("Premium Case", 1, 29.90m)
-    ];
+    private List<CartItem> _cartItems = [];
+
+    protected override async Task LoadDataAsync()
+    {
+        var customerId = await CurrentUserService.GetCustomerIdAsync();
+        if (customerId is null) return;
+
+        var cartResult = await Sender.Send(new GetCartQuery(customerId.Value));
+        if (cartResult.IsSuccess)
+        {
+            _cartItems = cartResult.Value.Items
+                .Select(i => new CartItem(i.ProductName, i.Quantity, i.Price))
+                .ToList();
+        }
+    }
 
     private decimal Subtotal => _cartItems.Sum(x => x.TotalPrice);
     private decimal ShippingCost => _checkout.ShippingMethod == "express" ? 9.99m : 0m;
@@ -385,16 +399,53 @@
 
         try
         {
-            await Task.Delay(1200);
+            var customerId = await CurrentUserService.GetCustomerIdAsync();
+            if (customerId is null)
+            {
+                _submitSeverity = Severity.Error;
+                _submitMessage = "Bitte melde dich an, um die Bestellung abzuschließen.";
+                return;
+            }
 
-            _submitSeverity = Severity.Success;
-            _submitMessage = "Deine Bestellung wurde erfolgreich übermittelt.";
+            var address = new Address(
+                _checkout.FirstName,
+                _checkout.LastName,
+                _checkout.Street,
+                _checkout.City,
+                _checkout.ZipCode,
+                _checkout.Country);
+
+            var paymentMethod = MapPaymentMethod(_checkout.PaymentMethod);
+            var dto = new CheckoutCartDto(customerId.Value, address, paymentMethod);
+
+            var result = await Sender.Send(new CheckoutCartCommand(dto));
+
+            if (!result.IsSuccess)
+            {
+                _submitSeverity = Severity.Error;
+                _submitMessage = result.Error.Description;
+                return;
+            }
+
+            await CartService.RefreshCartAsync();
+
+            var orderId = result.Value;
+            var orderNumber = orderId.ToString("N")[..8].ToUpperInvariant();
+            Navigation.NavigateTo($"/checkout/success?orderId={orderId}&orderNumber={orderNumber}&total={Total.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}");
         }
         finally
         {
             _isSubmitting = false;
         }
     }
+
+    private static PaymentMethod MapPaymentMethod(string value) => value switch
+    {
+        "card" => PaymentMethod.CreditCard,
+        "paypal" => PaymentMethod.PayPal,
+        "invoice" => PaymentMethod.Invoice,
+        _ => PaymentMethod.Invoice
+    };
 
     private void ApplyCoupon()
     {

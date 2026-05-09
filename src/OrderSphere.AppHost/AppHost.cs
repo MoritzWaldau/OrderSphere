@@ -10,11 +10,17 @@ var serviceBus = builder.AddAzureServiceBus("azure-service-bus")
 serviceBus.AddServiceBusQueue("orders")
     .WithProperties(cfg =>
     { 
-        cfg.MaxDeliveryCount = 1;
+        cfg.MaxDeliveryCount = 10;
     });
 
 builder.AddProject<Projects.OrderSphere_UI>("ordersphere-ui")
     .WithReference(postgres)
-    .WaitFor(postgres);
+    .WithReference(serviceBus)
+    .WaitFor(postgres)
+    .WaitFor(serviceBus);
+
+builder.AddProject<Projects.OrderSphere_Worker>("ordersphere-worker")
+    .WithReference(serviceBus)
+    .WaitFor(serviceBus);
 
 builder.Build().Run();

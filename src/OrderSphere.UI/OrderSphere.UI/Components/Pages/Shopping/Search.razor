@@ -1,0 +1,178 @@
+@page "/search"
+@layout MainLayout
+@inherits OrderSphereComponentBase
+@using OrderSphere.Application.Features.Product.GetProduct
+
+<PageTitle>Suche — OrderSphere</PageTitle>
+
+<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 60px 0;">
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        <MudText Typo="Typo.h2" Align="Align.Center" Style="color: #FFFFFF; letter-spacing: -0.02em;">
+            Suche
+        </MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center" Style="color: rgba(255,255,255,0.8); margin-top: 8px;">
+            Finde genau das Produkt, das du suchst.
+        </MudText>
+
+        <MudPaper Elevation="0" Class="pa-2 mt-6 mx-auto"
+                  Style="max-width: 600px; border-radius: 100px; background: #FFFFFF;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0" Class="px-4">
+                <MudIcon Icon="@Icons.Material.Outlined.Search" Color="Color.Default" />
+                <MudTextField T="string"
+                              @bind-Value="_queryInput"
+                              Placeholder="Produkte durchsuchen..."
+                              Variant="Variant.Text"
+                              Underline="false"
+                              FullWidth="true"
+                              Class="mx-3"
+                              OnKeyDown="OnSearchKeyDown" />
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           OnClick="ApplySearch"
+                           Class="btn-pill">
+                    Suchen
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudContainer>
+</section>
+
+<section style="background: #F5F5F7; padding: 60px 0; min-height: 50vh;">
+    <MudContainer>
+        @if (IsLoading)
+        {
+            <MudStack AlignItems="AlignItems.Center" Class="py-12">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+            </MudStack>
+        }
+        else if (string.IsNullOrWhiteSpace(Query))
+        {
+            <MudPaper Elevation="0" Class="pa-12 text-center"
+                      Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                <MudIcon Icon="@Icons.Material.Outlined.Search"
+                         Color="Color.Primary"
+                         Style="font-size: 80px;" Class="mb-4" />
+                <MudText Typo="Typo.h5" Style="font-weight: 600;">
+                    Wonach suchst du?
+                </MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-2">
+                    Gib einen Begriff oben ein, um Produkte zu finden.
+                </MudText>
+            </MudPaper>
+        }
+        else if (_results.Count == 0)
+        {
+            <MudPaper Elevation="0" Class="pa-12 text-center"
+                      Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                <MudIcon Icon="@Icons.Material.Outlined.SearchOff"
+                         Color="Color.Primary"
+                         Style="font-size: 80px;" Class="mb-4" />
+                <MudText Typo="Typo.h5" Style="font-weight: 600;">
+                    Keine Treffer für „@Query"
+                </MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-2 mb-6">
+                    Versuche es mit einem anderen Suchbegriff oder durchstöbere unser Sortiment.
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
+                           Href="/shop" Class="btn-pill">
+                    Zum Shop
+                </MudButton>
+            </MudPaper>
+        }
+        else
+        {
+            <MudText Typo="Typo.h5" Class="mb-6" Style="font-weight: 600;">
+                @_results.Count @(_results.Count == 1 ? "Treffer" : "Treffer") für „@Query"
+            </MudText>
+
+            <MudGrid>
+                @foreach (var product in _results)
+                {
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudPaper Elevation="0"
+                                  Class="product-card"
+                                  Style="border-radius: 16px; overflow: hidden; background: #FFFFFF; border: 1px solid #D2D2D7; height: 100%; cursor: pointer;"
+                                  @onclick="@(() => NavManager.NavigateTo($"/shop/{product.CategoryName}/{product.Slug}"))">
+                            <div style="height: 180px; background: linear-gradient(135deg, #F5F5F7 0%, #E8E8ED 100%); display: flex; align-items: center; justify-content: center;">
+                                <MudIcon Icon="@Icons.Material.Filled.Devices" Style="font-size: 4rem; color: #D2D2D7;" />
+                            </div>
+                            <div style="padding: 20px;">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @product.CategoryName
+                                </MudText>
+                                <MudText Typo="Typo.h6" Style="font-weight: 600; margin-top: 4px;">
+                                    @product.Name
+                                </MudText>
+                                <MudText Typo="Typo.h6" Style="color: #0071E3; font-weight: 700; margin-top: 12px;">
+                                    @product.Price.ToString("C")
+                                </MudText>
+                            </div>
+                        </MudPaper>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </MudContainer>
+</section>
+
+@code {
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? Query { get; set; }
+
+    private string _queryInput = string.Empty;
+    private List<ProductDto> _results = [];
+
+    protected override async Task LoadDataAsync()
+    {
+        _queryInput = Query ?? string.Empty;
+        await RunSearchAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        _queryInput = Query ?? string.Empty;
+        await RunSearchAsync();
+    }
+
+    private async Task RunSearchAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Query))
+        {
+            _results = [];
+            return;
+        }
+
+        var result = await Sender.Send(new GetProductQuery());
+
+        if (!result.IsSuccess)
+        {
+            Snackbar.Add(result.Error.Description, Severity.Error);
+            _results = [];
+            return;
+        }
+
+        var term = Query.Trim();
+        _results = result.Value
+            .Where(p =>
+                (p.Name?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (p.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (p.CategoryName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
+            .ToList();
+    }
+
+    private void ApplySearch()
+    {
+        var trimmed = _queryInput?.Trim() ?? string.Empty;
+        var url = string.IsNullOrEmpty(trimmed) ? "/search" : $"/search?q={Uri.EscapeDataString(trimmed)}";
+        NavManager.NavigateTo(url);
+    }
+
+    private void OnSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ApplySearch();
+        }
+    }
+}

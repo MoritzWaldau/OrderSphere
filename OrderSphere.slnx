@@ -6,5 +6,6 @@
     <Project Path="src/OrderSphere.Infrastructure/OrderSphere.Infrastructure.csproj" />
     <Project Path="src/OrderSphere.ServiceDefaults/OrderSphere.ServiceDefaults.csproj" />
     <Project Path="src/OrderSphere.UI/OrderSphere.UI/OrderSphere.UI.csproj" />
+    <Project Path="src/OrderSphere.Worker/OrderSphere.Worker.csproj" />
   </Folder>
 </Solution>

@@ -13,8 +13,8 @@ namespace OrderSphere.UI.Components.Pages.Shopping;
 
 public partial class ProductDetails : OrderSphereComponentBase
 {
-    [Parameter] public string Slug { get; set; } = default!;
-    [Parameter] public string CategoryName { get; set; } = default!;
+    [Parameter] public string Slug { get; set; } = null!;
+    [Parameter] public string CategoryName { get; set; } = null!;
 
     private ProductDto? _product;
     private int _quantity = 1;
@@ -24,7 +24,6 @@ public partial class ProductDetails : OrderSphereComponentBase
     protected override async Task LoadDataAsync()
     {
         var result = await Sender.Send(new GetProductBySlugQuery(Slug));
-        var userInfo = await CurrentUserService.GetCurrentUserInfoAsync();
         result.Match(
             onSuccess: product => _product = product,
             onFailure: error => Snackbar.Add(error.Description, Severity.Error)

@@ -39,7 +39,6 @@ public sealed class CheckoutCartCommandHandler(
                 return Result<Guid>.Failure(CheckoutCartErrors.EmptyCartError);
             }
 
-            var orderItems = new List<OrderItem>();
             var orderItemDtos = new List<OrderItemDto>();
 
             foreach (CartItem cartItem in cart.Items)
@@ -52,38 +51,27 @@ public sealed class CheckoutCartCommandHandler(
                 product.RemoveFromStock(quantity: cartItem.Quantity);
                 context.Products.Update(product);
 
-                orderItems.Add(new OrderItem(cartItem.ProductId, cartItem.Quantity, product.Price));
                 orderItemDtos.Add(new OrderItemDto(cartItem.ProductId, cartItem.Quantity, product.Price));
             }
 
-            var order = new Domain.Entities.Order(
-                request.CheckoutCartDto.CustomerId,
-                request.CheckoutCartDto.ShippingAddress,
-                request.CheckoutCartDto.PaymentMethod,
-                orderItems);
-
-            await context.Orders.AddAsync(order, cancellationToken);
-
             context.CartItems.RemoveRange(cart.Items);
+
+            var correlationId = Guid.CreateVersion7();
+            var checkoutCartEvent = new CheckoutCartEvent(
+                correlationId,
+                request.CheckoutCartDto,
+                orderItemDtos);
+
+            await serviceBusPublisher.PublishCheckoutCartEventAsync(checkoutCartEvent);
 
             await context.CommitAsync(cancellationToken);
 
-            try
-            {
-                var checkoutCartEvent = new CheckoutCartEvent(
-                    request.CheckoutCartDto,
-                    orderItemDtos);
+            logger.LogInformation(
+                "Checkout for customer {CustomerId} accepted. CorrelationId: {CorrelationId}",
+                request.CheckoutCartDto.CustomerId,
+                correlationId);
 
-                await serviceBusPublisher.PublishCheckoutCartEventAsync(checkoutCartEvent);
-            }
-            catch (Exception publishEx)
-            {
-                logger.LogWarning(publishEx,
-                    "Order {OrderId} was created but publishing CheckoutCartEvent failed. Downstream tasks (e.g. confirmation email) will not run.",
-                    order.Id);
-            }
-
-            return Result<Guid>.Success(order.Id);
+            return Result<Guid>.Success(correlationId);
         }
         catch (Exception ex)
         {

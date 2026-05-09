@@ -1,0 +1,172 @@
+@page "/admin/orders/{OrderId:guid}"
+@layout AdminLayout
+@using Microsoft.AspNetCore.Authorization
+@using OrderSphere.Domain.Enums
+@inherits OrderSphereComponentBase
+@rendermode InteractiveServer
+
+@attribute [Authorize(Roles = "Administrator")]
+
+<PageTitle>Bestellung — Admin</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+
+    <MudButton Variant="Variant.Text"
+               StartIcon="@Icons.Material.Outlined.ArrowBack"
+               Href="/admin/orders"
+               Class="mb-4">
+        Zurück zur Übersicht
+    </MudButton>
+
+    @if (IsLoading)
+    {
+        <MudStack AlignItems="AlignItems.Center" Class="py-12">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        </MudStack>
+    }
+    else if (_order is null)
+    {
+        <MudPaper Elevation="0" Class="pa-12 text-center"
+                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+            <MudIcon Icon="@Icons.Material.Outlined.SearchOff" Color="Color.Secondary"
+                     Style="font-size: 64px;" Class="mb-3" />
+            <MudText Typo="Typo.h6">Bestellung nicht gefunden</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12" md="8">
+                <MudStack Spacing="4">
+
+                    <MudPaper Elevation="0" Class="pa-6"
+                              Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Bestellung</MudText>
+                                <MudText Typo="Typo.h5" Style="font-family: monospace; font-weight: 700;">
+                                    #@_order.Id.ToString("N")[..8].ToUpperInvariant()
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @_order.CreatedAt.ToLocalTime().ToString("dd. MMMM yyyy, HH:mm 'Uhr'", System.Globalization.CultureInfo.GetCultureInfo("de-DE"))
+                                </MudText>
+                            </MudStack>
+                            <MudChip T="string"
+                                     Color="@GetStatusColor(_order.Status)"
+                                     Size="Size.Medium"
+                                     Variant="Variant.Filled"
+                                     Style="border-radius: 100px; font-weight: 600;">
+                                @GetStatusLabel(_order.Status)
+                            </MudChip>
+                        </MudStack>
+
+                        @if (!string.IsNullOrWhiteSpace(_order.TrackingNumber))
+                        {
+                            <MudDivider Class="mb-3" />
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudIcon Icon="@Icons.Material.Outlined.LocalShipping" Color="Color.Primary" />
+                                <MudText Typo="Typo.body1" Style="font-family: monospace; font-weight: 600;">
+                                    @_order.TrackingNumber
+                                </MudText>
+                            </MudStack>
+                        }
+                    </MudPaper>
+
+                    <MudPaper Elevation="0" Class="pa-6"
+                              Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+                        <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight: 600;">Artikel</MudText>
+                        <MudStack Spacing="3">
+                            @foreach (var line in _order.Items)
+                            {
+                                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.body1" Style="font-weight: 500;">@line.ProductName</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            @line.Quantity × @line.Price.ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) €
+                                        </MudText>
+                                    </MudStack>
+                                    <MudText Typo="Typo.body1" Style="font-weight: 600;">
+                                        @((line.Price * line.Quantity).ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE"))) €
+                                    </MudText>
+                                </MudStack>
+                            }
+                        </MudStack>
+                        <MudDivider Class="my-4" />
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                            <MudText Typo="Typo.h6" Style="font-weight: 600;">Gesamt</MudText>
+                            <MudText Typo="Typo.h5" Style="font-weight: 700; color: var(--mud-palette-primary);">
+                                @_order.Total.ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) €
+                            </MudText>
+                        </MudStack>
+                    </MudPaper>
+
+                    <MudPaper Elevation="0" Class="pa-6"
+                              Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
+                            <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Color="Color.Primary" />
+                            <MudText Typo="Typo.h6" Style="font-weight: 600;">Lieferadresse</MudText>
+                        </MudStack>
+                        <MudText Typo="Typo.body2" Style="line-height: 1.6;">
+                            @_order.ShippingAddress.FirstName @_order.ShippingAddress.LastName<br />
+                            @_order.ShippingAddress.Street<br />
+                            @_order.ShippingAddress.PostalCode @_order.ShippingAddress.City<br />
+                            @_order.ShippingAddress.Country
+                        </MudText>
+                    </MudPaper>
+
+                </MudStack>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="pa-6"
+                          Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); position: sticky; top: 80px;">
+                    <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight: 600;">Aktionen</MudText>
+
+                    <MudStack Spacing="2">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Warning"
+                                   FullWidth="true"
+                                   StartIcon="@Icons.Material.Outlined.LocalShipping"
+                                   Disabled="@(_order.Status != OrderStatus.Paid || _isProcessing)"
+                                   OnClick="MarkShipped">
+                            Als versendet markieren
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Success"
+                                   FullWidth="true"
+                                   StartIcon="@Icons.Material.Outlined.HomeWork"
+                                   Disabled="@(_order.Status != OrderStatus.Shipped || _isProcessing)"
+                                   OnClick="MarkDelivered">
+                            Als zugestellt markieren
+                        </MudButton>
+
+                        <MudDivider Class="my-2" />
+
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Error"
+                                   FullWidth="true"
+                                   StartIcon="@Icons.Material.Outlined.Cancel"
+                                   Disabled="@(_order.Status is OrderStatus.Delivered or OrderStatus.Cancelled || _isProcessing)"
+                                   OnClick="OpenCancelDialog">
+                            Stornieren
+                        </MudButton>
+                    </MudStack>
+
+                    @if (_order.Status == OrderStatus.Cancelled)
+                    {
+                        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+                            Diese Bestellung wurde storniert. Stock wurde zurückgegeben.
+                        </MudAlert>
+                    }
+                    else if (_order.Status == OrderStatus.Delivered)
+                    {
+                        <MudAlert Severity="Severity.Success" Variant="Variant.Outlined" Class="mt-4">
+                            Lieferung abgeschlossen.
+                        </MudAlert>
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>

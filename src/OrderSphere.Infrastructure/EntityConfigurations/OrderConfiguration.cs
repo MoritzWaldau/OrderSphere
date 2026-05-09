@@ -23,6 +23,15 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasConversion<int>()
             .IsRequired();
 
+        builder.Property(o => o.TrackingNumber)
+            .HasMaxLength(20);
+
+        builder.Property(o => o.CorrelationId)
+            .IsRequired();
+
+        builder.HasIndex(o => o.CorrelationId)
+            .IsUnique();
+
         builder.HasMany(o => o.Items)
             .WithOne()
             .HasForeignKey("OrderId")

@@ -1,6 +1,6 @@
 using OrderSphere.Application;
 using OrderSphere.Infrastructure;
-using OrderSphere.Worker;
+using OrderSphere.Worker.Workers;
 
 var builder = Host.CreateApplicationBuilder(args);
 

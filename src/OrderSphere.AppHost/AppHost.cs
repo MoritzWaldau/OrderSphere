@@ -20,7 +20,9 @@ builder.AddProject<Projects.OrderSphere_UI>("ordersphere-ui")
     .WaitFor(serviceBus);
 
 builder.AddProject<Projects.OrderSphere_Worker>("ordersphere-worker")
+    .WithReference(postgres)
     .WithReference(serviceBus)
+    .WaitFor(postgres)
     .WaitFor(serviceBus);
 
 builder.Build().Run();

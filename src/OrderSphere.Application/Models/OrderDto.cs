@@ -7,6 +7,7 @@ public sealed record OrderDto(
     Guid CustomerId,
     OrderStatus Status,
     PaymentMethod PaymentMethod,
+    string? TrackingNumber,
     OrderShippingAddressDto ShippingAddress,
     IReadOnlyList<OrderLineDto> Items,
     decimal Total,

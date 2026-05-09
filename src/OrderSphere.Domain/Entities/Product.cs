@@ -62,4 +62,28 @@ public sealed class Product : AuditableEntity
 
         Stock -= quantity;
     }
+
+    public void UpdateDetails(string name, string description, decimal price, int stock, Guid categoryId, string sku)
+    {
+        Name = name;
+        Slug = GenerateSlug();
+        Description = description;
+        Price = price;
+        Stock = stock;
+        CategoryId = categoryId;
+        SKU = sku;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Activate()
+    {
+        IsActive = true;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Deactivate()
+    {
+        IsActive = false;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

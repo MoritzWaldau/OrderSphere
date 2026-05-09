@@ -62,6 +62,7 @@ await DataSeeder.SeedDataAsync(app);
 app.MapGet("/send", async (IServiceBusPublisher serviceBusPublisher) =>
 {
     await serviceBusPublisher.PublishCheckoutCartEventAsync(new CheckoutCartEvent(
+        Guid.CreateVersion7(),
         new CheckoutCartDto(Guid.CreateVersion7(), new Address("Moritz", "Waldau", "Schwarmstedter Str. 2", "Essel", "29690", "Germany"), PaymentMethod.Invoice),
         [])
     );

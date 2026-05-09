@@ -1,0 +1,38 @@
+@using MudBlazor
+
+<MudPaper Elevation="0" Class="pa-5"
+          Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); height: 100%;">
+    <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween">
+        <MudStack Spacing="1">
+            <MudText Typo="Typo.caption" Color="Color.Secondary">@Label</MudText>
+            <MudText Typo="Typo.h5" Style="font-weight: 700;">@Value</MudText>
+            @if (!string.IsNullOrWhiteSpace(SubText))
+            {
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@SubText</MudText>
+            }
+        </MudStack>
+        <MudPaper Elevation="0"
+                  Class="d-flex align-center justify-center"
+                  Style="@($"width:48px; height:48px; border-radius:12px; background: var(--mud-palette-{ColorClass()}-lighten); color: var(--mud-palette-{ColorClass()});")">
+            <MudIcon Icon="@Icon" Color="Color" Size="Size.Medium" />
+        </MudPaper>
+    </MudStack>
+</MudPaper>
+
+@code {
+    [Parameter] public string Icon { get; set; } = string.Empty;
+    [Parameter] public Color Color { get; set; } = Color.Primary;
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public string? SubText { get; set; }
+
+    private string ColorClass() => Color switch
+    {
+        Color.Primary => "primary",
+        Color.Success => "success",
+        Color.Warning => "warning",
+        Color.Error => "error",
+        Color.Info => "info",
+        _ => "primary"
+    };
+}

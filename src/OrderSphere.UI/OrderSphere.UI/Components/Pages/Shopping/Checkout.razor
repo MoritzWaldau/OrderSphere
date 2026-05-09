@@ -429,9 +429,8 @@
 
             await CartService.RefreshCartAsync();
 
-            var orderId = result.Value;
-            var orderNumber = orderId.ToString("N")[..8].ToUpperInvariant();
-            Navigation.NavigateTo($"/checkout/success?orderId={orderId}&orderNumber={orderNumber}&total={Total.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}");
+            var correlationId = result.Value;
+            Navigation.NavigateTo($"/checkout/success?correlationId={correlationId}&total={Total.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}");
         }
         finally
         {

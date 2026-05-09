@@ -8,4 +8,8 @@
     <Project Path="src/OrderSphere.UI/OrderSphere.UI/OrderSphere.UI.csproj" />
     <Project Path="src/OrderSphere.Worker/OrderSphere.Worker.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OrderSphere.Domain.Tests/OrderSphere.Domain.Tests.csproj" />
+    <Project Path="tests/OrderSphere.Application.Tests/OrderSphere.Application.Tests.csproj" />
+  </Folder>
 </Solution>

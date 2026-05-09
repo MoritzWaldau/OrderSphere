@@ -46,6 +46,7 @@ public sealed class GetOrdersByCustomerQueryHandler(
                 o.CustomerId,
                 o.Status,
                 o.PaymentMethod,
+                o.TrackingNumber,
                 new OrderShippingAddressDto(
                     o.ShippingAddress.FirstName,
                     o.ShippingAddress.LastName,

@@ -58,7 +58,10 @@
                 @foreach (var order in _orders)
                 {
                     <MudPaper Elevation="0" Class="pa-6"
-                              Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: var(--mud-palette-surface);">
+                              Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: var(--mud-palette-surface); cursor: pointer; transition: border-color 0.15s ease, box-shadow 0.15s ease;"
+                              @onclick="@(() => NavManager.NavigateTo($"/account/orders/{order.Id}"))"
+                              onmouseover="this.style.borderColor='var(--mud-palette-primary)'"
+                              onmouseout="this.style.borderColor='var(--mud-palette-divider)'">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Wrap="Wrap.Wrap" Class="mb-4">
                             <MudStack Spacing="1">
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
@@ -70,6 +73,16 @@
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
                                     @order.CreatedAt.ToLocalTime().ToString("dd. MMMM yyyy, HH:mm", System.Globalization.CultureInfo.GetCultureInfo("de-DE"))
                                 </MudText>
+                                @if (!string.IsNullOrWhiteSpace(order.TrackingNumber))
+                                {
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mt-1">
+                                        <MudIcon Icon="@Icons.Material.Outlined.LocalShipping"
+                                                 Size="Size.Small" Color="Color.Primary" />
+                                        <MudText Typo="Typo.caption" Style="font-family: monospace; font-weight: 600;">
+                                            @order.TrackingNumber
+                                        </MudText>
+                                    </MudStack>
+                                }
                             </MudStack>
 
                             <MudChip T="string"

@@ -1,0 +1,116 @@
+@page "/admin/products/new"
+@page "/admin/products/{ProductId:guid}"
+@layout AdminLayout
+@using Microsoft.AspNetCore.Authorization
+@inherits OrderSphereComponentBase
+@rendermode InteractiveServer
+
+@attribute [Authorize(Roles = "Administrator")]
+
+<PageTitle>@(IsEdit ? "Produkt bearbeiten" : "Neues Produkt") — Admin</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-8">
+    <MudButton Variant="Variant.Text"
+               StartIcon="@Icons.Material.Outlined.ArrowBack"
+               Href="/admin/products"
+               Class="mb-4">
+        Zurück zur Liste
+    </MudButton>
+
+    <MudText Typo="Typo.h4" Class="mb-2" Style="font-weight: 700;">
+        @(IsEdit ? "Produkt bearbeiten" : "Neues Produkt")
+    </MudText>
+
+    @if (IsEdit && IsLoading)
+    {
+        <MudStack AlignItems="AlignItems.Center" Class="py-12">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        </MudStack>
+    }
+    else if (IsEdit && _model is null)
+    {
+        <MudPaper Elevation="0" Class="pa-12 text-center"
+                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+            <MudIcon Icon="@Icons.Material.Outlined.SearchOff" Color="Color.Secondary"
+                     Style="font-size: 64px;" Class="mb-3" />
+            <MudText Typo="Typo.h6">Produkt nicht gefunden</MudText>
+        </MudPaper>
+    }
+    else if (_model is not null)
+    {
+        <MudPaper Elevation="0" Class="pa-6"
+                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+            <MudForm @ref="_form" Model="_model">
+                <MudStack Spacing="4">
+                    <MudTextField @bind-Value="_model.Name"
+                                  Label="Produktname"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="Name ist erforderlich" />
+
+                    <MudTextField @bind-Value="_model.SKU"
+                                  Label="SKU"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="SKU ist erforderlich" />
+
+                    <MudTextField @bind-Value="_model.Description"
+                                  Label="Beschreibung"
+                                  Variant="Variant.Outlined"
+                                  Lines="3" />
+
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="_model.Price"
+                                             Label="Preis (€)"
+                                             Variant="Variant.Outlined"
+                                             Min="0.01m"
+                                             Step="0.01m"
+                                             Format="F2"
+                                             Culture="@System.Globalization.CultureInfo.GetCultureInfo("de-DE")" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="_model.Stock"
+                                             Label="Lagerbestand"
+                                             Variant="Variant.Outlined"
+                                             Min="0" />
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudSelect T="Guid" @bind-Value="_model.CategoryId"
+                               Label="Kategorie"
+                               Variant="Variant.Outlined"
+                               Required="true"
+                               RequiredError="Kategorie ist erforderlich">
+                        @foreach (var cat in _categories)
+                        {
+                            <MudSelectItem T="Guid" Value="@cat.Id">@cat.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    @if (IsEdit)
+                    {
+                        <MudSwitch T="bool" @bind-Value="_model.IsActive"
+                                   Label="Aktiv (im Shop sichtbar)"
+                                   Color="Color.Primary" />
+                    }
+
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-4">
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Default"
+                                   Href="/admin/products">
+                            Abbrechen
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Outlined.Save"
+                                   Disabled="_isSaving"
+                                   OnClick="SaveAsync">
+                            @(IsEdit ? "Speichern" : "Anlegen")
+                        </MudButton>
+                    </MudStack>
+                </MudStack>
+            </MudForm>
+        </MudPaper>
+    }
+</MudContainer>

@@ -11,10 +11,19 @@ public sealed class Category(string name, string description = "") : AuditableEn
     public void Deactivate()
     {
         IsActive = false;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void Activate()
     {
         IsActive = true;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void UpdateDetails(string name, string description)
+    {
+        Name = name;
+        Description = description;
+        UpdatedAt = DateTime.UtcNow;
     }
 }

@@ -1,0 +1,222 @@
+@page "/account/orders/{OrderId:guid}"
+@layout MainLayout
+@using Microsoft.AspNetCore.Authorization
+@inherits OrderSphereComponentBase
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<PageTitle>Bestellung — OrderSphere</PageTitle>
+
+<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 60px 0;">
+    <MudContainer>
+        <MudButton Variant="Variant.Text"
+                   StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   Href="/account/orders"
+                   Style="color: rgba(255,255,255,0.85);"
+                   Class="mb-2">
+            Zurück zu meinen Bestellungen
+        </MudButton>
+
+        @if (_order is not null)
+        {
+            <MudText Typo="Typo.h2" Style="color: #FFFFFF; letter-spacing: -0.02em;">
+                Bestellung #@_order.Id.ToString("N")[..8].ToUpperInvariant()
+            </MudText>
+            <MudText Typo="Typo.body1" Style="color: rgba(255,255,255,0.8); margin-top: 8px;">
+                @_order.CreatedAt.ToLocalTime().ToString("dd. MMMM yyyy, HH:mm 'Uhr'", System.Globalization.CultureInfo.GetCultureInfo("de-DE"))
+            </MudText>
+        }
+        else
+        {
+            <MudText Typo="Typo.h2" Style="color: #FFFFFF;">Bestellung</MudText>
+        }
+    </MudContainer>
+</section>
+
+<section style="background: #F5F5F7; padding: 60px 0; min-height: 60vh;">
+    <MudContainer MaxWidth="MaxWidth.Medium">
+
+        @if (IsLoading)
+        {
+            <MudStack AlignItems="AlignItems.Center" Class="py-12">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-4">
+                    Bestellung wird geladen...
+                </MudText>
+            </MudStack>
+        }
+        else if (_order is null)
+        {
+            <MudPaper Elevation="0" Class="pa-12 text-center"
+                      Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                <MudIcon Icon="@Icons.Material.Outlined.SearchOff"
+                         Color="Color.Secondary"
+                         Style="font-size: 80px;" Class="mb-4" />
+                <MudText Typo="Typo.h5" Class="mb-2" Style="font-weight: 600;">
+                    Bestellung nicht gefunden
+                </MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+                    Diese Bestellung existiert nicht oder gehört nicht zu deinem Account.
+                </MudText>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Size="Size.Large"
+                           Href="/account/orders"
+                           Class="btn-pill">
+                    Zu meinen Bestellungen
+                </MudButton>
+            </MudPaper>
+        }
+        else
+        {
+            <MudStack Spacing="4">
+
+                @if (!string.IsNullOrWhiteSpace(_order.TrackingNumber))
+                {
+                    <MudPaper Elevation="0" Class="pa-6"
+                              Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: var(--mud-palette-surface);">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="3">
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    Deine Tracking-Nummer
+                                </MudText>
+                                <MudText Typo="Typo.h5" Style="font-weight: 700; font-family: monospace; letter-spacing: 0.05em;">
+                                    @_order.TrackingNumber
+                                </MudText>
+                            </MudStack>
+                            <MudStack Row="true" Spacing="2">
+                                <MudTooltip Text="@(_copied ? "Kopiert!" : "In Zwischenablage kopieren")">
+                                    <MudIconButton Icon="@(_copied ? Icons.Material.Outlined.Check : Icons.Material.Outlined.ContentCopy)"
+                                                   Color="@(_copied ? Color.Success : Color.Default)"
+                                                   OnClick="CopyTrackingNumberAsync" />
+                                </MudTooltip>
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Outlined.LocalShipping"
+                                           Href="@($"https://tracking.ordersphere.test/{_order.TrackingNumber}")"
+                                           Target="_blank"
+                                           Class="btn-pill">
+                                    Sendung verfolgen
+                                </MudButton>
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                }
+
+                <MudPaper Elevation="0" Class="pa-6"
+                          Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: var(--mud-palette-surface);">
+                    <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight: 600;">
+                        Status
+                    </MudText>
+                    <MudTimeline TimelinePosition="TimelinePosition.Start"
+                                 TimelineOrientation="TimelineOrientation.Vertical">
+                        @foreach (var step in StatusSteps)
+                        {
+                            var (label, description, icon, isActive, isCompleted) = step;
+                            <MudTimelineItem Color="@(isCompleted ? Color.Success : isActive ? Color.Primary : Color.Default)"
+                                             Icon="@icon"
+                                             Variant="@(isCompleted || isActive ? Variant.Filled : Variant.Outlined)">
+                                <ItemContent>
+                                    <MudText Typo="Typo.subtitle1"
+                                             Style="@($"font-weight: 600; color: {(isCompleted || isActive ? "inherit" : "var(--mud-palette-text-disabled)")};")">
+                                        @label
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @description
+                                    </MudText>
+                                </ItemContent>
+                            </MudTimelineItem>
+                        }
+                    </MudTimeline>
+                </MudPaper>
+
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudPaper Elevation="0" Class="pa-6 h-100"
+                                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: var(--mud-palette-surface);">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+                                <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Color="Color.Primary" />
+                                <MudText Typo="Typo.h6" Style="font-weight: 600;">Lieferadresse</MudText>
+                            </MudStack>
+                            <MudText Typo="Typo.body2" Style="line-height: 1.6;">
+                                @_order.ShippingAddress.FirstName @_order.ShippingAddress.LastName<br />
+                                @_order.ShippingAddress.Street<br />
+                                @_order.ShippingAddress.PostalCode @_order.ShippingAddress.City<br />
+                                @_order.ShippingAddress.Country
+                            </MudText>
+                        </MudPaper>
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudPaper Elevation="0" Class="pa-6 h-100"
+                                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: var(--mud-palette-surface);">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+                                <MudIcon Icon="@Icons.Material.Outlined.LocalShipping" Color="Color.Primary" />
+                                <MudText Typo="Typo.h6" Style="font-weight: 600;">Versand</MudText>
+                            </MudStack>
+                            <MudStack Spacing="2">
+                                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">Versandart</MudText>
+                                    <MudText Typo="Typo.body2">Standard (DHL)</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">Versendet am</MudText>
+                                    <MudText Typo="Typo.body2">@EstimatedShipDate.ToString("dd.MM.yyyy", System.Globalization.CultureInfo.GetCultureInfo("de-DE"))</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">Voraussichtliche Lieferung</MudText>
+                                    <MudText Typo="Typo.body2" Style="font-weight: 600;">
+                                        @EstimatedDeliveryStart.ToString("dd.MM.", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) – @EstimatedDeliveryEnd.ToString("dd.MM.yyyy", System.Globalization.CultureInfo.GetCultureInfo("de-DE"))
+                                    </MudText>
+                                </MudStack>
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
+
+                <MudPaper Elevation="0" Class="pa-6"
+                          Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: var(--mud-palette-surface);">
+                    <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight: 600;">
+                        Artikel
+                    </MudText>
+                    <MudStack Spacing="3">
+                        @foreach (var line in _order.Items)
+                        {
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                <MudStack Spacing="0">
+                                    <MudText Typo="Typo.body1" Style="font-weight: 500;">
+                                        @line.ProductName
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @line.Quantity × @line.Price.ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) €
+                                    </MudText>
+                                </MudStack>
+                                <MudText Typo="Typo.body1" Style="font-weight: 600;">
+                                    @((line.Price * line.Quantity).ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE"))) €
+                                </MudText>
+                            </MudStack>
+                        }
+                    </MudStack>
+
+                    <MudDivider Class="my-4" />
+
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.h6" Style="font-weight: 600;">Gesamt</MudText>
+                        <MudText Typo="Typo.h5" Style="font-weight: 700; color: var(--mud-palette-primary);">
+                            @_order.Total.ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) €
+                        </MudText>
+                    </MudStack>
+
+                    <MudDivider Class="my-4" />
+
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Zahlungsmethode</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight: 500;">@GetPaymentLabel(_order.PaymentMethod)</MudText>
+                    </MudStack>
+                </MudPaper>
+
+            </MudStack>
+        }
+    </MudContainer>
+</section>

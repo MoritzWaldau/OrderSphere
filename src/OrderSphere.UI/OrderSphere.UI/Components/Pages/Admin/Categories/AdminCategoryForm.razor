@@ -1,0 +1,56 @@
+@page "/admin/categories/new"
+@page "/admin/categories/{CategoryId:guid}"
+@layout AdminLayout
+@using Microsoft.AspNetCore.Authorization
+@inherits OrderSphereComponentBase
+@rendermode InteractiveServer
+
+@attribute [Authorize(Roles = "Administrator")]
+
+<PageTitle>@(IsEdit ? "Kategorie bearbeiten" : "Neue Kategorie") — Admin</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="py-8">
+    <MudButton Variant="Variant.Text"
+               StartIcon="@Icons.Material.Outlined.ArrowBack"
+               Href="/admin/categories"
+               Class="mb-4">
+        Zurück zur Liste
+    </MudButton>
+
+    <MudText Typo="Typo.h4" Class="mb-6" Style="font-weight: 700;">
+        @(IsEdit ? "Kategorie bearbeiten" : "Neue Kategorie")
+    </MudText>
+
+    @if (_model is not null)
+    {
+        <MudPaper Elevation="0" Class="pa-6"
+                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+            <MudForm @ref="_form" Model="_model">
+                <MudStack Spacing="4">
+                    <MudTextField @bind-Value="_model.Name"
+                                  Label="Name" Variant="Variant.Outlined"
+                                  Required="true" RequiredError="Name ist erforderlich" />
+
+                    <MudTextField @bind-Value="_model.Description"
+                                  Label="Beschreibung" Variant="Variant.Outlined" Lines="3" />
+
+                    @if (IsEdit)
+                    {
+                        <MudSwitch T="bool" @bind-Value="_model.IsActive"
+                                   Label="Aktiv" Color="Color.Primary" />
+                    }
+
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+                        <MudButton Variant="Variant.Outlined" Href="/admin/categories">Abbrechen</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Outlined.Save"
+                                   Disabled="_isSaving"
+                                   OnClick="SaveAsync">
+                            @(IsEdit ? "Speichern" : "Anlegen")
+                        </MudButton>
+                    </MudStack>
+                </MudStack>
+            </MudForm>
+        </MudPaper>
+    }
+</MudContainer>

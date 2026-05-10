@@ -21,7 +21,9 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("ordersphere-db"));
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
             options.AddInterceptors(new AuditSaveChangesInterceptor());
+            options.EnableSensitiveDataLogging();
         });
+
 
         services.AddScoped<IDbContext, OrderSphereDbContext>();
         services.AddScoped<IServiceBusPublisher, ServiceBusPublisher>();

@@ -1,4 +1,6 @@
-﻿namespace OrderSphere.Domain.ValueObjects;
+﻿using System.Text.Json.Serialization;
+
+namespace OrderSphere.Domain.ValueObjects;
 
 public sealed class Address
 {
@@ -11,6 +13,7 @@ public sealed class Address
 
     public Address() { }
 
+    [JsonConstructor]
     public Address(
         string firstName,
         string lastName,

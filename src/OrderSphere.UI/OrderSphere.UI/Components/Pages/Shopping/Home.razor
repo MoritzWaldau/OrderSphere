@@ -30,16 +30,6 @@
     </MudContainer>
 </section>
 
-
-<AuthorizeView>
-    <Authorized>
-        @foreach(var claim in context.User.Claims)
-        {
-            <label>Name: @claim.Type   Value: @claim.Value</label> <br/>
-        }
-    </Authorized>
-</AuthorizeView>
-
 <!-- KATEGORIEN -->
 <section class="section-gray">
     <MudContainer>

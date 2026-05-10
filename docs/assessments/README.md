@@ -20,6 +20,7 @@ docs/assessments/
 | Datum | Version | Gesamt-Score | Größte Wins | Größte Baustellen | Link |
 |---|---|---|---|---|---|
 | 2026-05-07 | v1 (Baseline) | **2.7 / 5** | Clean Architecture, Rich Domain Model, Result-Pattern, Aspire-Setup, MudBlazor-Disziplin | Keine Tests (1/5), kein DevOps/CI (1/5), Klartext-Passwörter im Seeder, hardcoded Customer-GUIDs, kein App Insights | [2026-05-07-v1.md](./2026-05-07-v1.md) |
+| 2026-05-09 | v1 | **2.8 / 5** | B6/B8/K2 resolved (MigrateAsync, Seeder-Idempotenz), .AsTracking()-Fix im CheckoutHandler, UNIT_TEST_PLAN.md | 0 Tests, kein CI/CD, K9/K10 (hardcoded GUIDs) offen, B12 neu (EnableSensitiveDataLogging ohne Env-Guard) | [2026-05-09-v1.md](./2026-05-09-v1.md) |
 
 ## Wie man eine neue Bewertung erstellt
 

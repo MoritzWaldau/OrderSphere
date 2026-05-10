@@ -24,6 +24,7 @@ public sealed class CheckoutCartCommandHandler(
             await context.BeginTransactionAsync(cancellationToken);
 
             var cart = await context.Carts
+                .AsTracking()
                 .Include(x => x.Items)
                 .FirstOrDefaultAsync(x => x.CustomerId == request.CheckoutCartDto.CustomerId, cancellationToken);
 

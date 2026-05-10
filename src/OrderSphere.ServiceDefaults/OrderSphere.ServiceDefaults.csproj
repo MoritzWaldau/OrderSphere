@@ -18,6 +18,7 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
     <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" />
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
   </ItemGroup>
 
 </Project>

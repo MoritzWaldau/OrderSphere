@@ -1,5 +1,8 @@
 using Azure.Messaging.ServiceBus;
 using MediatR;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.DataProtection.StackExchangeRedis;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +17,7 @@ using OrderSphere.UI;
 using OrderSphere.UI.Components;
 using OrderSphere.UI.Configuration;
 using OrderSphere.UI.Services;
+using StackExchange.Redis;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +26,23 @@ builder.AddServiceDefaults()
     .AddLogging();
 
 builder.AddOrderSphereCore();
+
+builder.AddRedisClient("redis");
+builder.AddRedisDistributedCache("redis");
+builder.AddRedisOutputCache("redis");
+
+builder.Services.AddOutputCache();
+
+builder.Services.AddDataProtection()
+    .SetApplicationName("OrderSphere");
+
+builder.Services.AddOptions<KeyManagementOptions>()
+    .Configure<IConnectionMultiplexer>((options, multiplexer) =>
+    {
+        options.XmlRepository = new RedisXmlRepository(
+            () => multiplexer.GetDatabase(),
+            "DataProtection-Keys");
+    });
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -52,6 +73,8 @@ app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages:
 app.UseHttpsRedirection();
 
 app.UseAntiforgery();
+
+app.UseOutputCache();
 
 await DataSeeder.SeedDataAsync(app);
 

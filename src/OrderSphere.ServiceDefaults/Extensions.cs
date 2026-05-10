@@ -1,5 +1,7 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -87,19 +89,31 @@ namespace Microsoft.Extensions.Hosting
                 builder.Services.AddOpenTelemetry().UseOtlpExporter();
             }
 
-            //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-            //{
-            //    builder.UseAzureMonitor();
-            //}
+            if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+            {
+                builder.Services.AddOpenTelemetry().UseAzureMonitor();
+            }
 
             return builder;
         }
 
         public static TBuilder AddDefaultHealthChecks<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
         {
-            builder.Services.AddHealthChecks()
+            var healthChecks = builder.Services.AddHealthChecks()
                 // Add a default liveness check to ensure app is responsive
                 .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+
+            // Aspire-Integrationen (Aspire.StackExchange.Redis, Aspire.Azure.Messaging.ServiceBus)
+            // registrieren ihre Checks automatisch unter den Aspire-Resource-Namen.
+            // Der DbContext wird klassisch via AddDbContext registriert, daher hier explizit.
+            var dbConnectionString = builder.Configuration.GetConnectionString("ordersphere-db");
+            if (!string.IsNullOrEmpty(dbConnectionString))
+            {
+                healthChecks.AddNpgSql(
+                    dbConnectionString,
+                    name: "postgres",
+                    tags: ["ready", "db"]);
+            }
 
             return builder;
         }

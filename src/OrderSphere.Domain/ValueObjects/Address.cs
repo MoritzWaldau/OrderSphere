@@ -11,7 +11,15 @@ public sealed class Address
     public string PostalCode { get; }
     public string Country { get; }
 
-    public Address() { }
+    private Address()
+    {
+        FirstName = null!;
+        LastName = null!;
+        Street = null!;
+        City = null!;
+        PostalCode = null!;
+        Country = null!;
+    }
 
     [JsonConstructor]
     public Address(
@@ -22,6 +30,13 @@ public sealed class Address
         string postalCode,
         string country)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(firstName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(lastName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(street);
+        ArgumentException.ThrowIfNullOrWhiteSpace(city);
+        ArgumentException.ThrowIfNullOrWhiteSpace(postalCode);
+        ArgumentException.ThrowIfNullOrWhiteSpace(country);
+
         FirstName = firstName;
         LastName = lastName;
         Street = street;

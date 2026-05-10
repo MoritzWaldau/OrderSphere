@@ -40,8 +40,10 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
                     auditable.CreatedAt = DateTime.UtcNow;
                     auditable.IsDeleted = false;
                 }
-                    
-                auditable.UpdatedAt = DateTime.UtcNow;
+                else if (entry.State == EntityState.Modified)
+                {
+                    auditable.UpdatedAt = DateTime.UtcNow;
+                }
             }
         }
     }

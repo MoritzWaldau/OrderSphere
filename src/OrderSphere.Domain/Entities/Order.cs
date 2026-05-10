@@ -17,7 +17,10 @@ public class Order: AuditableEntity
     private readonly List<OrderItem> _items = [];
     public IReadOnlyCollection<OrderItem> Items => _items;
 
-    private Order() { }
+    private Order()
+    {
+        ShippingAddress = null!;
+    }
 
     public Order(
         Guid customerId,
@@ -26,11 +29,17 @@ public class Order: AuditableEntity
         IEnumerable<OrderItem> items,
         Guid correlationId)
     {
+        ArgumentNullException.ThrowIfNull(shippingAddress);
+
+        var itemList = items?.ToList() ?? throw new ArgumentNullException(nameof(items));
+        if (itemList.Count == 0)
+            throw new ArgumentException("An order must contain at least one item.", nameof(items));
+
         Id = Guid.NewGuid();
         CustomerId = customerId;
         ShippingAddress = shippingAddress;
         PaymentMethod = paymentMethod;
-        _items.AddRange(items);
+        _items.AddRange(itemList);
         Status = OrderStatus.Created;
         CorrelationId = correlationId;
     }

@@ -33,6 +33,15 @@ builder.AddRedisOutputCache("redis");
 
 builder.Services.AddOutputCache();
 
+builder.Services.AddHybridCache(options =>
+{
+    options.DefaultEntryOptions = new()
+    {
+        LocalCacheExpiration = TimeSpan.FromMinutes(5),
+        Expiration = TimeSpan.FromMinutes(30),
+    };
+});
+
 builder.Services.AddDataProtection()
     .SetApplicationName("OrderSphere");
 

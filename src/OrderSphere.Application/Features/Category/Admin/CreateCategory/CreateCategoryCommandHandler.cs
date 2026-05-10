@@ -1,5 +1,7 @@
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using OrderSphere.Application.Abstraction;
+using OrderSphere.Application.Caching;
 using OrderSphere.Domain.Abstraction;
 using OrderSphere.Domain.Errors;
 using OrderSphere.Domain.Primitives;
@@ -8,6 +10,7 @@ namespace OrderSphere.Application.Features.Category.Admin.CreateCategory;
 
 public sealed class CreateCategoryCommandHandler(
     IDbContext context,
+    HybridCache cache,
     ILogger<CreateCategoryCommandHandler> logger
 ) : ICommandHandler<CreateCategoryCommand, Result<Guid>>
 {
@@ -20,6 +23,8 @@ public sealed class CreateCategoryCommandHandler(
             await context.BeginTransactionAsync(cancellationToken);
             await context.Categories.AddAsync(category, cancellationToken);
             await context.CommitAsync(cancellationToken);
+
+            await cache.RemoveByTagAsync(CatalogCache.Tag, cancellationToken);
 
             logger.LogInformation("Category {CategoryId} '{Name}' created", category.Id, category.Name);
             return Result<Guid>.Success(category.Id);

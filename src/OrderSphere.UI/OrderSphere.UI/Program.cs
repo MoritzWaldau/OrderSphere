@@ -55,7 +55,6 @@ builder.Services.AddServices(builder.Configuration);
 builder.Services.AddMudServices();
 
 builder.Services.AddScoped<ICartService, CartService>();
-builder.Services.AddScoped<IThemeService, ThemeService>();
 
 var app = builder.Build();
 

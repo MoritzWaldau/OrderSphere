@@ -13,8 +13,8 @@
 
                 <!-- Header -->
                 <MudStack AlignItems="AlignItems.Center" Class="mb-8">
-                    <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0071E3, #0051A8); display: flex; align-items: center; justify-content: center;">
-                        <MudText Style="font-size: 2rem; color: #FFFFFF; font-weight: 700;">
+                    <div class="avatar-initials">
+                        <MudText Style="font-size: 2rem; color: inherit; font-weight: 700;">
                             @_initials
                         </MudText>
                     </div>
@@ -27,7 +27,7 @@
                 </MudStack>
 
                 <!-- Name ändern -->
-                <MudPaper Elevation="0" Class="pa-6 mb-4" Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                <MudPaper Elevation="0" Class="pa-6 mb-4 surface-card-lg">
                     <MudText Typo="Typo.h6" Style="font-weight: 700;" Class="mb-4">
                         Persönliche Daten
                     </MudText>
@@ -67,7 +67,7 @@
                 </MudPaper>
 
                 <!-- Email ändern -->
-                <MudPaper Elevation="0" Class="pa-6 mb-4" Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                <MudPaper Elevation="0" Class="pa-6 mb-4 surface-card-lg">
                     <MudText Typo="Typo.h6" Style="font-weight: 700;" Class="mb-4">
                         E-Mail Adresse
                     </MudText>
@@ -104,7 +104,7 @@
                 </MudPaper>
 
                 <!-- Passwort ändern -->
-                <MudPaper Elevation="0" Class="pa-6 mb-4" Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                <MudPaper Elevation="0" Class="pa-6 mb-4 surface-card-lg">
                     <MudText Typo="Typo.h6" Style="font-weight: 700;" Class="mb-4">
                         Passwort ändern
                     </MudText>
@@ -167,8 +167,8 @@
                 </MudPaper>
 
                 <!-- Account löschen -->
-                <MudPaper Elevation="0" Class="pa-6 mb-4" Style="border-radius: 20px; border: 1px solid #FECACA;">
-                    <MudText Typo="Typo.h6" Style="font-weight: 700; color: #FF3B30;" Class="mb-2">
+                <MudPaper Elevation="0" Class="pa-6 mb-4 danger-zone">
+                    <MudText Typo="Typo.h6" Class="mb-2 danger-zone-title">
                         Gefahrenzone
                     </MudText>
                     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">

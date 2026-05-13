@@ -3,21 +3,20 @@
 
 <PageTitle>FAQ — OrderSphere</PageTitle>
 
-<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 60px 0;">
+<section class="section-hero-sm">
     <MudContainer>
-        <MudText Typo="Typo.h2" Align="Align.Center" Style="color: #FFFFFF; letter-spacing: -0.02em;">
+        <MudText Typo="Typo.h2" Align="Align.Center" Class="hero-title">
             Häufige Fragen
         </MudText>
-        <MudText Typo="Typo.body1" Align="Align.Center" Style="color: rgba(255,255,255,0.8); margin-top: 8px;">
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="hero-subtitle-muted mt-2">
             Antworten auf die wichtigsten Fragen rund um deine Bestellung.
         </MudText>
     </MudContainer>
 </section>
 
-<section style="background: #F5F5F7; padding: 60px 0; min-height: 60vh;">
+<section class="page-section">
     <MudContainer MaxWidth="MaxWidth.Medium">
-        <MudPaper Elevation="0" Class="pa-4"
-                  Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider); background: #FFFFFF;">
+        <MudPaper Elevation="0" Class="pa-4 surface-card-lg">
             <MudExpansionPanels MultiExpansion="true" Elevation="0" Gutters="false">
                 @foreach (var entry in _faq)
                 {

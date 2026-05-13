@@ -1,8 +1,5 @@
 @using OrderSphere.UI.Configuration
-@using OrderSphere.UI.Services
 @using Microsoft.AspNetCore.Components.Authorization
-@inject IThemeService ThemeService
-@implements IDisposable
 
 <MudAppBar Elevation="0" Fixed="true" Class="header-appbar">
 
@@ -28,14 +25,6 @@
     </MudHidden>
 
     <MudSpacer />
-
-    <MudTooltip Text="@(ThemeService.IsDarkMode ? "Helles Design" : "Dunkles Design")">
-        <MudIconButton Icon="@(ThemeService.IsDarkMode ? Icons.Material.Outlined.LightMode : Icons.Material.Outlined.DarkMode)"
-                       Color="Color.Default"
-                       Class="theme-toggle"
-                       aria-label="@(ThemeService.IsDarkMode ? "Helles Design aktivieren" : "Dunkles Design aktivieren")"
-                       OnClick="ToggleThemeAsync" />
-    </MudTooltip>
 
     <MudIconButton Icon="@Icons.Material.Outlined.Search"
                    Href="/search"
@@ -102,19 +91,3 @@
 </MudAppBar>
 
 <MobileDrawer IsOpen="_drawerOpen" IsOpenChanged="val => _drawerOpen = val" />
-
-@code {
-    protected override void OnInitialized()
-    {
-        ThemeService.OnChange += OnThemeChanged;
-    }
-
-    private void OnThemeChanged() => InvokeAsync(StateHasChanged);
-
-    private Task ToggleThemeAsync() => ThemeService.ToggleAsync();
-
-    public void Dispose()
-    {
-        ThemeService.OnChange -= OnThemeChanged;
-    }
-}

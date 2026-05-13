@@ -1,4 +1,31 @@
 /* ============================================
+   DESIGN TOKENS
+   Light-mode only. MudBlazor palette (--mud-palette-*) is the
+   primary source of truth; the --os-* tokens layer on top for
+   radius / spacing / shadow / gradient consistency.
+   ============================================ */
+:root {
+    --os-radius-sm: 12px;
+    --os-radius-md: 16px;
+    --os-radius-lg: 20px;
+    --os-radius-pill: 100px;
+
+    --os-section-py-sm: 60px;
+    --os-section-py-md: 80px;
+    --os-section-py-lg: 100px;
+
+    --os-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+    --os-shadow-card-hover: 0 12px 32px rgba(0, 0, 0, 0.12);
+    --os-shadow-bubble: 0 1px 4px rgba(0, 0, 0, 0.06);
+
+    --os-success-soft-bg: rgba(6, 193, 103, 0.12);
+    --os-on-hero-soft: rgba(255, 255, 255, 0.15);
+
+    --os-gradient-primary: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
+    --os-gradient-primary-reverse: linear-gradient(135deg, var(--mud-palette-primary-darken) 0%, var(--mud-palette-primary) 100%);
+}
+
+/* ============================================
    SCROLL LOCK
    ============================================ */
 body.scroll-locked {
@@ -21,7 +48,7 @@ body.scroll-locked {
    ============================================ */
 .page-section {
     background: var(--mud-palette-background-grey);
-    padding: 60px 0;
+    padding: var(--os-section-py-sm) 0;
     min-height: 60vh;
 }
 
@@ -32,41 +59,40 @@ body.scroll-locked {
 
 .page-section-surface {
     background: var(--mud-palette-surface);
-    padding: 60px 0;
+    padding: var(--os-section-py-sm) 0;
 }
 
 /* ============================================
    GRADIENT SECTIONS
-   Brand gradient stays consistent across themes.
    ============================================ */
 .section-hero {
-    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
-    padding: 100px 0;
+    background: var(--os-gradient-primary);
+    padding: var(--os-section-py-lg) 0;
 }
 
 .section-hero-sm {
-    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
-    padding: 60px 0;
+    background: var(--os-gradient-primary);
+    padding: var(--os-section-py-sm) 0;
 }
 
 .section-gray {
     background: var(--mud-palette-background-grey);
-    padding: 80px 0;
+    padding: var(--os-section-py-md) 0;
 }
 
 .section-white {
     background: var(--mud-palette-surface);
-    padding: 80px 0;
+    padding: var(--os-section-py-md) 0;
 }
 
 .section-dark {
     background: var(--mud-palette-secondary);
-    padding: 80px 0;
+    padding: var(--os-section-py-md) 0;
 }
 
 .section-cta {
-    background: linear-gradient(135deg, var(--mud-palette-primary-darken) 0%, var(--mud-palette-primary) 100%);
-    padding: 100px 0;
+    background: var(--os-gradient-primary-reverse);
+    padding: var(--os-section-py-lg) 0;
 }
 
 /* Hero typography on gradient backgrounds */
@@ -95,8 +121,8 @@ body.scroll-locked {
 }
 
 .hero-pill-soft {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 100px;
+    background: var(--os-on-hero-soft);
+    border-radius: var(--os-radius-pill);
     color: #FFFFFF;
 }
 
@@ -117,19 +143,20 @@ body.scroll-locked {
    PRODUCT CARD
    ============================================ */
 .product-card {
-    border-radius: 16px;
+    border-radius: var(--os-radius-md);
     overflow: hidden;
     background: var(--mud-palette-surface);
     border: 1px solid var(--mud-palette-divider);
     height: 100%;
     display: flex;
     flex-direction: column;
+    box-shadow: var(--os-shadow-card);
     transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 @media (hover: hover) {
     .product-card:hover {
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+        box-shadow: var(--os-shadow-card-hover);
         transform: translateY(-4px);
     }
 }
@@ -155,7 +182,7 @@ body.scroll-locked {
     width: 64px;
     height: 64px;
     min-width: 64px;
-    border-radius: 12px;
+    border-radius: var(--os-radius-sm);
     background: linear-gradient(135deg, var(--mud-palette-background-grey), var(--mud-palette-divider-light));
     display: flex;
     align-items: center;
@@ -205,7 +232,7 @@ body.scroll-locked {
    BUTTONS – Pill Style
    ============================================ */
 .btn-pill {
-    border-radius: 100px !important;
+    border-radius: var(--os-radius-pill) !important;
     padding: 12px 32px !important;
     font-weight: 600 !important;
 }
@@ -213,7 +240,7 @@ body.scroll-locked {
 .btn-pill-white {
     background: #FFFFFF !important;
     color: var(--mud-palette-primary) !important;
-    border-radius: 100px !important;
+    border-radius: var(--os-radius-pill) !important;
     padding: 12px 32px !important;
     font-weight: 600 !important;
 }
@@ -221,7 +248,7 @@ body.scroll-locked {
 .btn-pill-outline-white {
     border-color: rgba(255, 255, 255, 0.6) !important;
     color: #FFFFFF !important;
-    border-radius: 100px !important;
+    border-radius: var(--os-radius-pill) !important;
     padding: 12px 32px !important;
 }
 
@@ -239,7 +266,7 @@ body.scroll-locked {
     display: inline-flex;
     align-items: center;
     background: var(--mud-palette-background-grey);
-    border-radius: 100px;
+    border-radius: var(--os-radius-pill);
     padding: 2px;
 }
 
@@ -248,7 +275,7 @@ body.scroll-locked {
     height: 32px;
     background: var(--mud-palette-surface);
     border-radius: 50%;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--os-shadow-bubble);
 }
 
 .stepper-btn-sm {
@@ -256,7 +283,7 @@ body.scroll-locked {
     height: 28px;
     background: var(--mud-palette-surface);
     border-radius: 50%;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--os-shadow-bubble);
 }
 
 .stepper-value {
@@ -312,7 +339,7 @@ body.scroll-locked {
     display: flex;
     align-items: center;
     padding: 12px;
-    border-radius: 12px;
+    border-radius: var(--os-radius-sm);
     margin-bottom: 4px;
     cursor: pointer;
     transition: background 0.15s ease;
@@ -327,7 +354,7 @@ body.scroll-locked {
    CATEGORY CARD
    ============================================ */
 .category-card {
-    border-radius: 16px;
+    border-radius: var(--os-radius-md);
     border: 1px solid var(--mud-palette-divider);
     background: var(--mud-palette-surface);
     cursor: pointer;
@@ -336,7 +363,7 @@ body.scroll-locked {
 
 @media (hover: hover) {
     .category-card:hover {
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        box-shadow: var(--os-shadow-card-hover);
     }
 }
 
@@ -344,19 +371,19 @@ body.scroll-locked {
    SURFACE CARDS (bordered, no shadow)
    ============================================ */
 .surface-card {
-    border-radius: 16px;
+    border-radius: var(--os-radius-md);
     border: 1px solid var(--mud-palette-divider);
     background: var(--mud-palette-surface);
 }
 
 .surface-card-lg {
-    border-radius: 20px;
+    border-radius: var(--os-radius-lg);
     border: 1px solid var(--mud-palette-divider);
     background: var(--mud-palette-surface);
 }
 
 .surface-card-sm {
-    border-radius: 12px;
+    border-radius: var(--os-radius-sm);
     border: 1px solid var(--mud-palette-divider);
     background: var(--mud-palette-surface);
 }
@@ -396,7 +423,7 @@ body.scroll-locked {
    DANGER ZONE (Account deletion etc.)
    ============================================ */
 .danger-zone {
-    border-radius: 20px;
+    border-radius: var(--os-radius-lg);
     border: 1px solid var(--mud-palette-error);
     background: var(--mud-palette-surface);
 }
@@ -436,7 +463,7 @@ body.scroll-locked {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: rgba(6, 193, 103, 0.12);
+    background: var(--os-success-soft-bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -446,7 +473,7 @@ body.scroll-locked {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.15);
+    background: var(--os-on-hero-soft);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -480,13 +507,3 @@ body.scroll-locked {
     letter-spacing: 0.05em;
 }
 
-/* ============================================
-   THEME TOGGLE BUTTON (subtle)
-   ============================================ */
-.theme-toggle {
-    transition: transform 0.2s ease;
-}
-
-.theme-toggle:hover {
-    transform: rotate(15deg);
-}

@@ -1,11 +1,7 @@
 @inherits LayoutComponentBase
 @using OrderSphere.UI.Configuration
-@using OrderSphere.UI.Services
-@inject IThemeService ThemeService
-@inject IJSRuntime JS
-@implements IDisposable
 
-<MudThemeProvider @ref="_themeProvider" Theme="ThemeConfiguration.ApplicationTheme()" IsDarkMode="ThemeService.IsDarkMode" />
+<MudThemeProvider Theme="ThemeConfiguration.ApplicationTheme()" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -32,33 +28,6 @@
 @code {
     private bool _cartOpen = false;
     private int _cartItemCount = 0;
-    private MudThemeProvider? _themeProvider;
-    private bool _initialized;
-
-    protected override void OnInitialized()
-    {
-        ThemeService.OnChange += OnThemeChanged;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && !_initialized)
-        {
-            _initialized = true;
-            bool? prefersDark = null;
-            try
-            {
-                prefersDark = await JS.InvokeAsync<bool>("prefersDarkScheme");
-            }
-            catch
-            {
-                // Ignore — JS not available during prerender.
-            }
-            await ThemeService.InitializeAsync(prefersDark);
-        }
-    }
-
-    private void OnThemeChanged() => InvokeAsync(StateHasChanged);
 
     private void ToggleCart() => _cartOpen = !_cartOpen;
 
@@ -66,10 +35,5 @@
     {
         _cartOpen = value;
         return Task.CompletedTask;
-    }
-
-    public void Dispose()
-    {
-        ThemeService.OnChange -= OnThemeChanged;
     }
 }

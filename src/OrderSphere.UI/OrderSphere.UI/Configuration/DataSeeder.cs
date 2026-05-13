@@ -14,11 +14,16 @@ public static class DataSeeder
         var dbContext = scope.ServiceProvider.GetRequiredService<OrderSphereDbContext>();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-        // Apply pending migrations (replaces EnsureCreated)
         await dbContext.Database.MigrateAsync();
 
-        await SeedCategoriesAndProductsAsync(dbContext);
-        await SeedRolesAndUsersAsync(scope, configuration);
+        await SeedRolesAsync(scope);
+
+        var seedingEnabled = configuration.GetValue<bool>("Seeding:Enabled");
+        if (!app.Environment.IsProduction() || seedingEnabled)
+        {
+            await SeedCategoriesAndProductsAsync(dbContext);
+            await SeedTestUsersAsync(scope, configuration);
+        }
     }
 
     private static async Task SeedCategoriesAndProductsAsync(OrderSphereDbContext dbContext)
@@ -94,31 +99,31 @@ public static class DataSeeder
         await dbContext.CommitAsync();
     }
 
-    private static async Task SeedRolesAndUsersAsync(IServiceScope scope, IConfiguration configuration)
+    private static async Task SeedRolesAsync(IServiceScope scope)
     {
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        const string adminRoleName = "Administrator";
-        const string userRoleName = "User";
+        if (!await roleManager.RoleExistsAsync("Administrator"))
+            await roleManager.CreateAsync(new IdentityRole("Administrator"));
 
-        if (!await roleManager.RoleExistsAsync(adminRoleName))
-            await roleManager.CreateAsync(new IdentityRole(adminRoleName));
+        if (!await roleManager.RoleExistsAsync("User"))
+            await roleManager.CreateAsync(new IdentityRole("User"));
+    }
 
-        if (!await roleManager.RoleExistsAsync(userRoleName))
-            await roleManager.CreateAsync(new IdentityRole(userRoleName));
+    private static async Task SeedTestUsersAsync(IServiceScope scope, IConfiguration configuration)
+    {
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        var adminEmail = configuration["Seed:AdminEmail"]
-            ?? throw new InvalidOperationException("Seed:AdminEmail is not configured. Set it via user-secrets: dotnet user-secrets set \"Seed:AdminEmail\" \"...\"");
-        var adminPassword = configuration["Seed:AdminPassword"]
-            ?? throw new InvalidOperationException("Seed:AdminPassword is not configured. Set it via user-secrets: dotnet user-secrets set \"Seed:AdminPassword\" \"...\"");
-        var userEmail = configuration["Seed:UserEmail"]
-            ?? throw new InvalidOperationException("Seed:UserEmail is not configured. Set it via user-secrets: dotnet user-secrets set \"Seed:UserEmail\" \"...\"");
-        var userPassword = configuration["Seed:UserPassword"]
-            ?? throw new InvalidOperationException("Seed:UserPassword is not configured. Set it via user-secrets: dotnet user-secrets set \"Seed:UserPassword\" \"...\"");
+        var adminEmail = configuration["Seed:AdminEmail"];
+        var adminPassword = configuration["Seed:AdminPassword"];
+        var userEmail = configuration["Seed:UserEmail"];
+        var userPassword = configuration["Seed:UserPassword"];
 
-        await EnsureUserAsync(userManager, adminEmail, "Admin", "User", adminPassword, adminRoleName);
-        await EnsureUserAsync(userManager, userEmail, "Test", "User", userPassword, userRoleName);
+        if (adminEmail is not null && adminPassword is not null)
+            await EnsureUserAsync(userManager, adminEmail, "Admin", "User", adminPassword, "Administrator");
+
+        if (userEmail is not null && userPassword is not null)
+            await EnsureUserAsync(userManager, userEmail, "Test", "User", userPassword, "User");
     }
 
     private static async Task EnsureUserAsync(

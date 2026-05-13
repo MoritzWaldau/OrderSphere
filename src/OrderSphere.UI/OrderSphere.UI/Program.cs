@@ -1,5 +1,6 @@
 using Azure.Messaging.ServiceBus;
 using MediatR;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.DataProtection.StackExchangeRedis;
@@ -71,6 +72,13 @@ else
 app.MapDefaultEndpoints();
 
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    KnownIPNetworks = { },
+    KnownProxies = { }
+});
+
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
@@ -80,31 +88,6 @@ app.UseOutputCache();
 
 await DataSeeder.SeedDataAsync(app);
 
-
-app.MapGet("/send", async (IServiceBusPublisher serviceBusPublisher) =>
-{
-    await serviceBusPublisher.PublishCheckoutCartEventAsync(new CheckoutCartEvent(
-        Guid.CreateVersion7(),
-        new CheckoutCartDto(Guid.CreateVersion7(), new Address("Moritz", "Waldau", "Schwarmstedter Str. 2", "Essel", "29690", "Germany"), PaymentMethod.Invoice),
-        [])
-    );
-});
-
-app.MapGet("/receive", async (ServiceBusClient serviceBusClient) =>
-{
-    await using var receiver = serviceBusClient.CreateReceiver("orders");
-
-    var messages = await receiver.ReceiveMessagesAsync(maxMessages: 10, maxWaitTime: TimeSpan.FromSeconds(3));
-
-    var bodies = new List<string>();
-    foreach (var message in messages)
-    {
-        bodies.Add(message.Body.ToString());
-        await receiver.CompleteMessageAsync(message);
-    }
-
-    return Results.Ok(bodies);
-});
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

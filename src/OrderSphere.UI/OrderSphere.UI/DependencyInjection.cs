@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-
 using Microsoft.AspNetCore.Mvc;
 using MudBlazor;
 using MudBlazor.Services;
@@ -14,7 +13,6 @@ using OrderSphere.UI.Services.Account;
 using OrderSphere.UI.Services.Auth;
 using Serilog;
 using System.Globalization;
-using System.Security.Principal;
 
 namespace OrderSphere.UI;
 
@@ -32,14 +30,6 @@ public static class DependencyInjection
 
     public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped(sp =>
-        {
-            return new HttpClient
-            {
-                BaseAddress = new Uri(configuration["BaseUrl"] ?? "https://localhost:7051")
-            };
-        });
-
         services.AddAuthentication();
         services.ConfigureMudBlazor();
         return services;

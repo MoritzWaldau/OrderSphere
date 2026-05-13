@@ -1,7 +1,7 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var postgres = builder.AddPostgres("postgres", port: 5432)
-    .WithPgAdmin()
+var postgres = builder.AddAzurePostgresFlexibleServer("postgres")
+    .RunAsContainer(c => c.WithPgAdmin().WithLifetime(ContainerLifetime.Persistent))
     .AddDatabase("ordersphere-db");
 
 var serviceBus = builder.AddAzureServiceBus("azure-service-bus")

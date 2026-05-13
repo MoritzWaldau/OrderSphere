@@ -8,33 +8,32 @@
 
 <PageTitle>Bestellung — OrderSphere</PageTitle>
 
-<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 60px 0;">
+<section class="section-hero-sm">
     <MudContainer>
         <MudButton Variant="Variant.Text"
                    StartIcon="@Icons.Material.Outlined.ArrowBack"
                    Href="/account/orders"
-                   Style="color: rgba(255,255,255,0.85);"
-                   Class="mb-2">
+                   Class="hero-back-link mb-2">
             Zurück zu meinen Bestellungen
         </MudButton>
 
         @if (_order is not null)
         {
-            <MudText Typo="Typo.h2" Style="color: #FFFFFF; letter-spacing: -0.02em;">
+            <MudText Typo="Typo.h2" Class="hero-title">
                 Bestellung #@_order.Id.ToString("N")[..8].ToUpperInvariant()
             </MudText>
-            <MudText Typo="Typo.body1" Style="color: rgba(255,255,255,0.8); margin-top: 8px;">
+            <MudText Typo="Typo.body1" Class="hero-subtitle-muted" Style="margin-top: 8px;">
                 @_order.CreatedAt.ToLocalTime().ToString("dd. MMMM yyyy, HH:mm 'Uhr'", System.Globalization.CultureInfo.GetCultureInfo("de-DE"))
             </MudText>
         }
         else
         {
-            <MudText Typo="Typo.h2" Style="color: #FFFFFF;">Bestellung</MudText>
+            <MudText Typo="Typo.h2" Class="hero-title">Bestellung</MudText>
         }
     </MudContainer>
 </section>
 
-<section style="background: #F5F5F7; padding: 60px 0; min-height: 60vh;">
+<section class="page-section">
     <MudContainer MaxWidth="MaxWidth.Medium">
 
         @if (IsLoading)
@@ -48,8 +47,7 @@
         }
         else if (_order is null)
         {
-            <MudPaper Elevation="0" Class="pa-12 text-center"
-                      Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+            <MudPaper Elevation="0" Class="surface-card-lg pa-12 text-center">
                 <MudIcon Icon="@Icons.Material.Outlined.SearchOff"
                          Color="Color.Secondary"
                          Style="font-size: 80px;" Class="mb-4" />
@@ -74,14 +72,13 @@
 
                 @if (!string.IsNullOrWhiteSpace(_order.TrackingNumber))
                 {
-                    <MudPaper Elevation="0" Class="pa-6"
-                              Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: var(--mud-palette-surface);">
+                    <MudPaper Elevation="0" Class="surface-card pa-6">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="3">
                             <MudStack Spacing="1">
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
                                     Deine Tracking-Nummer
                                 </MudText>
-                                <MudText Typo="Typo.h5" Style="font-weight: 700; font-family: monospace; letter-spacing: 0.05em;">
+                                <MudText Typo="Typo.h5" Class="text-tracking" Style="font-weight: 700;">
                                     @_order.TrackingNumber
                                 </MudText>
                             </MudStack>
@@ -89,6 +86,7 @@
                                 <MudTooltip Text="@(_copied ? "Kopiert!" : "In Zwischenablage kopieren")">
                                     <MudIconButton Icon="@(_copied ? Icons.Material.Outlined.Check : Icons.Material.Outlined.ContentCopy)"
                                                    Color="@(_copied ? Color.Success : Color.Default)"
+                                                   aria-label="Tracking-Nummer kopieren"
                                                    OnClick="CopyTrackingNumberAsync" />
                                 </MudTooltip>
                                 <MudButton Variant="Variant.Filled"
@@ -104,8 +102,7 @@
                     </MudPaper>
                 }
 
-                <MudPaper Elevation="0" Class="pa-6"
-                          Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: var(--mud-palette-surface);">
+                <MudPaper Elevation="0" Class="surface-card pa-6">
                     <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight: 600;">
                         Status
                     </MudText>
@@ -133,8 +130,7 @@
 
                 <MudGrid>
                     <MudItem xs="12" md="6">
-                        <MudPaper Elevation="0" Class="pa-6 h-100"
-                                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: var(--mud-palette-surface);">
+                        <MudPaper Elevation="0" Class="surface-card pa-6 h-100">
                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
                                 <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Color="Color.Primary" />
                                 <MudText Typo="Typo.h6" Style="font-weight: 600;">Lieferadresse</MudText>
@@ -149,8 +145,7 @@
                     </MudItem>
 
                     <MudItem xs="12" md="6">
-                        <MudPaper Elevation="0" Class="pa-6 h-100"
-                                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: var(--mud-palette-surface);">
+                        <MudPaper Elevation="0" Class="surface-card pa-6 h-100">
                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
                                 <MudIcon Icon="@Icons.Material.Outlined.LocalShipping" Color="Color.Primary" />
                                 <MudText Typo="Typo.h6" Style="font-weight: 600;">Versand</MudText>
@@ -175,8 +170,7 @@
                     </MudItem>
                 </MudGrid>
 
-                <MudPaper Elevation="0" Class="pa-6"
-                          Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: var(--mud-palette-surface);">
+                <MudPaper Elevation="0" Class="surface-card pa-6">
                     <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight: 600;">
                         Artikel
                     </MudText>
@@ -203,7 +197,7 @@
 
                     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                         <MudText Typo="Typo.h6" Style="font-weight: 600;">Gesamt</MudText>
-                        <MudText Typo="Typo.h5" Style="font-weight: 700; color: var(--mud-palette-primary);">
+                        <MudText Typo="Typo.h5" Class="text-primary-color" Style="font-weight: 700;">
                             @_order.Total.ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) €
                         </MudText>
                     </MudStack>

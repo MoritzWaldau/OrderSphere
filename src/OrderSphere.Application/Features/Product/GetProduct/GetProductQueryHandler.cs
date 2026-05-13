@@ -37,6 +37,7 @@ public sealed class GetProductQueryHandler(
                         CategoryId = p.CategoryId,
                         CategoryName = p.Category!.Name,
                         SKU = p.SKU,
+                        ImageUrl = p.ImageUrl,
                         IsActive = p.IsActive,
                     })
                     .ToListAsync(ct),

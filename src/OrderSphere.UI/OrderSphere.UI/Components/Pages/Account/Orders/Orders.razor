@@ -2,23 +2,16 @@
 @layout MainLayout
 @using Microsoft.AspNetCore.Authorization
 @inherits OrderSphereComponentBase
+@rendermode InteractiveServer
 
 @attribute [Authorize]
 
 <PageTitle>Meine Bestellungen — OrderSphere</PageTitle>
 
-<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 60px 0;">
-    <MudContainer>
-        <MudText Typo="Typo.h2" Align="Align.Center" Style="color: #FFFFFF; letter-spacing: -0.02em;">
-            Meine Bestellungen
-        </MudText>
-        <MudText Typo="Typo.body1" Align="Align.Center" Style="color: rgba(255,255,255,0.8); margin-top: 8px;">
-            Übersicht aller deiner Bestellungen bei OrderSphere.
-        </MudText>
-    </MudContainer>
-</section>
+<PageHero Title="Meine Bestellungen"
+          Subtitle="Übersicht aller deiner Bestellungen bei OrderSphere." />
 
-<section style="background: #F5F5F7; padding: 60px 0; min-height: 60vh;">
+<section class="page-section">
     <MudContainer MaxWidth="MaxWidth.Medium">
         @if (IsLoading)
         {
@@ -31,8 +24,7 @@
         }
         else if (_orders.Count == 0)
         {
-            <MudPaper Elevation="0" Class="pa-12 text-center"
-                      Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+            <MudPaper Elevation="0" Class="surface-card-lg pa-12 text-center">
                 <MudIcon Icon="@Icons.Material.Outlined.ShoppingBag"
                          Color="Color.Primary"
                          Style="font-size: 80px;" Class="mb-4" />
@@ -57,17 +49,14 @@
             <MudStack Spacing="4">
                 @foreach (var order in _orders)
                 {
-                    <MudPaper Elevation="0" Class="pa-6"
-                              Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider); background: var(--mud-palette-surface); cursor: pointer; transition: border-color 0.15s ease, box-shadow 0.15s ease;"
-                              @onclick="@(() => NavManager.NavigateTo($"/account/orders/{order.Id}"))"
-                              onmouseover="this.style.borderColor='var(--mud-palette-primary)'"
-                              onmouseout="this.style.borderColor='var(--mud-palette-divider)'">
+                    <MudPaper Elevation="0" Class="surface-card surface-card-row-hover pa-6"
+                              @onclick="@(() => NavManager.NavigateTo($"/account/orders/{order.Id}"))">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Wrap="Wrap.Wrap" Class="mb-4">
                             <MudStack Spacing="1">
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
                                     Bestellnummer
                                 </MudText>
-                                <MudText Typo="Typo.subtitle1" Style="font-weight: 600; font-family: monospace;">
+                                <MudText Typo="Typo.subtitle1" Class="text-monospace" Style="font-weight: 600;">
                                     #@order.Id.ToString("N")[..8].ToUpperInvariant()
                                 </MudText>
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
@@ -78,7 +67,7 @@
                                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mt-1">
                                         <MudIcon Icon="@Icons.Material.Outlined.LocalShipping"
                                                  Size="Size.Small" Color="Color.Primary" />
-                                        <MudText Typo="Typo.caption" Style="font-family: monospace; font-weight: 600;">
+                                        <MudText Typo="Typo.caption" Class="text-monospace" Style="font-weight: 600;">
                                             @order.TrackingNumber
                                         </MudText>
                                     </MudStack>

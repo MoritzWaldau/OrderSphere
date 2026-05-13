@@ -1,0 +1,47 @@
+@*
+    Renders a product image when ImageUrl is present, otherwise a styled placeholder.
+    Single source of truth for product imagery so the placeholder can be replaced later.
+*@
+
+<div class="@_frameClass" style="@Style">
+    @if (!string.IsNullOrWhiteSpace(ImageUrl))
+    {
+        <img src="@ImageUrl"
+             alt="@(string.IsNullOrWhiteSpace(Alt) ? "Produktbild" : Alt)"
+             loading="lazy"
+             style="width: 100%; height: 100%; object-fit: contain;" />
+    }
+    else
+    {
+        <MudIcon Icon="@PlaceholderIcon"
+                 aria-hidden="true"
+                 Style="@($"font-size: {PlaceholderIconSize}; color: var(--mud-palette-divider);")" />
+    }
+</div>
+
+@code {
+    [Parameter] public string? ImageUrl { get; set; }
+    [Parameter] public string? Alt { get; set; }
+    [Parameter] public string PlaceholderIcon { get; set; } = Icons.Material.Filled.Devices;
+    [Parameter] public string PlaceholderIconSize { get; set; } = "5rem";
+    [Parameter] public ImageSize Size { get; set; } = ImageSize.Card;
+    [Parameter] public string? Style { get; set; }
+
+    private string _frameClass => Size switch
+    {
+        ImageSize.Detail => "product-image-frame product-image-frame-detail",
+        ImageSize.SearchCard => "product-image-frame product-image-frame-sm",
+        ImageSize.Thumb => "product-image-frame-thumb",
+        ImageSize.ThumbMd => "product-image-frame-thumb product-image-frame-thumb-md",
+        _ => "product-image-frame"
+    };
+
+    public enum ImageSize
+    {
+        Card,
+        SearchCard,
+        Detail,
+        Thumb,
+        ThumbMd
+    }
+}

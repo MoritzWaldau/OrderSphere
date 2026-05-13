@@ -1,7 +1,11 @@
 @inherits LayoutComponentBase
 @using OrderSphere.UI.Configuration
+@using OrderSphere.UI.Services
+@inject IThemeService ThemeService
+@inject IJSRuntime JS
+@implements IDisposable
 
-<MudThemeProvider Theme="ThemeConfiguration.ApplicationTheme()" IsDarkMode="false" />
+<MudThemeProvider Theme="ThemeConfiguration.ApplicationTheme()" IsDarkMode="ThemeService.IsDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -14,11 +18,21 @@
         <MudIconButton Icon="@Icons.Material.Outlined.Menu"
                        Color="Color.Default"
                        OnClick="@ToggleDrawer"
+                       aria-label="Navigation umschalten"
                        Class="mr-2" />
         <MudText Typo="Typo.h6" Style="font-weight: 600;">
             OrderSphere Admin
         </MudText>
         <MudSpacer />
+
+        <MudTooltip Text="@(ThemeService.IsDarkMode ? "Helles Design" : "Dunkles Design")">
+            <MudIconButton Icon="@(ThemeService.IsDarkMode ? Icons.Material.Outlined.LightMode : Icons.Material.Outlined.DarkMode)"
+                           Color="Color.Default"
+                           Class="theme-toggle mr-2"
+                           aria-label="Design umschalten"
+                           OnClick="ToggleThemeAsync" />
+        </MudTooltip>
+
         <MudButton Variant="Variant.Text"
                    StartIcon="@Icons.Material.Outlined.Storefront"
                    Color="Color.Default"
@@ -58,7 +72,7 @@
         </MudNavMenu>
     </MudDrawer>
 
-    <MudMainContent Style="background: #F5F5F7; min-height: 100vh;">
+    <MudMainContent Style="background: var(--mud-palette-background-grey); min-height: 100vh;">
         @Body
     </MudMainContent>
 
@@ -66,6 +80,39 @@
 
 @code {
     private bool _drawerOpen = true;
+    private bool _initialized;
+
+    protected override void OnInitialized()
+    {
+        ThemeService.OnChange += OnThemeChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_initialized)
+        {
+            _initialized = true;
+            bool? prefersDark = null;
+            try
+            {
+                prefersDark = await JS.InvokeAsync<bool>("prefersDarkScheme");
+            }
+            catch
+            {
+                // Ignore JS unavailable.
+            }
+            await ThemeService.InitializeAsync(prefersDark);
+        }
+    }
+
+    private void OnThemeChanged() => InvokeAsync(StateHasChanged);
 
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    private Task ToggleThemeAsync() => ThemeService.ToggleAsync();
+
+    public void Dispose()
+    {
+        ThemeService.OnChange -= OnThemeChanged;
+    }
 }

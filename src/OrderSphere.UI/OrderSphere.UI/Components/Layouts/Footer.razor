@@ -1,4 +1,4 @@
-﻿<footer>
+<footer>
     <div class="footer-main">
         <MudContainer>
             <MudGrid>
@@ -9,8 +9,14 @@
                     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-3" Style="max-width: 280px; line-height: 1.6;">
                         Dein Shop für moderne IT-Geräte. Schnell, zuverlässig und smart.
                     </MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">📧 support@ordersphere.dev</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">🤖 AI Assistant verfügbar</MudText>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-3">
+                        <MudIcon Icon="@Icons.Material.Outlined.Email" Color="Color.Primary" Size="Size.Small" />
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">support@ordersphere.dev</MudText>
+                    </MudStack>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-1">
+                        <MudIcon Icon="@Icons.Material.Outlined.AutoAwesome" Color="Color.Primary" Size="Size.Small" />
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">AI Assistant verfügbar</MudText>
+                    </MudStack>
                 </MudItem>
 
                 @foreach (var section in _sections)
@@ -32,7 +38,7 @@
     <div class="footer-bottom">
         <MudContainer>
             <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                <MudText Typo="Typo.caption" Style="color: #98989D;">
+                <MudText Typo="Typo.caption" Class="footer-bottom-text">
                     © @DateTime.Now.Year OrderSphere — Alle Rechte vorbehalten
                 </MudText>
                 <MudStack Row="true" Spacing="3">

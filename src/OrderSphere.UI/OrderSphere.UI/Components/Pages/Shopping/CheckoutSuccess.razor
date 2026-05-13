@@ -15,39 +15,34 @@
 
 <PageTitle>Bestellung bestätigt — OrderSphere</PageTitle>
 
-<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 60px 0;">
+<section class="section-hero-sm">
     <MudContainer MaxWidth="MaxWidth.Medium">
         <MudStack AlignItems="AlignItems.Center" Spacing="5" Class="text-center">
-            <MudPaper Elevation="0"
-                      Class="d-flex align-center justify-center"
-                      Style="width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.15);">
+            <div class="icon-bubble-on-hero">
                 <MudIcon Icon="@Icons.Material.Outlined.CheckCircle"
                          Style="font-size: 80px; color: #FFFFFF;" />
-            </MudPaper>
+            </div>
 
-            <MudText Typo="Typo.h2"
-                     Style="color: #FFFFFF; font-weight: 700; letter-spacing: -0.02em;">
+            <MudText Typo="Typo.h2" Class="hero-title-lg">
                 Vielen Dank!
             </MudText>
 
-            <MudText Typo="Typo.h5" Style="color: #FFFFFF; font-weight: 500;">
+            <MudText Typo="Typo.h5" Class="text-on-dark" Style="font-weight: 500;">
                 Deine Bestellung ist bei uns eingegangen.
             </MudText>
 
             @if (_order is not null)
             {
-                <MudPaper Elevation="0" Class="px-6 py-3"
-                          Style="background: rgba(255,255,255,0.15); border-radius: 100px;">
-                    <MudText Typo="Typo.body1" Style="color: #FFFFFF;">
+                <MudPaper Elevation="0" Class="hero-pill-soft px-6 py-3">
+                    <MudText Typo="Typo.body1" Class="text-on-dark">
                         Bestellnummer: <strong>#@_order.Id.ToString("N")[..8].ToUpperInvariant()</strong>
                     </MudText>
                 </MudPaper>
             }
             else if (_pollingTimedOut)
             {
-                <MudPaper Elevation="0" Class="px-6 py-3"
-                          Style="background: rgba(255,255,255,0.15); border-radius: 100px;">
-                    <MudText Typo="Typo.body1" Style="color: #FFFFFF;">
+                <MudPaper Elevation="0" Class="hero-pill-soft px-6 py-3">
+                    <MudText Typo="Typo.body1" Class="text-on-dark">
                         Deine Bestellung wird noch verarbeitet.
                     </MudText>
                 </MudPaper>
@@ -57,14 +52,13 @@
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                     <MudProgressCircular Color="Color.Inherit" Size="Size.Small" Indeterminate="true"
                                          Style="color: #FFFFFF;" />
-                    <MudText Typo="Typo.body1" Style="color: #FFFFFF;">
+                    <MudText Typo="Typo.body1" Class="text-on-dark">
                         Bestellung wird verarbeitet…
                     </MudText>
                 </MudStack>
             }
 
-            <MudText Typo="Typo.body1"
-                     Style="color: rgba(255,255,255,0.85); max-width: 580px;">
+            <MudText Typo="Typo.body1" Class="text-on-dark-muted" Style="max-width: 580px;">
                 Eine Bestätigung mit allen Details haben wir an deine E-Mail-Adresse gesendet.
                 Sobald deine Bestellung versendet wird, informieren wir dich erneut.
             </MudText>
@@ -72,10 +66,9 @@
     </MudContainer>
 </section>
 
-<section style="background: #FFFFFF; padding: 60px 0;">
+<section class="page-section-surface">
     <MudContainer MaxWidth="MaxWidth.Small">
-        <MudPaper Elevation="0" Class="pa-8"
-                  Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+        <MudPaper Elevation="0" Class="surface-card-lg pa-8">
 
             @if (_order is not null && !string.IsNullOrWhiteSpace(_order.TrackingNumber))
             {
@@ -83,7 +76,7 @@
                     <MudText Typo="Typo.caption" Color="Color.Secondary">
                         Deine Tracking-Nummer
                     </MudText>
-                    <MudText Typo="Typo.h4" Style="font-weight: 700; font-family: monospace; letter-spacing: 0.05em;">
+                    <MudText Typo="Typo.h4" Class="text-tracking" Style="font-weight: 700;">
                         @_order.TrackingNumber
                     </MudText>
                 </MudStack>
@@ -214,7 +207,6 @@
             return;
         }
 
-        // Poll up to ~5 seconds for the worker to create the order
         const int maxAttempts = 10;
         const int delayMs = 500;
 

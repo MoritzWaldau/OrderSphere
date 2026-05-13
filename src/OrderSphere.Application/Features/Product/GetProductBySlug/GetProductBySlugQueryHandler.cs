@@ -45,6 +45,7 @@ public sealed class GetProductBySlugQueryHandler(
                         CategoryId = product.CategoryId,
                         CategoryName = product.Category!.Name,
                         SKU = product.SKU,
+                        ImageUrl = product.ImageUrl,
                         IsActive = product.IsActive,
                     };
                 },

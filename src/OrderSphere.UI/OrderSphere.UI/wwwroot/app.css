@@ -10,54 +10,42 @@ body.scroll-locked {
    HEADER – Frosted Glass
    ============================================ */
 .header-appbar {
-    background: rgba(255, 255, 255, 0.85) !important;
+    background: var(--mud-palette-appbar-background) !important;
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     border-bottom: 1px solid var(--mud-palette-divider);
 }
 
 /* ============================================
-   PRODUCT CARD – Hover Effekte
+   PAGE STRUCTURE
    ============================================ */
-.product-card {
-    transition: box-shadow 0.25s ease, transform 0.25s ease;
+.page-section {
+    background: var(--mud-palette-background-grey);
+    padding: 60px 0;
+    min-height: 60vh;
 }
 
-    .product-card:hover {
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12) !important;
-        transform: translateY(-4px);
-    }
-
-.product-image-wrapper {
-    position: relative;
-    overflow: hidden;
+.page-section-sm {
+    background: var(--mud-palette-background-grey);
+    padding: 40px 0;
 }
 
-.product-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.25s ease;
-}
-
-.product-image-wrapper:hover .product-overlay {
-    opacity: 1;
+.page-section-surface {
+    background: var(--mud-palette-surface);
+    padding: 60px 0;
 }
 
 /* ============================================
    GRADIENT SECTIONS
+   Brand gradient stays consistent across themes.
    ============================================ */
 .section-hero {
-    background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%);
+    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
     padding: 100px 0;
 }
 
 .section-hero-sm {
-    background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%);
+    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);
     padding: 60px 0;
 }
 
@@ -72,13 +60,145 @@ body.scroll-locked {
 }
 
 .section-dark {
-    background: #1D1D1F;
+    background: var(--mud-palette-secondary);
     padding: 80px 0;
 }
 
 .section-cta {
-    background: linear-gradient(135deg, #0051A8 0%, #0071E3 100%);
+    background: linear-gradient(135deg, var(--mud-palette-primary-darken) 0%, var(--mud-palette-primary) 100%);
     padding: 100px 0;
+}
+
+/* Hero typography on gradient backgrounds */
+.hero-title {
+    color: #FFFFFF;
+    letter-spacing: -0.02em;
+}
+
+.hero-title-lg {
+    color: #FFFFFF;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+}
+
+.hero-subtitle {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 400;
+}
+
+.hero-subtitle-muted {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.hero-icon-light {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.hero-pill-soft {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 100px;
+    color: #FFFFFF;
+}
+
+.hero-back-link {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* On-dark text contrast classes (gradient sections) */
+.text-on-dark {
+    color: #FFFFFF !important;
+}
+
+.text-on-dark-muted {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* ============================================
+   PRODUCT CARD
+   ============================================ */
+.product-card {
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--mud-palette-surface);
+    border: 1px solid var(--mud-palette-divider);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+@media (hover: hover) {
+    .product-card:hover {
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+        transform: translateY(-4px);
+    }
+}
+
+.product-image-wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+.product-image-frame {
+    height: 200px;
+    background: linear-gradient(135deg, var(--mud-palette-background-grey) 0%, var(--mud-palette-divider-light) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-image-frame-sm {
+    height: 180px;
+}
+
+.product-image-frame-thumb {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--mud-palette-background-grey), var(--mud-palette-divider-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-image-frame-thumb-md {
+    width: 88px;
+    height: 88px;
+    min-width: 88px;
+}
+
+.product-image-frame-detail {
+    height: 460px;
+}
+
+.product-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+@media (hover: hover) {
+    .product-image-wrapper:hover .product-overlay {
+        opacity: 1;
+    }
+}
+
+.product-card-content {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-price {
+    color: var(--mud-palette-primary);
+    font-weight: 700;
 }
 
 /* ============================================
@@ -92,7 +212,7 @@ body.scroll-locked {
 
 .btn-pill-white {
     background: #FFFFFF !important;
-    color: #0071E3 !important;
+    color: var(--mud-palette-primary) !important;
     border-radius: 100px !important;
     padding: 12px 32px !important;
     font-weight: 600 !important;
@@ -106,7 +226,7 @@ body.scroll-locked {
 }
 
 /* ============================================
-   CART DRAWER
+   CART DRAWER + STEPPER
    ============================================ */
 .mud-drawer-content {
     display: flex;
@@ -123,6 +243,28 @@ body.scroll-locked {
     padding: 2px;
 }
 
+.stepper-btn {
+    width: 32px;
+    height: 32px;
+    background: var(--mud-palette-surface);
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.stepper-btn-sm {
+    width: 28px;
+    height: 28px;
+    background: var(--mud-palette-surface);
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.stepper-value {
+    min-width: 32px;
+    text-align: center;
+    font-weight: 600;
+}
+
 /* ============================================
    FOOTER
    ============================================ */
@@ -133,7 +275,7 @@ body.scroll-locked {
 }
 
 .footer-bottom {
-    background: #1D1D1F;
+    background: var(--mud-palette-secondary);
     padding: 20px 0;
 }
 
@@ -144,20 +286,24 @@ body.scroll-locked {
     transition: color 0.15s ease;
 }
 
-    .footer-link:hover {
-        color: var(--mud-palette-primary);
-    }
+.footer-link:hover {
+    color: var(--mud-palette-primary);
+}
 
 .footer-bottom-link {
-    color: #98989D;
+    color: rgba(255, 255, 255, 0.6);
     font-size: 0.75rem;
     text-decoration: none;
     transition: color 0.15s ease;
 }
 
-    .footer-bottom-link:hover {
-        color: #FFFFFF;
-    }
+.footer-bottom-link:hover {
+    color: #FFFFFF;
+}
+
+.footer-bottom-text {
+    color: rgba(255, 255, 255, 0.6);
+}
 
 /* ============================================
    MOBILE DRAWER NAV
@@ -173,9 +319,9 @@ body.scroll-locked {
     text-decoration: none;
 }
 
-    .mobile-nav-item:hover {
-        background: var(--mud-palette-background-grey);
-    }
+.mobile-nav-item:hover {
+    background: var(--mud-palette-background-grey);
+}
 
 /* ============================================
    CATEGORY CARD
@@ -185,9 +331,162 @@ body.scroll-locked {
     border: 1px solid var(--mud-palette-divider);
     background: var(--mud-palette-surface);
     cursor: pointer;
-    transition: box-shadow 0.2s ease;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
+@media (hover: hover) {
     .category-card:hover {
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     }
+}
+
+/* ============================================
+   SURFACE CARDS (bordered, no shadow)
+   ============================================ */
+.surface-card {
+    border-radius: 16px;
+    border: 1px solid var(--mud-palette-divider);
+    background: var(--mud-palette-surface);
+}
+
+.surface-card-lg {
+    border-radius: 20px;
+    border: 1px solid var(--mud-palette-divider);
+    background: var(--mud-palette-surface);
+}
+
+.surface-card-sm {
+    border-radius: 12px;
+    border: 1px solid var(--mud-palette-divider);
+    background: var(--mud-palette-surface);
+}
+
+.surface-card-row-hover {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+}
+
+@media (hover: hover) {
+    .surface-card-row-hover:hover {
+        border-color: var(--mud-palette-primary);
+    }
+}
+
+/* ============================================
+   STATUS / STOCK
+   ============================================ */
+.stock-ok {
+    color: var(--mud-palette-success) !important;
+}
+
+.stock-low {
+    color: var(--mud-palette-warning) !important;
+}
+
+.stock-out {
+    color: var(--mud-palette-error) !important;
+}
+
+.shipping-free {
+    color: var(--mud-palette-success);
+    font-weight: 600;
+}
+
+/* ============================================
+   DANGER ZONE (Account deletion etc.)
+   ============================================ */
+.danger-zone {
+    border-radius: 20px;
+    border: 1px solid var(--mud-palette-error);
+    background: var(--mud-palette-surface);
+}
+
+.danger-zone-title {
+    color: var(--mud-palette-error);
+    font-weight: 700;
+}
+
+/* ============================================
+   ICON BUBBLE (numbered steps, success indicators)
+   ============================================ */
+.icon-bubble-primary {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--mud-palette-primary);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.icon-bubble-success {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--mud-palette-success);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-bubble-success-soft {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(6, 193, 103, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-bubble-on-hero {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Avatar circle for profile initials */
+.avatar-initials {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--mud-palette-primary), var(--mud-palette-primary-darken));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFFFFF;
+}
+
+/* ============================================
+   TYPOGRAPHY HELPERS
+   ============================================ */
+.text-primary-color {
+    color: var(--mud-palette-primary) !important;
+}
+
+.text-monospace {
+    font-family: monospace;
+}
+
+.text-tracking {
+    font-family: monospace;
+    letter-spacing: 0.05em;
+}
+
+/* ============================================
+   THEME TOGGLE BUTTON (subtle)
+   ============================================ */
+.theme-toggle {
+    transition: transform 0.2s ease;
+}
+
+.theme-toggle:hover {
+    transform: rotate(15deg);
+}

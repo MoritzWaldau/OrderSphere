@@ -1,7 +1,7 @@
 @inherits LayoutComponentBase
 @using OrderSphere.UI.Configuration
 
-<MudThemeProvider Theme="ThemeConfiguration.ApplicationTheme()" IsDarkMode="false" />
+<MudThemeProvider Theme="ThemeConfiguration.ApplicationTheme()" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -14,11 +14,13 @@
         <MudIconButton Icon="@Icons.Material.Outlined.Menu"
                        Color="Color.Default"
                        OnClick="@ToggleDrawer"
+                       aria-label="Navigation umschalten"
                        Class="mr-2" />
         <MudText Typo="Typo.h6" Style="font-weight: 600;">
             OrderSphere Admin
         </MudText>
         <MudSpacer />
+
         <MudButton Variant="Variant.Text"
                    StartIcon="@Icons.Material.Outlined.Storefront"
                    Color="Color.Default"
@@ -58,7 +60,7 @@
         </MudNavMenu>
     </MudDrawer>
 
-    <MudMainContent Style="background: #F5F5F7; min-height: 100vh;">
+    <MudMainContent Style="background: var(--mud-palette-background-grey); min-height: 100vh;">
         @Body
     </MudMainContent>
 

@@ -1,0 +1,30 @@
+@*
+    Stock indicator combining icon + text + color so screen readers and
+    color-blind users get the same signal as sighted users.
+*@
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" role="status" aria-label="@_ariaLabel">
+    <MudIcon Icon="@_icon" Class="@_class" Style="@($"font-size: {IconSize};")" />
+    <MudText Typo="@TextTypo" Class="@_class" Style="font-weight: 600;">
+        @_label
+    </MudText>
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired] public int Stock { get; set; }
+    [Parameter] public int LowThreshold { get; set; } = 10;
+    [Parameter] public Typo TextTypo { get; set; } = Typo.body2;
+    [Parameter] public string IconSize { get; set; } = "18px";
+
+    private (string Icon, string Class, string Label, string Aria) _state =>
+        Stock <= 0
+            ? (Icons.Material.Filled.Cancel, "stock-out", "Nicht verfügbar", "Nicht verfügbar")
+            : Stock <= LowThreshold
+                ? (Icons.Material.Filled.Warning, "stock-low", $"Nur noch {Stock} verfügbar", $"Nur noch {Stock} auf Lager")
+                : (Icons.Material.Filled.CheckCircle, "stock-ok", "Auf Lager", "Auf Lager");
+
+    private string _icon => _state.Icon;
+    private string _class => _state.Class;
+    private string _label => _state.Label;
+    private string _ariaLabel => _state.Aria;
+}

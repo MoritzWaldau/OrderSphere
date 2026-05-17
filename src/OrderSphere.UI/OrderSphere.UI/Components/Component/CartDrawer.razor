@@ -19,88 +19,78 @@
            Style="height: 100vh;">
 
     <!-- Header -->
-    <div style="padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; border-bottom: 1px solid #D2D2D7;">
+    <div style="padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; border-bottom: 1px solid var(--mud-palette-divider);">
         <MudStack Spacing="0">
-            <MudText Typo="Typo.h6" Style="color: #1D1D1F; font-weight: 700;">Warenkorb</MudText>
-            <MudText Typo="Typo.caption" Style="color: #6E6E73;">
+            <MudText Typo="Typo.h6" Style="font-weight: 700;">Warenkorb</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary">
                 @_items.Count Artikel
             </MudText>
         </MudStack>
         <MudIconButton Icon="@Icons.Material.Filled.Close"
                        OnClick="@(() => IsOpenChanged.InvokeAsync(false))"
-                       Style="background: #F5F5F7; border-radius: 50%;" />
+                       aria-label="Warenkorb schließen"
+                       Style="background: var(--mud-palette-background-grey); border-radius: 50%;" />
     </div>
 
     @if (!_items.Any())
     {
-        <!-- Leer -->
         <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="flex: 1; padding: 48px 24px;">
-            <div style="background: #F5F5F7; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+            <div style="background: var(--mud-palette-background-grey); border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
                 <MudIcon Icon="@Icons.Material.Filled.ShoppingCart"
-                         Style="font-size: 2.5rem; color: #D2D2D7;" />
+                         Style="font-size: 2.5rem; color: var(--mud-palette-divider);" />
             </div>
-            <MudText Typo="Typo.h6" Class="mt-4" Style="color: #1D1D1F;">
+            <MudText Typo="Typo.h6" Class="mt-4">
                 Dein Warenkorb ist leer
             </MudText>
-            <MudText Typo="Typo.body2" Align="Align.Center" Style="color: #6E6E73; margin-top: 4px;">
+            <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary" Style="margin-top: 4px;">
                 Füge Produkte hinzu um loszulegen.
             </MudText>
             <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
                        Href="/shop"
-                       Style="background: #0071E3; color: #FFFFFF; border-radius: 100px; padding: 10px 28px; margin-top: 24px; font-weight: 600;">
+                       Class="btn-pill mt-6">
                 Produkte entdecken
             </MudButton>
         </MudStack>
     }
     else
     {
-        <!-- Items -->
         <div style="flex: 1; overflow-y: auto; overflow-x: hidden; align-content: start;">
             @foreach (var item in _items)
             {
-                <div style="padding: 16px 24px; border-bottom: 1px solid #F5F5F7;">
+                <div style="padding: 16px 24px; border-bottom: 1px solid var(--mud-palette-divider-light);">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0">
 
-                        <!-- Icon -->
-                        <div style="width: 64px; height: 64px; min-width: 64px; background: linear-gradient(135deg, #F5F5F7, #E8E8ED); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <MudIcon Icon="@Icons.Material.Filled.Devices"
-                                     Style="font-size: 1.75rem; color: #98989D;" />
-                        </div>
+                        <ProductImage ImageUrl="@item.ImageUrl"
+                                      Alt="@item.ProductName"
+                                      Size="ProductImage.ImageSize.Thumb"
+                                      PlaceholderIconSize="1.75rem" />
 
-                        <!-- Name & Controls -->
                         <div style="flex: 1; margin: 0 12px;">
-                            <MudText Typo="Typo.body1" Style="color: #1D1D1F; font-weight: 500;">
+                            <MudText Typo="Typo.body1" Style="font-weight: 500;">
                                 @item.ProductName
                             </MudText>
-                            <MudText Typo="Typo.caption" Style="color: #0071E3; font-weight: 600;">
+                            <MudText Typo="Typo.caption" Class="text-primary-color" Style="font-weight: 600;">
                                 @item.Price.ToString("C") / Stk.
                             </MudText>
 
-                            <!-- +/- Controls -->
-                            <div style="display: inline-flex; align-items: center; background: #F5F5F7; border-radius: 100px; padding: 2px; margin-top: 8px;">
-                                <MudIconButton Icon="@Icons.Material.Filled.Remove"
-                                               Size="Size.Small"
-                                               OnClick="@(() => DecreaseQuantity(item))"
-                                               Style="width: 28px; height: 28px; background: #FFFFFF; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.1);" />
-                                <MudText Typo="Typo.body2" Style="min-width: 32px; text-align: center; font-weight: 600; color: #1D1D1F;">
-                                    @item.Quantity
-                                </MudText>
-                                <MudIconButton Icon="@Icons.Material.Filled.Add"
-                                               Size="Size.Small"
-                                               OnClick="@(() => IncreaseQuantity(item))"
-                                               Style="width: 28px; height: 28px; background: #FFFFFF; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.1);" />
+                            <div class="mt-2" style="display: inline-block;">
+                                <QuantityStepper Value="item.Quantity"
+                                                 ValueChanged="newValue => HandleQuantityChange(item, newValue)"
+                                                 Min="1"
+                                                 Variant="QuantityStepper.StepperSize.Compact" />
                             </div>
                         </div>
 
-                        <!-- Preis & Löschen -->
                         <MudStack AlignItems="AlignItems.End" Spacing="1">
-                            <MudText Typo="Typo.body1" Style="color: #1D1D1F; font-weight: 700;">
+                            <MudText Typo="Typo.body1" Style="font-weight: 700;">
                                 @((item.Price * item.Quantity).ToString("C"))
                             </MudText>
                             <MudIconButton Icon="@Icons.Material.Filled.DeleteOutline"
                                            Size="Size.Small"
-                                           OnClick="@(() => RemoveItem(item))"
-                                           Style="color: #FF3B30;" />
+                                           Color="Color.Error"
+                                           aria-label="@($"{item.ProductName} entfernen")"
+                                           OnClick="@(() => RemoveItem(item))" />
                         </MudStack>
 
                     </MudStack>
@@ -108,42 +98,44 @@
             }
         </div>
 
-        <!-- Footer -->
-        <div style="flex-shrink: 0; padding: 20px 24px; border-top: 1px solid #D2D2D7;">
+        <div style="flex-shrink: 0; padding: 20px 24px; border-top: 1px solid var(--mud-palette-divider);">
 
-            <!-- Zwischensumme -->
             <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mb-2">
-                <MudText Typo="Typo.body2" Style="color: #6E6E73;">Zwischensumme</MudText>
-                <MudText Typo="Typo.body2" Style="color: #1D1D1F;">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Zwischensumme</MudText>
+                <MudText Typo="Typo.body2">
                     @_items.Sum(x => x.Price * x.Quantity).ToString("C")
                 </MudText>
             </MudStack>
 
             <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mb-2">
-                <MudText Typo="Typo.body2" Style="color: #6E6E73;">Versand</MudText>
-                <MudText Typo="Typo.body2" Style="color: #06C167; font-weight: 600;">Kostenlos</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Versand</MudText>
+                <MudText Typo="Typo.body2" Class="shipping-free">Kostenlos</MudText>
             </MudStack>
 
             <MudDivider Class="my-3" />
 
             <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mb-4">
-                <MudText Typo="Typo.h6" Style="color: #1D1D1F; font-weight: 700;">Gesamt</MudText>
-                <MudText Typo="Typo.h6" Style="color: #0071E3; font-weight: 700;">
+                <MudText Typo="Typo.h6" Style="font-weight: 700;">Gesamt</MudText>
+                <MudText Typo="Typo.h6" Class="text-primary-color" Style="font-weight: 700;">
                     @_items.Sum(x => x.Price * x.Quantity).ToString("C")
                 </MudText>
             </MudStack>
 
             <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
                        FullWidth="true"
                        Href="/checkout"
-                       Style="background: #0071E3; color: #FFFFFF; border-radius: 100px; padding: 14px; font-weight: 600; font-size: 1rem;">
-                Zur Kasse →
+                       EndIcon="@Icons.Material.Outlined.ArrowForward"
+                       Class="btn-pill">
+                Zur Kasse
             </MudButton>
 
             <MudButton Variant="Variant.Text"
                        FullWidth="true"
                        Href="/shop"
-                       Style="color: #6E6E73; margin-top: 8px; border-radius: 100px;">
+                       Color="Color.Default"
+                       Class="mt-2"
+                       Style="border-radius: 100px;">
                 Weiter shoppen
             </MudButton>
 
@@ -200,6 +192,18 @@
             .Select(CartItemViewModel.FromDto)
             .ToList()
             ?? [];
+    }
+
+    private async Task HandleQuantityChange(CartItemViewModel item, int newValue)
+    {
+        if (newValue > item.Quantity)
+        {
+            await IncreaseQuantity(item);
+        }
+        else if (newValue < item.Quantity)
+        {
+            await DecreaseQuantity(item);
+        }
     }
 
     private async Task IncreaseQuantity(CartItemViewModel item)
@@ -262,6 +266,7 @@
     {
         public Guid ProductId { get; init; }
         public string ProductName { get; init; } = string.Empty;
+        public string? ImageUrl { get; init; }
         public decimal Price { get; init; }
         public int Quantity { get; set; }
 

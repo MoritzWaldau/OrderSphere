@@ -1,7 +1,7 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var postgres = builder.AddPostgres("postgres", port: 5432)
-    .WithPgAdmin()
+var postgres = builder.AddAzurePostgresFlexibleServer("postgres")
+    .RunAsContainer(c => c.WithPgAdmin().WithLifetime(ContainerLifetime.Persistent))
     .AddDatabase("ordersphere-db");
 
 var serviceBus = builder.AddAzureServiceBus("azure-service-bus")
@@ -9,15 +9,20 @@ var serviceBus = builder.AddAzureServiceBus("azure-service-bus")
 
 serviceBus.AddServiceBusQueue("orders")
     .WithProperties(cfg =>
-    { 
+    {
         cfg.MaxDeliveryCount = 10;
     });
+
+var redis = builder.AddAzureManagedRedis("redis")
+    .RunAsContainer(c => c.WithLifetime(ContainerLifetime.Persistent));
 
 builder.AddProject<Projects.OrderSphere_UI>("ordersphere-ui")
     .WithReference(postgres)
     .WithReference(serviceBus)
+    .WithReference(redis)
     .WaitFor(postgres)
-    .WaitFor(serviceBus);
+    .WaitFor(serviceBus)
+    .WaitFor(redis);
 
 builder.AddProject<Projects.OrderSphere_Worker>("ordersphere-worker")
     .WithReference(postgres)

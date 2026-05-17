@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using OrderSphere.Application.Abstraction;
+using OrderSphere.Application.Caching;
 using OrderSphere.Domain.Abstraction;
 using OrderSphere.Domain.Errors;
 using OrderSphere.Domain.Primitives;
@@ -9,6 +11,7 @@ namespace OrderSphere.Application.Features.Category.Admin.UpdateCategory;
 
 public sealed class UpdateCategoryCommandHandler(
     IDbContext context,
+    HybridCache cache,
     ILogger<UpdateCategoryCommandHandler> logger
 ) : ICommandHandler<UpdateCategoryCommand, Result<bool>>
 {
@@ -32,6 +35,8 @@ public sealed class UpdateCategoryCommandHandler(
             context.Categories.Update(category);
             await context.BeginTransactionAsync(cancellationToken);
             await context.CommitAsync(cancellationToken);
+
+            await cache.RemoveByTagAsync(CatalogCache.Tag, cancellationToken);
 
             logger.LogInformation("Category {CategoryId} updated", category.Id);
             return Result<bool>.Success(true);

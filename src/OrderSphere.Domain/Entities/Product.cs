@@ -14,12 +14,13 @@ public sealed class Product : AuditableEntity
     public int Stock { get; private set; }
     public Guid CategoryId { get; private set; }
     public string SKU { get; private set; }
+    public string? ImageUrl { get; private set; }
     public bool IsActive { get; private set; } = true;
 
     public Category? Category { get; set; }
 
     // Primärer Konstruktor - mit Kategorie und SKU
-    public Product(string name, string description, decimal price, int stock, Guid categoryId, string sku)
+    public Product(string name, string description, decimal price, int stock, Guid categoryId, string sku, string? imageUrl = null)
     {
         Name = name;
         Slug = GenerateSlug();
@@ -28,6 +29,7 @@ public sealed class Product : AuditableEntity
         Stock = stock;
         CategoryId = categoryId;
         SKU = sku;
+        ImageUrl = imageUrl;
     }
 
     // Backward-Kompatibilität - ohne Kategorie und SKU
@@ -63,7 +65,7 @@ public sealed class Product : AuditableEntity
         Stock -= quantity;
     }
 
-    public void UpdateDetails(string name, string description, decimal price, int stock, Guid categoryId, string sku)
+    public void UpdateDetails(string name, string description, decimal price, int stock, Guid categoryId, string sku, string? imageUrl = null)
     {
         Name = name;
         Slug = GenerateSlug();
@@ -72,6 +74,13 @@ public sealed class Product : AuditableEntity
         Stock = stock;
         CategoryId = categoryId;
         SKU = sku;
+        ImageUrl = imageUrl;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetImage(string? imageUrl)
+    {
+        ImageUrl = imageUrl;
         UpdatedAt = DateTime.UtcNow;
     }
 

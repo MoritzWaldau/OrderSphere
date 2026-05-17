@@ -1,34 +1,29 @@
-﻿@page "/"
+@page "/"
 @using Microsoft.AspNetCore.Components.Authorization
 
+<PageTitle>OrderSphere</PageTitle>
+
 <!-- HERO -->
-<section class="section-hero">
-    <MudContainer>
-        <MudStack AlignItems="AlignItems.Center" Spacing="4">
-            <MudText Typo="Typo.h1" Align="Align.Center" Style="color: #FFFFFF;">
-                Die beste Tech.<br />Zum besten Preis.
-            </MudText>
-            <MudText Typo="Typo.h5" Align="Align.Center"
-                     Style="color: rgba(255,255,255,0.85); font-weight: 400; max-width: 600px;">
-                Laptops, Tablets und Zubehör – schnell, zuverlässig und smart geliefert.
-            </MudText>
-            <MudStack Row="true" Spacing="3" Class="mt-4">
-                <MudButton Variant="Variant.Filled"
-                           Size="Size.Large"
-                           Href="/shop"
-                           Class="btn-pill-white">
-                    Jetzt entdecken
-                </MudButton>
-                <MudButton Variant="Variant.Outlined"
-                           Size="Size.Large"
-                           Href="/shop"
-                           Class="btn-pill-outline-white">
-                    Mehr erfahren
-                </MudButton>
-            </MudStack>
+<PageHero Variant="PageHero.PageHeroVariant.Hero"
+          Title="Die beste Tech. Zum besten Preis."
+          Subtitle="Laptops, Tablets und Zubehör – schnell, zuverlässig und smart geliefert.">
+    <ChildContent>
+        <MudStack Row="true" Spacing="3" Justify="Justify.Center" Wrap="Wrap.Wrap">
+            <MudButton Variant="Variant.Filled"
+                       Size="Size.Large"
+                       Href="/shop"
+                       Class="btn-pill-white">
+                Jetzt entdecken
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       Size="Size.Large"
+                       Href="/categories"
+                       Class="btn-pill-outline-white">
+                Kategorien ansehen
+            </MudButton>
         </MudStack>
-    </MudContainer>
-</section>
+    </ChildContent>
+</PageHero>
 
 <!-- KATEGORIEN -->
 <section class="section-gray">
@@ -37,14 +32,16 @@
             Kategorien
         </MudText>
         <MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Secondary" Class="mb-8">
-            Finde genau das Gerät das du suchst
+            Finde genau das Gerät, das du suchst.
         </MudText>
         <MudGrid Justify="Justify.Center">
             @foreach (var category in _categories)
             {
                 <MudItem xs="6" sm="3">
                     <MudPaper Class="pa-6 text-center category-card" Elevation="0">
-                        <MudText Style="font-size: 2.5rem;">@category.Icon</MudText>
+                        <MudIcon Icon="@category.Icon"
+                                 Color="Color.Primary"
+                                 Style="font-size: 48px;" />
                         <MudText Typo="Typo.subtitle1" Class="mt-2" Style="font-weight: 600;">
                             @category.Name
                         </MudText>
@@ -62,14 +59,16 @@
             Warum OrderSphere?
         </MudText>
         <MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Secondary" Class="mb-8">
-            Wir machen Shopping einfach und sicher
+            Wir machen Shopping einfach und sicher.
         </MudText>
         <MudGrid>
             @foreach (var benefit in _benefits)
             {
                 <MudItem xs="6" sm="3">
                     <MudPaper Class="pa-6 text-center category-card" Elevation="0">
-                        <MudText Style="font-size: 2.5rem;">@benefit.Icon</MudText>
+                        <MudIcon Icon="@benefit.Icon"
+                                 Color="Color.Primary"
+                                 Style="font-size: 48px;" />
                         <MudText Typo="Typo.h6" Class="mt-3">@benefit.Title</MudText>
                         <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
                             @benefit.Description
@@ -85,16 +84,20 @@
 <section class="section-dark">
     <MudContainer>
         <MudStack AlignItems="AlignItems.Center" Spacing="3">
-            <MudText Style="font-size: 2.5rem;">🤖</MudText>
-            <MudText Typo="Typo.h3" Align="Align.Center" Style="color: #F5F5F7;">
+            <MudIcon Icon="@Icons.Material.Outlined.AutoAwesome"
+                     Style="font-size: 56px; color: var(--mud-palette-secondary-contrast-text);" />
+            <MudText Typo="Typo.h3" Align="Align.Center"
+                     Style="color: var(--mud-palette-secondary-contrast-text);">
                 Dein persönlicher AI Assistant
             </MudText>
-            <MudText Typo="Typo.body1" Align="Align.Center" Style="color: #98989D; max-width: 500px;">
-                Nicht sicher welches Gerät zu dir passt? Unser AI Assistant berät dich in Echtzeit.
+            <MudText Typo="Typo.body1" Align="Align.Center"
+                     Style="color: var(--mud-palette-secondary-contrast-text); opacity: 0.7; max-width: 500px;">
+                Nicht sicher, welches Gerät zu dir passt? Unser AI Assistant berät dich in Echtzeit.
             </MudText>
             <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
                        Size="Size.Large"
+                       Href="/assistant"
                        Class="btn-pill mt-2">
                 Chat starten
             </MudButton>
@@ -106,10 +109,10 @@
 <section class="section-cta">
     <MudContainer>
         <MudStack AlignItems="AlignItems.Center" Spacing="3">
-            <MudText Typo="Typo.h2" Align="Align.Center" Style="color: #FFFFFF;">
+            <MudText Typo="Typo.h2" Align="Align.Center" Class="hero-title">
                 Bereit zu shoppen?
             </MudText>
-            <MudText Typo="Typo.body1" Align="Align.Center" Style="color: rgba(255,255,255,0.8);">
+            <MudText Typo="Typo.body1" Align="Align.Center" Class="hero-subtitle-muted">
                 Entdecke hunderte von IT-Geräten zu unschlagbaren Preisen.
             </MudText>
             <MudButton Variant="Variant.Filled"
@@ -125,18 +128,18 @@
 @code {
     private readonly List<CategoryItem> _categories =
     [
-        new("💻", "Laptops"),
-        new("📱", "Smartphones"),
-        new("📟", "Tablets"),
-        new("🎧", "Zubehör"),
+        new(Icons.Material.Outlined.Laptop, "Laptops"),
+        new(Icons.Material.Outlined.PhoneIphone, "Smartphones"),
+        new(Icons.Material.Outlined.Tablet, "Tablets"),
+        new(Icons.Material.Outlined.Headphones, "Zubehör"),
     ];
 
     private readonly List<BenefitItem> _benefits =
     [
-        new("🚚", "Schneller Versand", "Lieferung in 1-2 Werktagen direkt zu dir."),
-        new("🔒", "Sichere Zahlung", "SSL-verschlüsselt und DSGVO-konform."),
-        new("⭐", "Top Qualität", "Nur geprüfte Markenprodukte im Sortiment."),
-        new("🤖", "AI Support", "24/7 Beratung durch unseren AI Assistant."),
+        new(Icons.Material.Outlined.LocalShipping, "Schneller Versand", "Lieferung in 1–2 Werktagen direkt zu dir."),
+        new(Icons.Material.Outlined.Lock, "Sichere Zahlung", "SSL-verschlüsselt und DSGVO-konform."),
+        new(Icons.Material.Outlined.Verified, "Top Qualität", "Nur geprüfte Markenprodukte im Sortiment."),
+        new(Icons.Material.Outlined.AutoAwesome, "AI Support", "24/7 Beratung durch unseren AI Assistant."),
     ];
 
     private record CategoryItem(string Icon, string Name);

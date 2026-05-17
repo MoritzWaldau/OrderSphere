@@ -12,5 +12,6 @@ public sealed class ProductDto
     public Guid CategoryId { get; init; }
     public string CategoryName { get; init; } = string.Empty;
     public string SKU { get; init; } = string.Empty;
+    public string? ImageUrl { get; init; }
     public bool IsActive { get; init; }
 }

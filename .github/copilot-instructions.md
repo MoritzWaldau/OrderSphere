@@ -72,63 +72,6 @@ public static MudTheme ApplicationTheme()
             OverlayLight = "rgba(255,255,255,0.7)",
         },
 
-        PaletteDark = new PaletteDark
-        {
-            Primary = "#2997FF",
-            PrimaryContrastText = "#FFFFFF",
-            PrimaryDarken = "#0071E3",
-            PrimaryLighten = "#70BBFF",
-
-            Secondary = "#F5F5F7",
-            SecondaryContrastText = "#1D1D1F",
-
-            Tertiary = "#06C167",
-            TertiaryContrastText = "#FFFFFF",
-
-            Background = "#000000",
-            BackgroundGray = "#1C1C1E",
-            Surface = "#1C1C1E",
-
-            TextPrimary = "#F5F5F7",
-            TextSecondary = "#98989D",
-            TextDisabled = "rgba(245,245,247,0.30)",
-
-            Success = "#30D158",
-            Warning = "#FF9F0A",
-            Error = "#FF453A",
-            Info = "#2997FF",
-
-            SuccessContrastText = "#FFFFFF",
-            WarningContrastText = "#000000",
-            ErrorContrastText = "#FFFFFF",
-            InfoContrastText = "#FFFFFF",
-
-            Divider = "#3A3A3C",
-            DividerLight = "#2C2C2E",
-
-            HoverOpacity = 0.08,
-            RippleOpacity = 0.10,
-
-            AppbarBackground = "rgba(0,0,0,0.85)",
-            AppbarText = "#F5F5F7",
-
-            DrawerBackground = "#1C1C1E",
-            DrawerText = "#F5F5F7",
-            DrawerIcon = "#F5F5F7",
-
-            LinesDefault = "#3A3A3C",
-            TableLines = "#3A3A3C",
-            TableStriped = "rgba(255,255,255,0.02)",
-            TableHover = "rgba(255,255,255,0.04)",
-
-            ActionDefault = "#F5F5F7",
-            ActionDisabled = "rgba(245,245,247,0.30)",
-            ActionDisabledBackground = "rgba(245,245,247,0.08)",
-
-            OverlayDark = "rgba(0,0,0,0.8)",
-            OverlayLight = "rgba(28,28,30,0.7)",
-        },
-
         LayoutProperties = new LayoutProperties
         {
             DefaultBorderRadius = "12px",
@@ -480,18 +423,20 @@ Roter Border statt normalem Divider:
 
 ## 7. Farb-Referenz (Schnellübersicht)
 
-| Token | Light | Dark | Verwendung |
-|---|---|---|---|
-| Primary | `#0071E3` | `#2997FF` | Buttons, Links, Akzente |
-| Background | `#FFFFFF` | `#000000` | Seitenhintergrund |
-| BackgroundGray | `#F5F5F7` | `#1C1C1E` | Sektionen, Cards |
-| Surface | `#FFFFFF` | `#1C1C1E` | Cards, Paper |
-| TextPrimary | `#1D1D1F` | `#F5F5F7` | Überschriften |
-| TextSecondary | `#6E6E73` | `#98989D` | Beschreibungen |
-| Divider | `#D2D2D7` | `#3A3A3C` | Trennlinien |
-| Success | `#06C167` | `#30D158` | Verfügbarkeit |
-| Error | `#FF3B30` | `#FF453A` | Fehler, Löschen |
-| Dark Section | `#1D1D1F` | – | AI Section, Footer Bottom |
+OrderSphere ist ausschließlich Light-Mode. Es gibt keinen Theme-Switcher und keine `PaletteDark`.
+
+| Token | Wert | Verwendung |
+|---|---|---|
+| Primary | `#0071E3` | Buttons, Links, Akzente |
+| Background | `#FFFFFF` | Seitenhintergrund |
+| BackgroundGray | `#F5F5F7` | Sektionen, Cards |
+| Surface | `#FFFFFF` | Cards, Paper |
+| TextPrimary | `#1D1D1F` | Überschriften |
+| TextSecondary | `#6E6E73` | Beschreibungen |
+| Divider | `#D2D2D7` | Trennlinien |
+| Success | `#06C167` | Verfügbarkeit |
+| Error | `#FF3B30` | Fehler, Löschen |
+| Dark Section | `#1D1D1F` | AI Section, Footer Bottom (off-black Akzent, keine Theme-Dunkelheit) |
 
 ---
 
@@ -505,7 +450,7 @@ Roter Border statt normalem Divider:
 | Outlined Icons im Header | Wirkt leichter als Filled |
 | `backdrop-filter: blur` im Header | Frosted Glass wie Apple.com |
 | Abwechselnde Sektionen hell/dunkel | Visuelle Trennung ohne harte Grenzen |
-| `var(--mud-palette-*)` statt Hardcoded | Dark Mode kompatibel |
+| `var(--mud-palette-*)` statt Hardcoded | Zentrale Palette als Source of Truth |
 | Direktes CSS nur wenn nötig | MudBlazor Klassen bevorzugt |
 | `LetterSpacing: -0.02em` bei H1/H2 | Engeres Spacing bei Headlines (Apple-Stil) |
 | `#1D1D1F` für Dark Section / Footer | Apple "off-black" – weicher als reines Schwarz |

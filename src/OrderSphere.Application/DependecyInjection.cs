@@ -13,6 +13,15 @@ public static class DependecyInjection
             cfg.RegisterServicesFromAssembly(typeof(DependecyInjection).Assembly);
         });
 
+        services.AddHybridCache(options =>
+        {
+            options.DefaultEntryOptions = new()
+            {
+                LocalCacheExpiration = TimeSpan.FromMinutes(5),
+                Expiration = TimeSpan.FromMinutes(30),
+            };
+        });
+
         return services;
     }
 }

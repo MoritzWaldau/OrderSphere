@@ -1,6 +1,7 @@
-﻿@page "/shop/{CategoryName}/{Slug}"
+@page "/shop/{CategoryName}/{Slug}"
 @attribute [Authorize]
 @inherits OrderSphereComponentBase
+@rendermode InteractiveServer
 
 @using OrderSphere.UI.Components.Component.Loading
 
@@ -13,59 +14,19 @@
     <ChildContent>
         @if (_product is not null)
         {
-            <!-- Breadcrumb 
-            <div class="mud-container mud-container-maxwidth-xl" style="padding-top: 24px;">
-                <MudBreadcrumbs Items="_breadcrumbs" Separator=">" Class="px-0" />
-            </div>-->
-
-            <!-- Main Content -->
             <section class="section-white" style="padding-top: 32px; padding-bottom: 80px;">
                 <MudContainer>
                     <MudGrid Spacing="6">
 
-                        <!-- Left: Image Gallery -->
                         <MudItem xs="12" md="7">
-                            <div class="product-detail-gallery">
-                                <!-- Main Image -->
-
-                                <div style="height: 460px; background: linear-gradient(135deg, #F5F5F7 0%, #E8E8ED 100%); display: flex; align-items: center; justify-content: center;">
-                                    <MudIcon Icon="@Icons.Material.Filled.Devices"
-                                             Style="font-size: 5rem; color: #D2D2D7;" />
-                                </div>
-                            
-                                <!--
-                                <div class="product-detail-main-image mud-elevation-2">
-                                    <MudImage
-                                        Src="@_selectedImage"
-                                        Alt="@_product.Name"
-                                        ObjectFit="ObjectFit.Contain"
-                                        Width="100"
-                                        Style="width:100%; height:460px; object-fit:contain; border-radius:16px; background:var(--mud-palette-background-grey);" />
-                                </div>
-                                -->
-                                <!-- Thumbnail Row 
-                                @if (_product.Images?.Count > 1)
-                                {
-                                    <div class="product-detail-thumbnails">
-                                        @foreach (var img in _product.Images)
-                                        {
-                                            <div class="product-detail-thumb @(img == _selectedImage ? "thumb-active" : "")"
-                                                 @onclick="() => _selectedImage = img">
-                                                <MudImage Src="@img" Alt="Thumbnail"
-                                                          Style="width:100%; height:100%; object-fit:contain;" />
-                                            </div>
-                                        }
-                                    </div>
-                                }
-                                -->
-                            </div>
+                            <ProductImage ImageUrl="@_product.ImageUrl"
+                                          Alt="@_product.Name"
+                                          Size="ProductImage.ImageSize.Detail" />
                         </MudItem>
 
-                        <!-- Right: Info -->
                         <MudItem xs="12" md="5">
-                            <div class="product-detail-info">
+                            <div>
 
-                                <!-- Category Badge -->
                                 @if (!string.IsNullOrEmpty(_product.CategoryName))
                                 {
                                     <MudChip T="string" Color="Color.Primary" Size="Size.Small"
@@ -73,80 +34,38 @@
                                              Style="font-size:13px; font-weight:600; letter-spacing:0.02em;">
                                         @_product.CategoryName
                                     </MudChip>
-                                }   
+                                }
 
-                                <!-- Product Name -->
-                                <MudText Typo="Typo.h4" Style="font-weight:700; color:var(--mud-palette-text-primary); line-height:1.2; margin-bottom:12px;">
+                                <MudText Typo="Typo.h4" Style="font-weight:700; line-height:1.2; margin-bottom:12px;">
                                     @_product.Name
                                 </MudText>
 
-                                <!-- Rating (Platzhalter) -->
                                 <div class="d-flex align-center gap-2 mb-4">
                                     <MudRating ReadOnly="true" SelectedValue="4" Size="Size.Small" />
-                                    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
                                         4.0 (128 Bewertungen)
                                     </MudText>
                                 </div>
 
-                                <!-- Price -->
-                                <div class="d-flex align-center gap-3 mb-2">
-                                    <MudText Typo="Typo.h4" Style="font-weight:700; color:var(--mud-palette-primary);">
-                                        @_product.Price.ToString("C")
-                                    </MudText>
-                                </div>
-
-                                <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">
+                                <MudText Typo="Typo.h4" Class="text-primary-color" Style="font-weight:700;">
+                                    @_product.Price.ToString("C")
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
                                     inkl. MwSt., zzgl. Versand
                                 </MudText>
 
                                 <MudDivider Class="my-4" />
 
-                                <!-- Stock Status -->
-                                <div class="d-flex align-center gap-2 mb-4">
-                                    @if (_product.Stock > 10)
-                                    {
-                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle"
-                                                 Style="color:var(--mud-palette-success); font-size:18px;" />
-                                        <MudText Typo="Typo.body2" Style="color:var(--mud-palette-success); font-weight:600;">
-                                            Auf Lager
-                                        </MudText>
-                                    }
-                                    else if (_product.Stock > 0)
-                                    {
-                                        <MudIcon Icon="@Icons.Material.Filled.Warning"
-                                                 Style="color:#FF9500; font-size:18px;" />
-                                        <MudText Typo="Typo.body2" Style="color:#FF9500; font-weight:600;">
-                                            Nur noch @_product.Stock verfügbar
-                                        </MudText>
-                                    }
-                                    else
-                                    {
-                                        <MudIcon Icon="@Icons.Material.Filled.Cancel"
-                                                 Style="color:var(--mud-palette-error); font-size:18px;" />
-                                        <MudText Typo="Typo.body2" Style="color:var(--mud-palette-error); font-weight:600;">
-                                            Nicht verfügbar
-                                        </MudText>
-                                    }
+                                <div class="mb-4">
+                                    <StockBadge Stock="_product.Stock" />
                                 </div>
 
-                                <!-- Quantity + Add to Cart -->
                                 <div class="d-flex align-center gap-3 mb-3">
-                                    <!-- Quantity Control -->
-                                    <div class="cart-quantity-control d-flex align-center">
-                                        <MudIconButton Icon="@Icons.Material.Filled.Remove"
-                                                       Size="Size.Small"
-                                                       OnClick="DecreaseQuantity"
-                                                       Disabled="@(_quantity <= 1)" />
-                                        <MudText Style="min-width:32px; text-align:center; font-weight:600;">
-                                            @_quantity
-                                        </MudText>
-                                        <MudIconButton Icon="@Icons.Material.Filled.Add"
-                                                       Size="Size.Small"
-                                                       OnClick="IncreaseQuantity"
-                                                       Disabled="@(_quantity >= _product.Stock)" />
-                                    </div>
+                                    <QuantityStepper Value="_quantity"
+                                                     ValueChanged="value => _quantity = value"
+                                                     Min="1"
+                                                     Max="@_product.Stock" />
 
-                                    <!-- Add to Cart Button -->
                                     <MudButton Variant="Variant.Filled"
                                                Color="Color.Primary"
                                                Class="btn-pill flex-grow-1"
@@ -158,7 +77,6 @@
                                     </MudButton>
                                 </div>
 
-                                <!-- Wishlist -->
                                 <MudButton Variant="Variant.Outlined"
                                            Color="Color.Default"
                                            Class="btn-pill"
@@ -171,31 +89,30 @@
 
                                 <MudDivider Class="my-4" />
 
-                                <!-- Trust Badges -->
                                 <MudGrid Spacing="2">
                                     <MudItem xs="4">
                                         <div class="d-flex flex-column align-center text-center gap-1">
-                                            <MudIcon Icon="@Icons.Material.Filled.LocalShipping"
-                                                     Style="color:var(--mud-palette-primary);" />
-                                            <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">
+                                            <MudIcon Icon="@Icons.Material.Outlined.LocalShipping"
+                                                     Color="Color.Primary" />
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">
                                                 Kostenloser<br />Versand
                                             </MudText>
                                         </div>
                                     </MudItem>
                                     <MudItem xs="4">
                                         <div class="d-flex flex-column align-center text-center gap-1">
-                                            <MudIcon Icon="@Icons.Material.Filled.Replay"
-                                                     Style="color:var(--mud-palette-primary);" />
-                                            <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">
+                                            <MudIcon Icon="@Icons.Material.Outlined.Replay"
+                                                     Color="Color.Primary" />
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">
                                                 30 Tage<br />Rückgabe
                                             </MudText>
                                         </div>
                                     </MudItem>
                                     <MudItem xs="4">
                                         <div class="d-flex flex-column align-center text-center gap-1">
-                                            <MudIcon Icon="@Icons.Material.Filled.Shield"
-                                                     Style="color:var(--mud-palette-primary);" />
-                                            <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">
+                                            <MudIcon Icon="@Icons.Material.Outlined.Shield"
+                                                     Color="Color.Primary" />
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">
                                                 2 Jahre<br />Garantie
                                             </MudText>
                                         </div>
@@ -204,40 +121,19 @@
                             </div>
                         </MudItem>
                     </MudGrid>
-
-                    <!-- Description & Specs Tabs 
-                    <MudPaper Elevation="0" Class="mt-8" Style="border:1px solid var(--mud-palette-divider); border-radius:16px; overflow:hidden;">
-                        <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true"
-                                 PanelClass="pa-6" ActivePanelIndexChanged="i => _activeTab = i">
-
-                            <MudTabPanel Text="Beschreibung">
-                                <MudText Typo="Typo.body1"
-                                         Style="color:var(--mud-palette-text-primary); line-height:1.8; white-space:pre-wrap;">
-                                    @_product.Description
-                                </MudText>
-                            </MudTabPanel>
-
-                            <MudTabPanel Text="Technische Daten">
-                                <MudText Style="color:var(--mud-palette-text-secondary);">
-                                    Keine technischen Daten vorhanden.
-                                </MudText>
-                            </MudTabPanel>
-
-                        </MudTabs>
-                    </MudPaper>-->
-
                 </MudContainer>
             </section>
         }
         else
         {
-            <!-- Not Found -->
             <div class="d-flex flex-column align-center justify-center" style="height:60vh; gap:16px;">
-                <MudIcon Icon="@Icons.Material.Filled.SearchOff" Style="font-size:64px; color:var(--mud-palette-text-secondary);" />
-                <MudText Typo="Typo.h5" Style="color:var(--mud-palette-text-primary); font-weight:600;">
+                <MudIcon Icon="@Icons.Material.Filled.SearchOff"
+                         Color="Color.Secondary"
+                         Style="font-size:64px;" />
+                <MudText Typo="Typo.h5" Style="font-weight:600;">
                     Produkt nicht gefunden
                 </MudText>
-                <MudText Style="color:var(--mud-palette-text-secondary);">
+                <MudText Color="Color.Secondary">
                     Das Produkt existiert nicht oder wurde entfernt.
                 </MudText>
                 <MudButton Href="/shop" Variant="Variant.Filled" Color="Color.Primary" Class="btn-pill mt-2">

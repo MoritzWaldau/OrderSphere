@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using OrderSphere.Application.Abstraction;
+using OrderSphere.Application.Caching;
 using OrderSphere.Domain.Abstraction;
 using OrderSphere.Domain.Errors;
 using OrderSphere.Domain.Primitives;
@@ -9,6 +11,7 @@ namespace OrderSphere.Application.Features.Product.Admin.DeleteProduct;
 
 public sealed class DeleteProductCommandHandler(
     IDbContext context,
+    HybridCache cache,
     ILogger<DeleteProductCommandHandler> logger
 ) : ICommandHandler<DeleteProductCommand, Result<bool>>
 {
@@ -29,6 +32,8 @@ public sealed class DeleteProductCommandHandler(
 
             await context.BeginTransactionAsync(cancellationToken);
             await context.CommitAsync(cancellationToken);
+
+            await cache.RemoveByTagAsync(CatalogCache.Tag, cancellationToken);
 
             logger.LogInformation("Product {ProductId} soft-deleted", product.Id);
             return Result<bool>.Success(true);

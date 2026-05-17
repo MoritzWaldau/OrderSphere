@@ -1,321 +1,91 @@
 # Claude Code Instructions for OrderSphere
 
-This document contains guidelines for Claude when working on the OrderSphere project. These instructions complement the design guide in `.github/copilot-instructions.md`.
+## Operating rules
 
-## 🏛️ Architecture & Code Patterns
+- Audience for any document or explanation: enterprise architects. No marketing language, no slogans, no enthusiasm filler, no "not just X — it's Y" comparisons.
+- Do not guess technical facts. If a concept, API, or library behavior isn't certain, research it before stating it.
+- Documents are markdown. Diagrams are mermaid.
+- State results and decisions directly.
 
-### Clean Architecture Layers
-```
-UI (Blazor Server)
-  ↓
-Application (CQRS with MediatR)
-  ├── Commands (write operations)
-  ├── Queries (read operations)
-  ├── Handlers (ICommandHandler, IQueryHandler)
-  └── DTOs (Data Transfer Objects)
-  ↓
-Infrastructure (External Services)
-  ├── Persistence (EF Core, PostgreSQL)
-  ├── Email Service (Azure Communication)
-  ├── Service Bus (Azure Service Bus)
-  └── Interceptors (Audit, etc.)
-  ↓
-Domain (DDD - Business Logic)
-  ├── Entities (Order, Product, Cart)
-  ├── Value Objects (Address)
-  ├── Events (Domain Events)
-  └── Primitives (Result<T>, Error)
-```
+## Architecture
 
-### Design Patterns Used
-- **CQRS**: Commands for writes, Queries for reads (via MediatR)
-- **DDD**: Rich domain models with invariants and business rules
-- **Result Pattern**: Functional error handling with `Result<T>` (not exceptions for business logic)
-- **Entity Auditing**: Automatic `CreatedAt`, `UpdatedAt`, `IsDeleted` tracking via `AuditableEntity`
-- **Railway-Oriented Programming**: Error propagation without exceptions
-- **Service Bus Events**: Asynchronous event publishing for order processing
+Clean Architecture with CQRS (MediatR) over a DDD domain model. Errors flow through `Result<T>`, not exceptions. Entities carry audit fields and soft-delete via `AuditableEntity`. Domain events implement MediatR `INotification`. Order processing is asynchronous via Azure Service Bus.
 
-## 📋 Code Style & Conventions
+Layer dependency direction: `UI → Application → Infrastructure → Domain`. Domain has no outward dependencies.
 
-### C# Standards
-- **Framework**: .NET 10.0 with nullable reference types enabled (`#nullable enable`)
-- **Language Features**: C# 13.0 implicit usings enabled
-- **Async-First**: All I/O operations must be `async`/`await` (no `.Result`, no `.Wait()`)
-- **Naming**: PascalCase for public members, camelCase for local variables
-- **Records vs Classes**: Use `record` for immutable DTOs, `class` for mutable entities
+## Project layout
 
-### Error Handling
-**DO:**
-```csharp
-// Return Result<T> for domain operations
-public async Task<Result<OrderDto>> CreateOrderAsync(CreateOrderCommand command)
-{
-    if (cart == null)
-        return OrderErrors.CartNotFoundError;
-    
-    var order = Order.Create(customerId, items, shippingAddress);
-    return Result.Success(mapper.Map<OrderDto>(order));
-}
-```
+| Project | Responsibility |
+|---|---|
+| `src/OrderSphere.Domain` | Entities, value objects, domain events, errors, `Result<T>`, CQRS abstractions (`ICommand`, `IQuery`, `ICommandHandler`, `IQueryHandler`) |
+| `src/OrderSphere.Application` | Feature handlers under `Features/<Aggregate>/<UseCase>/`, DTOs, validators, MediatR registration |
+| `src/OrderSphere.Infrastructure` | EF Core (`Persistence/`), entity configurations (`EntityConfigurations/`), Azure email (`Email/`), Azure Service Bus (`ServiceBus/`), interceptors |
+| `src/OrderSphere.UI/OrderSphere.UI` | Blazor Server host, pages, layouts, DI wiring — startup project |
+| `src/OrderSphere.UI/OrderSphere.UI.Client` | Client-side interactive components |
+| `src/OrderSphere.AppHost` | .NET Aspire orchestration (Postgres, Service Bus, app) |
+| `tests/OrderSphere.Domain.Tests` | Domain unit tests |
+| `tests/OrderSphere.Application.Tests` | Application/handler tests |
 
-**DON'T:**
-```csharp
-// Don't throw exceptions for business logic validation
-throw new InvalidOperationException("Cart not found");
-```
+## Conventions
 
-### Entity & Value Object Rules
-- **Entities** inherit from `AuditableEntity` (provides Id, CreatedAt, UpdatedAt, IsDeleted)
-- **Value Objects** are immutable and compare by value (override `==`, `!=`, `GetHashCode()`)
-- **Domain Events** go in `src/OrderSphere.Domain/Events/` and extend `INotification` (MediatR)
-- **Enums** go in `src/OrderSphere.Domain/Enums/`
+These are the rules that are not derivable by reading existing code. For everything else, the existing handlers and configurations are the template — read one before writing a new one.
 
-### MediatR Commands & Queries
-**Commands** (write operations):
-```csharp
-public sealed record AddToCartCommand(Guid CustomerId, Guid ProductId, int Quantity)
-    : ICommand<Result<CartDto>>;
+- Business validation returns a `Result<T>` failure. Exceptions are reserved for genuinely exceptional conditions (I/O failures, programmer errors).
+- Commands and queries return `Result<TDto>`. DTOs are `record` types; entities are `class` types.
+- New entities inherit `AuditableEntity`. Add a matching configuration in `src/OrderSphere.Infrastructure/EntityConfigurations/`.
+- New features live in `src/OrderSphere.Application/Features/<Aggregate>/<UseCase>/`. Each use case co-locates its command/query, handler, and validator.
+- Queries against soft-deletable entities must filter `!x.IsDeleted`.
+- All I/O is `async`/`await`. No `.Result`, no `.Wait()`, no `.GetAwaiter().GetResult()`.
+- Nullable reference types are enabled. Treat warnings as real.
 
-public sealed class AddToCartCommandHandler
-    : ICommandHandler<AddToCartCommand, Result<CartDto>>
-{
-    private readonly IDbContext _dbContext;
-    
-    public async Task<Result<CartDto>> Handle(AddToCartCommand request, CancellationToken cancellationToken)
-    {
-        // Implementation
-    }
-}
-```
+## Features
 
-**Queries** (read operations):
-```csharp
-public sealed record GetProductQuery(Guid ProductId)
-    : IQuery<Result<ProductDto>>;
+| Aggregate | Notes |
+|---|---|
+| Cart | Customer cart, add/remove/update items |
+| Order | Order placement, retrieval, status transitions |
+| Product | Catalog product CRUD and lookups (by id, by slug) |
+| Category | Product category hierarchy |
+| Checkout | Cart-to-order checkout flow, publishes `CheckoutCartEvent` to Service Bus |
+| Coupon | Coupon validation (`ValidateCoupon` query); errors in `Domain/Errors/CouponErrors.cs` |
+| Admin | Administrative operations |
 
-public sealed class GetProductQueryHandler
-    : IQueryHandler<GetProductQuery, Result<ProductDto>>
-{
-    // Implementation
-}
-```
+## UI and styling
 
-## 🎨 UI Development (Blazor & MudBlazor)
+All visual, theming, MudBlazor, and CSS rules live in `.github/copilot-instructions.md`. Do not duplicate them here. When making UI changes, read that file first.
 
-### Design Philosophy
-See `.github/copilot-instructions.md` for comprehensive styling guide. Key principles:
-- Inspired by Apple.com and Amazon — clean contrasts, generous whitespace, subtle shadows
-- No UPPERCASE text, no hard edges
-- `border-radius: 12px` global default, `16px` for cards, `20px` for auth cards, `100px` for buttons
-- Use MUD palette variables: `var(--mud-palette-*)` for dark mode compatibility
-- Pill buttons: `.btn-pill`, `.btn-pill-white`, `.btn-pill-outline-white`
+## Commands
 
-### Component Structure
-```
-src/OrderSphere.UI/OrderSphere.UI/
-├── Components/
-│   ├── Layouts/              # MainLayout, Header, Footer, MobileDrawer
-│   ├── Pages/                # Product, Cart, Checkout, Account pages
-│   └── [Features]/           # Component subdirectories by feature
-├── Services/                 # CartService, CurrentUserService, etc.
-├── App.razor                 # Root component
-├── Program.cs                # Startup configuration
-└── app.css                   # Custom CSS (see copilot-instructions.md)
-```
+Run from the repository root (`E:\CSharp\OrderSphere`).
 
-### Blazor Best Practices
-- Use `InteractiveServer` render mode for full interactivity
-- Leverage MudBlazor components over HTML
-- Implement `OnParametersSetAsync` for cascading parameters
-- Use `EventCallback<T>` for child-to-parent communication
-- Prefer `@rendermode InteractiveServer` in component files
+| Task | Command |
+|---|---|
+| Build | `dotnet build OrderSphere.slnx` |
+| Run via Aspire | `dotnet run --project src/OrderSphere.AppHost` |
+| Run UI directly | `dotnet run --project src/OrderSphere.UI/OrderSphere.UI` |
+| UI hot reload | `dotnet watch --project src/OrderSphere.UI/OrderSphere.UI` |
+| Tests | `dotnet test` |
+| Add EF migration | `dotnet ef migrations add <Name> -p src/OrderSphere.Infrastructure -s src/OrderSphere.UI/OrderSphere.UI` |
+| Apply EF migrations | `dotnet ef database update -p src/OrderSphere.Infrastructure -s src/OrderSphere.UI/OrderSphere.UI` |
 
-### MudBlazor Usage
-- `Elevation="0"` + Border for modern look (not shadows)
-- Icons: `Icons.Material.Outlined.*` in headers (lighter than Filled)
-- Colors: Use MUD palette tokens `Color.Primary`, `Color.Secondary`, etc.
-- Spacing: `pa-4` (padding all), `mb-2` (margin bottom), `gap-4` (gap)
-- Typography: `Typo.H3`, `Typo.Body1`, `Typo.Subtitle2`, etc.
+Startup project for EF tooling is `src/OrderSphere.UI/OrderSphere.UI`, not `src/OrderSphere.UI`.
 
-## 🔗 Database & Entity Framework
+## External services
 
-### DbContext Pattern
-- `OrderSphereDbContext` in `src/OrderSphere.Infrastructure/Persistence/`
-- All entity configurations via `ApplyConfigurationsFromAssembly()` in DbContext constructor
-- Implement transaction management: `BeginTransactionAsync()`, `CommitAsync()`, `RollbackAsync()`
-- Use soft deletes: check `!x.IsDeleted` in queries
+- **Database**: PostgreSQL via EF Core. `OrderSphereDbContext` in `src/OrderSphere.Infrastructure/Persistence/`. Configurations applied via `ApplyConfigurationsFromAssembly`.
+- **Email**: Azure Communication Services. `IEmailService` in `src/OrderSphere.Infrastructure/Email/`. Settings under `MailServiceConfiguration` in `appsettings.json`.
+- **Service Bus**: Azure Service Bus. Publisher in `src/OrderSphere.Infrastructure/ServiceBus/`. Queue `orders` carries `CheckoutCartEvent` for asynchronous order processing.
 
-### Entity Configuration Files
-Location: `src/OrderSphere.Infrastructure/EntityConfigurations/`
+## Ask before
 
-Example:
-```csharp
-public class OrderConfiguration : IEntityTypeConfiguration<Order>
-{
-    public void Configure(EntityTypeBuilder<Order> builder)
-    {
-        builder.HasKey(o => o.Id);
-        
-        builder
-            .OwnsOne(o => o.ShippingAddress, navBuilder =>
-            {
-                navBuilder.WithOwner();
-            });
-        
-        builder
-            .HasMany(o => o.Items)
-            .WithOne()
-            .OnDelete(DeleteBehavior.Cascade);
-        
-        builder
-            .Property(o => o.Status)
-            .HasConversion<string>();
-    }
-}
-```
+- Adding a NuGet dependency.
+- Schema changes that aren't trivially backward-compatible.
+- Introducing a new architectural pattern or cross-cutting concern.
+- Changing authentication or authorization flow.
+- Breaking a public contract consumed by the UI client.
 
-### Migrations
-```bash
-# Create migration
-dotnet ef migrations add MigrationName \
-    -p src/OrderSphere.Infrastructure \
-    -s src/OrderSphere.UI
+Proceed without asking for: bug fixes, refactors inside one layer, new features that follow an existing feature pattern, UI changes consistent with `copilot-instructions.md`, performance improvements with no behavior change.
 
-# Apply migrations
-dotnet ef database update \
-    -p src/OrderSphere.Infrastructure \
-    -s src/OrderSphere.UI
-```
+## Commit format
 
-## 📦 External Services
-
-### Azure Email Service
-- **Location**: `src/OrderSphere.Infrastructure/Email/EmailService.cs`
-- **Configuration**: `MailServiceConfiguration` in `appsettings.json`
-- **Usage**: Send verification emails, password reset links
-- **Pattern**: Implement `IEmailService` interface for dependency injection
-
-### Azure Service Bus
-- **Location**: `src/OrderSphere.Infrastructure/ServiceBus/ServiceBusPublisher.cs`
-- **Queue**: `orders` (for `CheckoutCartEvent`)
-- **Pattern**: Publish events for asynchronous processing
-- **Example**:
-```csharp
-public async Task PublishCheckoutCartEventAsync(CheckoutCartEvent checkoutCartEvent)
-{
-    var message = new ServiceBusMessage(JsonSerializer.Serialize(checkoutCartEvent))
-    {
-        MessageId = Guid.NewGuid().ToString()
-    };
-    await _client.SendMessageAsync(message);
-}
-```
-
-## 🧪 Testing
-
-### Test Location
-- Unit/Integration tests should go in a `tests/` directory parallel to `src/`
-- Test naming: `[FeatureName]Tests.cs`
-- Test method naming: `[Method]_[Scenario]_[Expected]`
-
-### Test Patterns
-```csharp
-[Fact]
-public async Task AddToCart_WithValidProduct_ReturnsSuccessResult()
-{
-    // Arrange
-    var command = new AddToCartCommand(customerId, productId, quantity);
-    
-    // Act
-    var result = await handler.Handle(command, default);
-    
-    // Assert
-    Assert.True(result.IsSuccess);
-}
-```
-
-## 🚀 Running & Debugging
-
-### Development
-```bash
-# With .NET Aspire (orchestration)
-cd src/OrderSphere.AppHost
-dotnet run
-
-# OR direct run (ensure PostgreSQL & Service Bus running)
-cd src/OrderSphere.UI
-dotnet run
-
-# With hot-reload
-dotnet watch run
-```
-
-### Configuration Files
-- `appsettings.json` — Local development config
-- `appsettings.Development.json` — Dev-specific overrides
-- `.github/copilot-instructions.md` — UI/Design guidelines
-- `Directory.Packages.props` — Centralized NuGet version management
-
-## 📝 Commit Message Guidelines
-
-Follow conventional commits:
-```
-feat: Add product filtering by category
-fix: Resolve cart item quantity validation bug
-refactor: Extract payment logic to domain service
-docs: Update README with deployment guide
-style: Format MudBlazor component props
-test: Add integration tests for checkout flow
-```
-
-## 🔍 Code Review Checklist
-
-Before creating a PR:
-- ✅ All async operations use `await` (no `.Result`)
-- ✅ Error handling uses `Result<T>` pattern
-- ✅ Entities inherit from `AuditableEntity`
-- ✅ MediatR handlers implement correct interface
-- ✅ UI components follow MudBlazor & design guide
-- ✅ No hardcoded colors (use `var(--mud-palette-*)`)
-- ✅ Database changes have migrations
-- ✅ Soft deletes: queries check `!x.IsDeleted`
-- ✅ No blocking calls (`.Result`, `.Wait()`)
-
-## 📚 Key Files Reference
-
-| File | Purpose |
-|------|---------|
-| `src/OrderSphere.Domain/Primitives/Result.cs` | Result<T> pattern implementation |
-| `src/OrderSphere.Domain/Abstraction/ICommand.cs` | CQRS command interface |
-| `src/OrderSphere.Domain/Abstraction/IQuery.cs` | CQRS query interface |
-| `src/OrderSphere.Infrastructure/Persistence/OrderSphereDbContext.cs` | Entity Framework context |
-| `src/OrderSphere.UI/OrderSphere.UI/Components/Layouts/MainLayout.razor` | Main UI layout |
-| `src/OrderSphere.UI/OrderSphere.UI/Services/CartService.cs` | Client-side cart state |
-| `.github/copilot-instructions.md` | Design & styling guide |
-
-## 💡 When to Ask for Clarification
-
-Ask the user before:
-- Adding new external dependencies (NuGet packages)
-- Changing database schema significantly
-- Introducing new architectural patterns
-- Modifying authentication/authorization flow
-- Making breaking changes to public APIs
-
-Otherwise, proceed autonomously with confidence in:
-- Bug fixes
-- Performance improvements
-- Refactoring within the same architectural layer
-- Adding new features following existing patterns
-- UI enhancements following the design guide
-
----
-
-## Behavior Summary
-All the timeyou write documents, you write in markdown and use mermaid for diagrams. You only put information that you can validate, if there is something to
-research yyou research, tech concepts must always be researched, you don't guess anything, you don't bullshit around, you are not enthusiastic , no marketing, no advertising, no slogangs, you don't use imaginary comparisions like
-"thats not just... thats bla bla bla...". Your audience are enterprise architects.
-
-**Last Updated**: May 2026
-**Framework**: .NET 10.0
-**Architecture**: Clean Architecture + DDD + CQRS
+Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `style:`, `test:`, `chore:`. One-line subject describing the user-visible change; body for rationale if non-obvious.

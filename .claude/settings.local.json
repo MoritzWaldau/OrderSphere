@@ -10,7 +10,9 @@
       "Bash(curl -sI \"https://esm.sh/@excalidraw/excalidraw?bundle\")",
       "Bash(dotnet build *)",
       "Bash(dotnet ef *)",
-      "Bash(dotnet test *)"
+      "Bash(dotnet test *)",
+      "Bash(dotnet restore *)",
+      "Bash(dotnet list *)",
     ]
   }
 }

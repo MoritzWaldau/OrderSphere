@@ -8,7 +8,7 @@ using OrderSphere.Application.Models;
 using OrderSphere.Domain.Extensions;
 using OrderSphere.UI.Configuration;
 using OrderSphere.UI.Services;
-using Microsoft.AspNetCore.Components.Authorization;
+using OrderSphere.UI.Services.Auth;
 
 namespace OrderSphere.UI.Components.Pages.Shopping;
 
@@ -53,19 +53,20 @@ public partial class Shop : OrderSphereComponentBase
     {
         if (_selectedProduct is null) return;
 
-        var customerId = GetCustomerId();
-        var command = new AddToCartCommand(customerId, _selectedProduct.Id, quantity);
+        var customerId = await CurrentUserService.GetCustomerIdAsync();
+        if (customerId is null) return;
+
+        var command = new AddToCartCommand(customerId.Value, _selectedProduct.Id, quantity);
         var result = await Sender.Send(command);
 
         if (result.IsSuccess)
         {
             Snackbar.Add($"{quantity}x {_selectedProduct.Name} wurde zum Warenkorb hinzugefügt.", Severity.Success);
 
-            // Refresh cart in the drawer
-            var cartResult = await Sender.Send(new GetCartQuery(customerId));
+            var cartResult = await Sender.Send(new GetCartQuery(customerId.Value));
             if (cartResult.IsSuccess)
             {
-                CartService.UpdateCart(GetCustomerId(), cartResult.Value);
+                CartService.UpdateCart(customerId.Value, cartResult.Value);
             }
 
             ClosePopup();
@@ -74,11 +75,5 @@ public partial class Shop : OrderSphereComponentBase
         {
             Snackbar.Add(result.Error.Description, Severity.Error);
         }
-    }
-
-    private Guid GetCustomerId()
-    {
-        // TODO: Replace with actual user/customer ID from authentication
-        return Guid.Parse("550e8400-e29b-41d4-a716-446655440000");
     }
 }

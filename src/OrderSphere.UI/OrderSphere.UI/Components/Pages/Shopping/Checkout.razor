@@ -1,30 +1,22 @@
-﻿@page "/checkout"
+@page "/checkout"
 @inject NavigationManager Navigation
 
 @attribute [Authorize]
 @inherits OrderSphereComponentBase
+@rendermode InteractiveServer
 @using System.ComponentModel.DataAnnotations
 @using OrderSphere.Application.Features.Cart.GetCart
 @using OrderSphere.Application.Features.Checkout
+@using OrderSphere.Application.Features.Coupon.ValidateCoupon
 @using OrderSphere.Domain.Enums
 @using OrderSphere.Domain.ValueObjects
 
-<PageTitle>Checkout</PageTitle>
+<PageTitle>Checkout — OrderSphere</PageTitle>
 
-<!-- PAGE HEADER -->
-<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 60px 0;">
-    <MudContainer>
-        <MudText Typo="Typo.h2" Align="Align.Center" Style="color: #FFFFFF; letter-spacing: -0.02em;">
-            Checkout
-        </MudText>
-        <MudText Typo="Typo.body1" Align="Align.Center" Style="color: rgba(255,255,255,0.8); margin-top: 8px;">
-            Prüfe deine Angaben, wähle Versand und Zahlung und schließe deine Bestellung ab.
-        </MudText>
-    </MudContainer>
-</section>
+<PageHero Title="Checkout"
+          Subtitle="Prüfe deine Angaben, wähle Versand und Zahlung und schließe deine Bestellung ab." />
 
-<!-- Page content -->
-<section style="background: #F5F5F7; padding: 60px 0; min-height: 60vh;">
+<section class="page-section">
     <MudContainer>
         <MudGrid Spacing="4">
             <MudItem xs="12" lg="8">
@@ -32,8 +24,7 @@
 
                     <MudForm @ref="_form" Model="_checkout">
                         <MudStack Spacing="4">
-                            <MudPaper Elevation="0" Class="pa-6"
-                                      Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                            <MudPaper Elevation="0" Class="surface-card-lg pa-6">
                                 <MudText Typo="Typo.h5" Class="mb-4">Lieferadresse</MudText>
 
                                 <MudGrid Spacing="3">
@@ -125,19 +116,17 @@
                                 </MudGrid>
                             </MudPaper>
 
-                            <MudPaper Elevation="0" Class="pa-6"
-                                      Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                            <MudPaper Elevation="0" Class="surface-card-lg pa-6">
                                 <MudText Typo="Typo.h5" Class="mb-4">Versandart</MudText>
 
                                 <MudRadioGroup T="string" @bind-Value="_checkout.ShippingMethod">
                                     <MudStack Spacing="2">
-                                        <MudPaper Elevation="0" Class="pa-4"
-                                                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+                                        <MudPaper Elevation="0" Class="surface-card pa-4">
                                             <MudRadio T="string" Value="@("standard")" Color="Color.Primary">
                                                 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="w-100">
                                                     <MudStack Spacing="0">
                                                         <MudText Typo="Typo.subtitle1">Standardversand</MudText>
-                                                        <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
+                                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
                                                             Lieferung in 3–5 Werktagen
                                                         </MudText>
                                                     </MudStack>
@@ -146,13 +135,12 @@
                                             </MudRadio>
                                         </MudPaper>
 
-                                        <MudPaper Elevation="0" Class="pa-4"
-                                                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+                                        <MudPaper Elevation="0" Class="surface-card pa-4">
                                             <MudRadio T="string" Value="@("express")" Color="Color.Primary">
                                                 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="w-100">
                                                     <MudStack Spacing="0">
                                                         <MudText Typo="Typo.subtitle1">Expressversand</MudText>
-                                                        <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
+                                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
                                                             Lieferung in 1–2 Werktagen
                                                         </MudText>
                                                     </MudStack>
@@ -164,24 +152,20 @@
                                 </MudRadioGroup>
                             </MudPaper>
 
-                            <MudPaper Elevation="0" Class="pa-6"
-                                      Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+                            <MudPaper Elevation="0" Class="surface-card-lg pa-6">
                                 <MudText Typo="Typo.h5" Class="mb-4">Zahlungsart</MudText>
 
                                 <MudRadioGroup T="string" @bind-Value="_checkout.PaymentMethod">
                                     <MudStack Spacing="2">
-                                        <MudPaper Elevation="0" Class="pa-4"
-                                                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+                                        <MudPaper Elevation="0" Class="surface-card pa-4">
                                             <MudRadio T="string" Value="@("card")" Color="Color.Primary">Kreditkarte</MudRadio>
                                         </MudPaper>
 
-                                        <MudPaper Elevation="0" Class="pa-4"
-                                                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+                                        <MudPaper Elevation="0" Class="surface-card pa-4">
                                             <MudRadio T="string" Value="@("paypal")" Color="Color.Primary">PayPal</MudRadio>
                                         </MudPaper>
 
-                                        <MudPaper Elevation="0" Class="pa-4"
-                                                  Style="border-radius: 16px; border: 1px solid var(--mud-palette-divider);">
+                                        <MudPaper Elevation="0" Class="surface-card pa-4">
                                             <MudRadio T="string" Value="@("invoice")" Color="Color.Primary">Kauf auf Rechnung</MudRadio>
                                         </MudPaper>
                                     </MudStack>
@@ -245,8 +229,8 @@
 
             <MudItem xs="12" lg="4">
                 <MudStack Spacing="4">
-                    <MudPaper Elevation="0" Class="pa-6"
-                              Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider); position: sticky; top: 100px;">
+                    <MudPaper Elevation="0" Class="surface-card-lg pa-6"
+                              Style="position: sticky; top: 100px;">
                         <MudText Typo="Typo.h5" Class="mb-4">Bestellübersicht</MudText>
 
                         <MudStack Spacing="3">
@@ -255,7 +239,7 @@
                                 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                                     <MudStack Spacing="0">
                                         <MudText Typo="Typo.subtitle2">@item.Name</MudText>
-                                        <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-secondary);">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
                                             Menge: @item.Quantity
                                         </MudText>
                                     </MudStack>
@@ -277,7 +261,7 @@
                                        Color="Color.Primary"
                                        FullWidth="true"
                                        Class="btn-pill"
-                                       OnClick="ApplyCoupon">
+                                       OnClick="ApplyCouponAsync">
                                 Gutschein anwenden
                             </MudButton>
 
@@ -295,10 +279,13 @@
                                 <MudText Typo="Typo.body1">@Subtotal.ToString("0.00") €</MudText>
                             </MudStack>
 
-                            <MudStack Row="true" Justify="Justify.SpaceBetween">
-                                <MudText Typo="Typo.body1">Rabatt</MudText>
-                                <MudText Typo="Typo.body1">-@Discount.ToString("0.00") €</MudText>
-                            </MudStack>
+                            @if (_discount > 0)
+                            {
+                                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                    <MudText Typo="Typo.body1">Rabatt</MudText>
+                                    <MudText Typo="Typo.body1" Class="shipping-free">-@_discount.ToString("0.00") €</MudText>
+                                </MudStack>
+                            }
 
                             <MudStack Row="true" Justify="Justify.SpaceBetween">
                                 <MudText Typo="Typo.body1">Versand</MudText>
@@ -317,12 +304,16 @@
                                        FullWidth="true"
                                        Class="btn-pill my-4"
                                        Size="Size.Large"
-                                       Loading="_isSubmitting"
+                                       Disabled="_isSubmitting"
                                        OnClick="SubmitOrderAsync">
+                                @if (_isSubmitting)
+                                {
+                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                }
                                 Bestellung abschließen
                             </MudButton>
 
-                            <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-secondary);">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
                                 Mit dem Abschluss der Bestellung stimmst du unseren AGB und Datenschutzbestimmungen zu.
                             </MudText>
                         </MudStack>
@@ -346,6 +337,7 @@
     private string _couponCode = string.Empty;
     private string _couponMessage = string.Empty;
     private Severity _couponSeverity = Severity.Info;
+    private decimal _discount;
     private string _submitMessage = string.Empty;
     private Severity _submitSeverity = Severity.Success;
 
@@ -374,8 +366,7 @@
 
     private decimal Subtotal => _cartItems.Sum(x => x.TotalPrice);
     private decimal ShippingCost => _checkout.ShippingMethod == "express" ? 9.99m : 0m;
-    private decimal Discount => string.Equals(_couponCode, "WELCOME10", StringComparison.OrdinalIgnoreCase) ? 10m : 0m;
-    private decimal Total => Math.Max(0m, Subtotal + ShippingCost - Discount);
+    private decimal Total => Math.Max(0m, Subtotal + ShippingCost - _discount);
 
     private async Task SubmitOrderAsync()
     {
@@ -446,24 +437,30 @@
         _ => PaymentMethod.Invoice
     };
 
-    private void ApplyCoupon()
+    private async Task ApplyCouponAsync()
     {
-        if (string.IsNullOrWhiteSpace(_couponCode))
+        var result = await Sender.Send(new ValidateCouponQuery(_couponCode, Subtotal));
+
+        if (!result.IsSuccess)
+        {
+            _couponSeverity = Severity.Error;
+            _couponMessage = result.Error.Description;
+            _discount = 0m;
+            return;
+        }
+
+        var validation = result.Value;
+        if (!validation.IsValid)
         {
             _couponSeverity = Severity.Warning;
-            _couponMessage = "Bitte gib einen Gutscheincode ein.";
+            _couponMessage = validation.Message ?? "Gutschein konnte nicht angewendet werden.";
+            _discount = 0m;
             return;
         }
 
-        if (string.Equals(_couponCode, "WELCOME10", StringComparison.OrdinalIgnoreCase))
-        {
-            _couponSeverity = Severity.Success;
-            _couponMessage = "Gutschein wurde angewendet.";
-            return;
-        }
-
-        _couponSeverity = Severity.Error;
-        _couponMessage = "Dieser Gutscheincode ist ungültig.";
+        _couponSeverity = Severity.Success;
+        _couponMessage = validation.Message ?? "Gutschein wurde angewendet.";
+        _discount = validation.DiscountAmount;
     }
 
     private static string? ValidateEmail(string value)

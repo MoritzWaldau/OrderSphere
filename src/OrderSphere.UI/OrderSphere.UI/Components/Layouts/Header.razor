@@ -1,4 +1,4 @@
-﻿@using OrderSphere.UI.Configuration
+@using OrderSphere.UI.Configuration
 @using Microsoft.AspNetCore.Components.Authorization
 
 <MudAppBar Elevation="0" Fixed="true" Class="header-appbar">
@@ -6,7 +6,8 @@
     <MudHidden Breakpoint="Breakpoint.MdAndUp">
         <MudIconButton Icon="@Icons.Material.Filled.Menu"
                        OnClick="ToggleDrawer"
-                       Color="Color.Dark" />
+                       aria-label="Menü öffnen"
+                       Color="Color.Default" />
     </MudHidden>
 
     <MudLink Href="/" Underline="Underline.None">
@@ -18,32 +19,35 @@
     <MudSpacer />
 
     <MudHidden Breakpoint="Breakpoint.SmAndDown">
-        <MudButton Variant="Variant.Text" Href="/shop" Color="Color.Dark">Shop</MudButton>
-        <MudButton Variant="Variant.Text" Href="/categories" Color="Color.Dark">Kategorien</MudButton>
-        <MudButton Variant="Variant.Text" Href="/offers" Color="Color.Dark">Angebote</MudButton>
+        <MudButton Variant="Variant.Text" Href="/shop" Color="Color.Default">Shop</MudButton>
+        <MudButton Variant="Variant.Text" Href="/categories" Color="Color.Default">Kategorien</MudButton>
+        <MudButton Variant="Variant.Text" Href="/offers" Color="Color.Default">Angebote</MudButton>
     </MudHidden>
 
     <MudSpacer />
 
-    <MudIconButton Icon="@Icons.Material.Outlined.Search" Href="/search" Color="Color.Dark" />
+    <MudIconButton Icon="@Icons.Material.Outlined.Search"
+                   Href="/search"
+                   aria-label="Suche öffnen"
+                   Color="Color.Default" />
 
     <MudBadge Content="@CartItemCount" Color="Color.Error" Overlap="true" Visible="@(CartItemCount > 0)">
         <MudIconButton Icon="@Icons.Material.Outlined.ShoppingCart"
                        OnClick="OnCartToggle"
-                       Color="Color.Dark" />
+                       aria-label="@($"Warenkorb mit {CartItemCount} Artikeln öffnen")"
+                       Color="Color.Default" />
     </MudBadge>
 
-    <!-- Account Button -->
     <AuthorizeView>
         <Authorized>
             <MudMenu Icon="@Icons.Material.Outlined.AccountCircle"
-                     Color="Color.Dark"
+                     Color="Color.Default"
                      Variant="Variant.Text"
                      AnchorOrigin="Origin.BottomRight"
                      TransformOrigin="Origin.TopRight"
+                     aria-label="Konto-Menü"
                      Dense="true">
 
-                <!-- User Info -->
                 <div class="pa-4" style="border-bottom: 1px solid var(--mud-palette-divider); min-width: 220px;">
                     <MudText Typo="Typo.body1" Style="font-weight: 600;">
                         @context.User.FindFirst("FirstName")?.Value @context.User.FindFirst("LastName")?.Value

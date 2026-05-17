@@ -81,18 +81,18 @@ public sealed class CurrentUserService : ICurrentUserService, IDisposable
 
 
         var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            ?? throw new Exception("Unable to find user ID");
+            ?? throw new InvalidOperationException("User ID claim (NameIdentifier) is missing from ClaimsPrincipal.");
 
         var firstName = user.FindFirst("FirstName")?.Value
-            ?? throw new Exception("Unable to find user ID");
+            ?? throw new InvalidOperationException("FirstName claim is missing from ClaimsPrincipal.");
 
         var lastName = user.FindFirst("LastName")?.Value
-            ?? throw new Exception("Unable to find user ID");
+            ?? throw new InvalidOperationException("LastName claim is missing from ClaimsPrincipal.");
 
-        var fullName = $"{firstName}{lastName}";
+        var fullName = $"{firstName} {lastName}";
 
         var email = user.FindFirst(ClaimTypes.Email)?.Value
-            ?? throw new Exception("Unable to find user email");
+            ?? throw new InvalidOperationException("Email claim is missing from ClaimsPrincipal.");
 
         return new CurrentUserInfo
         {
@@ -106,10 +106,5 @@ public sealed class CurrentUserService : ICurrentUserService, IDisposable
     public void Dispose()
     {
         _authenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
-    }
-
-    Task<string?> ICurrentUserService.GetUserIdAsync()
-    {
-        throw new NotImplementedException();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using OrderSphere.Application.Abstraction;
 using OrderSphere.Application.ServiceBus;
 using OrderSphere.Domain.Configuration;
@@ -14,14 +15,16 @@ namespace OrderSphere.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         services.AddDbContext<OrderSphereDbContext>(options =>
         {
             options.UseNpgsql(configuration.GetConnectionString("ordersphere-db"));
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
             options.AddInterceptors(new AuditSaveChangesInterceptor());
-            options.EnableSensitiveDataLogging();
+
+            if (environment.IsDevelopment())
+                options.EnableSensitiveDataLogging();
         });
 
 

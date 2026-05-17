@@ -37,6 +37,9 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(p => p.ImageUrl)
+            .HasMaxLength(500);
+
         builder.HasIndex(p => p.SKU)
             .IsUnique()
             .HasDatabaseName("IX_products_sku");

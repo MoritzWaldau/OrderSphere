@@ -16,7 +16,7 @@ public static class HostingDependencyInjection
 
         builder.Services
             .AddApplicationServices(builder.Configuration)
-            .AddInfrastructureServices(builder.Configuration);
+            .AddInfrastructureServices(builder.Configuration, builder.Environment);
 
         builder.Services
             .AddIdentityCore<ApplicationUser>()

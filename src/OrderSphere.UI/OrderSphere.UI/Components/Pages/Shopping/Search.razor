@@ -1,21 +1,16 @@
 @page "/search"
 @layout MainLayout
 @inherits OrderSphereComponentBase
+@rendermode InteractiveServer
 @using OrderSphere.Application.Features.Product.GetProduct
 
 <PageTitle>Suche — OrderSphere</PageTitle>
 
-<section style="background: linear-gradient(135deg, #0071E3 0%, #0051A8 100%); padding: 60px 0;">
-    <MudContainer MaxWidth="MaxWidth.Medium">
-        <MudText Typo="Typo.h2" Align="Align.Center" Style="color: #FFFFFF; letter-spacing: -0.02em;">
-            Suche
-        </MudText>
-        <MudText Typo="Typo.body1" Align="Align.Center" Style="color: rgba(255,255,255,0.8); margin-top: 8px;">
-            Finde genau das Produkt, das du suchst.
-        </MudText>
-
-        <MudPaper Elevation="0" Class="pa-2 mt-6 mx-auto"
-                  Style="max-width: 600px; border-radius: 100px; background: #FFFFFF;">
+<PageHero Title="Suche"
+          Subtitle="Finde genau das Produkt, das du suchst.">
+    <ChildContent>
+        <MudPaper Elevation="0" Class="pa-2 mx-auto"
+                  Style="max-width: 600px; border-radius: 100px; background: var(--mud-palette-surface);">
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0" Class="px-4">
                 <MudIcon Icon="@Icons.Material.Outlined.Search" Color="Color.Default" />
                 <MudTextField T="string"
@@ -34,10 +29,10 @@
                 </MudButton>
             </MudStack>
         </MudPaper>
-    </MudContainer>
-</section>
+    </ChildContent>
+</PageHero>
 
-<section style="background: #F5F5F7; padding: 60px 0; min-height: 50vh;">
+<section class="page-section" style="min-height: 50vh;">
     <MudContainer>
         @if (IsLoading)
         {
@@ -47,8 +42,7 @@
         }
         else if (string.IsNullOrWhiteSpace(Query))
         {
-            <MudPaper Elevation="0" Class="pa-12 text-center"
-                      Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+            <MudPaper Elevation="0" Class="surface-card-lg pa-12 text-center">
                 <MudIcon Icon="@Icons.Material.Outlined.Search"
                          Color="Color.Primary"
                          Style="font-size: 80px;" Class="mb-4" />
@@ -62,8 +56,7 @@
         }
         else if (_results.Count == 0)
         {
-            <MudPaper Elevation="0" Class="pa-12 text-center"
-                      Style="border-radius: 20px; border: 1px solid var(--mud-palette-divider);">
+            <MudPaper Elevation="0" Class="surface-card-lg pa-12 text-center">
                 <MudIcon Icon="@Icons.Material.Outlined.SearchOff"
                          Color="Color.Primary"
                          Style="font-size: 80px;" Class="mb-4" />
@@ -89,25 +82,12 @@
                 @foreach (var product in _results)
                 {
                     <MudItem xs="12" sm="6" md="4">
-                        <MudPaper Elevation="0"
-                                  Class="product-card"
-                                  Style="border-radius: 16px; overflow: hidden; background: #FFFFFF; border: 1px solid #D2D2D7; height: 100%; cursor: pointer;"
-                                  @onclick="@(() => NavManager.NavigateTo($"/shop/{product.CategoryName}/{product.Slug}"))">
-                            <div style="height: 180px; background: linear-gradient(135deg, #F5F5F7 0%, #E8E8ED 100%); display: flex; align-items: center; justify-content: center;">
-                                <MudIcon Icon="@Icons.Material.Filled.Devices" Style="font-size: 4rem; color: #D2D2D7;" />
-                            </div>
-                            <div style="padding: 20px;">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    @product.CategoryName
-                                </MudText>
-                                <MudText Typo="Typo.h6" Style="font-weight: 600; margin-top: 4px;">
-                                    @product.Name
-                                </MudText>
-                                <MudText Typo="Typo.h6" Style="color: #0071E3; font-weight: 700; margin-top: 12px;">
-                                    @product.Price.ToString("C")
-                                </MudText>
-                            </div>
-                        </MudPaper>
+                        <ProductCard Product="product"
+                                     ShowAddToCart="false"
+                                     ShowDescription="false"
+                                     ShowCategory="true"
+                                     Compact="true"
+                                     OnOpen="HandleOpen" />
                     </MudItem>
                 }
             </MudGrid>
@@ -159,6 +139,11 @@
                 (p.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (p.CategoryName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
             .ToList();
+    }
+
+    private void HandleOpen(ProductDto product)
+    {
+        NavManager.NavigateTo($"/shop/{product.CategoryName}/{product.Slug}");
     }
 
     private void ApplySearch()

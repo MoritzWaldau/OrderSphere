@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging.Abstractions;
 using OrderSphere.Application.Abstraction;
 using OrderSphere.Application.Features.Product.Admin.CreateProduct;
@@ -16,7 +17,8 @@ public class CreateProductCommandHandlerTests
     {
         // Arrange
         var dbContext = Substitute.For<IDbContext>();
-        var handler = new CreateProductCommandHandler(dbContext, NullLogger<CreateProductCommandHandler>.Instance);
+        var cache = Substitute.For<HybridCache>();
+        var handler = new CreateProductCommandHandler(dbContext, cache, NullLogger<CreateProductCommandHandler>.Instance);
         var input = new AdminProductInput("Name", "Desc", price, 10, Guid.NewGuid(), "SKU");
 
         // Act

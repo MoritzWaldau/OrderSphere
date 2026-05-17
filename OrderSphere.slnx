@@ -12,5 +12,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/OrderSphere.Domain.Tests/OrderSphere.Domain.Tests.csproj" />
     <Project Path="tests/OrderSphere.Application.Tests/OrderSphere.Application.Tests.csproj" />
+    <Project Path="tests/OrderSphere.IntegrationTests/OrderSphere.IntegrationTests.csproj" />
+    <Project Path="tests/OrderSphere.UI.Tests/OrderSphere.UI.Tests.csproj" />
   </Folder>
 </Solution>

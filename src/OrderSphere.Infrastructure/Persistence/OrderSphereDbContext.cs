@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using OrderSphere.Application.Abstraction;
 using OrderSphere.Domain.Entities;
-using System.Timers;
+using OrderSphere.Infrastructure.Outbox;
 
 namespace OrderSphere.Infrastructure.Persistence;
 
@@ -17,6 +17,7 @@ public sealed class OrderSphereDbContext(DbContextOptions<OrderSphereDbContext> 
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
+    internal DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     private IDbContextTransaction? dbContextTransaction = null;
 

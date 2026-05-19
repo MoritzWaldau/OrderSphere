@@ -1,0 +1,183 @@
+{
+  "realm": "ordersphere",
+  "displayName": "OrderSphere",
+  "displayNameHtml": "<b>OrderSphere</b>",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "registrationEmailAsUsername": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "verifyEmail": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+  "defaultSignatureAlgorithm": "RS256",
+  "internationalizationEnabled": false,
+  "defaultLocale": "de",
+
+  "clients": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "clientId": "web-bff",
+      "name": "OrderSphere BFF",
+      "description": "Backend For Frontend — handles OIDC code flow on behalf of the Blazor WASM client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "secret": "web-bff-dev-secret-change-in-prod",
+      "redirectUris": [
+        "http://localhost:*",
+        "https://localhost:*"
+      ],
+      "webOrigins": ["+"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:*##https://localhost:*",
+        "access.token.lifespan": "300"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access"
+      ]
+    },
+    {
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "clientId": "ordersphere-spa",
+      "name": "OrderSphere SPA",
+      "description": "Public client for Blazor WASM — uses PKCE, no client secret",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:*",
+        "https://localhost:*"
+      ],
+      "webOrigins": ["+"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access"
+      ]
+    }
+  ],
+
+  "roles": {
+    "realm": [
+      {
+        "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+        "name": "customer",
+        "description": "Regular shop customer — can browse, add to cart, checkout",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "id": "d4e5f6a7-b8c9-0123-defa-234567890123",
+        "name": "admin",
+        "description": "Shop administrator — full access to admin panel",
+        "composite": false,
+        "clientRole": false
+      }
+    ]
+  },
+
+  "users": [
+    {
+      "id": "e5f6a7b8-c9d0-1234-efab-345678901234",
+      "username": "moritz.waldau@ordersphere.dev",
+      "email": "moritz.waldau@ordersphere.dev",
+      "firstName": "Moritz",
+      "lastName": "Waldau",
+      "enabled": true,
+      "emailVerified": true,
+      "requiredActions": [],
+      "realmRoles": ["admin", "customer"],
+      "credentials": []
+    },
+    {
+      "id": "f6a7b8c9-d0e1-2345-fabc-456789012345",
+      "username": "max.mustermann@ordersphere.dev",
+      "email": "max.mustermann@ordersphere.dev",
+      "firstName": "Max",
+      "lastName": "Mustermann",
+      "enabled": true,
+      "emailVerified": true,
+      "requiredActions": [],
+      "realmRoles": ["customer"],
+      "credentials": []
+    },
+    {
+      "id": "a7b8c9d0-e1f2-3456-abcd-567890123456",
+      "username": "anna.schmidt@ordersphere.dev",
+      "email": "anna.schmidt@ordersphere.dev",
+      "firstName": "Anna",
+      "lastName": "Schmidt",
+      "enabled": true,
+      "emailVerified": true,
+      "requiredActions": [],
+      "realmRoles": ["customer"],
+      "credentials": []
+    },
+    {
+      "id": "b8c9d0e1-f2a3-4567-bcde-678901234567",
+      "username": "jonas.bauer@ordersphere.dev",
+      "email": "jonas.bauer@ordersphere.dev",
+      "firstName": "Jonas",
+      "lastName": "Bauer",
+      "enabled": true,
+      "emailVerified": true,
+      "requiredActions": [],
+      "realmRoles": ["customer"],
+      "credentials": []
+    },
+    {
+      "id": "c9d0e1f2-a3b4-5678-cdef-789012345678",
+      "username": "test.admin@ordersphere.dev",
+      "email": "test.admin@ordersphere.dev",
+      "firstName": "Test",
+      "lastName": "Admin",
+      "enabled": true,
+      "emailVerified": true,
+      "requiredActions": [],
+      "realmRoles": ["admin", "customer"],
+      "credentials": []
+    }
+  ]
+}

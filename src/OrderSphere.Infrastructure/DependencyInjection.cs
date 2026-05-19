@@ -8,6 +8,7 @@ using OrderSphere.Domain.Configuration;
 using OrderSphere.Infrastructure.Email;
 using OrderSphere.Infrastructure.Identity;
 using OrderSphere.Infrastructure.Interceptors;
+using OrderSphere.Infrastructure.Outbox;
 using OrderSphere.Infrastructure.Persistence;
 using OrderSphere.Infrastructure.ServiceBus;
 
@@ -27,15 +28,23 @@ public static class DependencyInjection
                 options.EnableSensitiveDataLogging();
         });
 
-
         services.AddScoped<IDbContext, OrderSphereDbContext>();
-        services.AddScoped<IServiceBusPublisher, ServiceBusPublisher>();
+
+        // OutboxPublisher writes events to the outbox table; ServiceBusPublisher dispatches them to the real queue.
+        services.AddScoped<IServiceBusPublisher, OutboxPublisher>();
+        services.AddSingleton<ServiceBusPublisher>();
+
         services.AddScoped<IUserEmailLookup, UserEmailLookup>();
         services.AddScoped<IUserAdminService, UserAdminService>();
 
-        //Mail service
         services.AddScoped<IEmailService, EmailService>();
         services.Configure<MailConfiguration>(configuration.GetSection("MailServiceConfiguration"));
+        return services;
+    }
+
+    public static IServiceCollection AddOutboxProcessing(this IServiceCollection services)
+    {
+        services.AddHostedService<OutboxDispatcher>();
         return services;
     }
 }

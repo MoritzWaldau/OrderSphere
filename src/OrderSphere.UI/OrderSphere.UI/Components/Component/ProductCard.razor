@@ -1,66 +1,62 @@
-@*
-    Product card used on Shop and Search pages. Whole card navigates to detail
-    page; the AddToCart button stops propagation so it does not double-fire.
-*@
-
 <MudPaper Elevation="0"
           Class="product-card"
           @onclick="HandleOpen"
           role="button"
           tabindex="0">
 
-    <ProductImage ImageUrl="@Product.ImageUrl"
-                  Alt="@Product.Name"
-                  Size="@(Compact ? ProductImage.ImageSize.SearchCard : ProductImage.ImageSize.Card)" />
+    <div class="product-card-image">
+        <ProductImage ImageUrl="@Product.ImageUrl"
+                      Alt="@Product.Name"
+                      Size="@(Compact ? ProductImage.ImageSize.SearchCard : ProductImage.ImageSize.Card)" />
+        @if (Product.Stock == 0)
+        {
+            <div style="position: absolute; top: 12px; left: 12px;">
+                <MudChip T="string" Size="Size.Small" Color="Color.Error" Style="font-size: 0.6875rem; font-weight: 600;">
+                    Nicht verfügbar
+                </MudChip>
+            </div>
+        }
+    </div>
 
     <div class="product-card-content">
         @if (ShowCategory && !string.IsNullOrWhiteSpace(Product.CategoryName))
         {
-            <MudText Typo="Typo.caption" Color="Color.Secondary">
-                @Product.CategoryName
-            </MudText>
+            <span class="product-card-category">@Product.CategoryName</span>
         }
 
-        <MudText Typo="Typo.h6" Style="font-weight: 600; margin-top: 4px;">
+        <MudText Typo="Typo.body1" Style="font-weight: 600; margin-top: 4px; line-height: 1.3;">
             @Product.Name
         </MudText>
 
         @if (ShowDescription && !string.IsNullOrWhiteSpace(Product.Description))
         {
-            <MudText Typo="Typo.body2" Color="Color.Secondary" Style="margin-top: 6px; flex: 1;">
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Style="margin-top: 4px; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                 @Product.Description
             </MudText>
         }
 
         @if (ShowAddToCart)
         {
-            <MudDivider Class="my-3" />
-
-            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                <MudStack Spacing="0">
-                    <MudText Typo="Typo.h6" Class="product-price">
-                        @Product.Price.ToString("C")
-                    </MudText>
-                    <StockBadge Stock="Product.Stock" TextTypo="Typo.caption" IconSize="14px" />
-                </MudStack>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
+                <span class="os-mono" style="font-size: 1rem; font-weight: 600; color: var(--mud-palette-text-primary);">
+                    @Product.Price.ToString("C")
+                </span>
 
                 <span @onclick:stopPropagation="true">
-                    <MudIconButton Icon="@Icons.Material.Filled.AddShoppingCart"
+                    <MudIconButton Icon="@Icons.Material.Outlined.Add"
                                    aria-label="@($"{Product.Name} in den Warenkorb")"
                                    Disabled="@(Product.Stock == 0)"
                                    OnClick="HandleAdd"
-                                   Color="Color.Primary"
-                                   Variant="Variant.Filled"
-                                   Size="Size.Medium"
-                                   Style="border-radius: 50%;" />
+                                   Size="Size.Small"
+                                   Class="product-add-btn" />
                 </span>
-            </MudStack>
+            </div>
         }
         else
         {
-            <MudText Typo="Typo.h6" Class="product-price" Style="margin-top: 12px;">
+            <span class="os-mono" style="font-size: 1rem; font-weight: 600; color: var(--mud-palette-text-primary); display: block; margin-top: 12px;">
                 @Product.Price.ToString("C")
-            </MudText>
+            </span>
         }
     </div>
 </MudPaper>

@@ -1,7 +1,10 @@
 @inherits LayoutComponentBase
 @using OrderSphere.UI.Configuration
+@using OrderSphere.UI.Services.Theme
+@inject IThemeService ThemeService
+@implements IDisposable
 
-<MudThemeProvider Theme="ThemeConfiguration.ApplicationTheme()" />
+<MudThemeProvider Theme="ThemeConfiguration.ApplicationTheme()" IsDarkMode="@ThemeService.IsDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -22,12 +25,30 @@
 
    <Footer/>
 
-
 </MudLayout>
 
 @code {
     private bool _cartOpen = false;
     private int _cartItemCount = 0;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ThemeService.InitializeAsync();
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        ThemeService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        ThemeService.OnChange -= StateHasChanged;
+    }
 
     private void ToggleCart() => _cartOpen = !_cartOpen;
 

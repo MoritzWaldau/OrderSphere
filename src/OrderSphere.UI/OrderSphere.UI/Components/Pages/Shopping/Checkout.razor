@@ -13,10 +13,12 @@
 
 <PageTitle>Checkout — OrderSphere</PageTitle>
 
-<PageHero Title="Checkout"
-          Subtitle="Prüfe deine Angaben, wähle Versand und Zahlung und schließe deine Bestellung ab." />
+<PageHero Variant="PageHero.PageHeroVariant.Compact"
+          Eyebrow="Warenkorb → Checkout → Bestätigung"
+          Title="Checkout"
+          Subtitle="Prüfe deine Angaben, wähle Versand und Zahlung." />
 
-<section class="page-section">
+<section style="padding: 48px 0 80px;">
     <MudContainer>
         <MudGrid Spacing="4">
             <MudItem xs="12" lg="8">
@@ -126,7 +128,7 @@
                                                 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="w-100">
                                                     <MudStack Spacing="0">
                                                         <MudText Typo="Typo.subtitle1">Standardversand</MudText>
-                                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                                        <MudText Typo="Typo.body2" Class="text-muted">
                                                             Lieferung in 3–5 Werktagen
                                                         </MudText>
                                                     </MudStack>
@@ -140,7 +142,7 @@
                                                 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="w-100">
                                                     <MudStack Spacing="0">
                                                         <MudText Typo="Typo.subtitle1">Expressversand</MudText>
-                                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                                        <MudText Typo="Typo.body2" Class="text-muted">
                                                             Lieferung in 1–2 Werktagen
                                                         </MudText>
                                                     </MudStack>
@@ -239,7 +241,7 @@
                                 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                                     <MudStack Spacing="0">
                                         <MudText Typo="Typo.subtitle2">@item.Name</MudText>
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        <MudText Typo="Typo.caption" Class="text-muted">
                                             Menge: @item.Quantity
                                         </MudText>
                                     </MudStack>
@@ -313,7 +315,7 @@
                                 Bestellung abschließen
                             </MudButton>
 
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            <MudText Typo="Typo.caption" Class="text-muted">
                                 Mit dem Abschluss der Bestellung stimmst du unseren AGB und Datenschutzbestimmungen zu.
                             </MudText>
                         </MudStack>

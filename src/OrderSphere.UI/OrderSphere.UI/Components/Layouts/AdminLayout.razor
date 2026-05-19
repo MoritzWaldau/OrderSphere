@@ -1,7 +1,10 @@
 @inherits LayoutComponentBase
 @using OrderSphere.UI.Configuration
+@using OrderSphere.UI.Services.Theme
+@inject IThemeService ThemeService
+@implements IDisposable
 
-<MudThemeProvider Theme="ThemeConfiguration.ApplicationTheme()" />
+<MudThemeProvider Theme="ThemeConfiguration.ApplicationTheme()" IsDarkMode="@ThemeService.IsDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -27,6 +30,11 @@
                    Href="/">
             Zum Shop
         </MudButton>
+
+        <MudIconButton Icon="@(ThemeService.IsDarkMode ? Icons.Material.Outlined.LightMode : Icons.Material.Outlined.DarkMode)"
+                       Color="Color.Default"
+                       OnClick="@ThemeService.ToggleAsync"
+                       aria-label="Farbschema umschalten" />
     </MudAppBar>
 
     <MudDrawer @bind-Open="_drawerOpen"
@@ -68,6 +76,25 @@
 
 @code {
     private bool _drawerOpen = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ThemeService.InitializeAsync();
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        ThemeService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        ThemeService.OnChange -= StateHasChanged;
+    }
 
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
 }

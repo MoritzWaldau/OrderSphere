@@ -11,6 +11,7 @@ using OrderSphere.UI.Models.Auth;
 using OrderSphere.UI.Services;
 using OrderSphere.UI.Services.Account;
 using OrderSphere.UI.Services.Auth;
+using OrderSphere.UI.Services.Theme;
 using Serilog;
 using System.Globalization;
 
@@ -32,6 +33,7 @@ public static class DependencyInjection
     {
         services.AddAuthentication();
         services.ConfigureMudBlazor();
+        services.AddScoped<IThemeService, ThemeService>();
         return services;
     }
 

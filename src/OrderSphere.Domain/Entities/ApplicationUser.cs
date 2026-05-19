@@ -6,4 +6,5 @@ public sealed class ApplicationUser : IdentityUser
 {
     public required string FirstName { get; set; }
     public required string LastName { get; set; }
+    public bool PrefersDarkMode { get; set; }
 }

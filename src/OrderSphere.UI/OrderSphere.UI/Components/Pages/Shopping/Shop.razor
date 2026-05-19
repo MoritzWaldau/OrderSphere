@@ -9,12 +9,13 @@
 
 <PageTitle>Produkte – OrderSphere</PageTitle>
 
-<PageHero Title="Unsere Produkte"
-          Subtitle="Entdecke unsere Auswahl an hochwertigen IT-Geräten." />
+<PageHero Variant="PageHero.PageHeroVariant.Compact"
+          Eyebrow="Alle Produkte"
+          Title="Unsere Auswahl"
+          Subtitle="Sorgfältig kuratierte Tech-Geräte und Zubehör." />
 
-<section class="page-section">
-    <MudContainer>
-
+<section style="padding: 48px 0 80px;">
+    <MudContainer MaxWidth="MaxWidth.Large">
         <LoadingWrapper IsLoading="IsLoading">
 
             <Loading>
@@ -24,23 +25,29 @@
             <ChildContent>
                 @if (!_products.Any())
                 {
-                    <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="min-height: 40vh;">
+                    <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="min-height: 40vh; padding: 64px 0;">
                         <MudIcon Icon="@Icons.Material.Outlined.Inventory2"
-                                 Color="Color.Primary"
-                                 Style="font-size: 80px;" />
-                        <MudText Typo="Typo.h5">Keine Produkte vorhanden</MudText>
-                        <MudText Typo="Typo.body1" Color="Color.Secondary">
+                                 Style="font-size: 64px; color: var(--mud-palette-divider);" />
+                        <MudText Typo="Typo.h5" Style="margin-top: 20px; font-weight: 600;">Keine Produkte vorhanden</MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted" Style="margin-top: 4px;">
                             Schau später nochmal vorbei.
                         </MudText>
                     </MudStack>
                 }
                 else
                 {
-                    <MudGrid>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;">
+                        <MudText Typo="Typo.body2" Class="text-muted">
+                            <span class="os-mono">@_products.Count()</span> Produkte
+                        </MudText>
+                    </div>
+
+                    <MudGrid Spacing="3">
                         @foreach (var product in _products)
                         {
                             <MudItem xs="12" sm="6" md="4">
                                 <ProductCard Product="product"
+                                             ShowCategory="true"
                                              OnOpen="OpenDetails"
                                              OnAdd="OpenQuantityPopup" />
                             </MudItem>
@@ -55,6 +62,5 @@
             </ChildContent>
 
         </LoadingWrapper>
-
     </MudContainer>
 </section>

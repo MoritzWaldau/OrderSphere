@@ -1,25 +1,34 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Packages.props" />
+    <File Path=".gitignore" />
+    <File Path=".gitattributes" />
+    <File Path="CLAUDE.md" />
+    <File Path="README.md" />
+  </Folder>
   <Folder Name="/src/BuildingBlocks/">
     <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/OrderSphere.BuildingBlocks.Domain.csproj" />
   </Folder>
+  <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/Catalog/">
+    <Project Path="src/Services/Catalog/OrderSphere.Catalog.Api/OrderSphere.Catalog.Api.csproj" />
+    <Project Path="src/Services/Catalog/OrderSphere.Catalog.Application/OrderSphere.Catalog.Application.csproj" Id="4670507a-202e-412d-8409-5ee89cfb1049" />
     <Project Path="src/Services/Catalog/OrderSphere.Catalog.Domain/OrderSphere.Catalog.Domain.csproj" />
     <Project Path="src/Services/Catalog/OrderSphere.Catalog.Infrastructure/OrderSphere.Catalog.Infrastructure.csproj" />
-    <Project Path="src/Services/Catalog/OrderSphere.Catalog.Api/OrderSphere.Catalog.Api.csproj" />
   </Folder>
   <Folder Name="/src/Services/Ordering/">
+    <Project Path="src/Services/Ordering/OrderSphere.Ordering.Api/OrderSphere.Ordering.Api.csproj" />
     <Project Path="src/Services/Ordering/OrderSphere.Ordering.Domain/OrderSphere.Ordering.Domain.csproj" />
     <Project Path="src/Services/Ordering/OrderSphere.Ordering.Infrastructure/OrderSphere.Ordering.Infrastructure.csproj" />
-    <Project Path="src/Services/Ordering/OrderSphere.Ordering.Api/OrderSphere.Ordering.Api.csproj" />
     <Project Path="src/Services/Ordering/OrderSphere.Ordering.Worker/OrderSphere.Ordering.Worker.csproj" />
   </Folder>
   <Folder Name="/src/Services/Notification/">
     <Project Path="src/Services/Notification/OrderSphere.Notification.Worker/OrderSphere.Notification.Worker.csproj" />
   </Folder>
   <Folder Name="/src/Services/UserProfile/">
+    <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Api/OrderSphere.UserProfile.Api.csproj" />
     <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Domain/OrderSphere.UserProfile.Domain.csproj" />
     <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Infrastructure/OrderSphere.UserProfile.Infrastructure.csproj" />
-    <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Api/OrderSphere.UserProfile.Api.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/OrderSphere.AppHost/OrderSphere.AppHost.csproj" />

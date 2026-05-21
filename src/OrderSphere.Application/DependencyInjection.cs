@@ -1,17 +1,23 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using FluentValidation;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OrderSphere.Domain.Behaviors;
 
 namespace OrderSphere.Application;
 
-public static class DependecyInjection
+public static class DependencyInjection
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddMediatR(cfg =>
         {
             cfg.LicenseKey = configuration["MediatR:LicenseKey"] ?? throw new Exception("Unable to read licenseKey");
-            cfg.RegisterServicesFromAssembly(typeof(DependecyInjection).Assembly);
+            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
+            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
+
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
         services.AddHybridCache(options =>
         {

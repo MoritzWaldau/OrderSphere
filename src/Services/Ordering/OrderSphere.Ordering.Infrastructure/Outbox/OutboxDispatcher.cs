@@ -2,16 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using OrderSphere.Ordering.Domain.Events;
 using OrderSphere.Ordering.Infrastructure.Persistence;
-using OrderSphere.Ordering.Infrastructure.ServiceBus;
-using System.Text.Json;
 
 namespace OrderSphere.Ordering.Infrastructure.Outbox;
 
 public sealed class OutboxDispatcher(
     IServiceScopeFactory scopeFactory,
-    RealServiceBusPublisher publisher,
     ILogger<OutboxDispatcher> logger) : BackgroundService
 {
     private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(10);
@@ -30,6 +26,10 @@ public sealed class OutboxDispatcher(
         await using var scope = scopeFactory.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
 
+        var handlers = scope.ServiceProvider
+            .GetRequiredService<IEnumerable<IOutboxEventHandler>>()
+            .ToDictionary(h => h.EventType);
+
         var messages = await context.OutboxMessages
             .Where(m => m.ProcessedAt == null && m.RetryCount < OutboxMessage.MaxRetries)
             .OrderBy(m => m.OccurredAt)
@@ -43,7 +43,7 @@ public sealed class OutboxDispatcher(
         {
             try
             {
-                await DispatchAsync(message, ct);
+                await DispatchAsync(message, handlers, ct);
                 message.ProcessedAt = DateTime.UtcNow;
                 message.Error = null;
             }
@@ -66,16 +66,16 @@ public sealed class OutboxDispatcher(
         await context.SaveChangesAsync(ct);
     }
 
-    private async Task DispatchAsync(OutboxMessage message, CancellationToken ct)
+    private async Task DispatchAsync(
+        OutboxMessage message,
+        Dictionary<string, IOutboxEventHandler> handlers,
+        CancellationToken ct)
     {
-        if (message.Type == nameof(CheckoutCartEvent))
-        {
-            var evt = JsonSerializer.Deserialize<CheckoutCartEvent>(message.Content)
-                ?? throw new InvalidOperationException($"Outbox message {message.Id} has null payload.");
-            await publisher.PublishCheckoutCartEventAsync(evt);
-            return;
-        }
+        if (!handlers.TryGetValue(message.Type, out var handler))
+            throw new InvalidOperationException(
+                $"No handler registered for outbox event type '{message.Type}'. " +
+                $"Registered types: {string.Join(", ", handlers.Keys)}");
 
-        throw new InvalidOperationException($"Unknown outbox message type: {message.Type}");
+        await handler.HandleAsync(message.Content, ct);
     }
 }

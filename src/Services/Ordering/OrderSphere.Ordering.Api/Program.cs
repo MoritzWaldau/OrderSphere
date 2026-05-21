@@ -1,9 +1,13 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OrderSphere.Domain.Behaviors;
 using OrderSphere.Ordering.Api.Abstractions;
 using OrderSphere.Ordering.Api.CatalogClient;
 using OrderSphere.Ordering.Api.Endpoints;
+using OrderSphere.Ordering.Api.Exceptions;
 using OrderSphere.Ordering.Infrastructure;
 using OrderSphere.Ordering.Infrastructure.Email;
 using OrderSphere.Ordering.Infrastructure.Persistence;
@@ -27,16 +31,34 @@ builder.Services.Configure<OrderingMailConfiguration>(
 // Azure Service Bus (for OutboxDispatcher → RealServiceBusPublisher)
 builder.AddAzureServiceBusClient("azure-service-bus");
 
-// MediatR — scan this assembly for handlers
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+// MediatR — scan this assembly for handlers + pipeline behaviors
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+});
+
+// FluentValidation — scan this assembly for validators
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 // HTTP client for Catalog service (internal stock operations)
+// Note: AddStandardResilienceHandler is applied globally via AddServiceDefaults().
 builder.Services.AddHttpClient<ICatalogClient, HttpCatalogClient>(client =>
 {
     var catalogUrl = builder.Configuration["Services:Catalog:BaseUrl"]
         ?? "http://ordersphere-catalog";
     client.BaseAddress = new Uri(catalogUrl);
 });
+
+// Health checks
+var orderingConnectionString = builder.Configuration.GetConnectionString("ordering-db") ?? "";
+builder.Services.AddHealthChecks()
+    .AddNpgSql(orderingConnectionString, name: "postgres");
+
+// Validation exception → HTTP 400
+builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 // JWT Bearer (Keycloak)
 var keycloakAuthority = builder.Configuration["Keycloak:Authority"]
@@ -68,6 +90,7 @@ if (app.Environment.IsDevelopment())
     db.Database.Migrate();
 }
 
+app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -76,6 +99,8 @@ app.MapCheckoutEndpoints();
 app.MapCouponEndpoints();
 app.MapOrderEndpoints();
 
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
 app.MapDefaultEndpoints();
 
 app.Run();

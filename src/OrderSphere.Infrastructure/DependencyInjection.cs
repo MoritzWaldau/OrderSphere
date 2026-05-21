@@ -35,6 +35,8 @@ public static class DependencyInjection
         services.AddScoped<IDbContext>(sp => sp.GetRequiredService<OrderSphereDbContext>());
 
         // Typed HTTP client for Catalog service
+        // Note: AddStandardResilienceHandler is applied globally via AddServiceDefaults()
+        // in the host project (UI), so no explicit call needed here.
         services.AddHttpClient<ICatalogClient, HttpCatalogClient>(client =>
         {
             var catalogUrl = configuration["Services:Catalog:BaseUrl"]

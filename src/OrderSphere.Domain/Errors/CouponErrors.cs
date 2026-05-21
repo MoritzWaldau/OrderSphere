@@ -5,8 +5,8 @@ namespace OrderSphere.Domain.Errors;
 public static class CouponErrors
 {
     public static readonly Error CodeRequired =
-        new("Coupon.CodeRequired", "Bitte gib einen Gutscheincode ein.");
+        new("Coupon.CodeRequired", "A coupon code is required.");
 
     public static readonly Error InvalidCode =
-        new("Coupon.InvalidCode", "Dieser Gutscheincode ist ungültig.");
+        new("Coupon.InvalidCode", "The coupon code is invalid.");
 }

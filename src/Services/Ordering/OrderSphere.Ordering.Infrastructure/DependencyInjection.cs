@@ -24,6 +24,7 @@ public static class DependencyInjection
         // Outbox: writes to DB, dispatched by OutboxDispatcher background service.
         services.AddScoped<IOrderingServiceBusPublisher, OutboxPublisher>();
         services.AddSingleton<RealServiceBusPublisher>();
+        services.AddScoped<IOutboxEventHandler, CheckoutCartEventHandler>();
 
         // Email service for order confirmations.
         services.AddScoped<IOrderingEmailService, OrderingEmailService>();

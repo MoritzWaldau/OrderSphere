@@ -1,9 +1,13 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using OrderSphere.Catalog.Api.Endpoints;
+using OrderSphere.Catalog.Api.Exceptions;
 using OrderSphere.Catalog.Api.Grpc;
 using OrderSphere.Catalog.Infrastructure.Persistence;
+using OrderSphere.Domain.Behaviors;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,8 +21,25 @@ builder.AddNpgsqlDbContext<CatalogDbContext>("catalog-db", settings =>
 builder.Services.AddHybridCache();
 builder.AddRedisDistributedCache("redis");
 
-// MediatR — scan this assembly for handlers
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+// MediatR — scan this assembly for handlers + pipeline behaviors
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+});
+
+// FluentValidation — scan this assembly for validators
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+
+// Health checks
+var catalogConnectionString = builder.Configuration.GetConnectionString("catalog-db") ?? "";
+builder.Services.AddHealthChecks()
+    .AddNpgSql(catalogConnectionString, name: "postgres");
+
+// Validation exception → HTTP 400
+builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 // JWT Bearer (Keycloak)
 var keycloakAuthority = builder.Configuration["Keycloak:Authority"]
@@ -53,6 +74,7 @@ if (app.Environment.IsDevelopment())
     db.Database.Migrate();
 }
 
+app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -61,5 +83,8 @@ app.MapGrpcService<CatalogGrpcService>();
 app.MapProductEndpoints();
 app.MapCategoryEndpoints();
 app.MapInternalProductEndpoints();
+
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
 
 app.Run();

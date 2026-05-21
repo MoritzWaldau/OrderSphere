@@ -1,0 +1,68 @@
+<MudPaper Elevation="0"
+          Class="product-card"
+          @onclick="HandleOpen"
+          role="button"
+          tabindex="0">
+
+    <div class="product-card-image" style="height:200px;display:flex;align-items:center;justify-content:center;background:var(--mud-palette-background-grey);position:relative;">
+        @if (!string.IsNullOrWhiteSpace(Product.ImageUrl))
+        {
+            <img src="@Product.ImageUrl" alt="@Product.Name"
+                 style="max-height:100%;max-width:100%;object-fit:contain;" />
+        }
+        else
+        {
+            <MudIcon Icon="@Icons.Material.Outlined.Inventory2"
+                     Style="font-size:64px;color:var(--mud-palette-divider);" />
+        }
+        @if (Product.Stock == 0)
+        {
+            <div style="position:absolute;top:12px;left:12px;">
+                <MudChip T="string" Size="Size.Small" Color="Color.Error"
+                         Style="font-size:0.6875rem;font-weight:600;">
+                    Ausverkauft
+                </MudChip>
+            </div>
+        }
+    </div>
+
+    <div class="product-card-content" style="padding:16px;display:flex;flex-direction:column;gap:6px;flex:1;">
+        @if (ShowCategory && !string.IsNullOrWhiteSpace(Product.CategoryName))
+        {
+            <span class="product-card-category">@Product.CategoryName</span>
+        }
+        <MudText Typo="Typo.body1" Style="font-weight:600;line-height:1.3;">@Product.Name</MudText>
+
+        @if (!string.IsNullOrWhiteSpace(Product.Description))
+        {
+            <MudText Typo="Typo.body2" Color="Color.Secondary"
+                     Style="flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                @Product.Description
+            </MudText>
+        }
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
+            <span class="os-mono" style="font-size:1rem;font-weight:600;">
+                @Product.Price.ToString("C")
+            </span>
+            <span @onclick:stopPropagation="true">
+                <MudIconButton Icon="@Icons.Material.Outlined.Add"
+                               aria-label="In den Warenkorb"
+                               Disabled="@(Product.Stock == 0)"
+                               OnClick="HandleAdd"
+                               Size="Size.Small"
+                               Class="product-add-btn" />
+            </span>
+        </div>
+    </div>
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired] public ProductDto Product { get; set; } = default!;
+    [Parameter] public EventCallback<ProductDto> OnOpen { get; set; }
+    [Parameter] public EventCallback<ProductDto> OnAdd { get; set; }
+    [Parameter] public bool ShowCategory { get; set; }
+
+    private Task HandleOpen() => OnOpen.InvokeAsync(Product);
+    private Task HandleAdd() => OnAdd.InvokeAsync(Product);
+}

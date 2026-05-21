@@ -4,5 +4,4 @@ using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Application.Features.Product.Admin.GetProductByIdAdmin;
 
-public sealed record GetProductByIdAdminQuery(Guid ProductId)
-    : IQuery<Result<AdminProductDto>>;
+public sealed record GetProductByIdAdminQuery(Guid ProductId) : IQuery<Result<AdminProductDto>>;

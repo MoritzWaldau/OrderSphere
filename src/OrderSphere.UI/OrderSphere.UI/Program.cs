@@ -88,11 +88,13 @@ app.UseOutputCache();
 await DataSeeder.SeedDataAsync(app);
 
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.MapAdditionalIdentityEndpoints();
 app.MapAuthEndpoints();
 
 app.Run();

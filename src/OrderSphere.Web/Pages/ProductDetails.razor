@@ -1,0 +1,158 @@
+@page "/shop/{category}/{slug}"
+@attribute [Authorize]
+@inject ICatalogClient Catalog
+@inject IOrderingClient Ordering
+@inject CartState CartState
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>@(_product?.Name ?? "Produkt") – OrderSphere</PageTitle>
+
+@if (_loading)
+{
+    <div style="display:flex;justify-content:center;align-items:center;min-height:60vh;">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+    </div>
+}
+else if (_product is null)
+{
+    <MudContainer MaxWidth="MaxWidth.Small" Class="text-center" Style="padding:80px 0;">
+        <MudText Typo="Typo.h5">Produkt nicht gefunden.</MudText>
+        <MudButton Href="/shop" Variant="Variant.Filled" Color="Color.Primary" Class="btn-pill mt-4">
+            Zurück zum Shop
+        </MudButton>
+    </MudContainer>
+}
+else
+{
+    <section style="padding:64px 0 80px;">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            <MudGrid Spacing="6">
+                <!-- Image -->
+                <MudItem xs="12" md="6">
+                    <MudPaper Elevation="0"
+                              Style="border-radius:20px;overflow:hidden;background:var(--mud-palette-background-grey);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;">
+                        @if (!string.IsNullOrWhiteSpace(_product.ImageUrl))
+                        {
+                            <img src="@_product.ImageUrl" alt="@_product.Name"
+                                 style="max-height:100%;max-width:100%;object-fit:contain;" />
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Outlined.Inventory2"
+                                     Style="font-size:120px;color:var(--mud-palette-divider);" />
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <!-- Details -->
+                <MudItem xs="12" md="6">
+                    <MudStack Spacing="4">
+                        <div>
+                            <span class="os-eyebrow">@_product.CategoryName</span>
+                            <MudText Typo="Typo.h3" Style="margin-top:8px;font-weight:700;">@_product.Name</MudText>
+                            <span class="os-mono" style="font-size:1.75rem;font-weight:700;display:block;margin-top:16px;">
+                                @_product.Price.ToString("C")
+                            </span>
+                        </div>
+
+                        <MudText Typo="Typo.body1" Color="Color.Secondary" Style="line-height:1.7;">
+                            @_product.Description
+                        </MudText>
+
+                        @if (_product.Stock > 0)
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Success">
+                                ✓ Auf Lager (@_product.Stock verfügbar)
+                            </MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Error">✕ Ausverkauft</MudText>
+                        }
+
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                            <MudNumericField T="int" @bind-Value="_quantity"
+                                             Min="1" Max="@_product.Stock"
+                                             Label="Menge" Variant="Variant.Outlined"
+                                             Style="max-width:120px;" />
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Size="Size.Large"
+                                       Class="btn-pill"
+                                       Disabled="@(_product.Stock == 0 || _adding)"
+                                       OnClick="AddToCartAsync">
+                                @if (_adding)
+                                {
+                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                }
+                                In den Warenkorb
+                            </MudButton>
+                        </MudStack>
+
+                        <MudDivider />
+
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.caption" Class="text-muted">SKU: @_product.SKU</MudText>
+                        </MudStack>
+                    </MudStack>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </section>
+}
+
+@code {
+    [Parameter] public string Category { get; set; } = string.Empty;
+    [Parameter] public string Slug { get; set; } = string.Empty;
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private ProductDto? _product;
+    private bool _loading = true;
+    private bool _adding;
+    private int _quantity = 1;
+    private Guid? _customerId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
+        var sub = state.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (Guid.TryParse(sub, out var id)) _customerId = id;
+
+        try
+        {
+            _product = await Catalog.GetProductBySlugAsync(Slug);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Fehler: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task AddToCartAsync()
+    {
+        if (_product is null || _customerId is null) return;
+        _adding = true;
+        try
+        {
+            var ok = await Ordering.AddToCartAsync(_customerId.Value, _product.Id, _quantity);
+            if (ok)
+            {
+                Snackbar.Add($"{_quantity}× {_product.Name} wurde hinzugefügt.", Severity.Success);
+                await CartState.RefreshAsync();
+            }
+            else
+            {
+                Snackbar.Add("Fehler beim Hinzufügen.", Severity.Error);
+            }
+        }
+        finally
+        {
+            _adding = false;
+        }
+    }
+}

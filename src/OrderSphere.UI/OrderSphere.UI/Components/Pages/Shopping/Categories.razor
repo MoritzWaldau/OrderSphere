@@ -67,7 +67,7 @@
 </section>
 
 @code {
-    private IReadOnlyList<CategoryDto> _categories = Array.Empty<CategoryDto>();
+    private List<CategoryDto> _categories = [];
 
     protected override async Task LoadDataAsync()
     {
@@ -75,7 +75,7 @@
 
         if (result.IsSuccess)
         {
-            _categories = result.Value;
+            _categories = result.Value.ToList();
         }
         else
         {

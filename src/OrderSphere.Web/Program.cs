@@ -1,0 +1,40 @@
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MudBlazor.Services;
+using OrderSphere.Web.Auth;
+using OrderSphere.Web.Services;
+
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
+builder.RootComponents.Add<OrderSphere.Web.App>("#app");
+
+// Base HttpClient — all API calls go to the same BFF origin.
+builder.Services.AddScoped(sp =>
+    new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+
+// Auth — BFF cookie pattern: state is derived from /bff/user
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<AuthenticationStateProvider, BffAuthStateProvider>();
+
+// API clients
+builder.Services.AddScoped<ICatalogClient, CatalogClient>();
+builder.Services.AddScoped<IOrderingClient, OrderingClient>();
+builder.Services.AddScoped<IUserProfileClient, UserProfileClient>();
+
+// Application state
+builder.Services.AddScoped<CartState>();
+builder.Services.AddSingleton<ThemeState>();
+
+// MudBlazor
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = MudBlazor.Defaults.Classes.Position.BottomLeft;
+    config.SnackbarConfiguration.PreventDuplicates = false;
+    config.SnackbarConfiguration.NewestOnTop = false;
+    config.SnackbarConfiguration.ShowCloseIcon = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 8000;
+    config.SnackbarConfiguration.HideTransitionDuration = 500;
+    config.SnackbarConfiguration.ShowTransitionDuration = 500;
+    config.SnackbarConfiguration.SnackbarVariant = MudBlazor.Variant.Outlined;
+});
+
+await builder.Build().RunAsync();

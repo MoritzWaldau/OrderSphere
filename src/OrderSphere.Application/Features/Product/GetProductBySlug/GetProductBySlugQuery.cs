@@ -1,4 +1,4 @@
-﻿using OrderSphere.Application.Models;
+using OrderSphere.Application.Models;
 using OrderSphere.Domain.Abstraction;
 using OrderSphere.Domain.Primitives;
 

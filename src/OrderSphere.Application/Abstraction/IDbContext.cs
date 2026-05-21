@@ -5,8 +5,6 @@ namespace OrderSphere.Application.Abstraction;
 
 public interface IDbContext
 {
-    public DbSet<Product> Products { get; }
-    public DbSet<Category> Categories { get; }
     public DbSet<Order> Orders { get; }
     public DbSet<OrderItem> OrderItems { get; }
     public DbSet<Cart> Carts { get; }
@@ -15,5 +13,4 @@ public interface IDbContext
     public Task BeginTransactionAsync(CancellationToken ct = default);
     public Task CommitAsync(CancellationToken ct = default);
     public Task RollbackAsync(CancellationToken ct = default);
-
 }

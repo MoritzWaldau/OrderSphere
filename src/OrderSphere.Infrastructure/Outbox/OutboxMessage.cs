@@ -8,4 +8,9 @@ internal sealed class OutboxMessage
     public DateTime OccurredAt { get; init; } = DateTime.UtcNow;
     public DateTime? ProcessedAt { get; set; }
     public string? Error { get; set; }
+
+    /// <summary>Number of dispatch attempts so far (including failures).</summary>
+    public int RetryCount { get; set; }
+
+    internal const int MaxRetries = 10;
 }

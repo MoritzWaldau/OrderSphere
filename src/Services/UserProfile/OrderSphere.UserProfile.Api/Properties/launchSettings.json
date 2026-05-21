@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "OrderSphere.UserProfile.Api": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:54360;http://localhost:54361"
+    }
+  }
+}

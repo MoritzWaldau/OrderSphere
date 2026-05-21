@@ -4,5 +4,4 @@ using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Application.Features.Category.Admin.GetAllCategoriesAdmin;
 
-public sealed record GetAllCategoriesAdminQuery
-    : IQuery<Result<IReadOnlyList<AdminCategoryDto>>>;
+public sealed record GetAllCategoriesAdminQuery : IQuery<Result<IReadOnlyList<AdminCategoryDto>>>;

@@ -26,7 +26,7 @@ public partial class AdminCategoriesList : OrderSphereComponentBase
         var confirmed = await JS.InvokeAsync<bool>("confirm", $"Kategorie '{name}' wirklich löschen?");
         if (!confirmed) return;
 
-        var result = await Sender.Send(new DeleteCategoryCommand(id));
+        var result = await Sender.Send(new DeleteCategoryCommand(id, name));
         if (result.IsSuccess)
         {
             Snackbar.Add("Kategorie gelöscht.", Severity.Success);

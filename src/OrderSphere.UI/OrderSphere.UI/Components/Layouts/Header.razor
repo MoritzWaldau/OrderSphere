@@ -65,15 +65,17 @@
                     </MudText>
                 </div>
 
-                <MudMenuItem Icon="@Icons.Material.Outlined.Person" Href="/account/profile">
+                <MudMenuItem Icon="@Icons.Material.Outlined.Person" Href="@KeycloakAccountUrl" Target="_blank">
                     Mein Profil
                 </MudMenuItem>
                 <MudMenuItem Icon="@Icons.Material.Outlined.ShoppingBag" Href="/account/orders">
                     Meine Bestellungen
                 </MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Outlined.Settings" Href="/account/settings">
-                    Einstellungen
-                </MudMenuItem>
+                <AuthorizeView Roles="admin" Context="adminCtx">
+                    <MudMenuItem Icon="@Icons.Material.Outlined.AdminPanelSettings" Href="/admin">
+                        Admin
+                    </MudMenuItem>
+                </AuthorizeView>
 
                 <MudDivider />
 

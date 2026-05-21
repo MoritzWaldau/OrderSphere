@@ -1,89 +1,47 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OrderSphere.Application.Abstraction;
 using OrderSphere.Application.Models.Admin;
-using OrderSphere.Domain.Abstraction;
-using OrderSphere.Domain.Enums;
-using OrderSphere.Domain.Errors;
 using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Application.Features.Admin.GetDashboardStats;
 
 public sealed class GetDashboardStatsQueryHandler(
-    IDbContext context,
-    IUserAdminService userAdminService,
+    IOrderingClient orderingClient,
     ILogger<GetDashboardStatsQueryHandler> logger
 ) : IQueryHandler<GetDashboardStatsQuery, Result<AdminDashboardDto>>
 {
-    private const int LowStockThreshold = 10;
-
     public async Task<Result<AdminDashboardDto>> Handle(GetDashboardStatsQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var todayStart = DateTime.UtcNow.Date;
+            var statsResult = await orderingClient.GetOrderStatsAsync(cancellationToken);
+            if (statsResult.IsFailure)
+                return Result<AdminDashboardDto>.Failure(statsResult.Error);
 
-            var allOrders = await context.Orders
-                .AsNoTracking()
-                .Where(o => !o.IsDeleted)
-                .Include(o => o.Items)
-                .ToListAsync(cancellationToken);
+            var s = statsResult.Value;
 
-            var nonCancelledOrders = allOrders.Where(o => o.Status != OrderStatus.Cancelled).ToList();
-
-            var totalOrders = allOrders.Count;
-            var ordersToday = allOrders.Count(o => o.CreatedAt >= todayStart);
-
-            var totalRevenue = nonCancelledOrders.Sum(o => o.Items.Sum(i => i.Price * i.Quantity));
-            var revenueToday = nonCancelledOrders
-                .Where(o => o.CreatedAt >= todayStart)
-                .Sum(o => o.Items.Sum(i => i.Price * i.Quantity));
-
-            var pendingShipments = allOrders.Count(o => o.Status == OrderStatus.Paid);
-
-            var lowStock = await context.Products
-                .AsNoTracking()
-                .Where(p => !p.IsDeleted && p.IsActive && p.Stock < LowStockThreshold)
-                .OrderBy(p => p.Stock)
-                .Take(10)
-                .Select(p => new LowStockProductDto(p.Id, p.Name, p.SKU, p.Stock))
-                .ToListAsync(cancellationToken);
-
-            var totalProducts = await context.Products
-                .CountAsync(p => !p.IsDeleted, cancellationToken);
-
-            var users = await userAdminService.GetAllUsersAsync(cancellationToken);
-            var totalUsers = users.Count;
-
-            var recent = allOrders
-                .OrderByDescending(o => o.CreatedAt)
-                .Take(5)
-                .Select(o => new RecentOrderDto(
-                    o.Id,
-                    $"{o.ShippingAddress.FirstName} {o.ShippingAddress.LastName}",
-                    o.Items.Sum(i => i.Price * i.Quantity),
-                    o.Status.ToString(),
-                    o.CreatedAt))
+            var recent = s.RecentOrders
+                .Select(r => new RecentOrderDto(r.Id, r.CustomerName, r.Total, r.Status, r.CreatedAt))
                 .ToList();
 
             var dto = new AdminDashboardDto(
-                totalOrders,
-                ordersToday,
-                totalRevenue,
-                revenueToday,
-                pendingShipments,
-                lowStock.Count,
-                totalProducts,
-                totalUsers,
+                s.TotalOrders,
+                s.OrdersToday,
+                s.TotalRevenue,
+                s.RevenueToday,
+                s.PendingShipments,
+                LowStockProductsCount: 0,
+                TotalProducts: 0,
+                s.TotalCustomers,
                 recent,
-                lowStock);
+                LowStockProducts: []);
 
             return Result<AdminDashboardDto>.Success(dto);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error building admin dashboard stats");
-            return Result<AdminDashboardDto>.Failure(OrderErrors.UnknownError);
+            return Result<AdminDashboardDto>.Failure(new Error("Dashboard.Unknown", "Error building dashboard stats."));
         }
     }
 }

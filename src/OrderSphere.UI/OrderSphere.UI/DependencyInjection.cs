@@ -1,19 +1,18 @@
-﻿using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 using MudBlazor;
 using MudBlazor.Services;
-using OrderSphere.Application.Abstraction;
-using OrderSphere.Domain.Entities;
-using OrderSphere.Infrastructure.Identity;
-using OrderSphere.Infrastructure.Persistence;
-using OrderSphere.UI.Models.Auth;
 using OrderSphere.UI.Services;
-using OrderSphere.UI.Services.Account;
 using OrderSphere.UI.Services.Auth;
 using OrderSphere.UI.Services.Theme;
 using Serilog;
 using System.Globalization;
+using System.Security.Claims;
 
 namespace OrderSphere.UI;
 
@@ -31,36 +30,66 @@ public static class DependencyInjection
 
     public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddAuthentication();
+        services.AddKeycloakAuthentication(configuration);
         services.ConfigureMudBlazor();
         services.AddScoped<IThemeService, ThemeService>();
         return services;
     }
 
-    private static void AddAuthentication(this IServiceCollection services)
+    private static void AddKeycloakAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddCascadingAuthenticationState();
-        services.AddScoped<IdentityRedirectManager>();
-        services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-        services.AddAuthentication(options =>
-        {
-            options.DefaultScheme = IdentityConstants.ApplicationScheme;
-            options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-        })
-        .AddIdentityCookies();
+        var authority = configuration["Keycloak:Authority"]
+            ?? throw new InvalidOperationException("Keycloak:Authority is not configured.");
+        var clientId = configuration["Keycloak:ClientId"] ?? "web-bff";
+        var clientSecret = configuration["Keycloak:ClientSecret"]
+            ?? throw new InvalidOperationException("Keycloak:ClientSecret is not configured.");
 
-        services.AddIdentityCore<ApplicationUser>(options =>
-        {
-            options.SignIn.RequireConfirmedAccount = true;
-            options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
-        })
-        .AddRoles<IdentityRole>()
-        .AddEntityFrameworkStores<OrderSphereDbContext>()
-        .AddClaimsPrincipalFactory<ApplicationUserClaimsFactory>()
-        .AddSignInManager()
-        .AddDefaultTokenProviders();
+        services
+            .AddAuthentication(options =>
+            {
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            })
+            .AddCookie(options =>
+            {
+                options.Cookie.Name = "ordersphere.auth";
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.HttpOnly = true;
+                options.ExpireTimeSpan = TimeSpan.FromHours(8);
+                options.SlidingExpiration = true;
+            })
+            .AddOpenIdConnect(options =>
+            {
+                options.Authority = authority;
+                options.ClientId = clientId;
+                options.ClientSecret = clientSecret;
+                options.ResponseType = OpenIdConnectResponseType.Code;
+                options.UsePkce = true;
+                options.SaveTokens = true;
+                options.GetClaimsFromUserInfoEndpoint = true;
+                options.RequireHttpsMetadata = false;
+                options.Scope.Clear();
+                options.Scope.Add("openid");
+                options.Scope.Add("profile");
+                options.Scope.Add("email");
+                options.Scope.Add("roles");
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    NameClaimType = "preferred_username",
+                    RoleClaimType = "roles",
+                };
+                options.MapInboundClaims = false;
+                options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "sub");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+                options.ClaimActions.MapJsonKey("given_name", "given_name");
+                options.ClaimActions.MapJsonKey("family_name", "family_name");
+                options.ClaimActions.MapJsonKey("roles", "roles");
+            });
+
+        services.AddAuthorization();
     }
 
     private static void ConfigureMudBlazor(this IServiceCollection services)
@@ -88,18 +117,27 @@ public static class DependencyInjection
 
     public static void MapAuthEndpoints(this WebApplication app)
     {
-        app.MapPost("/api/account/login", async (
-            SignInManager<ApplicationUser> signInManager,
-            [FromBody] LoginRequest request) =>
+        app.MapGet("/login", (HttpContext ctx, string? returnUrl) =>
         {
-            var result = await signInManager.PasswordSignInAsync(
-                request.Email, request.Password, request.RememberMe, lockoutOnFailure: true);
+            var redirect = string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl;
+            return Results.Challenge(
+                new AuthenticationProperties { RedirectUri = redirect },
+                [OpenIdConnectDefaults.AuthenticationScheme]);
+        });
 
-            if (result.Succeeded) return Results.Ok();
-            if (result.IsLockedOut) return Results.BadRequest("locked");
-            if (result.IsNotAllowed) return Results.Unauthorized();
-            return Results.BadRequest("invalid");
-        })
-        .DisableAntiforgery();
+        app.MapPost("/logout", async (HttpContext ctx) =>
+        {
+            await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await ctx.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+            return Results.Redirect("/");
+        });
+
+        // GET variant for anchor-tag logout from Razor components — no body required.
+        app.MapGet("/logout", async (HttpContext ctx) =>
+        {
+            await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await ctx.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+            return Results.Redirect("/");
+        });
     }
 }

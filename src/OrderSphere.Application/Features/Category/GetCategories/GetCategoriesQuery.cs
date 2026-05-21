@@ -4,4 +4,4 @@ using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Application.Features.Category.GetCategories;
 
-public sealed record GetCategoriesQuery() : IQuery<Result<IReadOnlyList<CategoryDto>>>;
+public sealed record GetCategoriesQuery : IQuery<Result<IEnumerable<CategoryDto>>>;

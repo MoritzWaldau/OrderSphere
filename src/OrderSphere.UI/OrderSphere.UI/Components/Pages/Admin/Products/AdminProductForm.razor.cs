@@ -18,7 +18,7 @@ public partial class AdminProductForm : OrderSphereComponentBase
     private bool IsEdit => ProductId.HasValue;
     private MudForm? _form;
     private ProductFormModel? _model;
-    private IReadOnlyList<CategoryDto> _categories = Array.Empty<CategoryDto>();
+    private List<CategoryDto> _categories = [];
     private bool _isSaving;
 
     protected override async Task LoadDataAsync()
@@ -26,7 +26,7 @@ public partial class AdminProductForm : OrderSphereComponentBase
         var categoriesResult = await Sender.Send(new GetCategoriesQuery());
         if (categoriesResult.IsSuccess)
         {
-            _categories = categoriesResult.Value;
+            _categories = categoriesResult.Value.ToList();
         }
 
         if (IsEdit)

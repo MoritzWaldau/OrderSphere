@@ -4,5 +4,4 @@ using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Application.Features.Product.Admin.UpdateProduct;
 
-public sealed record UpdateProductCommand(Guid ProductId, AdminProductInput Input, bool IsActive)
-    : ICommand<Result<bool>>;
+public sealed record UpdateProductCommand(Guid ProductId, AdminProductInput Input, bool IsActive) : ICommand<Result<bool>>;

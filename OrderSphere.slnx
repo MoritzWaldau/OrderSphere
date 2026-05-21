@@ -1,4 +1,26 @@
 <Solution>
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/OrderSphere.BuildingBlocks.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Catalog/">
+    <Project Path="src/Services/Catalog/OrderSphere.Catalog.Domain/OrderSphere.Catalog.Domain.csproj" />
+    <Project Path="src/Services/Catalog/OrderSphere.Catalog.Infrastructure/OrderSphere.Catalog.Infrastructure.csproj" />
+    <Project Path="src/Services/Catalog/OrderSphere.Catalog.Api/OrderSphere.Catalog.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Ordering/">
+    <Project Path="src/Services/Ordering/OrderSphere.Ordering.Domain/OrderSphere.Ordering.Domain.csproj" />
+    <Project Path="src/Services/Ordering/OrderSphere.Ordering.Infrastructure/OrderSphere.Ordering.Infrastructure.csproj" />
+    <Project Path="src/Services/Ordering/OrderSphere.Ordering.Api/OrderSphere.Ordering.Api.csproj" />
+    <Project Path="src/Services/Ordering/OrderSphere.Ordering.Worker/OrderSphere.Ordering.Worker.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Notification/">
+    <Project Path="src/Services/Notification/OrderSphere.Notification.Worker/OrderSphere.Notification.Worker.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/UserProfile/">
+    <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Domain/OrderSphere.UserProfile.Domain.csproj" />
+    <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Infrastructure/OrderSphere.UserProfile.Infrastructure.csproj" />
+    <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Api/OrderSphere.UserProfile.Api.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/OrderSphere.AppHost/OrderSphere.AppHost.csproj" />
     <Project Path="src/OrderSphere.Application/OrderSphere.Application.csproj" />
@@ -7,12 +29,12 @@
     <Project Path="src/OrderSphere.Infrastructure/OrderSphere.Infrastructure.csproj" />
     <Project Path="src/OrderSphere.ServiceDefaults/OrderSphere.ServiceDefaults.csproj" />
     <Project Path="src/OrderSphere.UI/OrderSphere.UI/OrderSphere.UI.csproj" />
-    <Project Path="src/OrderSphere.Worker/OrderSphere.Worker.csproj" />
   </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/OrderSphere.Domain.Tests/OrderSphere.Domain.Tests.csproj" />
-    <Project Path="tests/OrderSphere.Application.Tests/OrderSphere.Application.Tests.csproj" />
-    <Project Path="tests/OrderSphere.IntegrationTests/OrderSphere.IntegrationTests.csproj" />
-    <Project Path="tests/OrderSphere.UI.Tests/OrderSphere.UI.Tests.csproj" />
+  <Folder Name="/src/Gateways/">
+    <Project Path="src/Gateways/OrderSphere.ApiGateway/OrderSphere.ApiGateway.csproj" />
+    <Project Path="src/Gateways/OrderSphere.Bff/OrderSphere.Bff.csproj" />
+  </Folder>
+  <Folder Name="/src/Frontend/">
+    <Project Path="src/OrderSphere.Web/OrderSphere.Web.csproj" />
   </Folder>
 </Solution>

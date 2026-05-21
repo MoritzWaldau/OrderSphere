@@ -1,0 +1,233 @@
+@page "/account/profile"
+@attribute [Authorize]
+@inject IUserProfileClient UserProfile
+@inject ISnackbar Snackbar
+
+<PageTitle>Mein Profil — OrderSphere</PageTitle>
+
+<PageHero Title="Mein Profil" Subtitle="Verwalte deine persönlichen Daten und Lieferadressen." />
+
+<section style="padding:48px 0 80px;">
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        @if (_loading)
+        {
+            <MudStack AlignItems="AlignItems.Center" Class="py-12">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+            </MudStack>
+        }
+        else if (_profile is not null)
+        {
+            <MudGrid Spacing="4">
+                <!-- Profile -->
+                <MudItem xs="12">
+                    <MudPaper Elevation="0" Class="surface-card-lg pa-6">
+                        <MudText Typo="Typo.h6" Style="font-weight:600;" Class="mb-4">Persönliche Daten</MudText>
+                        <MudGrid Spacing="3">
+                            <MudItem xs="12" md="6">
+                                <MudTextField T="string" Label="Anzeigename" Variant="Variant.Outlined"
+                                              FullWidth="true" @bind-Value="_displayName" />
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField T="string" Label="E-Mail" Variant="Variant.Outlined"
+                                              FullWidth="true" @bind-Value="_email" />
+                            </MudItem>
+                        </MudGrid>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   Class="btn-pill mt-4" Disabled="_saving"
+                                   OnClick="SaveProfileAsync">
+                            @if (_saving)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            }
+                            Speichern
+                        </MudButton>
+                    </MudPaper>
+                </MudItem>
+
+                <!-- Addresses -->
+                <MudItem xs="12">
+                    <MudPaper Elevation="0" Class="surface-card-lg pa-6">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+                            <MudText Typo="Typo.h6" Style="font-weight:600;">Lieferadressen</MudText>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Outlined.Add"
+                                       Class="btn-pill"
+                                       OnClick="() => _showAddAddress = !_showAddAddress">
+                                Hinzufügen
+                            </MudButton>
+                        </MudStack>
+
+                        @if (_showAddAddress)
+                        {
+                            <MudPaper Elevation="0" Class="surface-card pa-4 mb-4">
+                                <MudGrid Spacing="2">
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField T="string" Label="Bezeichnung" Variant="Variant.Outlined"
+                                                      FullWidth="true" @bind-Value="_newAddress.Label" />
+                                    </MudItem>
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField T="string" Label="Vorname" Variant="Variant.Outlined"
+                                                      FullWidth="true" @bind-Value="_newAddress.FirstName" />
+                                    </MudItem>
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField T="string" Label="Nachname" Variant="Variant.Outlined"
+                                                      FullWidth="true" @bind-Value="_newAddress.LastName" />
+                                    </MudItem>
+                                    <MudItem xs="12">
+                                        <MudTextField T="string" Label="Straße" Variant="Variant.Outlined"
+                                                      FullWidth="true" @bind-Value="_newAddress.Street" />
+                                    </MudItem>
+                                    <MudItem xs="4">
+                                        <MudTextField T="string" Label="PLZ" Variant="Variant.Outlined"
+                                                      FullWidth="true" @bind-Value="_newAddress.PostalCode" />
+                                    </MudItem>
+                                    <MudItem xs="5">
+                                        <MudTextField T="string" Label="Stadt" Variant="Variant.Outlined"
+                                                      FullWidth="true" @bind-Value="_newAddress.City" />
+                                    </MudItem>
+                                    <MudItem xs="3">
+                                        <MudTextField T="string" Label="Land" Variant="Variant.Outlined"
+                                                      FullWidth="true" @bind-Value="_newAddress.Country" />
+                                    </MudItem>
+                                </MudGrid>
+                                <MudStack Row="true" Spacing="2" Class="mt-3">
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                               Class="btn-pill" OnClick="AddAddressAsync">
+                                        Speichern
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Text"
+                                               OnClick="() => _showAddAddress = false">
+                                        Abbrechen
+                                    </MudButton>
+                                </MudStack>
+                            </MudPaper>
+                        }
+
+                        @if (!_profile.Addresses.Any())
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                Noch keine Adressen gespeichert.
+                            </MudText>
+                        }
+                        else
+                        {
+                            <MudStack Spacing="3">
+                                @foreach (var addr in _profile.Addresses)
+                                {
+                                    <MudPaper Elevation="0" Class="surface-card pa-4">
+                                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+                                            <MudStack Spacing="0">
+                                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                                    <MudText Typo="Typo.subtitle2" Style="font-weight:600;">@addr.Label</MudText>
+                                                    @if (addr.IsDefault)
+                                                    {
+                                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary">Standard</MudChip>
+                                                    }
+                                                </MudStack>
+                                                <MudText Typo="Typo.body2">@addr.FirstName @addr.LastName</MudText>
+                                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                    @addr.Street, @addr.PostalCode @addr.City, @addr.Country
+                                                </MudText>
+                                            </MudStack>
+                                            <MudStack Row="true" Spacing="1">
+                                                @if (!addr.IsDefault)
+                                                {
+                                                    <MudIconButton Icon="@Icons.Material.Outlined.Star"
+                                                                   Size="Size.Small"
+                                                                   OnClick="@(() => SetDefaultAsync(addr.Id))"
+                                                                   title="Als Standard setzen" />
+                                                }
+                                                <MudIconButton Icon="@Icons.Material.Outlined.Delete"
+                                                               Color="Color.Error" Size="Size.Small"
+                                                               OnClick="@(() => DeleteAddressAsync(addr.Id))" />
+                                            </MudStack>
+                                        </MudStack>
+                                    </MudPaper>
+                                }
+                            </MudStack>
+                        }
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        }
+    </MudContainer>
+</section>
+
+@code {
+    private ProfileDto? _profile;
+    private bool _loading = true;
+    private bool _saving;
+    private bool _showAddAddress;
+    private string _displayName = string.Empty;
+    private string _email = string.Empty;
+
+    private readonly AddressFormModel _newAddress = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _profile = await UserProfile.GetOrCreateProfileAsync();
+            if (_profile is not null)
+            {
+                _displayName = _profile.DisplayName;
+                _email = _profile.Email;
+            }
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SaveProfileAsync()
+    {
+        _saving = true;
+        try
+        {
+            _profile = await UserProfile.UpdateProfileAsync(new UpdateProfileRequest(_displayName, _email));
+            Snackbar.Add("Profil gespeichert.", Severity.Success);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task AddAddressAsync()
+    {
+        var req = new CreateAddressRequest(
+            _newAddress.Label, _newAddress.FirstName, _newAddress.LastName,
+            _newAddress.Street, _newAddress.City, _newAddress.PostalCode,
+            _newAddress.Country, false);
+
+        await UserProfile.AddAddressAsync(req);
+        _showAddAddress = false;
+        _profile = await UserProfile.GetOrCreateProfileAsync();
+        Snackbar.Add("Adresse hinzugefügt.", Severity.Success);
+    }
+
+    private async Task DeleteAddressAsync(Guid id)
+    {
+        await UserProfile.DeleteAddressAsync(id);
+        _profile = await UserProfile.GetOrCreateProfileAsync();
+        Snackbar.Add("Adresse gelöscht.", Severity.Info);
+    }
+
+    private async Task SetDefaultAsync(Guid id)
+    {
+        await UserProfile.SetDefaultAddressAsync(id);
+        _profile = await UserProfile.GetOrCreateProfileAsync();
+    }
+
+    private sealed class AddressFormModel
+    {
+        public string Label      { get; set; } = string.Empty;
+        public string FirstName  { get; set; } = string.Empty;
+        public string LastName   { get; set; } = string.Empty;
+        public string Street     { get; set; } = string.Empty;
+        public string PostalCode { get; set; } = string.Empty;
+        public string City       { get; set; } = string.Empty;
+        public string Country    { get; set; } = "Deutschland";
+    }
+}

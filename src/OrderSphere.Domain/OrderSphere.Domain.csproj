@@ -7,9 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" />
-    <PackageReference Include="Microsoft.Extensions.Identity.Stores" />
+    <ProjectReference Include="..\BuildingBlocks\OrderSphere.BuildingBlocks.Domain\OrderSphere.BuildingBlocks.Domain.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,132 @@
+@inject CartState CartState
+@inject IOrderingClient Ordering
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<MudDrawer @bind-Open="IsOpen"
+           Anchor="Anchor.Right"
+           Elevation="2"
+           Variant="DrawerVariant.Temporary"
+           Width="420px"
+           ClipMode="DrawerClipMode.Never">
+
+    <div style="padding:24px;height:100%;display:flex;flex-direction:column;gap:16px;">
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h6" Style="font-weight:600;">Warenkorb</MudText>
+            <MudIconButton Icon="@Icons.Material.Outlined.Close"
+                           OnClick="Close" Size="Size.Small" />
+        </MudStack>
+
+        <MudDivider />
+
+        @if (_items.Count == 0)
+        {
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="flex:1;padding:40px 0;">
+                <MudIcon Icon="@Icons.Material.Outlined.ShoppingCart"
+                         Style="font-size:64px;color:var(--mud-palette-divider);" />
+                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-3">
+                    Dein Warenkorb ist leer.
+                </MudText>
+                <MudButton Href="/shop" Variant="Variant.Filled" Color="Color.Primary"
+                           Class="btn-pill mt-4" OnClick="Close">
+                    Zum Shop
+                </MudButton>
+            </MudStack>
+        }
+        else
+        {
+            <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
+                @foreach (var item in _items)
+                {
+                    <MudPaper Elevation="0" Class="surface-card pa-3">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                            <MudStack Spacing="0" Style="flex:1;min-width:0;">
+                                <MudText Typo="Typo.body2" Style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                    @item.ProductName
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @item.Quantity × @item.Price.ToString("C")
+                                </MudText>
+                            </MudStack>
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                <MudText Typo="Typo.body2" Style="font-weight:600;white-space:nowrap;">
+                                    @((item.Quantity * item.Price).ToString("C"))
+                                </MudText>
+                                <MudIconButton Icon="@Icons.Material.Outlined.Delete"
+                                               Size="Size.Small"
+                                               Color="Color.Error"
+                                               OnClick="@(() => RemoveAsync(item.ProductId))" />
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                }
+            </div>
+
+            <MudDivider />
+
+            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.h6">Gesamt</MudText>
+                <MudText Typo="Typo.h6" Style="font-weight:700;">
+                    @_total.ToString("C")
+                </MudText>
+            </MudStack>
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       Size="Size.Large"
+                       Class="btn-pill"
+                       OnClick="GoToCheckout">
+                Zur Kasse
+            </MudButton>
+        }
+    </div>
+</MudDrawer>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private List<CartItemDto> _items = [];
+    private decimal _total;
+    private Guid? _customerId;
+
+    protected override void OnInitialized()
+    {
+        CartState.OnChange += Refresh;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
+        var sub = state.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (Guid.TryParse(sub, out var id)) _customerId = id;
+        Refresh();
+    }
+
+    private void Refresh()
+    {
+        _items = CartState.Cart?.Items ?? [];
+        _total = _items.Sum(i => i.Quantity * i.Price);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RemoveAsync(Guid productId)
+    {
+        if (_customerId is null) return;
+        await Ordering.RemoveFromCartAsync(_customerId.Value, productId);
+        await CartState.RefreshAsync();
+    }
+
+    private void GoToCheckout()
+    {
+        IsOpenChanged.InvokeAsync(false);
+        Navigation.NavigateTo("/checkout");
+    }
+
+    private void Close() => IsOpenChanged.InvokeAsync(false);
+
+    public void Dispose() => CartState.OnChange -= Refresh;
+}

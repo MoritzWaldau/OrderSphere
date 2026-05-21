@@ -4,5 +4,4 @@ using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Application.Features.Product.Admin.GetAllProductsAdmin;
 
-public sealed record GetAllProductsAdminQuery
-    : IQuery<Result<IReadOnlyList<AdminProductDto>>>;
+public sealed record GetAllProductsAdminQuery : IQuery<Result<IReadOnlyList<AdminProductDto>>>;

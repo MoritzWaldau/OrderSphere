@@ -409,7 +409,9 @@
                 _checkout.Country);
 
             var paymentMethod = MapPaymentMethod(_checkout.PaymentMethod);
-            var dto = new CheckoutCartDto(customerId.Value, address, paymentMethod);
+            var customerEmail = await CurrentUserService.GetEmailAsync() ?? string.Empty;
+            var customerName = await CurrentUserService.GetUserNameAsync() ?? $"{_checkout.FirstName} {_checkout.LastName}";
+            var dto = new CheckoutCartDto(customerId.Value, customerEmail, customerName, address, paymentMethod);
 
             var result = await Sender.Send(new CheckoutCartCommand(dto));
 

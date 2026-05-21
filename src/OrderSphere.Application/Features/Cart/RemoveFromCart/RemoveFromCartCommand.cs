@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OrderSphere.Application.Features.Cart.RemoveCart;
+namespace OrderSphere.Application.Features.Cart.RemoveFromCart;
 
 public sealed record RemoveFromCartCommand(
     Guid CustomerId,

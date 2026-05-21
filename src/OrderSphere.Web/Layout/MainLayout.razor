@@ -1,0 +1,66 @@
+@inherits LayoutComponentBase
+@inject ThemeState ThemeState
+
+<MudThemeProvider Theme="ThemeState.Theme" IsDarkMode="ThemeState.IsDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <AppHeader OnCartToggle="ToggleCart"
+               CartItemCount="@_cartItemCount"
+               IsCartOpen="@_cartOpen" />
+
+    <MudMainContent Style="padding-top: 64px;">
+        <CascadingValue Value="this">
+            @Body
+        </CascadingValue>
+    </MudMainContent>
+
+    <CartDrawer IsOpen="@_cartOpen" IsOpenChanged="val => _cartOpen = val" />
+
+    <AppFooter />
+</MudLayout>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+    [Inject] private CartState CartState { get; set; } = default!;
+
+    private bool _cartOpen;
+    private int _cartItemCount;
+
+    protected override void OnInitialized()
+    {
+        CartState.OnChange += StateHasChangedSafe;
+        ThemeState.OnChange += StateHasChangedSafe;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
+        var sub = state.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (Guid.TryParse(sub, out var customerId))
+        {
+            await CartState.InitializeAsync(customerId);
+            _cartItemCount = CartState.ItemCount;
+            StateHasChanged();
+        }
+    }
+
+    private void StateHasChangedSafe()
+    {
+        _cartItemCount = CartState.ItemCount;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void ToggleCart() => _cartOpen = !_cartOpen;
+
+    public void Dispose()
+    {
+        CartState.OnChange -= StateHasChangedSafe;
+        ThemeState.OnChange -= StateHasChangedSafe;
+    }
+}

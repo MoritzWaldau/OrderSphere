@@ -1,0 +1,108 @@
+@page "/"
+
+<PageTitle>OrderSphere</PageTitle>
+
+<PageHero Variant="PageHero.HeroVariant.TwoColumn"
+          Eyebrow="Frühjahr 2026 · Neu"
+          Title="Die beste Tech. Sorgfältig ausgewählt."
+          Subtitle="Laptops, Tablets und Zubehör – von Experten kuratiert, schnell geliefert.">
+    <LeadingContent>
+        <MudStack Row="true" Spacing="2" Wrap="Wrap.Wrap" Class="mt-6">
+            <MudButton Variant="Variant.Filled" Size="Size.Large"
+                       Href="/shop" Class="btn-pill-white">
+                Zum Shop
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Size="Size.Large"
+                       Href="/categories" Class="btn-pill-outline-white">
+                Kategorien
+            </MudButton>
+        </MudStack>
+        <MudStack Row="true" Spacing="4" Class="mt-6">
+            <span class="os-mono text-on-dark-muted" style="font-size:0.75rem;">✓ Kostenloser Versand</span>
+            <span class="os-mono text-on-dark-muted" style="font-size:0.75rem;">✓ 30 Tage Rückgabe</span>
+            <span class="os-mono text-on-dark-muted" style="font-size:0.75rem;">✓ 2 Jahre Garantie</span>
+        </MudStack>
+    </LeadingContent>
+    <ChildContent>
+        <MudPaper Elevation="0"
+                  Style="border-radius:20px;overflow:hidden;background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.18);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;">
+            <MudIcon Icon="@Icons.Material.Outlined.Laptop"
+                     Style="font-size:120px;color:#ffffff;opacity:0.55;" />
+        </MudPaper>
+    </ChildContent>
+</PageHero>
+
+<!-- CATEGORY STRIP -->
+<section class="section-white" style="padding: 72px 0;">
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:40px;">
+            <div>
+                <span class="os-eyebrow">01 / Kategorien</span>
+                <MudText Typo="Typo.h3" Style="margin-top:8px;letter-spacing:-0.015em;">
+                    Was suchst du?
+                </MudText>
+            </div>
+            <MudButton Variant="Variant.Text" Href="/shop" Color="Color.Primary"
+                       EndIcon="@Icons.Material.Outlined.ArrowForward">
+                Alle Produkte
+            </MudButton>
+        </div>
+
+        <MudGrid Spacing="3">
+            @foreach (var cat in _categories)
+            {
+                <MudItem xs="6" sm="3">
+                    <MudPaper Elevation="0" Class="product-card pa-6 text-center" Style="cursor:default;" tabindex="-1">
+                        <MudIcon Icon="@cat.Icon" Color="Color.Primary" Style="font-size:40px;" />
+                        <MudText Typo="Typo.body1" Style="font-weight:600;margin-top:12px;">@cat.Name</MudText>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudContainer>
+</section>
+
+<!-- EDITORIAL -->
+<section class="section-gray" style="padding:80px 0;">
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;">
+            <div>
+                <span class="os-eyebrow">02 / Unser Versprechen</span>
+                <MudText Typo="Typo.h2" Style="margin-top:16px;letter-spacing:-0.025em;line-height:1.1;">
+                    Qualität, <em>nicht</em> Quantität.
+                </MudText>
+                <MudText Typo="Typo.body1" Class="text-muted" Style="margin-top:20px;line-height:1.7;">
+                    Wir listen keine tausend Produkte. Wir wählen sorgfältig aus — damit du schnell das Richtige findest.
+                </MudText>
+            </div>
+            <div>
+                <MudPaper Elevation="0"
+                          Style="border-radius:16px;padding:32px;background:var(--mud-palette-surface);border:1px solid var(--mud-palette-divider);box-shadow:var(--os-shadow-card);">
+                    <MudText Typo="Typo.h5" Style="font-style:italic;line-height:1.5;font-weight:400;">
+                        "Wir kaufen selbst, was wir verkaufen. Das ist unser einziger Filter."
+                    </MudText>
+                    <MudDivider Class="my-4" />
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <div style="width:36px;height:36px;border-radius:50%;background:var(--mud-palette-primary);display:flex;align-items:center;justify-content:center;">
+                            <MudIcon Icon="@Icons.Material.Outlined.Person" Style="font-size:18px;color:#fff;" />
+                        </div>
+                        <div>
+                            <MudText Typo="Typo.body2" Style="font-weight:600;">OrderSphere Team</MudText>
+                            <MudText Typo="Typo.caption" Class="text-muted">Kuratierung & Einkauf</MudText>
+                        </div>
+                    </MudStack>
+                </MudPaper>
+            </div>
+        </div>
+    </MudContainer>
+</section>
+
+@code {
+    private readonly List<(string Icon, string Name)> _categories =
+    [
+        (Icons.Material.Outlined.Laptop, "Laptops"),
+        (Icons.Material.Outlined.PhoneIphone, "Smartphones"),
+        (Icons.Material.Outlined.Tablet, "Tablets"),
+        (Icons.Material.Outlined.Headphones, "Zubehör"),
+    ];
+}

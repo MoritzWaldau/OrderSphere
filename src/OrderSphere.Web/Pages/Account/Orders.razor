@@ -1,0 +1,142 @@
+@page "/account/orders"
+@attribute [Authorize]
+@inject IOrderingClient Ordering
+@inject NavigationManager Navigation
+
+<PageTitle>Meine Bestellungen — OrderSphere</PageTitle>
+
+<PageHero Title="Meine Bestellungen"
+          Subtitle="Übersicht aller deiner Bestellungen bei OrderSphere." />
+
+<section class="page-section" style="padding:48px 0 80px;">
+    <MudContainer MaxWidth="MaxWidth.Medium">
+
+        @if (_loading)
+        {
+            <MudStack AlignItems="AlignItems.Center" Class="py-12">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-4">
+                    Bestellungen werden geladen...
+                </MudText>
+            </MudStack>
+        }
+        else if (_orders.Count == 0)
+        {
+            <MudPaper Elevation="0" Class="surface-card-lg pa-12 text-center">
+                <MudIcon Icon="@Icons.Material.Outlined.ShoppingBag" Color="Color.Primary"
+                         Style="font-size:80px;" Class="mb-4" />
+                <MudText Typo="Typo.h5" Class="mb-2" Style="font-weight:600;">Noch keine Bestellungen</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+                    Sobald du etwas bestellst, findest du hier deine Bestellhistorie.
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           Size="Size.Large" Href="/shop"
+                           StartIcon="@Icons.Material.Outlined.Storefront" Class="btn-pill">
+                    Jetzt entdecken
+                </MudButton>
+            </MudPaper>
+        }
+        else
+        {
+            <MudStack Spacing="4">
+                @foreach (var order in _orders)
+                {
+                    <MudPaper Elevation="0" Class="surface-card surface-card-row-hover pa-6"
+                              @onclick="@(() => Navigation.NavigateTo($"/account/orders/{order.Id}"))">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start"
+                                  Wrap="Wrap.Wrap" Class="mb-4">
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Bestellnummer</MudText>
+                                <MudText Typo="Typo.subtitle1" Class="text-monospace" Style="font-weight:600;">
+                                    #@order.Id.ToString("N")[..8].ToUpperInvariant()
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @order.CreatedAt.ToLocalTime().ToString("dd. MMMM yyyy, HH:mm",
+                                        System.Globalization.CultureInfo.GetCultureInfo("de-DE"))
+                                </MudText>
+                            </MudStack>
+                            <MudChip T="string"
+                                     Color="@GetStatusColor(order.Status)"
+                                     Variant="Variant.Filled" Size="Size.Medium"
+                                     Style="border-radius:100px;font-weight:600;">
+                                @GetStatusLabel(order.Status)
+                            </MudChip>
+                        </MudStack>
+
+                        <MudDivider Class="mb-4" />
+
+                        <MudStack Spacing="2" Class="mb-4">
+                            @foreach (var line in order.Items)
+                            {
+                                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                    <MudText Typo="Typo.body2">@line.Quantity × @line.ProductName</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                        @((line.Price * line.Quantity).ToString("0.00",
+                                            System.Globalization.CultureInfo.GetCultureInfo("de-DE"))) €
+                                    </MudText>
+                                </MudStack>
+                            }
+                        </MudStack>
+
+                        <MudDivider Class="mb-4" />
+
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                @order.ShippingAddress.FirstName @order.ShippingAddress.LastName,
+                                @order.ShippingAddress.City
+                            </MudText>
+                            <MudText Typo="Typo.h6" Style="font-weight:700;">
+                                @order.Total.ToString("0.00",
+                                    System.Globalization.CultureInfo.GetCultureInfo("de-DE")) €
+                            </MudText>
+                        </MudStack>
+                    </MudPaper>
+                }
+            </MudStack>
+        }
+    </MudContainer>
+</section>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private List<OrderDto> _orders = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
+        var sub = state.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(sub, out var customerId)) { _loading = false; return; }
+
+        try
+        {
+            _orders = await Ordering.GetOrdersByCustomerAsync(customerId);
+            _orders = [.._orders.OrderByDescending(o => o.CreatedAt)];
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static Color GetStatusColor(string status) => status switch
+    {
+        "Pending"    => Color.Warning,
+        "Processing" => Color.Info,
+        "Shipped"    => Color.Primary,
+        "Delivered"  => Color.Success,
+        "Cancelled"  => Color.Error,
+        _            => Color.Default,
+    };
+
+    private static string GetStatusLabel(string status) => status switch
+    {
+        "Pending"    => "Ausstehend",
+        "Processing" => "In Bearbeitung",
+        "Shipped"    => "Versendet",
+        "Delivered"  => "Geliefert",
+        "Cancelled"  => "Storniert",
+        _            => status,
+    };
+}

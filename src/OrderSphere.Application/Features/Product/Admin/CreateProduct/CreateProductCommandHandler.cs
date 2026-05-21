@@ -1,50 +1,13 @@
-using Microsoft.Extensions.Caching.Hybrid;
-using Microsoft.Extensions.Logging;
 using OrderSphere.Application.Abstraction;
-using OrderSphere.Application.Caching;
+using OrderSphere.Application.Models.Admin;
 using OrderSphere.Domain.Abstraction;
-using OrderSphere.Domain.Errors;
 using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Application.Features.Product.Admin.CreateProduct;
 
-public sealed class CreateProductCommandHandler(
-    IDbContext context,
-    HybridCache cache,
-    ILogger<CreateProductCommandHandler> logger
-) : ICommandHandler<CreateProductCommand, Result<Guid>>
+public sealed class CreateProductCommandHandler(ICatalogClient catalogClient)
+    : ICommandHandler<CreateProductCommand, Result<Guid>>
 {
-    public async Task<Result<Guid>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
-    {
-        var input = request.Input;
-
-        if (input.Price <= 0)
-            return Result<Guid>.Failure(ProductErrors.InvalidPrice);
-
-        try
-        {
-            var product = new Domain.Entities.Product(
-                input.Name,
-                input.Description,
-                input.Price,
-                input.Stock,
-                input.CategoryId,
-                input.SKU);
-
-            await context.BeginTransactionAsync(cancellationToken);
-            await context.Products.AddAsync(product, cancellationToken);
-            await context.CommitAsync(cancellationToken);
-
-            await cache.RemoveByTagAsync(CatalogCache.Tag, cancellationToken);
-
-            logger.LogInformation("Product {ProductId} '{Name}' created", product.Id, product.Name);
-            return Result<Guid>.Success(product.Id);
-        }
-        catch (Exception ex)
-        {
-            await context.RollbackAsync(cancellationToken);
-            logger.LogError(ex, "Failed to create product '{Name}'", input.Name);
-            return Result<Guid>.Failure(ProductErrors.UnknownError);
-        }
-    }
+    public Task<Result<Guid>> Handle(CreateProductCommand request, CancellationToken ct)
+        => catalogClient.CreateProductAsync(request.Input, ct);
 }

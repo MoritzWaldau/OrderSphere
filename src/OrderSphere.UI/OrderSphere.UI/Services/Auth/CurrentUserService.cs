@@ -80,19 +80,20 @@ public sealed class CurrentUserService : ICurrentUserService, IDisposable
         }
 
 
+        // Keycloak issues the user's GUID as "sub" — mapped to NameIdentifier in the OIDC handler.
         var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            ?? throw new InvalidOperationException("User ID claim (NameIdentifier) is missing from ClaimsPrincipal.");
+            ?? user.FindFirst("sub")?.Value
+            ?? throw new InvalidOperationException("User ID claim (sub / NameIdentifier) is missing from ClaimsPrincipal.");
 
-        var firstName = user.FindFirst("FirstName")?.Value
-            ?? throw new InvalidOperationException("FirstName claim is missing from ClaimsPrincipal.");
-
-        var lastName = user.FindFirst("LastName")?.Value
-            ?? throw new InvalidOperationException("LastName claim is missing from ClaimsPrincipal.");
-
-        var fullName = $"{firstName} {lastName}";
+        var firstName = user.FindFirst("given_name")?.Value ?? string.Empty;
+        var lastName = user.FindFirst("family_name")?.Value ?? string.Empty;
+        var fullName = string.IsNullOrWhiteSpace($"{firstName}{lastName}")
+            ? user.Identity?.Name ?? userId
+            : $"{firstName} {lastName}".Trim();
 
         var email = user.FindFirst(ClaimTypes.Email)?.Value
-            ?? throw new InvalidOperationException("Email claim is missing from ClaimsPrincipal.");
+            ?? user.FindFirst("email")?.Value
+            ?? string.Empty;
 
         return new CurrentUserInfo
         {

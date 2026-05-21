@@ -31,7 +31,7 @@ public sealed class OutboxDispatcher(
         var context = scope.ServiceProvider.GetRequiredService<OrderSphereDbContext>();
 
         var messages = await context.OutboxMessages
-            .Where(m => m.ProcessedAt == null && m.Error == null)
+            .Where(m => m.ProcessedAt == null && m.RetryCount < OutboxMessage.MaxRetries)
             .OrderBy(m => m.OccurredAt)
             .Take(20)
             .ToListAsync(ct);
@@ -45,11 +45,21 @@ public sealed class OutboxDispatcher(
             {
                 await DispatchAsync(message, ct);
                 message.ProcessedAt = DateTime.UtcNow;
+                message.Error = null;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to dispatch outbox message {Id} of type {Type}", message.Id, message.Type);
+                message.RetryCount++;
                 message.Error = ex.Message;
+
+                if (message.RetryCount >= OutboxMessage.MaxRetries)
+                    logger.LogError(ex,
+                        "Outbox message {Id} ({Type}) permanently failed after {MaxRetries} attempts",
+                        message.Id, message.Type, OutboxMessage.MaxRetries);
+                else
+                    logger.LogWarning(ex,
+                        "Outbox message {Id} ({Type}) failed on attempt {Attempt}/{Max}. Will retry.",
+                        message.Id, message.Type, message.RetryCount, OutboxMessage.MaxRetries);
             }
         }
 

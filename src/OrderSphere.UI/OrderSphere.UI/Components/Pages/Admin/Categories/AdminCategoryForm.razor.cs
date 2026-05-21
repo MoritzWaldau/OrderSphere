@@ -3,7 +3,6 @@ using MudBlazor;
 using OrderSphere.Application.Features.Category.Admin.CreateCategory;
 using OrderSphere.Application.Features.Category.Admin.GetAllCategoriesAdmin;
 using OrderSphere.Application.Features.Category.Admin.UpdateCategory;
-using OrderSphere.Application.Models.Admin;
 using OrderSphere.UI.Configuration;
 
 namespace OrderSphere.UI.Components.Pages.Admin.Categories;
@@ -52,11 +51,9 @@ public partial class AdminCategoryForm : OrderSphereComponentBase
         _isSaving = true;
         try
         {
-            var input = new AdminCategoryInput(_model.Name, _model.Description);
-
             if (IsEdit)
             {
-                var result = await Sender.Send(new UpdateCategoryCommand(CategoryId!.Value, input, _model.IsActive));
+                var result = await Sender.Send(new UpdateCategoryCommand(CategoryId!.Value, _model.Name, _model.Description, _model.IsActive));
                 if (result.IsSuccess)
                 {
                     Snackbar.Add("Kategorie aktualisiert.", Severity.Success);
@@ -66,7 +63,7 @@ public partial class AdminCategoryForm : OrderSphereComponentBase
             }
             else
             {
-                var result = await Sender.Send(new CreateCategoryCommand(input));
+                var result = await Sender.Send(new CreateCategoryCommand(_model.Name, _model.Description));
                 if (result.IsSuccess)
                 {
                     Snackbar.Add("Kategorie angelegt.", Severity.Success);

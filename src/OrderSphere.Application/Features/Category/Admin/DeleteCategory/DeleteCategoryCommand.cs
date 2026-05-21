@@ -3,5 +3,4 @@ using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Application.Features.Category.Admin.DeleteCategory;
 
-public sealed record DeleteCategoryCommand(Guid CategoryId)
-    : ICommand<Result<bool>>;
+public sealed record DeleteCategoryCommand(Guid CategoryId, string Name) : ICommand<Result<bool>>;

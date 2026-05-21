@@ -1,6 +1,6 @@
 using OrderSphere.Application.Models;
 using OrderSphere.Application.Models.Admin;
-using OrderSphere.Domain.Primitives;
+using OrderSphere.BuildingBlocks.Primitives;
 
 namespace OrderSphere.Application.Abstraction;
 

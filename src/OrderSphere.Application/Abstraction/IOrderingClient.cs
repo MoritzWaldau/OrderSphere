@@ -1,7 +1,7 @@
 using OrderSphere.Application.Models;
 using OrderSphere.Application.Models.Admin;
+using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Domain.Enums;
-using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Application.Abstraction;
 

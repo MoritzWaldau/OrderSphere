@@ -1,6 +1,6 @@
-using OrderSphere.Domain.Primitives;
+using OrderSphere.BuildingBlocks.Primitives;
 
-namespace OrderSphere.Domain.Extensions;
+namespace OrderSphere.BuildingBlocks.Extensions;
 
 public static class ResultExtensions
 {

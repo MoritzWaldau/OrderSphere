@@ -1,7 +1,7 @@
 using FluentValidation;
 using MediatR;
 
-namespace OrderSphere.Domain.Behaviors;
+namespace OrderSphere.BuildingBlocks.Behaviors;
 
 public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
     : IPipelineBehavior<TRequest, TResponse>

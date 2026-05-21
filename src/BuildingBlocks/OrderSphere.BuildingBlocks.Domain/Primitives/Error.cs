@@ -1,4 +1,4 @@
-namespace OrderSphere.Domain.Primitives;
+namespace OrderSphere.BuildingBlocks.Primitives;
 
 public sealed record Error(
     string Code,

@@ -1,4 +1,4 @@
-using OrderSphere.Domain.Abstraction;
+using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.ValueObjects;
 

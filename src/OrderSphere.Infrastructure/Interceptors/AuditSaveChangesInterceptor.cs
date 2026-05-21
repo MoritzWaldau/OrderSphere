@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
-using OrderSphere.Domain.Abstraction;
+using OrderSphere.BuildingBlocks.Abstraction;
 
 namespace OrderSphere.Infrastructure.Interceptors;
 

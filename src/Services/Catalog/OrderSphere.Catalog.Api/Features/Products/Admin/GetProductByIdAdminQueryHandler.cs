@@ -1,9 +1,9 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Catalog.Api.Models.Admin;
 using OrderSphere.Catalog.Domain.Errors;
 using OrderSphere.Catalog.Infrastructure.Persistence;
-using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Catalog.Api.Features.Products.Admin;
 

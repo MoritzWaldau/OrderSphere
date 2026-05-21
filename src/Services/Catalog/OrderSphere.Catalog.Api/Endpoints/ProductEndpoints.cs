@@ -1,36 +1,78 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using OrderSphere.Catalog.Api.Features.Products;
-using OrderSphere.Catalog.Api.Features.Products.Admin;
-using OrderSphere.Catalog.Api.Models;
-using OrderSphere.Catalog.Api.Models.Admin;
-using OrderSphere.Catalog.Infrastructure.Persistence;
+using OrderSphere.Catalog.Application.Abstractions;
+using OrderSphere.Catalog.Application.DTOs.Admin;
+using OrderSphere.Catalog.Application.Features.Products;
+using OrderSphere.Catalog.Application.Features.Products.Admin;
 
 namespace OrderSphere.Catalog.Api.Endpoints;
 
 public static class ProductEndpoints
 {
-    public static void MapProductEndpoints(this IEndpointRouteBuilder app)
+    public static void MapPublicProductEndpoints(this RouteGroupBuilder group)
     {
-        var pub = app.MapGroup("/api/v1/products");
-        pub.MapGet("/", GetProducts);
-        pub.MapGet("/batch", GetProductsByIds);
-        pub.MapGet("/{slug}", GetProductBySlug);
-        pub.MapPost("/{id:guid}/stock/decrement", DecrementStock);
-        pub.MapPost("/{id:guid}/stock/restore", RestoreStock);
+        group.MapGet("/", GetProducts)
+            .WithName("GetProducts")
+            .WithTags("Products")
+            .WithOpenApi();
 
-        var admin = app.MapGroup("/api/v1/admin/products").RequireAuthorization("AdminPolicy");
-        admin.MapGet("/", GetAllAdmin);
-        admin.MapGet("/{id:guid}", GetByIdAdmin);
-        admin.MapPost("/", Create);
-        admin.MapPut("/{id:guid}", Update);
-        admin.MapDelete("/{id:guid}", Delete);
+        group.MapGet("/batch", GetProductsByIds)
+            .WithName("GetProductsByIds")
+            .WithTags("Products")
+            .WithOpenApi();
+
+        group.MapGet("/{slug}", GetProductBySlug)
+            .WithName("GetProductBySlug")
+            .WithTags("Products")
+            .WithOpenApi();
+
+        group.MapPost("/{id:guid}/stock/decrement", DecrementStock)
+            .WithName("DecrementStock")
+            .WithTags("Products")
+            .WithOpenApi();
+
+        group.MapPost("/{id:guid}/stock/restore", RestoreStock)
+            .WithName("RestoreStock")
+            .WithTags("Products")
+            .WithOpenApi();
     }
 
-    private static async Task<IResult> GetProducts(IMediator mediator, CancellationToken ct)
+    public static void MapAdminProductEndpoints(this RouteGroupBuilder group)
     {
-        var result = await mediator.Send(new GetProductsQuery(), ct);
+        group.MapGet("/", GetAllAdmin)
+            .WithName("AdminGetAllProducts")
+            .WithTags("Products Admin")
+            .WithOpenApi();
+
+        group.MapGet("/{id:guid}", GetByIdAdmin)
+            .WithName("AdminGetProductById")
+            .WithTags("Products Admin")
+            .WithOpenApi();
+
+        group.MapPost("/", Create)
+            .WithName("AdminCreateProduct")
+            .WithTags("Products Admin")
+            .WithOpenApi();
+
+        group.MapPut("/{id:guid}", Update)
+            .WithName("AdminUpdateProduct")
+            .WithTags("Products Admin")
+            .WithOpenApi();
+
+        group.MapDelete("/{id:guid}", Delete)
+            .WithName("AdminDeleteProduct")
+            .WithTags("Products Admin")
+            .WithOpenApi();
+    }
+
+    private static async Task<IResult> GetProducts(
+        [FromQuery] int page,
+        [FromQuery] int pageSize,
+        IMediator mediator,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetProductsQuery(page == 0 ? 1 : page, pageSize == 0 ? 20 : pageSize), ct);
         return result.IsSuccess ? Results.Ok(result.Value) : Results.Problem(result.Error.Description);
     }
 
@@ -44,10 +86,10 @@ public static class ProductEndpoints
             .Where(g => g.HasValue).Select(g => g!.Value)
             .ToList();
 
-        var result = await mediator.Send(new GetProductsQuery(), ct);
+        var result = await mediator.Send(new GetProductsQuery(1, int.MaxValue), ct);
         if (!result.IsSuccess) return Results.Problem(result.Error.Description);
 
-        var filtered = result.Value.Where(p => productIds.Contains(p.Id));
+        var filtered = result.Value.Items.Where(p => productIds.Contains(p.Id));
         return Results.Ok(filtered);
     }
 
@@ -92,7 +134,7 @@ public static class ProductEndpoints
     }
 
     private static async Task<IResult> DecrementStock(
-        Guid id, [FromBody] StockChangeRequest body, CatalogDbContext context, CancellationToken ct)
+        Guid id, [FromBody] StockChangeRequest body, ICatalogDbContext context, CancellationToken ct)
     {
         var product = await context.Products.AsTracking().FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
         if (product is null) return Results.NotFound();
@@ -103,7 +145,7 @@ public static class ProductEndpoints
     }
 
     private static async Task<IResult> RestoreStock(
-        Guid id, [FromBody] StockChangeRequest body, CatalogDbContext context, CancellationToken ct)
+        Guid id, [FromBody] StockChangeRequest body, ICatalogDbContext context, CancellationToken ct)
     {
         var product = await context.Products.AsTracking().FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
         if (product is null) return Results.NotFound();

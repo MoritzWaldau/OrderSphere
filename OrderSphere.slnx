@@ -7,7 +7,10 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/src/BuildingBlocks/">
-    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/OrderSphere.BuildingBlocks.Domain.csproj" />
+    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/OrderSphere.BuildingBlocks.csproj" />
+  </Folder>
+  <Folder Name="/src/Hosting/">
+    <Project Path="src/OrderSphere.AppHost/OrderSphere.AppHost.csproj" />
   </Folder>
   <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/Catalog/">
@@ -31,7 +34,6 @@
     <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Infrastructure/OrderSphere.UserProfile.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/OrderSphere.AppHost/OrderSphere.AppHost.csproj" />
     <Project Path="src/OrderSphere.Application/OrderSphere.Application.csproj" />
     <Project Path="src/OrderSphere.Domain/OrderSphere.Domain.csproj" />
     <Project Path="src/OrderSphere.Hosting/OrderSphere.Hosting.csproj" />

@@ -1,4 +1,4 @@
-namespace OrderSphere.Domain.Abstraction;
+namespace OrderSphere.BuildingBlocks.Abstraction;
 
 public interface IAuditableEntity
 {

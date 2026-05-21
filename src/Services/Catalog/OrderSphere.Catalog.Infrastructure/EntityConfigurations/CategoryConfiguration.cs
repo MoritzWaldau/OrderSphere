@@ -1,7 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using OrderSphere.Catalog.Domain.Entities;
-
 namespace OrderSphere.Catalog.Infrastructure.EntityConfigurations;
 
 public sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>

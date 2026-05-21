@@ -4,8 +4,8 @@ using MudBlazor;
 using OrderSphere.Application.Features.Cart.AddToCart;
 using OrderSphere.Application.Features.Product.GetProductBySlug;
 using OrderSphere.Application.Models;
+using OrderSphere.BuildingBlocks.Extensions;
 using OrderSphere.Domain.Entities;
-using OrderSphere.Domain.Extensions;
 using OrderSphere.UI.Configuration;
 using OrderSphere.UI.Services;
 

@@ -1,6 +1,6 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
-using OrderSphere.Domain.Primitives;
+using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Ordering.Api.Models;
 using OrderSphere.Ordering.Domain.Errors;
 

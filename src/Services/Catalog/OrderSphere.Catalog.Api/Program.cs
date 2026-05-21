@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.Catalog.Api.Endpoints;
 using OrderSphere.Catalog.Api.Exceptions;
 using OrderSphere.Catalog.Api.Grpc;
 using OrderSphere.Catalog.Infrastructure.Persistence;
-using OrderSphere.Domain.Behaviors;
 
 var builder = WebApplication.CreateBuilder(args);
 

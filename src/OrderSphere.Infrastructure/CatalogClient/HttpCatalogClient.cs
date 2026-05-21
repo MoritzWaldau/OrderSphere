@@ -4,8 +4,8 @@ using Microsoft.Extensions.Logging;
 using OrderSphere.Application.Abstraction;
 using OrderSphere.Application.Models;
 using OrderSphere.Application.Models.Admin;
+using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Domain.Errors;
-using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Infrastructure.CatalogClient;
 

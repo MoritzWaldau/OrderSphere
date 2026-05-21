@@ -2,9 +2,9 @@ using Microsoft.Extensions.Logging;
 using OrderSphere.Application.Abstraction;
 using OrderSphere.Application.Models;
 using OrderSphere.Application.Models.Admin;
+using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Domain.Enums;
 using OrderSphere.Domain.Errors;
-using OrderSphere.Domain.Primitives;
 using System.Net.Http.Json;
 using System.Text.Json;
 

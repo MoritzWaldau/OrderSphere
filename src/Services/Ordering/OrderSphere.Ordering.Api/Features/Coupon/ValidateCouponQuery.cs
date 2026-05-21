@@ -1,5 +1,5 @@
 using MediatR;
-using OrderSphere.Domain.Primitives;
+using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Ordering.Api.Models;
 
 namespace OrderSphere.Ordering.Api.Features.Coupon;

@@ -9,11 +9,11 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Asp.Versioning.Http" />
+    <PackageReference Include="Asp.Versioning.ApiExplorer" />
     <PackageReference Include="Grpc.AspNetCore" />
-    <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="Aspire.StackExchange.Redis.DistributedCaching" />
   </ItemGroup>
 
@@ -22,8 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OrderSphere.Catalog.Domain\OrderSphere.Catalog.Domain.csproj" />
+    <ProjectReference Include="..\OrderSphere.Catalog.Application\OrderSphere.Catalog.Application.csproj" />
     <ProjectReference Include="..\OrderSphere.Catalog.Infrastructure\OrderSphere.Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

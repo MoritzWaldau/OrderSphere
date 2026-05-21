@@ -1,9 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-using OrderSphere.Catalog.Domain.Entities;
-
 namespace OrderSphere.Catalog.Infrastructure.Persistence;
 
-public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbContext(options)
+public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbContext(options), ICatalogDbContext
 {
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Category> Categories => Set<Category>();

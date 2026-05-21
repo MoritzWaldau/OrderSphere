@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using OrderSphere.Domain.Behaviors;
+using OrderSphere.BuildingBlocks.Behaviors;
 
 namespace OrderSphere.Application;
 

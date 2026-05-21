@@ -5,10 +5,10 @@ using OrderSphere.Application.Features.Product.GetProduct;
 using OrderSphere.Application.Features.Cart.AddToCart;
 using OrderSphere.Application.Features.Cart.GetCart;
 using OrderSphere.Application.Models;
-using OrderSphere.Domain.Extensions;
 using OrderSphere.UI.Configuration;
 using OrderSphere.UI.Services;
 using OrderSphere.UI.Services.Auth;
+using OrderSphere.BuildingBlocks.Extensions;
 
 namespace OrderSphere.UI.Components.Pages.Shopping;
 

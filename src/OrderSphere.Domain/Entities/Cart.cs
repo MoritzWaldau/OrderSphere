@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OrderSphere.Domain.Abstraction;
+using OrderSphere.BuildingBlocks.Abstraction;
+
 namespace OrderSphere.Domain.Entities;
 
 public sealed class Cart(Guid customerId) : AuditableEntity

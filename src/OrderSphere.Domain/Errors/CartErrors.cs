@@ -1,5 +1,5 @@
-﻿using OrderSphere.Domain.Enums;
-using OrderSphere.Domain.Primitives;
+﻿using OrderSphere.BuildingBlocks.Primitives;
+using OrderSphere.Domain.Enums;
 
 namespace OrderSphere.Domain.Errors;
 

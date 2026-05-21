@@ -1,6 +1,6 @@
 ﻿using OrderSphere.Application.Models;
-using OrderSphere.Domain.Abstraction;
-using OrderSphere.Domain.Primitives;
+using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.Primitives;
 
 namespace OrderSphere.Application.Features.Checkout;
 

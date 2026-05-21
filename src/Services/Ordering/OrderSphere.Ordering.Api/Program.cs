@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using OrderSphere.Domain.Behaviors;
+using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.Ordering.Api.Abstractions;
 using OrderSphere.Ordering.Api.CatalogClient;
 using OrderSphere.Ordering.Api.Endpoints;

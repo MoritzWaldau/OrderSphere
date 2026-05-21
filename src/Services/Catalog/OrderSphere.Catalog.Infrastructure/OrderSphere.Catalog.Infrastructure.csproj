@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OrderSphere.Catalog.Application\OrderSphere.Catalog.Application.csproj" />
     <ProjectReference Include="..\OrderSphere.Catalog.Domain\OrderSphere.Catalog.Domain.csproj" />
   </ItemGroup>
 

@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
+using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Catalog.Api.Caching;
 using OrderSphere.Catalog.Domain.Entities;
 using OrderSphere.Catalog.Domain.Errors;
 using OrderSphere.Catalog.Infrastructure.Persistence;
-using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Catalog.Api.Features.Products.Admin;
 

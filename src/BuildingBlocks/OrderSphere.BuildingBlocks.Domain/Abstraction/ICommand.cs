@@ -1,5 +1,5 @@
 using MediatR;
 
-namespace OrderSphere.Domain.Abstraction;
+namespace OrderSphere.BuildingBlocks.Abstraction;
 
 public interface ICommand<out TResponse> : IRequest<TResponse>;

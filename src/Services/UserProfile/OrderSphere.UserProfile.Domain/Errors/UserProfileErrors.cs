@@ -1,4 +1,4 @@
-using OrderSphere.Domain.Primitives;
+using OrderSphere.BuildingBlocks.Primitives;
 
 namespace OrderSphere.UserProfile.Domain.Errors;
 

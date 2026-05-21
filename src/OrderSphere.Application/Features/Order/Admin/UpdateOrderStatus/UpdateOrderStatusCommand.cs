@@ -1,6 +1,6 @@
-using OrderSphere.Domain.Abstraction;
+using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Domain.Enums;
-using OrderSphere.Domain.Primitives;
 
 namespace OrderSphere.Application.Features.Order.Admin.UpdateOrderStatus;
 

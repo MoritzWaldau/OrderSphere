@@ -1,4 +1,4 @@
-﻿using OrderSphere.Domain.Abstraction;
+﻿using OrderSphere.BuildingBlocks.Abstraction;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;

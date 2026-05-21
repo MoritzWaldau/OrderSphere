@@ -1,5 +1,5 @@
 using MediatR;
-using OrderSphere.Domain.Primitives;
+using OrderSphere.BuildingBlocks.Primitives;
 
 namespace OrderSphere.Catalog.Api.Features.Categories.Admin;
 

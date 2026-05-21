@@ -1,5 +1,5 @@
-﻿using OrderSphere.Domain.Abstraction;
-using OrderSphere.Domain.Primitives;
+﻿using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Text;

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace OrderSphere.Domain.Abstraction;
+namespace OrderSphere.BuildingBlocks.Abstraction;
 
 public abstract class AuditableEntity : IAuditableEntity
 {

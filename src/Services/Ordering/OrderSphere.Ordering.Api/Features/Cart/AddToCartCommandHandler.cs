@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using OrderSphere.Domain.Primitives;
+using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Ordering.Api.Abstractions;
 using OrderSphere.Ordering.Domain.Entities;
 using OrderSphere.Ordering.Domain.Errors;

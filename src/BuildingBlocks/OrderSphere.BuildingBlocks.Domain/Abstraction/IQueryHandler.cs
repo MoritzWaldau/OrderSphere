@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace OrderSphere.Domain.Abstraction;
+namespace OrderSphere.BuildingBlocks.Abstraction;
 
 public interface IQueryHandler<in TQuery, TResponse>
     : IRequestHandler<TQuery, TResponse>

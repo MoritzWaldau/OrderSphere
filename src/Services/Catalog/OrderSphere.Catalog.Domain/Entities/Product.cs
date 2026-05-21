@@ -1,4 +1,4 @@
-using OrderSphere.Domain.Abstraction;
+using OrderSphere.BuildingBlocks.Abstraction;
 using System.Text.RegularExpressions;
 
 namespace OrderSphere.Catalog.Domain.Entities;

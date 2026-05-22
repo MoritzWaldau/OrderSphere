@@ -43,6 +43,9 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     scope.ServiceProvider.GetRequiredService<CatalogDbContext>().Database.Migrate();
     app.UseCatalogSwagger();
+
+    var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+    dbContext.Database.EnsureCreated();
 }
 
 // Middleware pipeline (order matters)

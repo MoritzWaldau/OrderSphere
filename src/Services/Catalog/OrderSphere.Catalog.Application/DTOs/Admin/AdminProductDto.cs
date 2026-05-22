@@ -21,4 +21,5 @@ public sealed record AdminProductInput(
     int Stock,
     Guid CategoryId,
     string SKU,
-    bool IsActive = true);
+    bool IsActive = true,
+    string? ImageUrl = null);

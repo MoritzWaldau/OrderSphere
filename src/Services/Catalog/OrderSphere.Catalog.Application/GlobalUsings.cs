@@ -6,5 +6,6 @@ global using OrderSphere.Catalog.Application.Caching;
 global using OrderSphere.Catalog.Domain.Errors;
 global using OrderSphere.Catalog.Application.DTOs;
 global using OrderSphere.Catalog.Application.DTOs.Admin;
+global using OrderSphere.Catalog.Application.DTOs.Public;
 global using FluentValidation;
 global using Microsoft.Extensions.DependencyInjection;

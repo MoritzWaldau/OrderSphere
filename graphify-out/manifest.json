@@ -1,0 +1,322 @@
+{
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\appsettings.json": {
+    "mtime": 1779226854.3277397,
+    "ast_hash": "68ee964051c5556d99385e29318a6b5c",
+    "semantic_hash": "68ee964051c5556d99385e29318a6b5c"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Program.cs": {
+    "mtime": 1779397053.8780994,
+    "ast_hash": "2e61130c8c64733ae7a27bbfbf482307",
+    "semantic_hash": "2e61130c8c64733ae7a27bbfbf482307"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Configuration\\ApiVersioningExtensions.cs": {
+    "mtime": 1779396694.9269803,
+    "ast_hash": "cec399430453874e99c901d5b60269bc",
+    "semantic_hash": "cec399430453874e99c901d5b60269bc"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Configuration\\AuthenticationExtensions.cs": {
+    "mtime": 1779396492.398565,
+    "ast_hash": "d54b5ccc64aa792d9f14c3cb38626467",
+    "semantic_hash": "d54b5ccc64aa792d9f14c3cb38626467"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Configuration\\AuthorizationExtensions.cs": {
+    "mtime": 1779396496.5576847,
+    "ast_hash": "3556d0a44a8a3a9e7d04eb7ad47c9888",
+    "semantic_hash": "3556d0a44a8a3a9e7d04eb7ad47c9888"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Configuration\\ConfigureSwaggerOptions.cs": {
+    "mtime": 1779396699.537211,
+    "ast_hash": "1182e87d01c47728cdb700f59c07b15b",
+    "semantic_hash": "1182e87d01c47728cdb700f59c07b15b"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Configuration\\RateLimitingExtensions.cs": {
+    "mtime": 1779389033.1512525,
+    "ast_hash": "be08c990f4952c7559fbcc428743699b",
+    "semantic_hash": "be08c990f4952c7559fbcc428743699b"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Configuration\\SwaggerExtensions.cs": {
+    "mtime": 1779396703.8449993,
+    "ast_hash": "081777438e710c19a5207a7c0f5c7928",
+    "semantic_hash": "081777438e710c19a5207a7c0f5c7928"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Endpoints\\EndpointMappingExtensions.cs": {
+    "mtime": 1779389044.8631103,
+    "ast_hash": "d14d1c416445439c93ed97578a4a4bc7",
+    "semantic_hash": "d14d1c416445439c93ed97578a4a4bc7"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Endpoints\\Admin\\CategoryEndpoints.cs": {
+    "mtime": 1779398566.9118268,
+    "ast_hash": "522c6dc089c6bef661e387e8bd7e1f3b",
+    "semantic_hash": "522c6dc089c6bef661e387e8bd7e1f3b"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Endpoints\\Admin\\ProductEndpoints.cs": {
+    "mtime": 1779398411.1992173,
+    "ast_hash": "cef013e12f3db3ec0c346ec8630c0c3e",
+    "semantic_hash": "cef013e12f3db3ec0c346ec8630c0c3e"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Endpoints\\Internal\\ProductEndpoints.cs": {
+    "mtime": 1779389029.3960164,
+    "ast_hash": "22c93c899731f51d06931d7a6374765d",
+    "semantic_hash": "22c93c899731f51d06931d7a6374765d"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Endpoints\\Public\\CategoryEndpoints.cs": {
+    "mtime": 1779389013.3777785,
+    "ast_hash": "583657ac69f00fc0b11ca315988dc195",
+    "semantic_hash": "583657ac69f00fc0b11ca315988dc195"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Endpoints\\Public\\ProductEndpoints.cs": {
+    "mtime": 1779389002.2355187,
+    "ast_hash": "fc77b010a190f2e02747de8bb012498d",
+    "semantic_hash": "fc77b010a190f2e02747de8bb012498d"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Exceptions\\ValidationExceptionHandler.cs": {
+    "mtime": 1779366406.63756,
+    "ast_hash": "985e4113b4f5442fdbe8d1658591a7e7",
+    "semantic_hash": "985e4113b4f5442fdbe8d1658591a7e7"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Grpc\\CatalogGrpcService.cs": {
+    "mtime": 1779397258.126554,
+    "ast_hash": "892c9c52a66e255beb1106394eecc72f",
+    "semantic_hash": "892c9c52a66e255beb1106394eecc72f"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Api\\Properties\\launchSettings.json": {
+    "mtime": 1779227346.5231154,
+    "ast_hash": "019cbc38598f3c088bd884f1c25a90ae",
+    "semantic_hash": "019cbc38598f3c088bd884f1c25a90ae"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\DependencyInjection.cs": {
+    "mtime": 1779388117.4319954,
+    "ast_hash": "b81c388f56ba25fc3accf57686cc023c",
+    "semantic_hash": "b81c388f56ba25fc3accf57686cc023c"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\GlobalUsings.cs": {
+    "mtime": 1779388086.2647176,
+    "ast_hash": "301a374902fbe6dbedcbf72b185e6bab",
+    "semantic_hash": "301a374902fbe6dbedcbf72b185e6bab"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Abstractions\\ICatalogDbContext.cs": {
+    "mtime": 1779370730.1049488,
+    "ast_hash": "6630fcb82ec5de7f0244c022d7f3fdb5",
+    "semantic_hash": "6630fcb82ec5de7f0244c022d7f3fdb5"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Caching\\CatalogCache.cs": {
+    "mtime": 1779370756.8896866,
+    "ast_hash": "a8b940a977d5a0172da2ed1c49bd0690",
+    "semantic_hash": "a8b940a977d5a0172da2ed1c49bd0690"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\DTOs\\PagedResult.cs": {
+    "mtime": 1779370734.4923825,
+    "ast_hash": "9b3f212907ad7b11a84d81b07386c0ef",
+    "semantic_hash": "9b3f212907ad7b11a84d81b07386c0ef"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\DTOs\\Admin\\AdminCategoryDto.cs": {
+    "mtime": 1779370751.7302089,
+    "ast_hash": "a0f51b9fc6c72983aa0cb49230fde4a5",
+    "semantic_hash": "a0f51b9fc6c72983aa0cb49230fde4a5"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\DTOs\\Admin\\AdminProductDto.cs": {
+    "mtime": 1779398401.9678762,
+    "ast_hash": "2c43f0d63b9c502034fe39a4dc048b44",
+    "semantic_hash": "2c43f0d63b9c502034fe39a4dc048b44"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\DTOs\\Public\\CategoryDto.cs": {
+    "mtime": 1779388079.5853193,
+    "ast_hash": "92397ac88e00df970fb84cd3bdb3ad80",
+    "semantic_hash": "92397ac88e00df970fb84cd3bdb3ad80"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\DTOs\\Public\\ProductDto.cs": {
+    "mtime": 1779388076.9868593,
+    "ast_hash": "fb2082361eac3439f75f9f4ed31c6e42",
+    "semantic_hash": "fb2082361eac3439f75f9f4ed31c6e42"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Categories\\Admin\\CreateCategory\\CreateCategoryCommand.cs": {
+    "mtime": 1779388005.3838663,
+    "ast_hash": "0093a5c4ac79e70ad33a27b7793d2128",
+    "semantic_hash": "0093a5c4ac79e70ad33a27b7793d2128"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Categories\\Admin\\CreateCategory\\CreateCategoryCommandHandler.cs": {
+    "mtime": 1779434919.9434304,
+    "ast_hash": "2f390f4c043d3598289bae1a03901831",
+    "semantic_hash": "2f390f4c043d3598289bae1a03901831"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Categories\\Admin\\CreateCategory\\CreateCategoryCommandValidator.cs": {
+    "mtime": 1779388011.5369356,
+    "ast_hash": "c0dd297fa470f31a3f507745485cd4de",
+    "semantic_hash": "c0dd297fa470f31a3f507745485cd4de"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Categories\\Admin\\DeleteCategory\\DeleteCategoryCommand.cs": {
+    "mtime": 1779398564.147148,
+    "ast_hash": "1101ed67d4a3216fa47d73763ddbd61b",
+    "semantic_hash": "1101ed67d4a3216fa47d73763ddbd61b"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Categories\\Admin\\DeleteCategory\\DeleteCategoryCommandHandler.cs": {
+    "mtime": 1779435145.5299168,
+    "ast_hash": "9c643a2cccb60218e6035b326c8ad085",
+    "semantic_hash": "9c643a2cccb60218e6035b326c8ad085"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Categories\\Admin\\GetAllCategoriesAdmin\\GetAllCategoriesAdminQuery.cs": {
+    "mtime": 1779387996.3424194,
+    "ast_hash": "a4f47846361a02fd99dc49c340d19e73",
+    "semantic_hash": "a4f47846361a02fd99dc49c340d19e73"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Categories\\Admin\\GetAllCategoriesAdmin\\GetAllCategoriesAdminQueryHandler.cs": {
+    "mtime": 1779388001.850198,
+    "ast_hash": "5cfc70e19476d85b068624d5d26c6bbb",
+    "semantic_hash": "5cfc70e19476d85b068624d5d26c6bbb"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Categories\\Admin\\UpdateCategory\\UpdateCategoryCommand.cs": {
+    "mtime": 1779388014.0782015,
+    "ast_hash": "2014a692306c822b01a65f357f0245e8",
+    "semantic_hash": "2014a692306c822b01a65f357f0245e8"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Categories\\Admin\\UpdateCategory\\UpdateCategoryCommandHandler.cs": {
+    "mtime": 1779435036.0692317,
+    "ast_hash": "f9f2f6d590a30c3f65c0bf67fe6d54d4",
+    "semantic_hash": "f9f2f6d590a30c3f65c0bf67fe6d54d4"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Categories\\Admin\\UpdateCategory\\UpdateCategoryCommandValidator.cs": {
+    "mtime": 1779388020.434731,
+    "ast_hash": "d7614ba39b5697a430684cd9a6ae07d0",
+    "semantic_hash": "d7614ba39b5697a430684cd9a6ae07d0"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Categories\\Public\\GetCategories\\GetCategoriesQuery.cs": {
+    "mtime": 1779387987.0042582,
+    "ast_hash": "05051c038141c10ef5df7b9b2e58a8ce",
+    "semantic_hash": "05051c038141c10ef5df7b9b2e58a8ce"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Categories\\Public\\GetCategories\\GetCategoriesQueryHandler.cs": {
+    "mtime": 1779387992.3806424,
+    "ast_hash": "89b5b3d7a1d533ebbe4abcafb27f59ed",
+    "semantic_hash": "89b5b3d7a1d533ebbe4abcafb27f59ed"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Admin\\CreateProduct\\CreateProductCommand.cs": {
+    "mtime": 1779398389.7178354,
+    "ast_hash": "82761ee0e35f7b2f4dbdebd4604e5ccf",
+    "semantic_hash": "82761ee0e35f7b2f4dbdebd4604e5ccf"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Admin\\CreateProduct\\CreateProductCommandHandler.cs": {
+    "mtime": 1779434564.2623017,
+    "ast_hash": "d4d040a7e3bbc0ea65a1960e0b46531d",
+    "semantic_hash": "d4d040a7e3bbc0ea65a1960e0b46531d"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Admin\\CreateProduct\\CreateProductCommandValidator.cs": {
+    "mtime": 1779387970.1329236,
+    "ast_hash": "dfa063cb928b7658392aca0a4ff98d14",
+    "semantic_hash": "dfa063cb928b7658392aca0a4ff98d14"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Admin\\DeleteProduct\\DeleteProductCommand.cs": {
+    "mtime": 1779387981.0894299,
+    "ast_hash": "98c4d899576e9ad13e86231346097ee0",
+    "semantic_hash": "98c4d899576e9ad13e86231346097ee0"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Admin\\DeleteProduct\\DeleteProductCommandHandler.cs": {
+    "mtime": 1779434717.1273668,
+    "ast_hash": "6c2f2dc07a7690750749add7b01c3121",
+    "semantic_hash": "6c2f2dc07a7690750749add7b01c3121"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Admin\\GetAllProductsAdmin\\GetAllProductsAdminQuery.cs": {
+    "mtime": 1779387946.6902978,
+    "ast_hash": "1349b8dacb7504a61db5c37b54e36c4a",
+    "semantic_hash": "1349b8dacb7504a61db5c37b54e36c4a"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Admin\\GetAllProductsAdmin\\GetAllProductsAdminQueryHandler.cs": {
+    "mtime": 1779387951.9729104,
+    "ast_hash": "429c0468146ef4e3745777e3dd398d21",
+    "semantic_hash": "429c0468146ef4e3745777e3dd398d21"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Admin\\GetProductByIdAdmin\\GetProductByIdAdminQuery.cs": {
+    "mtime": 1779387955.9818769,
+    "ast_hash": "fa257893b52b2c92513eab902ef65132",
+    "semantic_hash": "fa257893b52b2c92513eab902ef65132"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Admin\\GetProductByIdAdmin\\GetProductByIdAdminQueryHandler.cs": {
+    "mtime": 1779387960.746856,
+    "ast_hash": "94d21da04ecda01f2d5786181660445c",
+    "semantic_hash": "94d21da04ecda01f2d5786181660445c"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Admin\\UpdateProduct\\UpdateProductCommand.cs": {
+    "mtime": 1779398394.3558762,
+    "ast_hash": "d03917bb5001c05cc8441417237e7942",
+    "semantic_hash": "d03917bb5001c05cc8441417237e7942"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Admin\\UpdateProduct\\UpdateProductCommandHandler.cs": {
+    "mtime": 1779434629.689389,
+    "ast_hash": "3ada8c5212588c9114cc2613e5e7854c",
+    "semantic_hash": "3ada8c5212588c9114cc2613e5e7854c"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Admin\\UpdateProduct\\UpdateProductCommandValidator.cs": {
+    "mtime": 1779387978.6821105,
+    "ast_hash": "ae19db522a9c243f537f13d46597fd07",
+    "semantic_hash": "ae19db522a9c243f537f13d46597fd07"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Public\\GetProductBySlug\\GetProductBySlugQuery.cs": {
+    "mtime": 1779387941.2068923,
+    "ast_hash": "a794b9413bf0921536508cb28aa26d51",
+    "semantic_hash": "a794b9413bf0921536508cb28aa26d51"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Public\\GetProductBySlug\\GetProductBySlugQueryHandler.cs": {
+    "mtime": 1779434456.101647,
+    "ast_hash": "85ff5f930c3578a77caa63ddb4bb20ec",
+    "semantic_hash": "85ff5f930c3578a77caa63ddb4bb20ec"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Public\\GetProducts\\GetProductsQuery.cs": {
+    "mtime": 1779387935.3912475,
+    "ast_hash": "e361ba767ec489038274c34b489c069b",
+    "semantic_hash": "e361ba767ec489038274c34b489c069b"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Application\\Features\\Products\\Public\\GetProducts\\GetProductsQueryHandler.cs": {
+    "mtime": 1779434318.4564295,
+    "ast_hash": "8592d18b17e261fbf8bbaac8675e8547",
+    "semantic_hash": "8592d18b17e261fbf8bbaac8675e8547"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Domain\\Entities\\Category.cs": {
+    "mtime": 1779373365.8614361,
+    "ast_hash": "335bc4e778582eea0de7815be47520fa",
+    "semantic_hash": "335bc4e778582eea0de7815be47520fa"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Domain\\Entities\\Product.cs": {
+    "mtime": 1779373365.8684418,
+    "ast_hash": "43ec7845b4784b857c46854addb0a498",
+    "semantic_hash": "43ec7845b4784b857c46854addb0a498"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Domain\\Errors\\CategoryErrors.cs": {
+    "mtime": 1779373365.875945,
+    "ast_hash": "ffeb8f0403e325db199566ce9195947a",
+    "semantic_hash": "ffeb8f0403e325db199566ce9195947a"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Domain\\Errors\\ProductErrors.cs": {
+    "mtime": 1779398296.5188756,
+    "ast_hash": "f431563e47d6267f98118809b70fb9cb",
+    "semantic_hash": "f431563e47d6267f98118809b70fb9cb"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Infrastructure\\DependencyInjection.cs": {
+    "mtime": 1779388146.6019485,
+    "ast_hash": "213e1c82115cdb10d44978070eeb7b1f",
+    "semantic_hash": "213e1c82115cdb10d44978070eeb7b1f"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Infrastructure\\GlobalUsings.cs": {
+    "mtime": 1779374633.226078,
+    "ast_hash": "302ced7284dfa083773c0aba27b160f8",
+    "semantic_hash": "302ced7284dfa083773c0aba27b160f8"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Infrastructure\\EntityConfigurations\\CategoryConfiguration.cs": {
+    "mtime": 1779374509.1337874,
+    "ast_hash": "af760d3880d03a79e054a88ecd2db0b8",
+    "semantic_hash": "af760d3880d03a79e054a88ecd2db0b8"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Infrastructure\\EntityConfigurations\\ProductConfiguration.cs": {
+    "mtime": 1779374524.045979,
+    "ast_hash": "0782218038fa8f9f38a6e9d438bdba82",
+    "semantic_hash": "0782218038fa8f9f38a6e9d438bdba82"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Infrastructure\\Persistence\\CatalogDbContext.cs": {
+    "mtime": 1779374592.6178803,
+    "ast_hash": "c1e1157d7734092af5178ca0689beb60",
+    "semantic_hash": "c1e1157d7734092af5178ca0689beb60"
+  },
+  "E:\\CSharp\\OrderSphere\\src\\Services\\Catalog\\OrderSphere.Catalog.Infrastructure\\Persistence\\DesignTimeCatalogDbContextFactory.cs": {
+    "mtime": 1779374607.0427196,
+    "ast_hash": "7b60c3eb9ce1ded9fa6b569b8f18c669",
+    "semantic_hash": "7b60c3eb9ce1ded9fa6b569b8f18c669"
+  }
+}

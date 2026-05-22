@@ -8,13 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
     <PackageReference Include="Asp.Versioning.Http" />
-    <PackageReference Include="Asp.Versioning.ApiExplorer" />
-    <PackageReference Include="Grpc.AspNetCore" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
-    <PackageReference Include="Aspire.StackExchange.Redis.DistributedCaching" />
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+    <PackageReference Include="Grpc.AspNetCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,7 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\OrderSphere.Catalog.Application\OrderSphere.Catalog.Application.csproj" />
     <ProjectReference Include="..\OrderSphere.Catalog.Infrastructure\OrderSphere.Catalog.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\..\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\..\..\src\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

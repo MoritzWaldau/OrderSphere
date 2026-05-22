@@ -41,3 +41,11 @@ public sealed record UpdateAddressRequest(
     string City,
     string PostalCode,
     string Country);
+
+public sealed record AdminUserSummaryDto(
+    Guid Id,
+    string KeycloakSubject,
+    string DisplayName,
+    string Email,
+    bool DarkModeEnabled,
+    int AddressCount);

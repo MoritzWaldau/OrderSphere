@@ -1,0 +1,67 @@
+@page "/offers"
+
+<PageTitle>Angebote — OrderSphere</PageTitle>
+
+<PageHero Eyebrow="Aktionen" Title="Aktuelle Angebote"
+          Subtitle="Spare bei ausgewählten Produkten — limitiert verfügbar.">
+    <LeadingContent>
+        <MudStack Justify="Justify.Center" Row="true">
+            <MudButton Variant="Variant.Filled"
+                       Size="Size.Large"
+                       Href="/shop"
+                       StartIcon="@Icons.Material.Outlined.Storefront"
+                       Style="border-radius: 100px; background: white; color: var(--mud-palette-primary);">
+                Zum Shop
+            </MudButton>
+        </MudStack>
+    </LeadingContent>
+</PageHero>
+
+<section style="padding: 48px 0 80px;">
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-2" Style="font-weight: 600;">
+            Bald hier verfügbar
+        </MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Secondary" Class="mb-8">
+            Wir arbeiten an unseren Aktionen. Bis dahin lohnt sich ein Blick in den Shop.
+        </MudText>
+
+        <MudGrid Spacing="4" Justify="Justify.Center">
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="0" Class="surface-card pa-6 text-center" Style="height: 100%;">
+                    <MudIcon Icon="@Icons.Material.Outlined.Bolt"
+                             Color="Color.Primary"
+                             Style="font-size: 56px;" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Blitz-Deals</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Reduzierte Produkte für nur 24 Stunden.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="0" Class="surface-card pa-6 text-center" Style="height: 100%;">
+                    <MudIcon Icon="@Icons.Material.Outlined.CardGiftcard"
+                             Color="Color.Primary"
+                             Style="font-size: 56px;" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Bundle-Rabatte</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Spare beim Kauf mehrerer passender Produkte.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="0" Class="surface-card pa-6 text-center" Style="height: 100%;">
+                    <MudIcon Icon="@Icons.Material.Outlined.Loyalty"
+                             Color="Color.Primary"
+                             Style="font-size: 56px;" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">Treue-Vorteile</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Exklusive Rabatte für registrierte Kunden.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudContainer>
+</section>

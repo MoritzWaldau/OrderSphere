@@ -22,7 +22,6 @@
     <ProjectReference Include="..\Services\Ordering\OrderSphere.Ordering.Worker\OrderSphere.Ordering.Worker.csproj" />
     <ProjectReference Include="..\Services\Notification\OrderSphere.Notification.Worker\OrderSphere.Notification.Worker.csproj" />
     <ProjectReference Include="..\Services\UserProfile\OrderSphere.UserProfile.Api\OrderSphere.UserProfile.Api.csproj" />
-    <ProjectReference Include="..\OrderSphere.UI\OrderSphere.UI\OrderSphere.UI.csproj" />
     <ProjectReference Include="..\Gateways\OrderSphere.ApiGateway\OrderSphere.ApiGateway.csproj" />
     <ProjectReference Include="..\Gateways\OrderSphere.Bff\OrderSphere.Bff.csproj" />
   </ItemGroup>

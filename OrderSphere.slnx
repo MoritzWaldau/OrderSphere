@@ -39,7 +39,6 @@
     <Project Path="src/OrderSphere.Hosting/OrderSphere.Hosting.csproj" />
     <Project Path="src/OrderSphere.Infrastructure/OrderSphere.Infrastructure.csproj" />
     <Project Path="src/OrderSphere.ServiceDefaults/OrderSphere.ServiceDefaults.csproj" />
-    <Project Path="src/OrderSphere.UI/OrderSphere.UI/OrderSphere.UI.csproj" />
   </Folder>
   <Folder Name="/src/Gateways/">
     <Project Path="src/Gateways/OrderSphere.ApiGateway/OrderSphere.ApiGateway.csproj" />

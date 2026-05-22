@@ -6,6 +6,7 @@
 - Do not guess technical facts. If a concept, API, or library behavior isn't certain, research it before stating it.
 - Documents are markdown. Diagrams are mermaid.
 - State results and decisions directly.
+- Use compact the session automaticlly when the context is > 100K tokens
 
 ## Architecture
 
@@ -20,8 +21,8 @@ Layer dependency direction: `UI → Application → Infrastructure → Domain`. 
 | `src/OrderSphere.Domain` | Entities, value objects, domain events, errors, `Result<T>`, CQRS abstractions (`ICommand`, `IQuery`, `ICommandHandler`, `IQueryHandler`) |
 | `src/OrderSphere.Application` | Feature handlers under `Features/<Aggregate>/<UseCase>/`, DTOs, validators, MediatR registration |
 | `src/OrderSphere.Infrastructure` | EF Core (`Persistence/`), entity configurations (`EntityConfigurations/`), Azure email (`Email/`), Azure Service Bus (`ServiceBus/`), interceptors |
-| `src/OrderSphere.UI/OrderSphere.UI` | Blazor Server host, pages, layouts, DI wiring — startup project |
-| `src/OrderSphere.UI/OrderSphere.UI.Client` | Client-side interactive components |
+| `src/OrderSphere.Web` | Blazor WASM client — pages, components, API clients |
+| `src/Gateways/OrderSphere.Bff` | BFF — hosts WASM, forwards API calls, handles OIDC session |
 | `src/OrderSphere.AppHost` | .NET Aspire orchestration (Postgres, Service Bus, app) |
 | `tests/OrderSphere.Domain.Tests` | Domain unit tests |
 | `tests/OrderSphere.Application.Tests` | Application/handler tests |
@@ -62,13 +63,12 @@ Run from the repository root (`E:\CSharp\OrderSphere`).
 |---|---|
 | Build | `dotnet build OrderSphere.slnx` |
 | Run via Aspire | `dotnet run --project src/OrderSphere.AppHost` |
-| Run UI directly | `dotnet run --project src/OrderSphere.UI/OrderSphere.UI` |
-| UI hot reload | `dotnet watch --project src/OrderSphere.UI/OrderSphere.UI` |
+| Run BFF (with WASM) | `dotnet run --project src/Gateways/OrderSphere.Bff` |
 | Tests | `dotnet test` |
-| Add EF migration | `dotnet ef migrations add <Name> -p src/OrderSphere.Infrastructure -s src/OrderSphere.UI/OrderSphere.UI` |
-| Apply EF migrations | `dotnet ef database update -p src/OrderSphere.Infrastructure -s src/OrderSphere.UI/OrderSphere.UI` |
+| Add EF migration | `dotnet ef migrations add <Name> -p src/OrderSphere.Infrastructure -s src/Gateways/OrderSphere.Bff` |
+| Apply EF migrations | `dotnet ef database update -p src/OrderSphere.Infrastructure -s src/Gateways/OrderSphere.Bff` |
 
-Startup project for EF tooling is `src/OrderSphere.UI/OrderSphere.UI`, not `src/OrderSphere.UI`.
+Startup project for EF tooling is `src/Gateways/OrderSphere.Bff`.
 
 ## External services
 
@@ -89,3 +89,8 @@ Proceed without asking for: bug fixes, refactors inside one layer, new features 
 ## Commit format
 
 Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `style:`, `test:`, `chore:`. One-line subject describing the user-visible change; body for rationale if non-obvious.
+
+
+# graphify
+- **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
+When the user types `/graphify`, invoke the Skill tool with `skill: "graphify"` before doing anything else.

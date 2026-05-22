@@ -1,0 +1,32 @@
+using Microsoft.EntityFrameworkCore;
+using OrderSphere.Catalog.Domain.Errors;
+
+namespace OrderSphere.Catalog.Application.Features.Categories.Admin.DeleteCategory;
+
+public sealed class DeleteCategoryCommandHandler(ICatalogDbContext context)
+    : IRequestHandler<DeleteCategoryCommand, Result<bool>>
+{
+    public async Task<Result<bool>> Handle(DeleteCategoryCommand request, CancellationToken ct)
+    {
+        var category = await context.Categories
+            .AsTracking()
+            .FirstOrDefaultAsync(c => c.Id == request.CategoryId && !c.IsDeleted, ct);
+
+        if (category is null)
+            return Result<bool>.Failure(CategoryErrors.NotFound);
+
+        var hasProducts = await context.Products
+            .AsNoTracking()
+            .AnyAsync(p => p.CategoryId == request.CategoryId && !p.IsDeleted, ct);
+
+        if (hasProducts)
+            return Result<bool>.Failure(CategoryErrors.HasProducts);
+
+        category.IsDeleted = true;
+        category.UpdatedAt = DateTime.UtcNow;
+
+        await context.SaveChangesAsync(ct);
+
+        return Result<bool>.Success(true);
+    }
+}

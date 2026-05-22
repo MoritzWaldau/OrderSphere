@@ -33,6 +33,10 @@ else
             {
                 <MudText Typo="Typo.body1" Class="hero-subtitle mt-2">@Subtitle</MudText>
             }
+            @if (LeadingContent is not null)
+            {
+                <div class="mt-4">@LeadingContent</div>
+            }
         </MudContainer>
     </div>
 }

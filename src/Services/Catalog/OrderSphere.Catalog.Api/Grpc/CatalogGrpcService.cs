@@ -1,11 +1,11 @@
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
-using OrderSphere.Catalog.Infrastructure.Persistence;
+using OrderSphere.Catalog.Application.Abstractions;
 using OrderSphere.Catalog.V1;
 
 namespace OrderSphere.Catalog.Api.Grpc;
 
-public sealed class CatalogGrpcService(CatalogDbContext context) : CatalogService.CatalogServiceBase
+public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogService.CatalogServiceBase
 {
     public override async Task<GetProductResponse> GetProduct(GetProductRequest request, ServerCallContext ctx)
     {

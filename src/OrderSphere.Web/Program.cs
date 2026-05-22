@@ -20,6 +20,11 @@ builder.Services.AddScoped<ICatalogClient, CatalogClient>();
 builder.Services.AddScoped<IOrderingClient, OrderingClient>();
 builder.Services.AddScoped<IUserProfileClient, UserProfileClient>();
 
+// Admin clients
+builder.Services.AddScoped<IAdminCatalogClient, AdminCatalogClient>();
+builder.Services.AddScoped<IAdminOrderingClient, AdminOrderingClient>();
+builder.Services.AddScoped<IAdminUserClient, AdminUserClient>();
+
 // Application state
 builder.Services.AddScoped<CartState>();
 builder.Services.AddSingleton<ThemeState>();

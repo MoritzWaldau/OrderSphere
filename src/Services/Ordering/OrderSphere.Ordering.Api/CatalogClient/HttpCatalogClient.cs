@@ -1,5 +1,4 @@
 using OrderSphere.BuildingBlocks.Primitives;
-using OrderSphere.Domain.Primitives;
 using OrderSphere.Ordering.Api.Abstractions;
 using System.Net.Http.Json;
 

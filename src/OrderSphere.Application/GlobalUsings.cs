@@ -1,1 +1,1 @@
-global using OrderSphere.Domain.Abstraction;
+global using OrderSphere.BuildingBlocks.Abstraction;

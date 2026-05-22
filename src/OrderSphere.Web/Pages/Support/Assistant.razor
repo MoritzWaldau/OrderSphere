@@ -1,0 +1,94 @@
+@page "/assistant"
+
+<PageTitle>AI Assistant — OrderSphere</PageTitle>
+
+<section class="section-hero">
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        <MudStack AlignItems="AlignItems.Center" Spacing="4" Class="text-center">
+            <MudIcon Icon="@Icons.Material.Outlined.AutoAwesome"
+                     Class="hero-icon-light"
+                     Style="font-size: 100px;" />
+            <MudText Typo="Typo.h1" Class="hero-title-lg">
+                AI Assistant
+            </MudText>
+            <MudText Typo="Typo.h5" Class="hero-subtitle"
+                     Style="max-width: 600px;">
+                Dein persönlicher Einkaufs-Helfer — bald hier verfügbar.
+            </MudText>
+        </MudStack>
+    </MudContainer>
+</section>
+
+<section class="page-section" style="min-height: 50vh;">
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        <MudPaper Elevation="0" Class="pa-8 surface-card-lg">
+
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-6">
+                Der AI Assistant ist aktuell in Entwicklung und steht in Kürze zur Verfügung.
+            </MudAlert>
+
+            <MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: 600;">
+                Was er für dich tun wird
+            </MudText>
+
+            <MudStack Spacing="4">
+                <MudStack Row="true" Spacing="3" AlignItems="AlignItems.Start">
+                    <MudIcon Icon="@Icons.Material.Outlined.Search"
+                             Color="Color.Primary" Style="font-size: 28px;" />
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                            Produkte finden
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Beschreibe was du brauchst — der Assistent schlägt passende Produkte aus unserem Sortiment vor.
+                        </MudText>
+                    </MudStack>
+                </MudStack>
+
+                <MudStack Row="true" Spacing="3" AlignItems="AlignItems.Start">
+                    <MudIcon Icon="@Icons.Material.Outlined.Compare"
+                             Color="Color.Primary" Style="font-size: 28px;" />
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                            Vergleiche treffen
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Mehrere Modelle gegenüberstellen — ohne mühsames Lesen langer Spec-Listen.
+                        </MudText>
+                    </MudStack>
+                </MudStack>
+
+                <MudStack Row="true" Spacing="3" AlignItems="AlignItems.Start">
+                    <MudIcon Icon="@Icons.Material.Outlined.QuestionAnswer"
+                             Color="Color.Primary" Style="font-size: 28px;" />
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                            Fragen beantworten
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Versand, Rückgabe, Kompatibilität — schnell und in natürlicher Sprache.
+                        </MudText>
+                    </MudStack>
+                </MudStack>
+            </MudStack>
+
+            <MudDivider Class="my-6" />
+
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                Bis dahin helfen wir dir gerne persönlich weiter.
+            </MudText>
+            <MudStack Row="true" Spacing="3" Wrap="Wrap.Wrap">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           Href="/contact" StartIcon="@Icons.Material.Outlined.SupportAgent"
+                           Class="btn-pill">
+                    Zum Kontakt
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                           Href="/faq" StartIcon="@Icons.Material.Outlined.Help"
+                           Class="btn-pill">
+                    Zur FAQ
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudContainer>
+</section>

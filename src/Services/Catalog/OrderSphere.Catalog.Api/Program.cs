@@ -1,90 +1,62 @@
-using FluentValidation;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using OrderSphere.BuildingBlocks.Behaviors;
+using OrderSphere.Catalog.Api.Configuration;
 using OrderSphere.Catalog.Api.Endpoints;
 using OrderSphere.Catalog.Api.Exceptions;
-using OrderSphere.Catalog.Api.Grpc;
+using OrderSphere.Catalog.Application;
+using OrderSphere.Catalog.Infrastructure;
 using OrderSphere.Catalog.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// EF Core — Aspire injects the connection string via "catalog-db"
-builder.AddNpgsqlDbContext<CatalogDbContext>("catalog-db", settings =>
-{
-    settings.DisableRetry = false;
-});
+// Aspire defaults (OpenTelemetry, health checks, service discovery)
+builder.AddServiceDefaults();
 
-// HybridCache (in-memory + optional Redis)
-builder.Services.AddHybridCache();
-builder.AddRedisDistributedCache("redis");
+// Domain layers
+builder.AddCatalogInfrastructure();          // EF Core, ICatalogDbContext, HybridCache, Redis
+builder.Services.AddCatalogApplication();    // MediatR + Behaviors + FluentValidation
 
-// MediatR — scan this assembly for handlers + pipeline behaviors
-builder.Services.AddMediatR(cfg =>
-{
-    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
-    cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
-    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
-});
+// Cross-cutting concerns
+builder.Services.AddCatalogApiVersioning();
+builder.Services.AddCatalogSwagger();
+builder.Services.AddCatalogRateLimiting();
+builder.Services.AddCatalogAuthentication(builder.Configuration);   // no-op placeholder
+builder.Services.AddCatalogAuthorization();                          // no-op placeholder
 
-// FluentValidation — scan this assembly for validators
-builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
-
-// Health checks
-var catalogConnectionString = builder.Configuration.GetConnectionString("catalog-db") ?? "";
-builder.Services.AddHealthChecks()
-    .AddNpgSql(catalogConnectionString, name: "postgres");
-
-// Validation exception → HTTP 400
+// Exception handling
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-// JWT Bearer (Keycloak)
-var keycloakAuthority = builder.Configuration["Keycloak:Authority"]
-    ?? throw new InvalidOperationException("Keycloak:Authority is required.");
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = keycloakAuthority;
-        options.Audience = builder.Configuration["Keycloak:Audience"] ?? "account";
-        options.RequireHttpsMetadata = false;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateAudience = false,
-            RoleClaimType = "roles",
-        };
-    });
-
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
+// Health checks (Postgres)
+var catalogConnectionString = builder.Configuration.GetConnectionString("catalog-db") ?? "";
+builder.Services.AddHealthChecks()
+    .AddNpgSql(catalogConnectionString, name: "postgres");
 
 // gRPC
 builder.Services.AddGrpc();
 
 var app = builder.Build();
 
-// Apply EF migrations on startup (dev convenience)
+// Dev: migrate + Swagger UI
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
-    db.Database.Migrate();
+    scope.ServiceProvider.GetRequiredService<CatalogDbContext>().Database.Migrate();
+    app.UseCatalogSwagger();
 }
 
+// Middleware pipeline (order matters)
 app.UseExceptionHandler();
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseRateLimiter();
+// app.UseAuthentication();   ← Anker: aktivieren, sobald AuthenticationExtensions befüllt
+// app.UseAuthorization();    ← Anker: aktivieren, sobald AuthorizationExtensions befüllt
 
-app.MapGrpcService<CatalogGrpcService>();
+// Endpoints
+app.MapCatalogEndpoints();
 
-app.MapProductEndpoints();
-app.MapCategoryEndpoints();
-app.MapInternalProductEndpoints();
-
+// Health
 app.MapHealthChecks("/health");
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+app.MapDefaultEndpoints();
 
 app.Run();

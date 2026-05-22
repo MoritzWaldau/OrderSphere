@@ -76,25 +76,10 @@ var userProfile = builder.AddProject<Projects.OrderSphere_UserProfile_Api>("orde
     .WithEnvironment("Keycloak__Authority", keycloakRealmAuthority)
     .WithEnvironment("Keycloak__Audience", "account");
 
-var ui = builder.AddProject<Projects.OrderSphere_UI>("ordersphere-ui")
-    .WithReference(postgres)
-    .WithReference(serviceBus)
-    .WithReference(redis)
-    .WithReference(ordering)
-    .WaitFor(postgres)
-    .WaitFor(serviceBus)
-    .WaitFor(redis)
-    .WaitFor(ordering)
-    .WithEnvironment("Keycloak__Authority", keycloakRealmAuthority)
-    .WithEnvironment("Keycloak__ClientId", "web-bff")
-    .WithEnvironment("Keycloak__ClientSecret", "web-bff-dev-secret-change-in-prod");
-
 var apiGateway = builder.AddProject<Projects.OrderSphere_ApiGateway>("ordersphere-apigateway")
-    .WithReference(ui)
     .WithReference(catalog)
     .WithReference(ordering)
     .WithReference(userProfile)
-    .WaitFor(ui)
     .WaitFor(catalog)
     .WaitFor(ordering)
     .WaitFor(userProfile)

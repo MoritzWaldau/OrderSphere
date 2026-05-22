@@ -32,7 +32,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
 
 var app = builder.Build();
 
@@ -48,6 +49,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapProfileEndpoints();
+app.MapAdminProfileEndpoints();
 
 app.MapDefaultEndpoints();
 

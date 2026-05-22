@@ -1,4 +1,7 @@
-
+using FluentValidation;
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+using OrderSphere.BuildingBlocks.Behaviors;
 
 namespace OrderSphere.Catalog.Application;
 
@@ -9,8 +12,8 @@ public static class DependencyInjection
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
-            //cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
-            //cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
 
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);

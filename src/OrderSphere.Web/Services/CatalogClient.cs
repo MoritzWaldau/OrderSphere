@@ -10,11 +10,9 @@ public interface ICatalogClient
     Task<List<CategoryDto>> GetCategoriesAsync(CancellationToken ct = default);
 }
 
-public sealed class CatalogClient : ICatalogClient
+public sealed class CatalogClient(HttpClient client) : ICatalogClient
 {
-    private readonly HttpClient _client;
-
-    public CatalogClient(HttpClient client) => _client = client;
+    private readonly HttpClient _client = client;
 
     public async Task<List<ProductDto>> GetProductsAsync(CancellationToken ct = default)
     {

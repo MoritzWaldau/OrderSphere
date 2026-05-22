@@ -1,0 +1,32 @@
+@if (Stock <= 0)
+{
+    <MudChip T="string" Size="Size.Small" Color="Color.Error"
+             Style="font-size: 0.6875rem; font-weight: 600; height: 24px;"
+             role="status" aria-label="Nicht verfügbar">
+        Nicht verfügbar
+    </MudChip>
+}
+else if (Stock <= LowThreshold)
+{
+    <MudChip T="string" Size="Size.Small" Color="Color.Warning"
+             Style="font-size: 0.6875rem; font-weight: 600; height: 24px;"
+             role="status" aria-label="@($"Nur noch {Stock} auf Lager")">
+        Nur noch @Stock verfügbar
+    </MudChip>
+}
+else
+{
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1"
+              role="status" aria-label="Auf Lager">
+        <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--mud-palette-success); flex-shrink: 0;"></div>
+        <MudText Typo="@TextTypo" Class="stock-ok" Style="font-weight: 500;">
+            Auf Lager
+        </MudText>
+    </MudStack>
+}
+
+@code {
+    [Parameter, EditorRequired] public int Stock { get; set; }
+    [Parameter] public int LowThreshold { get; set; } = 10;
+    [Parameter] public Typo TextTypo { get; set; } = Typo.body2;
+}

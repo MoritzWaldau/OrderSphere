@@ -1,8 +1,0 @@
-﻿
-
-@code {
-    protected override void OnInitialized()
-    {
-        NavManager.NavigateTo($"Account/Login?returnUrl={Uri.EscapeDataString(NavManager.Uri)}", forceLoad: true);
-    }
-}

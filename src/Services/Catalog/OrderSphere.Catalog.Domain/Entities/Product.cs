@@ -17,6 +17,11 @@ public sealed class Product : AuditableEntity
 
     public Category? Category { get; set; }
 
+    public Product()
+    {
+        
+    }
+
     public Product(string name, string description, decimal price, int stock, Guid categoryId, string sku, string? imageUrl = null)
     {
         Name = name;

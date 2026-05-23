@@ -5,13 +5,13 @@ namespace OrderSphere.Web.Services;
 
 public interface IOrderingClient
 {
-    Task<CartDto?> GetCartAsync(Guid customerId, CancellationToken ct = default);
-    Task<bool> AddToCartAsync(Guid customerId, Guid productId, int quantity, CancellationToken ct = default);
-    Task<bool> RemoveFromCartAsync(Guid customerId, Guid productId, CancellationToken ct = default);
-    Task<bool> DecreaseCartItemAsync(Guid customerId, Guid productId, CancellationToken ct = default);
-    Task<List<OrderDto>> GetOrdersByCustomerAsync(Guid customerId, CancellationToken ct = default);
-    Task<OrderDto?> GetOrderByIdAsync(Guid orderId, Guid customerId, CancellationToken ct = default);
-    Task<OrderDto?> GetOrderByCorrelationIdAsync(Guid correlationId, Guid customerId, CancellationToken ct = default);
+    Task<CartDto?> GetCartAsync(CancellationToken ct = default);
+    Task<bool> AddToCartAsync(Guid productId, int quantity, CancellationToken ct = default);
+    Task<bool> RemoveFromCartAsync(Guid productId, CancellationToken ct = default);
+    Task<bool> DecreaseCartItemAsync(Guid productId, CancellationToken ct = default);
+    Task<List<OrderDto>> GetOrdersByCustomerAsync(CancellationToken ct = default);
+    Task<OrderDto?> GetOrderByIdAsync(Guid orderId, CancellationToken ct = default);
+    Task<OrderDto?> GetOrderByCorrelationIdAsync(Guid correlationId, CancellationToken ct = default);
     Task<Guid?> CheckoutAsync(CheckoutRequest request, CancellationToken ct = default);
     Task<CouponValidationDto?> ValidateCouponAsync(string code, decimal subtotal, CancellationToken ct = default);
 }
@@ -22,55 +22,53 @@ public sealed class OrderingClient : IOrderingClient
 
     public OrderingClient(HttpClient client) => _client = client;
 
-    public async Task<CartDto?> GetCartAsync(Guid customerId, CancellationToken ct = default)
+    public async Task<CartDto?> GetCartAsync(CancellationToken ct = default)
     {
-        var response = await _client.GetAsync($"/api/v1/cart/{customerId}", ct);
+        var response = await _client.GetAsync("/api/v1/cart", ct);
         if (!response.IsSuccessStatusCode) return null;
         return await response.Content.ReadFromJsonAsync<CartDto>(ct);
     }
 
-    public async Task<bool> AddToCartAsync(Guid customerId, Guid productId, int quantity, CancellationToken ct = default)
+    public async Task<bool> AddToCartAsync(Guid productId, int quantity, CancellationToken ct = default)
     {
         var response = await _client.PostAsJsonAsync("/api/v1/cart/add",
-            new { CustomerId = customerId, ProductId = productId, Quantity = quantity }, ct);
+            new { ProductId = productId, Quantity = quantity }, ct);
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<bool> RemoveFromCartAsync(Guid customerId, Guid productId, CancellationToken ct = default)
+    public async Task<bool> RemoveFromCartAsync(Guid productId, CancellationToken ct = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Delete, "/api/v1/cart/remove")
         {
-            Content = JsonContent.Create(new { CustomerId = customerId, ProductId = productId })
+            Content = JsonContent.Create(new { ProductId = productId })
         };
         var response = await _client.SendAsync(request, ct);
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<bool> DecreaseCartItemAsync(Guid customerId, Guid productId, CancellationToken ct = default)
+    public async Task<bool> DecreaseCartItemAsync(Guid productId, CancellationToken ct = default)
     {
         var response = await _client.PutAsJsonAsync("/api/v1/cart/decrease",
-            new { CustomerId = customerId, ProductId = productId }, ct);
+            new { ProductId = productId }, ct);
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<List<OrderDto>> GetOrdersByCustomerAsync(Guid customerId, CancellationToken ct = default)
+    public async Task<List<OrderDto>> GetOrdersByCustomerAsync(CancellationToken ct = default)
     {
-        var result = await _client.GetFromJsonAsync<List<OrderDto>>(
-            $"/api/v1/orders/customer/{customerId}", ct);
+        var result = await _client.GetFromJsonAsync<List<OrderDto>>("/api/v1/orders", ct);
         return result ?? [];
     }
 
-    public async Task<OrderDto?> GetOrderByIdAsync(Guid orderId, Guid customerId, CancellationToken ct = default)
+    public async Task<OrderDto?> GetOrderByIdAsync(Guid orderId, CancellationToken ct = default)
     {
-        var response = await _client.GetAsync($"/api/v1/orders/{orderId}/customer/{customerId}", ct);
+        var response = await _client.GetAsync($"/api/v1/orders/{orderId}", ct);
         if (!response.IsSuccessStatusCode) return null;
         return await response.Content.ReadFromJsonAsync<OrderDto>(ct);
     }
 
-    public async Task<OrderDto?> GetOrderByCorrelationIdAsync(Guid correlationId, Guid customerId, CancellationToken ct = default)
+    public async Task<OrderDto?> GetOrderByCorrelationIdAsync(Guid correlationId, CancellationToken ct = default)
     {
-        var response = await _client.GetAsync(
-            $"/api/v1/orders/correlation/{correlationId}/customer/{customerId}", ct);
+        var response = await _client.GetAsync($"/api/v1/orders/correlation/{correlationId}", ct);
         if (!response.IsSuccessStatusCode) return null;
         return await response.Content.ReadFromJsonAsync<OrderDto>(ct);
     }

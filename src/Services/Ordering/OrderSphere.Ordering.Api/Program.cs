@@ -1,11 +1,12 @@
 using FluentValidation;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.Ordering.Api.Abstractions;
+using OrderSphere.Ordering.Api.Authorization;
 using OrderSphere.Ordering.Api.CatalogClient;
+using OrderSphere.Ordering.Api.Configuration;
 using OrderSphere.Ordering.Api.Endpoints;
 using OrderSphere.Ordering.Api.Exceptions;
 using OrderSphere.Ordering.Infrastructure;
@@ -42,14 +43,16 @@ builder.Services.AddMediatR(cfg =>
 // FluentValidation — scan this assembly for validators
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
-// HTTP client for Catalog service (internal stock operations)
+// HTTP client for Catalog service (internal stock operations).
+// ClientCredentialsTokenHandler acquires a Keycloak client_credentials token (configured
+// via Keycloak:ClientId / Keycloak:ClientSecret) and forwards it as a Bearer token.
 // Note: AddStandardResilienceHandler is applied globally via AddServiceDefaults().
 builder.Services.AddHttpClient<ICatalogClient, HttpCatalogClient>(client =>
 {
     var catalogUrl = builder.Configuration["Services:Catalog:BaseUrl"]
         ?? "http://ordersphere-catalog";
     client.BaseAddress = new Uri(catalogUrl);
-});
+}).AddClientCredentialsHandler();
 
 // Health checks
 var orderingConnectionString = builder.Configuration.GetConnectionString("ordering-db") ?? "";
@@ -60,25 +63,23 @@ builder.Services.AddHealthChecks()
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-// JWT Bearer (Keycloak)
-var keycloakAuthority = builder.Configuration["Keycloak:Authority"]
-    ?? throw new InvalidOperationException("Keycloak:Authority is required.");
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = keycloakAuthority;
-        options.Audience = builder.Configuration["Keycloak:Audience"] ?? "account";
-        options.RequireHttpsMetadata = false;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateAudience = false,
-            RoleClaimType = "roles",
-        };
-    });
+// JWT Bearer — shared Keycloak validation; audience "ordering-api" is a
+// dedicated bearer-only client in the Keycloak realm.
+builder.AddOrderSphereJwtAuth("ordering-api");
+builder.Services.AddCurrentUser();
 
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
+    .AddPolicy(AuthorizationPolicies.Admin,
+        p => p.RequireRole("admin"))
+    .AddPolicy(AuthorizationPolicies.Staff,
+        p => p.RequireRole("csr", "order-manager", "admin"))
+    .AddPolicy(AuthorizationPolicies.OrderManager,
+        p => p.RequireRole("order-manager", "admin"))
+    .AddPolicy(AuthorizationPolicies.OrderOwnerOrStaff,
+        p => p.AddRequirements(new OrderOwnerOrStaffRequirement()));
+
+// ABAC handler — registered as singleton (stateless, no scoped dependencies).
+builder.Services.AddSingleton<IAuthorizationHandler, OrderOwnerOrStaffHandler>();
 
 var app = builder.Build();
 

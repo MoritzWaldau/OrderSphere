@@ -40,11 +40,9 @@
         if (!firstRender) return;
 
         var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
-        var sub = state.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
-        if (Guid.TryParse(sub, out var customerId))
+        if (state.User.Identity?.IsAuthenticated == true)
         {
-            await CartState.InitializeAsync(customerId);
+            await CartState.InitializeAsync();
             _cartItemCount = CartState.ItemCount;
             StateHasChanged();
         }

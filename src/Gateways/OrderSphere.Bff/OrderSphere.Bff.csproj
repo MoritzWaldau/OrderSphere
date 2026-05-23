@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspire.StackExchange.Redis.DistributedCaching" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" />
     <PackageReference Include="Yarp.ReverseProxy" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />

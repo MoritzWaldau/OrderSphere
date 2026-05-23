@@ -29,12 +29,12 @@ public static class EndpointMappingExtensions
             .MapPublicCategoryEndpoints();
 
         v1.MapGroup("admin/products")
-            // .RequireAuthorization(AuthorizationExtensions.AdminPolicy)   ← Auth-Anker
+            .RequireAuthorization(AuthorizationExtensions.CatalogAdminPolicy)
             .RequireRateLimiting(RateLimitingExtensions.AdminPolicy)
             .MapAdminProductEndpoints();
 
         v1.MapGroup("admin/categories")
-            // .RequireAuthorization(AuthorizationExtensions.AdminPolicy)   ← Auth-Anker
+            .RequireAuthorization(AuthorizationExtensions.CatalogAdminPolicy)
             .RequireRateLimiting(RateLimitingExtensions.AdminPolicy)
             .MapAdminCategoryEndpoints();
 

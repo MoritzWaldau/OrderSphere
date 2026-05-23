@@ -5,4 +5,5 @@ public sealed record UserInfoDto(
     string? Sub,
     string? Name,
     string? Email,
-    string[]? Roles);
+    string[]? Roles,
+    string? XsrfToken);

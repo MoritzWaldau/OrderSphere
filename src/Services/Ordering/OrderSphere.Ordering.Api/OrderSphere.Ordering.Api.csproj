@@ -11,7 +11,7 @@
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="MediatR" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <!-- JwtBearer is provided via ServiceDefaults → FrameworkReference Microsoft.AspNetCore.App -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

@@ -145,9 +145,6 @@
 
     private List<CartItemDto> _cartItems = [];
     private bool _submitting;
-    private Guid? _customerId;
-    private string? _userEmail;
-    private string? _userName;
 
     private readonly CheckoutFormModel _model = new()
     {
@@ -160,27 +157,19 @@
     protected override async Task OnInitializedAsync()
     {
         var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
-        var sub = state.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (Guid.TryParse(sub, out var id)) _customerId = id;
+        var email = state.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? string.Empty;
+        _model.Email = email;
 
-        _userEmail = state.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? string.Empty;
-        _userName  = state.User.Identity?.Name ?? string.Empty;
-        _model.Email = _userEmail;
-
-        if (_customerId is not null)
+        _cartItems = CartState.Cart?.Items ?? [];
+        if (!_cartItems.Any())
         {
-            _cartItems = CartState.Cart?.Items ?? [];
-            if (!_cartItems.Any())
-            {
-                var cart = await Ordering.GetCartAsync(_customerId.Value);
-                _cartItems = cart?.Items ?? [];
-            }
+            var cart = await Ordering.GetCartAsync();
+            _cartItems = cart?.Items ?? [];
         }
     }
 
     private async Task SubmitAsync()
     {
-        if (_customerId is null) return;
         if (string.IsNullOrWhiteSpace(_model.FirstName) || string.IsNullOrWhiteSpace(_model.LastName) ||
             string.IsNullOrWhiteSpace(_model.Street) || string.IsNullOrWhiteSpace(_model.City) ||
             string.IsNullOrWhiteSpace(_model.PostalCode) || string.IsNullOrWhiteSpace(_model.Email))
@@ -192,10 +181,9 @@
         _submitting = true;
         try
         {
+            // Identity fields (CustomerId, CustomerEmail, CustomerName) are derived
+            // from the JWT token server-side and not included in the request body.
             var request = new CheckoutRequest(
-                _customerId.Value,
-                _model.Email,
-                _userName ?? _model.FirstName + " " + _model.LastName,
                 new CheckoutAddress(_model.FirstName, _model.LastName, _model.Street,
                     _model.City, _model.PostalCode, _model.Country),
                 _model.PaymentMethod);

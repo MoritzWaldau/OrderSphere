@@ -1,13 +1,27 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Keycloak via generic container (Aspire.Hosting.Keycloak not yet stable at 13.3.0).
-// Admin UI: http://localhost:8080  admin / admin (dev only)
+// ── Secret parameters ─────────────────────────────────────────────────────────
+// In development: populate via user-secrets (see commands in docs/auth/secrets-rotation.md).
+// In production: values are resolved from Azure Key Vault by azd / Aspire provisioning.
+var keycloakAdminPwd = builder.AddParameter("keycloak-admin-password",    secret: true);
+var bffClientSecret = builder.AddParameter("bff-client-secret",          secret: true);
+var orderingWorkerSecret = builder.AddParameter("ordering-worker-secret",      secret: true);
+var notificationWorkerSecret = builder.AddParameter("notification-worker-secret", secret: true);
+
+// ── Azure Key Vault ───────────────────────────────────────────────────────────
+// Provisioned by azd in non-dev environments. Parameters above are backed by
+// Key Vault secrets at deployment time; no code change required in service projects.
+builder.AddAzureKeyVault("ordersphere-kv");
+
+// ── Keycloak ──────────────────────────────────────────────────────────────────
+// Generic container (Aspire.Hosting.Keycloak not yet stable at 13.3.0).
+// Admin UI: http://localhost:8080  admin / <keycloak-admin-password from user-secrets>
 // Realm file is mounted and imported once on first start via --import-realm.
 // After first start, run: contracts/keycloak/seed-dev-passwords.ps1
 var keycloak = builder.AddContainer("keycloak", "quay.io/keycloak/keycloak", "26.1")
     .WithHttpEndpoint(port: 8080, targetPort: 8080, name: "http")
     .WithEnvironment("KEYCLOAK_ADMIN", "admin")
-    .WithEnvironment("KEYCLOAK_ADMIN_PASSWORD", "admin")
+    .WithEnvironment("KEYCLOAK_ADMIN_PASSWORD", keycloakAdminPwd)
     .WithBindMount("../../contracts/keycloak/ordersphere-realm.json", "/opt/keycloak/data/import/ordersphere-realm.json", isReadOnly: true)
     .WithArgs("start-dev", "--import-realm")
     .WithVolume("keycloak-data", "/opt/keycloak/data")
@@ -49,7 +63,7 @@ var catalog = builder.AddProject<Projects.OrderSphere_Catalog_Api>("ordersphere-
     .WaitFor(catalogDb)
     .WaitFor(redis)
     .WithEnvironment("Keycloak__Authority", keycloakRealmAuthority)
-    .WithEnvironment("Keycloak__Audience", "account");
+    .WithEnvironment("Keycloak__Audience", "catalog-api");
 
 var ordering = builder.AddProject<Projects.OrderSphere_Ordering_Api>("ordersphere-ordering")
     .WithReference(orderingDb)
@@ -57,24 +71,35 @@ var ordering = builder.AddProject<Projects.OrderSphere_Ordering_Api>("orderspher
     .WithReference(catalog)
     .WaitFor(orderingDb)
     .WaitFor(serviceBus)
-    .WithEnvironment("Keycloak__Authority", keycloakRealmAuthority)
-    .WithEnvironment("Keycloak__Audience", "account");
+    .WithEnvironment("Keycloak__Authority",   keycloakRealmAuthority)
+    .WithEnvironment("Keycloak__Audience",     "ordering-api")
+    // Service-account credentials used by HttpCatalogClient (client_credentials grant).
+    .WithEnvironment("Keycloak__ClientId",     "ordering-worker")
+    .WithEnvironment("Keycloak__ClientSecret", orderingWorkerSecret);
 
 builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-worker")
     .WithReference(orderingDb)
     .WithReference(serviceBus)
     .WaitFor(orderingDb)
-    .WaitFor(serviceBus);
+    .WaitFor(serviceBus)
+    // Pre-wired for future M2M calls (e.g. Catalog enrichment).
+    .WithEnvironment("Keycloak__Authority",   keycloakRealmAuthority)
+    .WithEnvironment("Keycloak__ClientId",     "ordering-worker")
+    .WithEnvironment("Keycloak__ClientSecret", orderingWorkerSecret);
 
 builder.AddProject<Projects.OrderSphere_Notification_Worker>("ordersphere-notification-worker")
     .WithReference(serviceBus)
-    .WaitFor(serviceBus);
+    .WaitFor(serviceBus)
+    // Pre-wired for future M2M calls (e.g. UserProfile enrichment).
+    .WithEnvironment("Keycloak__Authority",   keycloakRealmAuthority)
+    .WithEnvironment("Keycloak__ClientId",     "notification-worker")
+    .WithEnvironment("Keycloak__ClientSecret", notificationWorkerSecret);
 
 var userProfile = builder.AddProject<Projects.OrderSphere_UserProfile_Api>("ordersphere-userprofile")
     .WithReference(userProfileDb)
     .WaitFor(userProfileDb)
     .WithEnvironment("Keycloak__Authority", keycloakRealmAuthority)
-    .WithEnvironment("Keycloak__Audience", "account");
+    .WithEnvironment("Keycloak__Audience", "userprofile-api");
 
 var apiGateway = builder.AddProject<Projects.OrderSphere_ApiGateway>("ordersphere-apigateway")
     .WithReference(catalog)
@@ -87,9 +112,11 @@ var apiGateway = builder.AddProject<Projects.OrderSphere_ApiGateway>("orderspher
 
 builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")
     .WithReference(apiGateway)
+    .WithReference(redis)
     .WaitFor(apiGateway)
-    .WithEnvironment("Keycloak__Authority", keycloakRealmAuthority)
-    .WithEnvironment("Keycloak__ClientId", "web-bff")
-    .WithEnvironment("Keycloak__ClientSecret", "web-bff-dev-secret-change-in-prod");
+    .WaitFor(redis)
+    .WithEnvironment("Keycloak__Authority",   keycloakRealmAuthority)
+    .WithEnvironment("Keycloak__ClientId",     "web-bff")
+    .WithEnvironment("Keycloak__ClientSecret", bffClientSecret);
 
 builder.Build().Run();

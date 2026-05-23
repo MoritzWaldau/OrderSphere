@@ -7,9 +7,24 @@ using OrderSphere.Web.Services;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<OrderSphere.Web.App>("#app");
 
+// CSRF protection services
+builder.Services.AddScoped<CsrfTokenService>();
+builder.Services.AddScoped<AntiforgeryDelegatingHandler>();
+
 // Base HttpClient — all API calls go to the same BFF origin.
+// AntiforgeryDelegatingHandler attaches X-XSRF-TOKEN on all mutating requests.
 builder.Services.AddScoped(sp =>
-    new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+{
+    var csrfService = sp.GetRequiredService<CsrfTokenService>();
+    var antiforgeryHandler = new AntiforgeryDelegatingHandler(csrfService)
+    {
+        InnerHandler = new HttpClientHandler()
+    };
+    return new HttpClient(antiforgeryHandler)
+    {
+        BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
+    };
+});
 
 // Auth — BFF cookie pattern: state is derived from /bff/user
 builder.Services.AddAuthorizationCore();

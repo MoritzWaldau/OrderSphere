@@ -8,8 +8,12 @@ using OrderSphere.Ordering.Infrastructure.Persistence;
 
 namespace OrderSphere.Ordering.Api.Features.Order;
 
-public sealed record GetOrderByIdQuery(Guid OrderId, Guid CustomerId)
-    : IRequest<Result<OrderDto>>;
+/// <summary>
+/// Loads a single order by its ID without a customer-ownership filter.
+/// Caller identity and ownership are enforced at the endpoint via
+/// <c>IAuthorizationService.AuthorizeAsync(user, orderDto, "OrderOwnerOrStaff")</c>.
+/// </summary>
+public sealed record GetOrderByIdQuery(Guid OrderId) : IRequest<Result<OrderDto>>;
 
 public sealed class GetOrderByIdQueryHandler(
     IOrderingDbContext context,
@@ -28,19 +32,11 @@ public sealed class GetOrderByIdQueryHandler(
             if (order is null)
                 return Result<OrderDto>.Failure(OrderErrors.OrderNotFoundError);
 
-            if (order.CustomerId != request.CustomerId)
-            {
-                logger.LogWarning("Customer {CustomerId} attempted to access foreign order {OrderId}",
-                    request.CustomerId, request.OrderId);
-                return Result<OrderDto>.Failure(OrderErrors.OrderNotFoundError);
-            }
-
             return Result<OrderDto>.Success(GetOrdersByCustomerQueryHandler.ToDto(order));
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving order {OrderId} for customer {CustomerId}",
-                request.OrderId, request.CustomerId);
+            logger.LogError(ex, "Error retrieving order {OrderId}", request.OrderId);
             return Result<OrderDto>.Failure(OrderErrors.UnknownError);
         }
     }

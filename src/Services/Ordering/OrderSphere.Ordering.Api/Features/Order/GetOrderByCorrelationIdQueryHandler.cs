@@ -8,7 +8,14 @@ using OrderSphere.Ordering.Infrastructure.Persistence;
 
 namespace OrderSphere.Ordering.Api.Features.Order;
 
-public sealed record GetOrderByCorrelationIdQuery(Guid CorrelationId, Guid CustomerId)
+/// <summary>
+/// Loads an order by its Service Bus correlation ID without a customer filter.
+/// Ownership is enforced at the endpoint via
+/// <c>IAuthorizationService.AuthorizeAsync(user, orderDto, "OrderOwnerOrStaff")</c>.
+/// Returns <c>null</c> in the success value when the order has not yet been
+/// persisted (normal during Service Bus processing delay).
+/// </summary>
+public sealed record GetOrderByCorrelationIdQuery(Guid CorrelationId)
     : IRequest<Result<OrderDto?>>;
 
 public sealed class GetOrderByCorrelationIdQueryHandler(
@@ -27,13 +34,6 @@ public sealed class GetOrderByCorrelationIdQueryHandler(
 
             if (order is null)
                 return Result<OrderDto?>.Success(null);
-
-            if (order.CustomerId != request.CustomerId)
-            {
-                logger.LogWarning("Customer {CustomerId} attempted to access order with foreign correlationId {CorrelationId}",
-                    request.CustomerId, request.CorrelationId);
-                return Result<OrderDto?>.Success(null);
-            }
 
             return Result<OrderDto?>.Success(GetOrdersByCustomerQueryHandler.ToDto(order));
         }

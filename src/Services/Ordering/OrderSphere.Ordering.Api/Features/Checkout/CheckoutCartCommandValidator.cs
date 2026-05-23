@@ -6,14 +6,15 @@ public sealed class CheckoutCartCommandValidator : AbstractValidator<CheckoutCar
 {
     public CheckoutCartCommandValidator()
     {
-        RuleFor(x => x.Request.CustomerId).NotEmpty();
-        RuleFor(x => x.Request.CustomerEmail).NotEmpty().EmailAddress();
-        RuleFor(x => x.Request.CustomerName).NotEmpty();
-        RuleFor(x => x.Request.ShippingAddress.FirstName).NotEmpty();
-        RuleFor(x => x.Request.ShippingAddress.LastName).NotEmpty();
-        RuleFor(x => x.Request.ShippingAddress.Street).NotEmpty();
-        RuleFor(x => x.Request.ShippingAddress.City).NotEmpty();
-        RuleFor(x => x.Request.ShippingAddress.PostalCode).NotEmpty();
-        RuleFor(x => x.Request.ShippingAddress.Country).NotEmpty();
+        RuleFor(x => x.CustomerId).NotEmpty();
+        RuleFor(x => x.CustomerEmail).NotEmpty().EmailAddress();
+        RuleFor(x => x.CustomerName).NotEmpty();
+        RuleFor(x => x.ShippingAddress).NotNull();
+        RuleFor(x => x.ShippingAddress.FirstName).NotEmpty().When(x => x.ShippingAddress is not null);
+        RuleFor(x => x.ShippingAddress.LastName).NotEmpty().When(x => x.ShippingAddress is not null);
+        RuleFor(x => x.ShippingAddress.Street).NotEmpty().When(x => x.ShippingAddress is not null);
+        RuleFor(x => x.ShippingAddress.City).NotEmpty().When(x => x.ShippingAddress is not null);
+        RuleFor(x => x.ShippingAddress.PostalCode).NotEmpty().When(x => x.ShippingAddress is not null);
+        RuleFor(x => x.ShippingAddress.Country).NotEmpty().When(x => x.ShippingAddress is not null);
     }
 }

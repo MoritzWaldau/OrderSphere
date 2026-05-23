@@ -98,20 +98,14 @@
 </section>
 
 @code {
-    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
-
     private List<OrderDto> _orders = [];
     private bool _loading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
-        var sub = state.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(sub, out var customerId)) { _loading = false; return; }
-
         try
         {
-            _orders = await Ordering.GetOrdersByCustomerAsync(customerId);
+            _orders = await Ordering.GetOrdersByCustomerAsync();
             _orders = [.._orders.OrderByDescending(o => o.CreatedAt)];
         }
         finally

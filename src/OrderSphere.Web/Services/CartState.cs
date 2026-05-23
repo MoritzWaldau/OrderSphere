@@ -4,14 +4,15 @@ namespace OrderSphere.Web.Services;
 
 /// <summary>
 /// Scoped service that caches the cart in WASM memory and notifies subscribers on change.
-/// Cart is loaded once per session; callers can force a refresh via RefreshAsync.
+/// Cart is loaded once per session; callers can force a refresh via <see cref="RefreshAsync"/>.
+/// Customer identity is resolved server-side from the JWT token; no client-side ID is needed.
 /// </summary>
 public sealed class CartState
 {
     private readonly IOrderingClient _ordering;
 
     private CartDto? _cart;
-    private Guid? _customerId;
+    private bool _initialized;
 
     public event Action? OnChange;
 
@@ -23,17 +24,16 @@ public sealed class CartState
         _ordering = ordering;
     }
 
-    public async Task InitializeAsync(Guid customerId, CancellationToken ct = default)
+    public async Task InitializeAsync(CancellationToken ct = default)
     {
-        if (_customerId == customerId && _cart is not null) return;
-        _customerId = customerId;
+        if (_initialized && _cart is not null) return;
+        _initialized = true;
         await RefreshAsync(ct);
     }
 
     public async Task RefreshAsync(CancellationToken ct = default)
     {
-        if (_customerId is null) return;
-        _cart = await _ordering.GetCartAsync(_customerId.Value, ct);
+        _cart = await _ordering.GetCartAsync(ct);
         NotifyChanged();
     }
 

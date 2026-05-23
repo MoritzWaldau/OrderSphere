@@ -11,22 +11,203 @@
   "resetPasswordAllowed": true,
   "editUsernameAllowed": false,
   "verifyEmail": false,
+
+  "passwordPolicy": "length(12) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1) and notUsername and notEmail and passwordHistory(5)",
+
   "bruteForceProtected": true,
-  "permanentLockout": false,
+  "permanentLockout": true,
+  "maxTemporaryLockouts": 3,
   "maxFailureWaitSeconds": 900,
   "minimumQuickLoginWaitSeconds": 60,
   "waitIncrementSeconds": 60,
   "quickLoginCheckMilliSeconds": 1000,
   "maxDeltaTimeSeconds": 43200,
-  "failureFactor": 5,
+  "failureFactor": 3,
+
   "accessTokenLifespan": 300,
   "accessTokenLifespanForImplicitFlow": 900,
   "ssoSessionIdleTimeout": 1800,
   "ssoSessionMaxLifespan": 36000,
   "offlineSessionIdleTimeout": 2592000,
+  "offlineSessionMaxLifespanEnabled": false,
+
   "defaultSignatureAlgorithm": "RS256",
   "internationalizationEnabled": false,
   "defaultLocale": "de",
+
+  "browserFlow": "browser-with-conditional-otp",
+
+  "requiredActions": [
+    {
+      "alias": "CONFIGURE_TOTP",
+      "name": "Configure OTP",
+      "providerId": "CONFIGURE_TOTP",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 10,
+      "config": {}
+    },
+    {
+      "alias": "TERMS_AND_CONDITIONS",
+      "name": "Terms and Conditions",
+      "providerId": "TERMS_AND_CONDITIONS",
+      "enabled": false,
+      "defaultAction": false,
+      "priority": 20,
+      "config": {}
+    },
+    {
+      "alias": "UPDATE_PASSWORD",
+      "name": "Update Password",
+      "providerId": "UPDATE_PASSWORD",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 30,
+      "config": {}
+    },
+    {
+      "alias": "UPDATE_PROFILE",
+      "name": "Update Profile",
+      "providerId": "UPDATE_PROFILE",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 40,
+      "config": {}
+    },
+    {
+      "alias": "VERIFY_EMAIL",
+      "name": "Verify Email",
+      "providerId": "VERIFY_EMAIL",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 50,
+      "config": {}
+    },
+    {
+      "alias": "delete_account",
+      "name": "Delete Account",
+      "providerId": "delete_account",
+      "enabled": false,
+      "defaultAction": false,
+      "priority": 60,
+      "config": {}
+    },
+    {
+      "alias": "webauthn-register",
+      "name": "Webauthn Register",
+      "providerId": "webauthn-register",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 70,
+      "config": {}
+    },
+    {
+      "alias": "webauthn-register-passwordless",
+      "name": "Webauthn Register Passwordless",
+      "providerId": "webauthn-register-passwordless",
+      "enabled": false,
+      "defaultAction": false,
+      "priority": 80,
+      "config": {}
+    }
+  ],
+
+  "authenticatorConfig": [
+    {
+      "alias": "requires-mfa-role-condition",
+      "config": {
+        "conditionUserRole": "requires-mfa",
+        "negate": "false"
+      }
+    }
+  ],
+
+  "authenticationFlows": [
+    {
+      "alias": "browser-with-conditional-otp",
+      "description": "Browser flow with conditional OTP/WebAuthn second factor for users with the requires-mfa role (all staff roles).",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-cookie",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "identity-provider-redirector",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 25,
+          "userSetupAllowed": false
+        },
+        {
+          "flowAlias": "browser-conditional-otp-forms",
+          "authenticatorFlow": true,
+          "requirement": "ALTERNATIVE",
+          "priority": 30,
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "browser-conditional-otp-forms",
+      "description": "Username + password form, then optional conditional 2FA sub-flow.",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-username-password-form",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "flowAlias": "browser-conditional-otp-2fa",
+          "authenticatorFlow": true,
+          "requirement": "CONDITIONAL",
+          "priority": 20,
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "browser-conditional-otp-2fa",
+      "description": "Conditional 2FA: triggered only for users with the requires-mfa role. Offers WebAuthn or OTP as alternatives.",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "condition-user-role",
+          "authenticatorConfig": "requires-mfa-role-condition",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "webauthn-authenticator",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 20,
+          "userSetupAllowed": true
+        },
+        {
+          "authenticator": "auth-otp-form",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 30,
+          "userSetupAllowed": true
+        }
+      ]
+    }
+  ],
 
   "clients": [
     {
@@ -51,7 +232,10 @@
       "attributes": {
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "http://localhost:*##https://localhost:*",
-        "access.token.lifespan": "300"
+        "access.token.lifespan": "300",
+        "backchannel.logout.session.required": "true",
+        "backchannel.logout.revoke.offline.tokens": "false",
+        "backchannel.logout.url": ""
       },
       "defaultClientScopes": [
         "web-origins",
@@ -96,6 +280,82 @@
         "phone",
         "offline_access"
       ]
+    },
+    {
+      "id": "c3d4e5f6-a7b8-9012-cdef-234567890123",
+      "clientId": "ordering-api",
+      "name": "Ordering API Resource Server",
+      "description": "Bearer-only resource server for Ordering.Api — validates access tokens with audience 'ordering-api'",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    },
+    {
+      "id": "d4e5f6a7-b8c9-0123-defa-345678901234",
+      "clientId": "catalog-api",
+      "name": "Catalog API Resource Server",
+      "description": "Bearer-only resource server for Catalog.Api — validates access tokens with audience 'catalog-api'",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    },
+    {
+      "id": "e5f6a7b8-c9d0-1234-efab-456789012345",
+      "clientId": "userprofile-api",
+      "name": "UserProfile API Resource Server",
+      "description": "Bearer-only resource server for UserProfile.Api — validates access tokens with audience 'userprofile-api'",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    },
+    {
+      "id": "f6a7b8c9-d0e1-2345-fabc-567890123456",
+      "clientId": "ordering-worker",
+      "name": "Ordering Worker",
+      "description": "Service account for Ordering.Worker and Ordering.Api M2M calls — client_credentials grant; assigned svc.ordering role",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "ordering-worker-dev-secret-change-in-prod",
+      "attributes": {
+        "access.token.lifespan": "300"
+      }
+    },
+    {
+      "id": "a7b8c9d0-e1f2-3456-abcd-678901234567",
+      "clientId": "notification-worker",
+      "name": "Notification Worker",
+      "description": "Service account for Notification.Worker — client_credentials grant; assigned svc.notification role",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "notification-worker-dev-secret-change-in-prod",
+      "attributes": {
+        "access.token.lifespan": "300"
+      }
     }
   ],
 
@@ -104,14 +364,68 @@
       {
         "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
         "name": "customer",
-        "description": "Regular shop customer — can browse, add to cart, checkout",
+        "description": "Regular shop customer — can browse, add to cart, checkout, and access own orders",
         "composite": false,
         "clientRole": false
       },
       {
+        "id": "b2c3d4e5-0000-0001-0000-000000000001",
+        "name": "csr",
+        "description": "Customer Service Representative — read-only access to all orders and customer data. Composite: includes requires-mfa.",
+        "composite": true,
+        "clientRole": false,
+        "composites": {
+          "realm": ["requires-mfa"]
+        }
+      },
+      {
+        "id": "b2c3d4e5-0000-0002-0000-000000000002",
+        "name": "order-manager",
+        "description": "Order operations staff — may update order status and cancel orders. Composite: includes requires-mfa.",
+        "composite": true,
+        "clientRole": false,
+        "composites": {
+          "realm": ["requires-mfa"]
+        }
+      },
+      {
+        "id": "b2c3d4e5-0000-0003-0000-000000000003",
+        "name": "catalog-admin",
+        "description": "Merchandising role — full CRUD access to catalog products and categories. Composite: includes requires-mfa.",
+        "composite": true,
+        "clientRole": false,
+        "composites": {
+          "realm": ["requires-mfa"]
+        }
+      },
+      {
         "id": "d4e5f6a7-b8c9-0123-defa-234567890123",
         "name": "admin",
-        "description": "Shop administrator — full access to admin panel",
+        "description": "Platform administrator — composite of csr + order-manager + catalog-admin + requires-mfa",
+        "composite": true,
+        "clientRole": false,
+        "composites": {
+          "realm": ["csr", "order-manager", "catalog-admin", "requires-mfa"]
+        }
+      },
+      {
+        "id": "b2c3d4e5-0000-0006-0000-000000000006",
+        "name": "requires-mfa",
+        "description": "MFA gating role — users who effectively hold this role are required to complete a second factor (WebAuthn or OTP) in the conditional browser flow. Automatically included in csr, order-manager, catalog-admin, and admin via composite role inheritance.",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "id": "b2c3d4e5-0000-0004-0000-000000000004",
+        "name": "svc.ordering",
+        "description": "Machine identity for Ordering.Worker — assigned to the ordering-worker service account",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "id": "b2c3d4e5-0000-0005-0000-000000000005",
+        "name": "svc.notification",
+        "description": "Machine identity for Notification.Worker — assigned to the notification-worker service account",
         "composite": false,
         "clientRole": false
       }
@@ -178,6 +492,46 @@
       "requiredActions": [],
       "realmRoles": ["admin", "customer"],
       "credentials": []
+    },
+    {
+      "id": "d0e1f2a3-b4c5-6789-defa-890123456789",
+      "username": "csr.agent@ordersphere.dev",
+      "email": "csr.agent@ordersphere.dev",
+      "firstName": "CSR",
+      "lastName": "Agent",
+      "enabled": true,
+      "emailVerified": true,
+      "requiredActions": [],
+      "realmRoles": ["csr"],
+      "credentials": []
+    },
+    {
+      "id": "e1f2a3b4-c5d6-7890-efab-901234567890",
+      "username": "order.manager@ordersphere.dev",
+      "email": "order.manager@ordersphere.dev",
+      "firstName": "Order",
+      "lastName": "Manager",
+      "enabled": true,
+      "emailVerified": true,
+      "requiredActions": [],
+      "realmRoles": ["order-manager"],
+      "credentials": []
+    },
+    {
+      "username": "service-account-ordering-worker",
+      "email": "service-account-ordering-worker@placeholder.invalid",
+      "enabled": true,
+      "emailVerified": true,
+      "serviceAccountClientId": "ordering-worker",
+      "realmRoles": ["svc.ordering"]
+    },
+    {
+      "username": "service-account-notification-worker",
+      "email": "service-account-notification-worker@placeholder.invalid",
+      "enabled": true,
+      "emailVerified": true,
+      "serviceAccountClientId": "notification-worker",
+      "realmRoles": ["svc.notification"]
     }
   ]
 }

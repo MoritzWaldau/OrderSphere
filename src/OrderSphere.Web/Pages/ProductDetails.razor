@@ -105,20 +105,14 @@ else
 @code {
     [Parameter] public string Category { get; set; } = string.Empty;
     [Parameter] public string Slug { get; set; } = string.Empty;
-    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
 
     private ProductDto? _product;
     private bool _loading = true;
     private bool _adding;
     private int _quantity = 1;
-    private Guid? _customerId;
 
     protected override async Task OnInitializedAsync()
     {
-        var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
-        var sub = state.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (Guid.TryParse(sub, out var id)) _customerId = id;
-
         try
         {
             _product = await Catalog.GetProductBySlugAsync(Slug);
@@ -135,11 +129,11 @@ else
 
     private async Task AddToCartAsync()
     {
-        if (_product is null || _customerId is null) return;
+        if (_product is null) return;
         _adding = true;
         try
         {
-            var ok = await Ordering.AddToCartAsync(_customerId.Value, _product.Id, _quantity);
+            var ok = await Ordering.AddToCartAsync(_product.Id, _quantity);
             if (ok)
             {
                 Snackbar.Add($"{_quantity}× {_product.Name} wurde hinzugefügt.", Severity.Success);

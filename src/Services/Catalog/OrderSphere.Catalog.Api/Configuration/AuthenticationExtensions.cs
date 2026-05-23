@@ -2,18 +2,16 @@ namespace OrderSphere.Catalog.Api.Configuration;
 
 /// <summary>
 /// Authentication wiring for the Catalog API.
-/// Currently a no-op placeholder. Wire up JWT/Keycloak here when authentication is reintroduced.
-/// Expected pattern:
-///   services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-///       .AddJwtBearer(options => { /* Keycloak realm, audience, validation params */ });
+/// Delegates to the shared <c>AddOrderSphereJwtAuth</c> extension in ServiceDefaults
+/// so that all JWT validation parameters stay consistent across the solution.
+/// Audience "catalog-api" maps to a dedicated bearer-only Keycloak client.
 /// </summary>
 public static class AuthenticationExtensions
 {
-    public static IServiceCollection AddCatalogAuthentication(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    public static IHostApplicationBuilder AddCatalogAuthentication(
+        this IHostApplicationBuilder builder)
     {
-        // Intentionally empty until authentication is reactivated.
-        return services;
+        builder.AddOrderSphereJwtAuth("catalog-api");
+        return builder;
     }
 }

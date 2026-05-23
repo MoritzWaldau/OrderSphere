@@ -12,12 +12,14 @@ namespace OrderSphere.Web.Auth;
 public sealed class BffAuthStateProvider : AuthenticationStateProvider
 {
     private readonly HttpClient _client;
+    private readonly CsrfTokenService _csrfTokenService;
     private static readonly AuthenticationState _anonymous =
         new(new ClaimsPrincipal(new ClaimsIdentity()));
 
-    public BffAuthStateProvider(HttpClient client)
+    public BffAuthStateProvider(HttpClient client, CsrfTokenService csrfTokenService)
     {
         _client = client;
+        _csrfTokenService = csrfTokenService;
     }
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
@@ -27,7 +29,14 @@ public sealed class BffAuthStateProvider : AuthenticationStateProvider
             var userInfo = await _client.GetFromJsonAsync<UserInfoDto>("/bff/user");
 
             if (userInfo?.IsAuthenticated != true)
+            {
+                if (!string.IsNullOrEmpty(userInfo?.XsrfToken))
+                    _csrfTokenService.SetToken(userInfo.XsrfToken);
                 return _anonymous;
+            }
+
+            if (!string.IsNullOrEmpty(userInfo.XsrfToken))
+                _csrfTokenService.SetToken(userInfo.XsrfToken);
 
             var claims = new List<Claim>();
 

@@ -20,8 +20,9 @@ builder.Services.AddCatalogApplication();    // MediatR + Behaviors + FluentVali
 builder.Services.AddCatalogApiVersioning();
 builder.Services.AddCatalogSwagger();
 builder.Services.AddCatalogRateLimiting();
-builder.Services.AddCatalogAuthentication(builder.Configuration);   // no-op placeholder
-builder.Services.AddCatalogAuthorization();                          // no-op placeholder
+builder.AddCatalogAuthentication();     // Keycloak JWT; audience "catalog-api"
+builder.Services.AddCatalogAuthorization();                          // CatalogAdminPolicy
+builder.Services.AddCurrentUser();
 
 // Exception handling
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
@@ -51,8 +52,8 @@ if (app.Environment.IsDevelopment())
 // Middleware pipeline (order matters)
 app.UseExceptionHandler();
 app.UseRateLimiter();
-// app.UseAuthentication();   ← Anker: aktivieren, sobald AuthenticationExtensions befüllt
-// app.UseAuthorization();    ← Anker: aktivieren, sobald AuthorizationExtensions befüllt
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Endpoints
 app.MapCatalogEndpoints();

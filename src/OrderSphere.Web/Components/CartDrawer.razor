@@ -86,23 +86,13 @@
 @code {
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
-    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
 
     private List<CartItemDto> _items = [];
     private decimal _total;
-    private Guid? _customerId;
 
     protected override void OnInitialized()
     {
         CartState.OnChange += Refresh;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender) return;
-        var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
-        var sub = state.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (Guid.TryParse(sub, out var id)) _customerId = id;
         Refresh();
     }
 
@@ -115,8 +105,7 @@
 
     private async Task RemoveAsync(Guid productId)
     {
-        if (_customerId is null) return;
-        await Ordering.RemoveFromCartAsync(_customerId.Value, productId);
+        await Ordering.RemoveFromCartAsync(productId);
         await CartState.RefreshAsync();
     }
 

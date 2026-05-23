@@ -24,22 +24,20 @@ public sealed class CheckoutCartCommandHandler(
         {
             await context.BeginTransactionAsync(cancellationToken);
 
-            var req = request.Request;
-
             var cart = await context.Carts
                 .AsTracking()
                 .Include(x => x.Items)
-                .FirstOrDefaultAsync(x => x.CustomerId == req.CustomerId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.CustomerId == request.CustomerId, cancellationToken);
 
             if (cart is null || cart.CustomerId == Guid.Empty)
             {
-                logger.LogError("Cart with customerId {Id} was not found", req.CustomerId);
+                logger.LogError("Cart with customerId {Id} was not found", request.CustomerId);
                 return Result<Guid>.Failure(CartErrors.CartNotFoundError);
             }
 
             if (cart.Items.Count == 0)
             {
-                logger.LogWarning("Checkout attempted on empty cart for customer {Id}", req.CustomerId);
+                logger.LogWarning("Checkout attempted on empty cart for customer {Id}", request.CustomerId);
                 return Result<Guid>.Failure(CheckoutCartErrors.EmptyCartError);
             }
 
@@ -73,11 +71,11 @@ public sealed class CheckoutCartCommandHandler(
             var checkoutCartEvent = new CheckoutCartEvent(
                 correlationId,
                 new CheckoutCartDto(
-                    req.CustomerId,
-                    req.CustomerEmail,
-                    req.CustomerName,
-                    req.ShippingAddress,
-                    req.PaymentMethod),
+                    request.CustomerId,
+                    request.CustomerEmail,
+                    request.CustomerName,
+                    request.ShippingAddress,
+                    request.PaymentMethod),
                 orderItemDtos);
 
             await serviceBusPublisher.PublishCheckoutCartEventAsync(checkoutCartEvent);
@@ -85,14 +83,14 @@ public sealed class CheckoutCartCommandHandler(
 
             logger.LogInformation(
                 "Checkout for customer {CustomerId} accepted. CorrelationId: {CorrelationId}",
-                req.CustomerId, correlationId);
+                request.CustomerId, correlationId);
 
             return Result<Guid>.Success(correlationId);
         }
         catch (Exception ex)
         {
             await context.RollbackAsync(cancellationToken);
-            logger.LogError(ex, "Checkout failed for customer {Id}", request.Request.CustomerId);
+            logger.LogError(ex, "Checkout failed for customer {Id}", request.CustomerId);
             return Result<Guid>.Failure(CheckoutCartErrors.UnknownError);
         }
     }

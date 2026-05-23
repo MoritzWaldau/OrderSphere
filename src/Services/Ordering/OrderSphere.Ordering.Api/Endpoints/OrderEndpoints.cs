@@ -1,4 +1,7 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using OrderSphere.BuildingBlocks.Security;
+using OrderSphere.Ordering.Api.Configuration;
 using OrderSphere.Ordering.Api.Features.Order;
 using OrderSphere.Ordering.Api.Features.Order.Admin;
 using OrderSphere.Ordering.Api.Models;
@@ -10,37 +13,65 @@ public static class OrderEndpoints
 {
     public static void MapOrderEndpoints(this IEndpointRouteBuilder app)
     {
-        // Customer endpoints
+        // ── Customer endpoints ────────────────────────────────────────────────
         var customer = app.MapGroup("/api/v1/orders").RequireAuthorization();
 
-        customer.MapGet("/customer/{customerId:guid}",
-            async (Guid customerId, IMediator mediator, CancellationToken ct) =>
+        // GET /api/v1/orders — all orders for the authenticated customer.
+        customer.MapGet("/",
+            async (ICurrentUser currentUser, IMediator mediator, CancellationToken ct) =>
             {
+                if (!TryGetCustomerId(currentUser, out var customerId))
+                    return Results.Unauthorized();
+
                 var result = await mediator.Send(new GetOrdersByCustomerQuery(customerId), ct);
                 return result.IsSuccess ? Results.Ok(result.Value)
                     : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
             });
 
-        customer.MapGet("/{orderId:guid}/customer/{customerId:guid}",
-            async (Guid orderId, Guid customerId, IMediator mediator, CancellationToken ct) =>
+        // GET /api/v1/orders/{orderId} — single order; ABAC: owner OR staff.
+        customer.MapGet("/{orderId:guid}",
+            async (Guid orderId, IMediator mediator, IAuthorizationService authSvc,
+                   HttpContext httpContext, CancellationToken ct) =>
             {
-                var result = await mediator.Send(new GetOrderByIdQuery(orderId, customerId), ct);
-                return result.IsSuccess ? Results.Ok(result.Value)
-                    : Results.NotFound(new ErrorResponse(result.Error.Code, result.Error.Description));
+                var result = await mediator.Send(new GetOrderByIdQuery(orderId), ct);
+                if (result.IsFailure)
+                    return Results.NotFound(new ErrorResponse(result.Error.Code, result.Error.Description));
+
+                var authResult = await authSvc.AuthorizeAsync(
+                    httpContext.User, result.Value, AuthorizationPolicies.OrderOwnerOrStaff);
+                if (!authResult.Succeeded)
+                    return Results.Forbid();
+
+                return Results.Ok(result.Value);
             });
 
-        customer.MapGet("/correlation/{correlationId:guid}/customer/{customerId:guid}",
-            async (Guid correlationId, Guid customerId, IMediator mediator, CancellationToken ct) =>
+        // GET /api/v1/orders/correlation/{correlationId} — by Service Bus correlation ID; ABAC: owner OR staff.
+        customer.MapGet("/correlation/{correlationId:guid}",
+            async (Guid correlationId, IMediator mediator, IAuthorizationService authSvc,
+                   HttpContext httpContext, CancellationToken ct) =>
             {
-                var result = await mediator.Send(new GetOrderByCorrelationIdQuery(correlationId, customerId), ct);
-                return result.IsSuccess ? Results.Ok(result.Value) // may be null → 200 with null body
-                    : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
+                var result = await mediator.Send(new GetOrderByCorrelationIdQuery(correlationId), ct);
+                if (result.IsFailure)
+                    return Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
+
+                // Order may not be persisted yet (Service Bus processing latency) — return null body.
+                if (result.Value is null)
+                    return Results.Ok((OrderDto?)null);
+
+                var authResult = await authSvc.AuthorizeAsync(
+                    httpContext.User, result.Value, AuthorizationPolicies.OrderOwnerOrStaff);
+                if (!authResult.Succeeded)
+                    return Results.Forbid();
+
+                return Results.Ok(result.Value);
             });
 
-        // Admin endpoints
-        var admin = app.MapGroup("/api/v1/admin/orders").RequireAuthorization("AdminPolicy");
+        // ── Admin / staff endpoints ───────────────────────────────────────────
+        // Read operations: any staff role (csr, order-manager, admin).
+        var staffRead = app.MapGroup("/api/v1/admin/orders")
+                           .RequireAuthorization(AuthorizationPolicies.Staff);
 
-        admin.MapGet("/",
+        staffRead.MapGet("/",
             async (OrderStatus? status, IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(new GetAllOrdersQuery(status), ct);
@@ -48,7 +79,7 @@ public static class OrderEndpoints
                     : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
             });
 
-        admin.MapGet("/stats",
+        staffRead.MapGet("/stats",
             async (IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(new GetOrderStatsQuery(), ct);
@@ -56,7 +87,7 @@ public static class OrderEndpoints
                     : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
             });
 
-        admin.MapGet("/{orderId:guid}",
+        staffRead.MapGet("/{orderId:guid}",
             async (Guid orderId, IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(new GetOrderByIdAdminQuery(orderId), ct);
@@ -64,7 +95,11 @@ public static class OrderEndpoints
                     : Results.NotFound(new ErrorResponse(result.Error.Code, result.Error.Description));
             });
 
-        admin.MapPut("/{orderId:guid}/status",
+        // Write operations: order-manager or admin.
+        var orderManager = app.MapGroup("/api/v1/admin/orders")
+                              .RequireAuthorization(AuthorizationPolicies.OrderManager);
+
+        orderManager.MapPut("/{orderId:guid}/status",
             async (Guid orderId, UpdateStatusRequest req, IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(new UpdateOrderStatusCommand(orderId, req.NewStatus), ct);
@@ -72,13 +107,21 @@ public static class OrderEndpoints
                     : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
             });
 
-        admin.MapPost("/{orderId:guid}/cancel",
+        orderManager.MapPost("/{orderId:guid}/cancel",
             async (Guid orderId, IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(new CancelOrderCommand(orderId), ct);
                 return result.IsSuccess ? Results.Ok()
                     : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
             });
+    }
+
+    private static bool TryGetCustomerId(ICurrentUser currentUser, out Guid customerId)
+    {
+        customerId = Guid.Empty;
+        return currentUser.IsAuthenticated
+            && currentUser.Sub is not null
+            && Guid.TryParse(currentUser.Sub, out customerId);
     }
 }
 

@@ -51,7 +51,6 @@
 @code {
     [SupplyParameterFromQuery] private Guid? CorrelationId { get; set; }
     [SupplyParameterFromQuery] private string? Total { get; set; }
-    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
 
     private OrderDto? _order;
     private decimal? _totalAmount;
@@ -66,14 +65,11 @@
 
         if (CorrelationId is null) return;
 
-        var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
-        var sub = state.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(sub, out var customerId)) return;
-
-        // Poll for the order (Service Bus processing may take a moment)
+        // Poll for the order (Service Bus processing may take a moment).
+        // Ownership is enforced server-side via the JWT token.
         for (var i = 0; i < 6; i++)
         {
-            _order = await Ordering.GetOrderByCorrelationIdAsync(CorrelationId.Value, customerId);
+            _order = await Ordering.GetOrderByCorrelationIdAsync(CorrelationId.Value);
             if (_order is not null) break;
             await Task.Delay(2000);
         }

@@ -138,21 +138,14 @@
 </section>
 
 @code {
-    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
-
     private List<CartItemDto> _items = [];
     private bool _loading = true;
     private bool _busy;
-    private Guid? _customerId;
 
     private decimal Subtotal => _items.Sum(x => x.Price * x.Quantity);
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
-        var sub = state.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (Guid.TryParse(sub, out var id)) _customerId = id;
-
         CartState.OnChange += OnCartChanged;
         SyncFromCartState();
         _loading = false;
@@ -171,15 +164,15 @@
 
     private async Task HandleQuantityChange(CartItemDto item, int newValue)
     {
-        if (_customerId is null || _busy) return;
+        if (_busy) return;
         _busy = true;
         try
         {
             bool ok;
             if (newValue > item.Quantity)
-                ok = await Ordering.AddToCartAsync(_customerId.Value, item.ProductId, 1);
+                ok = await Ordering.AddToCartAsync(item.ProductId, 1);
             else
-                ok = await Ordering.DecreaseCartItemAsync(_customerId.Value, item.ProductId);
+                ok = await Ordering.DecreaseCartItemAsync(item.ProductId);
 
             if (ok)
                 await CartState.RefreshAsync();
@@ -194,11 +187,11 @@
 
     private async Task RemoveItemAsync(CartItemDto item)
     {
-        if (_customerId is null || _busy) return;
+        if (_busy) return;
         _busy = true;
         try
         {
-            var ok = await Ordering.RemoveFromCartAsync(_customerId.Value, item.ProductId);
+            var ok = await Ordering.RemoveFromCartAsync(item.ProductId);
             if (ok)
             {
                 await CartState.RefreshAsync();

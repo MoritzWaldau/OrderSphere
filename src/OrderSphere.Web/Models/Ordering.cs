@@ -31,10 +31,8 @@ public sealed record OrderLineDto(
     decimal Price);
 
 // Checkout
+// CustomerId, CustomerEmail, and CustomerName are derived from the JWT token server-side.
 public sealed record CheckoutRequest(
-    Guid CustomerId,
-    string CustomerEmail,
-    string CustomerName,
     CheckoutAddress ShippingAddress,
     int PaymentMethod);
 

@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BuildingBlocks\OrderSphere.BuildingBlocks.Domain\OrderSphere.BuildingBlocks.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
 
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
@@ -19,6 +23,9 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
     <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" />
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+    <!-- JwtBearer is part of Microsoft.AspNetCore.App but must be explicitly
+         referenced from non-Web SDK projects to make the types visible. -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using OrderSphere.UserProfile.Api.Endpoints;
 using OrderSphere.UserProfile.Infrastructure.Persistence;
 
@@ -14,23 +12,10 @@ builder.AddNpgsqlDbContext<UserProfileDbContext>("userprofile-db", settings =>
     settings.DisableRetry = false;
 });
 
-// JWT Bearer (Keycloak)
-var keycloakAuthority = builder.Configuration["Keycloak:Authority"]
-    ?? throw new InvalidOperationException("Keycloak:Authority is required.");
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = keycloakAuthority;
-        options.Audience = builder.Configuration["Keycloak:Audience"] ?? "account";
-        options.RequireHttpsMetadata = false;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateAudience = false,
-            RoleClaimType = "roles",
-            NameClaimType = "preferred_username"
-        };
-    });
+// JWT Bearer — shared Keycloak validation; audience "userprofile-api" is a
+// dedicated bearer-only client in the Keycloak realm.
+builder.AddOrderSphereJwtAuth("userprofile-api");
+builder.Services.AddCurrentUser();
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));

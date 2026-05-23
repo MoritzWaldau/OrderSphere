@@ -117,20 +117,15 @@ else
 
 @code {
     [Parameter] public Guid OrderId { get; set; }
-    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
 
     private OrderDto? _order;
     private bool _loading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
-        var sub = state.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(sub, out var customerId)) { _loading = false; return; }
-
         try
         {
-            _order = await Ordering.GetOrderByIdAsync(OrderId, customerId);
+            _order = await Ordering.GetOrderByIdAsync(OrderId);
         }
         finally
         {

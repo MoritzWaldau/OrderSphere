@@ -3,16 +3,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OrderSphere.BuildingBlocks.Contracts.Events;
+using OrderSphere.BuildingBlocks.EventBus;
 using OrderSphere.Ordering.Domain.Entities;
 using OrderSphere.Ordering.Domain.Events;
-using OrderSphere.Ordering.Domain.Services;
+
 using OrderSphere.Ordering.Infrastructure.Persistence;
-using System.Text.Json;
 
 namespace OrderSphere.Ordering.Worker.Workers;
 
 public sealed class OrderProcessor(
     ServiceBusClient serviceBusClient,
+    IEventBus eventBus,
     IServiceScopeFactory scopeFactory,
     ILogger<OrderProcessor> logger) : BackgroundService
 {
@@ -122,16 +124,14 @@ public sealed class OrderProcessor(
                 orderItems,
                 evt.CorrelationId);
 
-            order.Confirm(TrackingNumberGenerator.Generate());
-
             await context.Orders.AddAsync(order, ct);
             await context.CommitAsync(ct);
 
             logger.LogInformation(
-                "Order {OrderId} created for customer {CustomerId}. TrackingNumber: {TrackingNumber}. CorrelationId: {CorrelationId}",
-                order.Id, order.CustomerId, order.TrackingNumber, evt.CorrelationId);
+                "Order {OrderId} created for customer {CustomerId}. CorrelationId: {CorrelationId}",
+                order.Id, order.CustomerId, evt.CorrelationId);
 
-            await TryPublishOrderPlacedEvent(order, evt, ct);
+            await TryPublishPaymentRequestedEvent(order, evt, ct);
 
             return ProcessResult.Ok();
         }
@@ -151,44 +151,27 @@ public sealed class OrderProcessor(
         }
     }
 
-    private async Task TryPublishOrderPlacedEvent(Order order, CheckoutCartEvent evt, CancellationToken ct)
+    private async Task TryPublishPaymentRequestedEvent(Order order, CheckoutCartEvent evt, CancellationToken ct)
     {
         try
         {
-            var lines = evt.Items
-                .Select(i => new OrderPlacedItem(i.ProductName, i.Quantity, i.Price))
-                .ToList();
-
-            var orderPlaced = new OrderPlacedEvent(
-                order.Id,
-                evt.CorrelationId,
-                evt.CheckoutCart.CustomerEmail,
-                evt.CheckoutCart.CustomerName,
-                order.TrackingNumber!,
-                order.ShippingAddress.FirstName,
-                order.ShippingAddress.LastName,
-                order.ShippingAddress.Street,
-                order.ShippingAddress.City,
-                order.ShippingAddress.PostalCode,
-                order.ShippingAddress.Country,
-                lines,
-                evt.Items.Sum(i => i.Price * i.Quantity));
-
-            await using var sender = serviceBusClient.CreateSender("notification-orders");
-            var message = new ServiceBusMessage(JsonSerializer.Serialize(orderPlaced))
+            var paymentEvent = new PaymentRequestedIntegrationEvent
             {
-                MessageId = order.Id.ToString(),
-                ContentType = "application/json"
+                CorrelationId = evt.CorrelationId,
+                OrderId = order.Id,
+                Amount = evt.Items.Sum(i => i.Price * i.Quantity),
+                Currency = "EUR",
+                PaymentMethod = evt.CheckoutCart.PaymentMethod.ToString(),
+                CustomerEmail = evt.CheckoutCart.CustomerEmail
             };
-            await sender.SendMessageAsync(message, ct);
 
-            logger.LogInformation("OrderPlacedEvent published for order {OrderId}.", order.Id);
+            await eventBus.PublishAsync(paymentEvent, "payment-requests", ct);
+
+            logger.LogInformation("PaymentRequestedEvent published for order {OrderId}.", order.Id);
         }
         catch (Exception ex)
         {
-            // Non-fatal: order is already committed. Notification may be delayed/missing,
-            // but the order record is consistent. Log and continue.
-            logger.LogWarning(ex, "Failed to publish OrderPlacedEvent for order {OrderId}.", order.Id);
+            logger.LogWarning(ex, "Failed to publish PaymentRequestedEvent for order {OrderId}.", order.Id);
         }
     }
 

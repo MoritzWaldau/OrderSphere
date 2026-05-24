@@ -8,6 +8,9 @@
   </Folder>
   <Folder Name="/src/BuildingBlocks/">
     <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/OrderSphere.BuildingBlocks.csproj" />
+    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.EventBus/OrderSphere.BuildingBlocks.EventBus.csproj" />
+    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.EventBus.AzureServiceBus/OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.csproj" />
+    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Contracts/OrderSphere.BuildingBlocks.Contracts.csproj" />
   </Folder>
   <Folder Name="/src/Hosting/">
     <Project Path="src/OrderSphere.AppHost/OrderSphere.AppHost.csproj" />
@@ -24,6 +27,23 @@
     <Project Path="src/Services/Ordering/OrderSphere.Ordering.Domain/OrderSphere.Ordering.Domain.csproj" />
     <Project Path="src/Services/Ordering/OrderSphere.Ordering.Infrastructure/OrderSphere.Ordering.Infrastructure.csproj" />
     <Project Path="src/Services/Ordering/OrderSphere.Ordering.Worker/OrderSphere.Ordering.Worker.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Basket/">
+    <Project Path="src/Services/Basket/OrderSphere.Basket.Api/OrderSphere.Basket.Api.csproj" />
+    <Project Path="src/Services/Basket/OrderSphere.Basket.Domain/OrderSphere.Basket.Domain.csproj" />
+    <Project Path="src/Services/Basket/OrderSphere.Basket.Infrastructure/OrderSphere.Basket.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Payment/">
+    <Project Path="src/Services/Payment/OrderSphere.Payment.Api/OrderSphere.Payment.Api.csproj" />
+    <Project Path="src/Services/Payment/OrderSphere.Payment.Domain/OrderSphere.Payment.Domain.csproj" />
+    <Project Path="src/Services/Payment/OrderSphere.Payment.Infrastructure/OrderSphere.Payment.Infrastructure.csproj" />
+    <Project Path="src/Services/Payment/OrderSphere.Payment.Worker/OrderSphere.Payment.Worker.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Webhooks/">
+    <Project Path="src/Services/Webhooks/OrderSphere.Webhooks.Api/OrderSphere.Webhooks.Api.csproj" />
+    <Project Path="src/Services/Webhooks/OrderSphere.Webhooks.Domain/OrderSphere.Webhooks.Domain.csproj" />
+    <Project Path="src/Services/Webhooks/OrderSphere.Webhooks.Infrastructure/OrderSphere.Webhooks.Infrastructure.csproj" />
+    <Project Path="src/Services/Webhooks/OrderSphere.Webhooks.Worker/OrderSphere.Webhooks.Worker.csproj" />
   </Folder>
   <Folder Name="/src/Services/Notification/">
     <Project Path="src/Services/Notification/OrderSphere.Notification.Worker/OrderSphere.Notification.Worker.csproj" />

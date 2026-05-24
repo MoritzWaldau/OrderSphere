@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.Ordering.Domain.Entities;
 using OrderSphere.Ordering.Infrastructure.Outbox;
 
@@ -10,9 +11,8 @@ public sealed class OrderingDbContext(DbContextOptions<OrderingDbContext> option
 {
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
-    public DbSet<Cart> Carts => Set<Cart>();
-    public DbSet<CartItem> CartItems => Set<CartItem>();
     internal DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    internal DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
 
     private IDbContextTransaction? _transaction;
 

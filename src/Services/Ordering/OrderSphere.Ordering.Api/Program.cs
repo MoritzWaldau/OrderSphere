@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Behaviors;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.Ordering.Api.Abstractions;
 using OrderSphere.Ordering.Api.Authorization;
 using OrderSphere.Ordering.Api.CatalogClient;
+using HttpBasketClient = OrderSphere.Ordering.Api.CatalogClient.HttpBasketClient;
 using OrderSphere.Ordering.Api.Configuration;
 using OrderSphere.Ordering.Api.Endpoints;
 using OrderSphere.Ordering.Api.Exceptions;
@@ -32,6 +34,9 @@ builder.Services.Configure<OrderingMailConfiguration>(
 // Azure Service Bus (for OutboxDispatcher → RealServiceBusPublisher)
 builder.AddAzureServiceBusClient("azure-service-bus");
 
+// EventBus abstraction
+builder.Services.AddAzureServiceBusEventBus();
+
 // MediatR — scan this assembly for handlers + pipeline behaviors
 builder.Services.AddMediatR(cfg =>
 {
@@ -52,6 +57,14 @@ builder.Services.AddHttpClient<ICatalogClient, HttpCatalogClient>(client =>
     var catalogUrl = builder.Configuration["Services:Catalog:BaseUrl"]
         ?? "http://ordersphere-catalog";
     client.BaseAddress = new Uri(catalogUrl);
+}).AddClientCredentialsHandler();
+
+// HTTP client for Basket service (cart read/clear during checkout).
+builder.Services.AddHttpClient<IBasketClient, HttpBasketClient>(client =>
+{
+    var basketUrl = builder.Configuration["Services:Basket:BaseUrl"]
+        ?? "http://ordersphere-basket";
+    client.BaseAddress = new Uri(basketUrl);
 }).AddClientCredentialsHandler();
 
 // Health checks
@@ -95,7 +108,6 @@ app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapCartEndpoints();
 app.MapCheckoutEndpoints();
 app.MapCouponEndpoints();
 app.MapOrderEndpoints();

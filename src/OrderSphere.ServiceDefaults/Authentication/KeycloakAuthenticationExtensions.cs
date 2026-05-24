@@ -30,6 +30,8 @@ public static class KeycloakAuthenticationExtensions
                 "Keycloak:Authority is not configured. " +
                 "Set it in appsettings.json or as an environment variable.");
 
+        builder.Services.AddAuthorization();
+
         builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>

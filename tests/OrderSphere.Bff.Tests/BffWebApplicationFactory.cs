@@ -1,12 +1,16 @@
+using Azure.Messaging.ServiceBus;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
+using NSubstitute;
+using OrderSphere.Bff.Workers;
 
 namespace OrderSphere.Bff.Tests;
 
@@ -70,6 +74,15 @@ public sealed class BffWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<IConfigurationManager<OpenIdConnectConfiguration>>();
             services.AddSingleton<IConfigurationManager<OpenIdConnectConfiguration>>(
                 new StaticOidcConfigurationManager(TestOidcConfig));
+
+            // Stub Service Bus and remove the realtime notification processor
+            // so tests don't attempt to connect to a real broker.
+            services.RemoveAll<ServiceBusClient>();
+            services.AddSingleton(Substitute.For<ServiceBusClient>());
+            var rtDescriptor = services.FirstOrDefault(d =>
+                d.ServiceType == typeof(IHostedService) &&
+                d.ImplementationType == typeof(RealtimeNotificationProcessor));
+            if (rtDescriptor is not null) services.Remove(rtDescriptor);
         });
 
         // Override OIDC options to prevent the OpenIdConnect middleware's own

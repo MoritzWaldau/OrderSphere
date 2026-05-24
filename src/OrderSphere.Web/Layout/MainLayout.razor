@@ -1,5 +1,7 @@
 @inherits LayoutComponentBase
 @inject ThemeState ThemeState
+@inject ISnackbar Snackbar
+@inject NotificationHubClient NotificationHub
 
 <MudThemeProvider Theme="ThemeState.Theme" IsDarkMode="ThemeState.IsDarkMode" />
 <MudPopoverProvider />
@@ -44,6 +46,11 @@
         {
             await CartState.InitializeAsync();
             _cartItemCount = CartState.ItemCount;
+
+            NotificationHub.OnNotificationReceived += OnNotificationReceived;
+            try { await NotificationHub.StartAsync(); }
+            catch (Exception ex) { Console.WriteLine($"SignalR connection failed: {ex.Message}"); }
+
             StateHasChanged();
         }
     }
@@ -54,11 +61,26 @@
         InvokeAsync(StateHasChanged);
     }
 
+    private void OnNotificationReceived(NotificationMessage notification)
+    {
+        InvokeAsync(() =>
+        {
+            var severity = notification.Type switch
+            {
+                "OrderConfirmed" => MudBlazor.Severity.Success,
+                "OrderCancelled" => MudBlazor.Severity.Error,
+                _ => MudBlazor.Severity.Info
+            };
+            Snackbar.Add($"{notification.Title}: {notification.Message}", severity);
+        });
+    }
+
     private void ToggleCart() => _cartOpen = !_cartOpen;
 
     public void Dispose()
     {
         CartState.OnChange -= StateHasChangedSafe;
         ThemeState.OnChange -= StateHasChangedSafe;
+        NotificationHub.OnNotificationReceived -= OnNotificationReceived;
     }
 }

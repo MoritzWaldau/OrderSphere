@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.Ordering.Infrastructure;
 using OrderSphere.Ordering.Infrastructure.Email;
 using OrderSphere.Ordering.Infrastructure.Persistence;
@@ -11,6 +12,9 @@ builder.AddServiceDefaults();
 // Azure Service Bus
 builder.AddAzureServiceBusClient("azure-service-bus");
 
+// EventBus abstraction
+builder.Services.AddAzureServiceBusEventBus();
+
 // EF Core — Aspire injects connection string via "ordering-db"
 builder.AddNpgsqlDbContext<OrderingDbContext>("ordering-db", settings =>
 {
@@ -22,7 +26,8 @@ builder.Services.AddOrderingInfrastructure(builder.Environment);
 builder.Services.Configure<OrderingMailConfiguration>(
     builder.Configuration.GetSection("MailServiceConfiguration"));
 
-// Service Bus consumer
+// Service Bus consumers
 builder.Services.AddHostedService<OrderProcessor>();
+builder.Services.AddHostedService<PaymentResultProcessor>();
 
 builder.Build().Run();

@@ -1,19 +1,16 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Ordering.Api.Abstractions;
-using OrderSphere.Ordering.Domain.Entities;
 using OrderSphere.Ordering.Domain.Errors;
 using OrderSphere.Ordering.Domain.Events;
 using OrderSphere.Ordering.Infrastructure.Outbox;
-using OrderSphere.Ordering.Infrastructure.Persistence;
 
 namespace OrderSphere.Ordering.Api.Features.Checkout;
 
 public sealed class CheckoutCartCommandHandler(
-    IOrderingDbContext context,
     ICatalogClient catalogClient,
+    IBasketClient basketClient,
     IOrderingServiceBusPublisher serviceBusPublisher,
     ILogger<CheckoutCartCommandHandler> logger
 ) : IRequestHandler<CheckoutCartCommand, Result<Guid>>
@@ -22,19 +19,14 @@ public sealed class CheckoutCartCommandHandler(
     {
         try
         {
-            await context.BeginTransactionAsync(cancellationToken);
-
-            var cart = await context.Carts
-                .AsTracking()
-                .Include(x => x.Items)
-                .FirstOrDefaultAsync(x => x.CustomerId == request.CustomerId, cancellationToken);
-
-            if (cart is null || cart.CustomerId == Guid.Empty)
+            var cartResult = await basketClient.GetCartAsync(request.CustomerId, cancellationToken);
+            if (cartResult.IsFailure)
             {
-                logger.LogError("Cart with customerId {Id} was not found", request.CustomerId);
-                return Result<Guid>.Failure(CartErrors.CartNotFoundError);
+                logger.LogError("Cart not found for customer {Id} via Basket service", request.CustomerId);
+                return Result<Guid>.Failure(CheckoutCartErrors.CartNotFoundError);
             }
 
+            var cart = cartResult.Value;
             if (cart.Items.Count == 0)
             {
                 logger.LogWarning("Checkout attempted on empty cart for customer {Id}", request.CustomerId);
@@ -43,7 +35,7 @@ public sealed class CheckoutCartCommandHandler(
 
             var orderItemDtos = new List<OrderItemEventDto>();
 
-            foreach (CartItem cartItem in cart.Items)
+            foreach (var cartItem in cart.Items)
             {
                 var productResult = await catalogClient.GetProductByIdAsync(cartItem.ProductId, cancellationToken);
                 if (productResult.IsFailure) continue;
@@ -53,7 +45,6 @@ public sealed class CheckoutCartCommandHandler(
 
                 if (decrementResult.IsFailure)
                 {
-                    await context.RollbackAsync(cancellationToken);
                     logger.LogWarning("Stock decrement failed for product {ProductId}", cartItem.ProductId);
                     return Result<Guid>.Failure(ProductErrors.InsufficientStockError);
                 }
@@ -64,8 +55,6 @@ public sealed class CheckoutCartCommandHandler(
                     cartItem.Quantity,
                     productResult.Value.Price));
             }
-
-            context.CartItems.RemoveRange(cart.Items);
 
             var correlationId = Guid.CreateVersion7();
             var checkoutCartEvent = new CheckoutCartEvent(
@@ -79,7 +68,8 @@ public sealed class CheckoutCartCommandHandler(
                 orderItemDtos);
 
             await serviceBusPublisher.PublishCheckoutCartEventAsync(checkoutCartEvent);
-            await context.CommitAsync(cancellationToken);
+
+            await basketClient.ClearCartItemsAsync(request.CustomerId, cancellationToken);
 
             logger.LogInformation(
                 "Checkout for customer {CustomerId} accepted. CorrelationId: {CorrelationId}",
@@ -89,7 +79,6 @@ public sealed class CheckoutCartCommandHandler(
         }
         catch (Exception ex)
         {
-            await context.RollbackAsync(cancellationToken);
             logger.LogError(ex, "Checkout failed for customer {Id}", request.CustomerId);
             return Result<Guid>.Failure(CheckoutCartErrors.UnknownError);
         }

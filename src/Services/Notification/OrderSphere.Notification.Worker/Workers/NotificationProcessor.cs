@@ -1,6 +1,6 @@
 using Azure.Messaging.ServiceBus;
+using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.Notification.Worker.Email;
-using OrderSphere.Notification.Worker.Events;
 
 namespace OrderSphere.Notification.Worker.Workers;
 
@@ -45,13 +45,13 @@ public sealed class NotificationProcessor(
 
         try
         {
-            var evt = args.Message.Body.ToObjectFromJson<OrderPlacedEvent>();
+            var evt = args.Message.Body.ToObjectFromJson<OrderPlacedIntegrationEvent>();
             if (evt is null)
             {
                 logger.LogError("Message {MessageId} could not be deserialized. Dead-lettering.", messageId);
                 await args.DeadLetterMessageAsync(args.Message,
                     deadLetterReason: "DeserializationFailed",
-                    deadLetterErrorDescription: "Body was not a valid OrderPlacedEvent.");
+                    deadLetterErrorDescription: "Body was not a valid OrderPlacedIntegrationEvent.");
                 return;
             }
 

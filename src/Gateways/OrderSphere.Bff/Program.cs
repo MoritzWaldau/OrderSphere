@@ -7,6 +7,8 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using OrderSphere.Bff.Auth;
+using OrderSphere.Bff.Hubs;
+using OrderSphere.Bff.Workers;
 using OrderSphere.BuildingBlocks.Security;
 using StackExchange.Redis;
 using System.Security.Claims;
@@ -58,6 +60,14 @@ else
     builder.Services.AddDataProtection()
         .SetApplicationName("OrderSphere.Bff");
 }
+
+// ── SignalR + Redis backplane ─────────────────────────────────────────────
+builder.Services.AddSignalR()
+    .AddStackExchangeRedis(builder.Configuration.GetConnectionString("redis")!);
+
+// ── Azure Service Bus (for realtime notification consumption) ────────────
+builder.AddAzureServiceBusClient("azure-service-bus");
+builder.Services.AddHostedService<RealtimeNotificationProcessor>();
 
 // ── Antiforgery ───────────────────────────────────────────────────────────────
 // Cookie is non-HttpOnly so the WASM client can read it via /bff/user response.
@@ -170,6 +180,7 @@ builder.Services.AddAuthorizationBuilder()
 // ── Reverse proxy ─────────────────────────────────────────────────────────────
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
+    .AddServiceDiscoveryDestinationResolver()
     .AddTransforms(transforms =>
     {
         transforms.AddRequestTransform(async ctx =>
@@ -304,6 +315,9 @@ app.Use(async (ctx, next) =>
 
     await next();
 });
+
+// ── SignalR hub ───────────────────────────────────────────────────────────
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 // All /api/** calls are forwarded with the user's Bearer token attached.
 // BffUserPolicy enforces authentication — unauthenticated requests get 302 → /bff/login.

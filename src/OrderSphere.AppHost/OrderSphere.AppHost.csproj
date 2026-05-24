@@ -18,11 +18,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Services\Basket\OrderSphere.Basket.Api\OrderSphere.Basket.Api.csproj" />
     <ProjectReference Include="..\Services\Catalog\OrderSphere.Catalog.Api\OrderSphere.Catalog.Api.csproj" />
     <ProjectReference Include="..\Services\Ordering\OrderSphere.Ordering.Api\OrderSphere.Ordering.Api.csproj" />
     <ProjectReference Include="..\Services\Ordering\OrderSphere.Ordering.Worker\OrderSphere.Ordering.Worker.csproj" />
     <ProjectReference Include="..\Services\Notification\OrderSphere.Notification.Worker\OrderSphere.Notification.Worker.csproj" />
+    <ProjectReference Include="..\Services\Payment\OrderSphere.Payment.Api\OrderSphere.Payment.Api.csproj" />
+    <ProjectReference Include="..\Services\Payment\OrderSphere.Payment.Worker\OrderSphere.Payment.Worker.csproj" />
     <ProjectReference Include="..\Services\UserProfile\OrderSphere.UserProfile.Api\OrderSphere.UserProfile.Api.csproj" />
+    <ProjectReference Include="..\Services\Webhooks\OrderSphere.Webhooks.Api\OrderSphere.Webhooks.Api.csproj" />
+    <ProjectReference Include="..\Services\Webhooks\OrderSphere.Webhooks.Worker\OrderSphere.Webhooks.Worker.csproj" />
     <ProjectReference Include="..\Gateways\OrderSphere.ApiGateway\OrderSphere.ApiGateway.csproj" />
     <ProjectReference Include="..\Gateways\OrderSphere.Bff\OrderSphere.Bff.csproj" />
   </ItemGroup>

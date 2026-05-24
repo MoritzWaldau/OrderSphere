@@ -7,8 +7,6 @@ public interface IOrderingDbContext
 {
     DbSet<Order> Orders { get; }
     DbSet<OrderItem> OrderItems { get; }
-    DbSet<Cart> Carts { get; }
-    DbSet<CartItem> CartItems { get; }
 
     Task BeginTransactionAsync(CancellationToken ct = default);
     Task CommitAsync(CancellationToken ct = default);

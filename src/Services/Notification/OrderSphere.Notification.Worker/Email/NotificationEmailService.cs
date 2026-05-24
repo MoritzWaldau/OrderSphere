@@ -1,6 +1,6 @@
 using Azure;
 using Azure.Communication.Email;
-using OrderSphere.Notification.Worker.Events;
+using OrderSphere.BuildingBlocks.Contracts.Events;
 using System.Globalization;
 using System.Text;
 
@@ -11,7 +11,7 @@ public sealed class NotificationEmailService(
     string senderAddress,
     ILogger<NotificationEmailService> logger)
 {
-    public async Task SendOrderConfirmationAsync(OrderPlacedEvent evt, CancellationToken ct = default)
+    public async Task SendOrderConfirmationAsync(OrderPlacedIntegrationEvent evt, CancellationToken ct = default)
     {
         try
         {
@@ -37,7 +37,7 @@ public sealed class NotificationEmailService(
         }
     }
 
-    private static string BuildPlainText(OrderPlacedEvent evt)
+    private static string BuildPlainText(OrderPlacedIntegrationEvent evt)
     {
         var de = CultureInfo.GetCultureInfo("de-DE");
         var sb = new StringBuilder();
@@ -60,7 +60,7 @@ public sealed class NotificationEmailService(
         return sb.ToString();
     }
 
-    private static string BuildHtml(OrderPlacedEvent evt)
+    private static string BuildHtml(OrderPlacedIntegrationEvent evt)
     {
         var de = CultureInfo.GetCultureInfo("de-DE");
         var itemRows = new StringBuilder();

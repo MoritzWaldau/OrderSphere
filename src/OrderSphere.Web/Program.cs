@@ -42,6 +42,7 @@ builder.Services.AddScoped<IAdminUserClient, AdminUserClient>();
 
 // Application state
 builder.Services.AddScoped<CartState>();
+builder.Services.AddScoped<NotificationHubClient>();
 builder.Services.AddSingleton<ThemeState>();
 
 // MudBlazor

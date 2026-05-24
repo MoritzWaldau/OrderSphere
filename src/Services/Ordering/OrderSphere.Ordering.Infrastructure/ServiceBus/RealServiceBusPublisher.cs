@@ -1,27 +1,33 @@
-using Azure.Messaging.ServiceBus;
+using OrderSphere.BuildingBlocks.Contracts.Events;
+using OrderSphere.BuildingBlocks.EventBus;
 using OrderSphere.Ordering.Domain.Events;
-using System.Text.Json;
 
 namespace OrderSphere.Ordering.Infrastructure.ServiceBus;
 
-/// <summary>
-/// Publishes events directly to Azure Service Bus.
-/// Called by OutboxDispatcher — not by application handlers.
-/// </summary>
-public sealed class RealServiceBusPublisher(ServiceBusClient serviceBusClient)
+public sealed class RealServiceBusPublisher(IEventBus eventBus)
 {
     private const string QueueName = "orders";
 
     public async Task PublishCheckoutCartEventAsync(CheckoutCartEvent checkoutCartEvent)
     {
-        var messageBody = JsonSerializer.Serialize(checkoutCartEvent);
-
-        var message = new ServiceBusMessage(messageBody)
+        var integrationEvent = new CheckoutCartIntegrationEvent
         {
-            MessageId = Guid.NewGuid().ToString(),
+            CorrelationId = checkoutCartEvent.CorrelationId,
+            CustomerId = checkoutCartEvent.CheckoutCart.CustomerId,
+            CustomerEmail = checkoutCartEvent.CheckoutCart.CustomerEmail,
+            CustomerName = checkoutCartEvent.CheckoutCart.CustomerName,
+            ShippingAddress = new ShippingAddressDto(
+                checkoutCartEvent.CheckoutCart.ShippingAddress.FirstName,
+                checkoutCartEvent.CheckoutCart.ShippingAddress.LastName,
+                checkoutCartEvent.CheckoutCart.ShippingAddress.Street,
+                checkoutCartEvent.CheckoutCart.ShippingAddress.City,
+                checkoutCartEvent.CheckoutCart.ShippingAddress.PostalCode,
+                checkoutCartEvent.CheckoutCart.ShippingAddress.Country),
+            PaymentMethod = checkoutCartEvent.CheckoutCart.PaymentMethod.ToString(),
+            Items = checkoutCartEvent.Items.Select(i => new OrderItemDto(
+                i.ProductId, i.ProductName, i.Quantity, i.Price)).ToList()
         };
 
-        await using var sender = serviceBusClient.CreateSender(QueueName);
-        await sender.SendMessageAsync(message);
+        await eventBus.PublishAsync(integrationEvent, QueueName);
     }
 }

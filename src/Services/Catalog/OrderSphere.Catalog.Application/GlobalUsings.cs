@@ -4,7 +4,7 @@ global using Microsoft.EntityFrameworkCore;
 global using OrderSphere.Catalog.Application.Abstractions;
 global using OrderSphere.Catalog.Application.Caching;
 global using OrderSphere.Catalog.Domain.Errors;
-global using OrderSphere.Catalog.Application.DTOs;
+global using OrderSphere.BuildingBlocks.Contracts;
 global using OrderSphere.Catalog.Application.DTOs.Admin;
 global using OrderSphere.Catalog.Application.DTOs.Public;
 global using FluentValidation;

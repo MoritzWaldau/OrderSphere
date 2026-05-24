@@ -33,12 +33,12 @@ public static class CartEndpoints
                 : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
         });
 
-        group.MapDelete("/remove", async (RemoveFromCartRequest req, ICurrentUser currentUser, IMediator mediator, CancellationToken ct) =>
+        group.MapDelete("/remove", async (Guid productId, ICurrentUser currentUser, IMediator mediator, CancellationToken ct) =>
         {
             if (!TryGetCustomerId(currentUser, out var customerId))
                 return Results.Unauthorized();
 
-            var result = await mediator.Send(new RemoveFromCartCommand(customerId, req.ProductId), ct);
+            var result = await mediator.Send(new RemoveFromCartCommand(customerId, productId), ct);
             return result.IsSuccess
                 ? Results.NoContent()
                 : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
@@ -66,5 +66,4 @@ public static class CartEndpoints
 }
 
 public sealed record AddToCartRequest(Guid ProductId, int Quantity);
-public sealed record RemoveFromCartRequest(Guid ProductId);
 public sealed record DecreaseCartItemRequest(Guid ProductId);

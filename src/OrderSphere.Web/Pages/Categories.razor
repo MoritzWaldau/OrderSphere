@@ -74,7 +74,8 @@
     {
         try
         {
-            _categories = await Catalog.GetCategoriesAsync();
+            var res = await Catalog.GetCategoriesAsync();
+            _categories = res.Items.ToList();
         }
         catch (Exception ex)
         {

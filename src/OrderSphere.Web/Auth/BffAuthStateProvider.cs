@@ -52,7 +52,8 @@ public sealed class BffAuthStateProvider : AuthenticationStateProvider
             foreach (var role in userInfo.Roles ?? [])
                 claims.Add(new Claim("roles", role));
 
-            var identity = new ClaimsIdentity(claims, authenticationType: "BffCookie");
+            var identity = new ClaimsIdentity(claims, authenticationType: "BffCookie",
+                nameType: ClaimTypes.Name, roleType: "roles");
             return new AuthenticationState(new ClaimsPrincipal(identity));
         }
         catch

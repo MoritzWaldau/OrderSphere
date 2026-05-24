@@ -20,9 +20,17 @@ public static class KeycloakAuthenticationExtensions
     ///   Each service owns a dedicated bearer-only Keycloak client
     ///   (e.g. <c>ordering-api</c>, <c>catalog-api</c>, <c>userprofile-api</c>).
     /// </param>
+    /// <summary>
+    /// Overload for gateway/proxy services that forward tokens to downstream APIs.
+    /// Audience validation is skipped; each downstream service validates its own audience.
+    /// </summary>
+    public static TBuilder AddOrderSphereJwtAuth<TBuilder>(this TBuilder builder)
+        where TBuilder : IHostApplicationBuilder =>
+        AddOrderSphereJwtAuth(builder, audience: null);
+
     public static TBuilder AddOrderSphereJwtAuth<TBuilder>(
         this TBuilder builder,
-        string audience)
+        string? audience)
         where TBuilder : IHostApplicationBuilder
     {
         var authority = builder.Configuration["Keycloak:Authority"]
@@ -41,33 +49,25 @@ public static class KeycloakAuthenticationExtensions
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    // Audience: each API validates only tokens issued for itself.
-                    ValidateAudience = true,
-                    ValidAudiences = [audience],
+                    ValidateAudience = audience is not null,
+                    ValidAudiences = audience is not null ? [audience] : [],
 
                     ValidateIssuer = true,
-                    // Issuer is derived from Authority by the OIDC discovery document;
-                    // no hard-coded string needed here.
-
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
 
-                    // Allow up to 30 s clock drift between servers.
                     ClockSkew = TimeSpan.FromSeconds(30),
 
-                    // Map Keycloak claim names to .NET identity claim types.
                     NameClaimType = "preferred_username",
                     RoleClaimType = "roles",
                 };
 
-                // Do not translate Keycloak claim names to legacy WS-Federation types.
                 options.MapInboundClaims = false;
 
                 options.Events = new JwtBearerEvents
                 {
                     OnAuthenticationFailed = ctx =>
                     {
-                        // Log failure without echoing token content.
                         var logger = ctx.HttpContext.RequestServices
                             .GetRequiredService<ILoggerFactory>()
                             .CreateLogger("OrderSphere.Security");

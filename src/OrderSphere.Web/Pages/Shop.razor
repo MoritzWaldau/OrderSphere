@@ -91,7 +91,7 @@
         try
         {
             var all = await Catalog.GetProductsAsync();
-            _products = all.Where(p => p.IsActive).ToList();
+            _products = all.Items.Where(p => p.IsActive).ToList();
         }
         catch (Exception ex)
         {

@@ -5,8 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-builder.AddOrderSphereJwtAuth(
-    builder.Configuration["Keycloak:Audience"] ?? "account");
+builder.AddOrderSphereJwtAuth();
 
 builder.Services.AddAuthorization();
 
@@ -42,7 +41,8 @@ builder.Services.AddRateLimiter(options =>
 });
 
 builder.Services.AddReverseProxy()
-    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
+    .AddServiceDiscoveryDestinationResolver();
 
 builder.Services.AddHealthChecks();
 

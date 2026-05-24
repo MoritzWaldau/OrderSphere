@@ -1,4 +1,4 @@
-namespace OrderSphere.Catalog.Application.DTOs;
+namespace OrderSphere.BuildingBlocks.Contracts;
 
 public sealed record PagedResult<T>(
     IReadOnlyList<T> Items,

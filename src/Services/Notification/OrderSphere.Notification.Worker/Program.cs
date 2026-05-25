@@ -10,8 +10,10 @@ builder.AddAzureServiceBusClient("azure-service-bus");
 
 // Email service — reads connection string and sender address from configuration
 var mailConfig = builder.Configuration.GetSection("MailServiceConfiguration");
-var connectionString = mailConfig["ConnectionString"];
-var senderAddress = mailConfig["SenderAddress"];
+var connectionString = mailConfig["ConnectionString"]
+    ?? throw new InvalidOperationException("MailServiceConfiguration:ConnectionString is not configured.");
+var senderAddress = mailConfig["SenderAddress"]
+    ?? throw new InvalidOperationException("MailServiceConfiguration:SenderAddress is not configured.");
 
 builder.Services.AddSingleton(sp =>
     new NotificationEmailService(

@@ -5,13 +5,13 @@ namespace OrderSphere.Catalog.Domain.Entities;
 
 public sealed class Product : AuditableEntity
 {
-    public string Name { get; private set; }
-    public string Slug { get; private set; }
-    public string Description { get; private set; }
+    public string Name { get; private set; } = null!;
+    public string Slug { get; private set; } = null!;
+    public string Description { get; private set; } = null!;
     public decimal Price { get; private set; }
     public int Stock { get; private set; }
     public Guid CategoryId { get; private set; }
-    public string SKU { get; private set; }
+    public string SKU { get; private set; } = null!;
     public string? ImageUrl { get; private set; }
     public bool IsActive { get; private set; } = true;
 

@@ -17,36 +17,36 @@ public sealed class CheckoutCartCommandHandler(
 {
     public async Task<Result<Guid>> Handle(CheckoutCartCommand request, CancellationToken cancellationToken)
     {
+        // Tracks items whose stock was decremented so they can be restored on failure.
+        var decremented = new List<(Guid ProductId, int Quantity)>();
+
         try
         {
+            // 1. Fetch cart.
             var cartResult = await basketClient.GetCartAsync(request.CustomerId, cancellationToken);
             if (cartResult.IsFailure)
             {
-                logger.LogError("Cart not found for customer {Id} via Basket service", request.CustomerId);
+                logger.LogError("Cart not found for customer {CustomerId} via Basket service", request.CustomerId);
                 return Result<Guid>.Failure(CheckoutCartErrors.CartNotFoundError);
             }
 
             var cart = cartResult.Value;
             if (cart.Items.Count == 0)
             {
-                logger.LogWarning("Checkout attempted on empty cart for customer {Id}", request.CustomerId);
+                logger.LogWarning("Checkout attempted on empty cart for customer {CustomerId}", request.CustomerId);
                 return Result<Guid>.Failure(CheckoutCartErrors.EmptyCartError);
             }
 
-            var orderItemDtos = new List<OrderItemEventDto>();
-
+            // 2. Resolve all product details — read-only, no state change yet.
+            var orderItemDtos = new List<OrderItemEventDto>(cart.Items.Count);
             foreach (var cartItem in cart.Items)
             {
                 var productResult = await catalogClient.GetProductByIdAsync(cartItem.ProductId, cancellationToken);
-                if (productResult.IsFailure) continue;
-
-                var decrementResult = await catalogClient.DecrementStockAsync(
-                    cartItem.ProductId, cartItem.Quantity, cancellationToken);
-
-                if (decrementResult.IsFailure)
+                if (productResult.IsFailure)
                 {
-                    logger.LogWarning("Stock decrement failed for product {ProductId}", cartItem.ProductId);
-                    return Result<Guid>.Failure(ProductErrors.InsufficientStockError);
+                    logger.LogWarning("Product {ProductId} not found in Catalog during checkout for customer {CustomerId}",
+                        cartItem.ProductId, request.CustomerId);
+                    return Result<Guid>.Failure(ProductErrors.ProductNotFoundError);
                 }
 
                 orderItemDtos.Add(new OrderItemEventDto(
@@ -56,6 +56,24 @@ public sealed class CheckoutCartCommandHandler(
                     productResult.Value.Price));
             }
 
+            // 3. Decrement stock — every success is tracked for compensation.
+            foreach (var item in orderItemDtos)
+            {
+                var decrementResult = await catalogClient.DecrementStockAsync(
+                    item.ProductId, item.Quantity, cancellationToken);
+
+                if (decrementResult.IsFailure)
+                {
+                    logger.LogWarning("Stock decrement failed for product {ProductId}; compensating {Count} previously decremented item(s)",
+                        item.ProductId, decremented.Count);
+                    return Result<Guid>.Failure(ProductErrors.InsufficientStockError);
+                    // finally block restores decremented items
+                }
+
+                decremented.Add((item.ProductId, item.Quantity));
+            }
+
+            // 4. Publish to Service Bus — if this throws, finally compensates.
             var correlationId = Guid.CreateVersion7();
             var checkoutCartEvent = new CheckoutCartEvent(
                 correlationId,
@@ -69,18 +87,50 @@ public sealed class CheckoutCartCommandHandler(
 
             await serviceBusPublisher.PublishCheckoutCartEventAsync(checkoutCartEvent);
 
-            await basketClient.ClearCartItemsAsync(request.CustomerId, cancellationToken);
+            // Publish succeeded — order is in flight. Clear compensation list so finally is a no-op.
+            decremented.Clear();
+
+            // 5. Clear cart. Best-effort: the order is already committed to the bus.
+            //    A stale cart is operationally recoverable; failing the checkout here is not.
+            var clearResult = await basketClient.ClearCartItemsAsync(request.CustomerId, cancellationToken);
+            if (clearResult.IsFailure)
+            {
+                logger.LogWarning(
+                    "Cart clear failed for customer {CustomerId} after accepted checkout. CorrelationId: {CorrelationId}. Cart may appear stale.",
+                    request.CustomerId, correlationId);
+            }
 
             logger.LogInformation(
-                "Checkout for customer {CustomerId} accepted. CorrelationId: {CorrelationId}",
+                "Checkout accepted for customer {CustomerId}. CorrelationId: {CorrelationId}",
                 request.CustomerId, correlationId);
 
             return Result<Guid>.Success(correlationId);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Checkout failed for customer {Id}", request.CustomerId);
+            logger.LogError(ex, "Checkout failed for customer {CustomerId}", request.CustomerId);
             return Result<Guid>.Failure(CheckoutCartErrors.UnknownError);
+            // finally block compensates any decremented stock
+        }
+        finally
+        {
+            if (decremented.Count > 0)
+            {
+                logger.LogWarning(
+                    "Restoring stock for {Count} item(s) after checkout failure for customer {CustomerId}",
+                    decremented.Count, request.CustomerId);
+
+                foreach (var (productId, quantity) in decremented)
+                {
+                    var restoreResult = await catalogClient.RestoreStockAsync(productId, quantity, CancellationToken.None);
+                    if (restoreResult.IsFailure)
+                    {
+                        logger.LogError(
+                            "COMPENSATION FAILED: stock restore for product {ProductId} (qty {Quantity}) did not succeed. Manual reconciliation required.",
+                            productId, quantity);
+                    }
+                }
+            }
         }
     }
 }

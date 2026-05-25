@@ -1,6 +1,7 @@
 @inject ThemeState ThemeState
 @inject CartState CartState
 @inject NavigationManager Navigation
+@inject HttpClient Http
 
 <MudAppBar Elevation="0" Fixed="true" Class="header-appbar">
 
@@ -92,6 +93,13 @@
     [Parameter] public int CartItemCount { get; set; }
     [Parameter] public bool IsCartOpen { get; set; }
 
-    private void HandleLogout()
-        => Navigation.NavigateTo("/bff/logout", forceLoad: true);
+    private async Task HandleLogout()
+    {
+        // POST with X-XSRF-TOKEN attached by AntiforgeryDelegatingHandler.
+        // HttpClient follows the redirect chain (BFF → Keycloak end_session → BFF /).
+        // After completion the session cookie is gone; force a full reload to /bff/logout
+        // so Keycloak's post-logout redirect lands on a clean state.
+        try { await Http.PostAsync("/bff/logout", content: null); } catch { /* redirect responses may throw */ }
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
 }

@@ -1,27 +1,29 @@
-<Router AppAssembly="typeof(App).Assembly">
-    <Found Context="routeData">
-        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
-            <NotAuthorized>
-                <RedirectToLogin />
-            </NotAuthorized>
-            <Authorizing>
-                <div style="display:flex;justify-content:center;align-items:center;min-height:60vh;">
-                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-                </div>
-            </Authorizing>
-        </AuthorizeRouteView>
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <PageTitle>404 – OrderSphere</PageTitle>
-        <LayoutView Layout="typeof(Layout.MainLayout)">
-            <MudContainer MaxWidth="MaxWidth.Small" Class="text-center" Style="padding: 80px 0;">
-                <MudText Typo="Typo.h3" Style="font-weight:700;">404</MudText>
-                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-2">Seite nicht gefunden.</MudText>
-                <MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary" Class="btn-pill mt-6">
-                    Zur Startseite
-                </MudButton>
-            </MudContainer>
-        </LayoutView>
-    </NotFound>
-</Router>
+<CascadingAuthenticationState>
+    <Router AppAssembly="typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+                <NotAuthorized>
+                    <RedirectToLogin />
+                </NotAuthorized>
+                <Authorizing>
+                    <div style="display:flex;justify-content:center;align-items:center;min-height:60vh;">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                    </div>
+                </Authorizing>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <PageTitle>404 – OrderSphere</PageTitle>
+            <LayoutView Layout="typeof(Layout.MainLayout)">
+                <MudContainer MaxWidth="MaxWidth.Small" Class="text-center" Style="padding: 80px 0;">
+                    <MudText Typo="Typo.h3" Style="font-weight:700;">404</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-2">Seite nicht gefunden.</MudText>
+                    <MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary" Class="btn-pill mt-6">
+                        Zur Startseite
+                    </MudButton>
+                </MudContainer>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

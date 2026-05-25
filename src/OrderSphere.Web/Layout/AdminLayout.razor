@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @inject ThemeState ThemeState
 @inject NavigationManager Navigation
+@inject HttpClient Http
 
 <MudThemeProvider Theme="ThemeState.Theme" IsDarkMode="ThemeState.IsDarkMode" />
 <MudPopoverProvider />
@@ -20,7 +21,7 @@
         </MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Inherit"
                    StartIcon="@Icons.Material.Outlined.Logout"
-                   OnClick="@(() => Navigation.NavigateTo("/bff/logout", forceLoad: true))">
+                   OnClick="HandleLogout">
             Abmelden
         </MudButton>
     </MudAppBar>
@@ -59,4 +60,10 @@
 @code {
     private bool _drawerOpen = true;
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    private async Task HandleLogout()
+    {
+        try { await Http.PostAsync("/bff/logout", content: null); } catch { }
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
 }

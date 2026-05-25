@@ -158,6 +158,40 @@ builder.Services
         options.MapInboundClaims = false;
         options.Events = new OpenIdConnectEvents
         {
+            // Keycloak puts realm roles in realm_access.roles of the ACCESS token,
+            // not the ID token. Read the raw access token here and add individual
+            // "roles" claims to the identity before the session is persisted.
+            OnTokenValidated = ctx =>
+            {
+                if (ctx.Principal?.Identity is not ClaimsIdentity identity)
+                    return Task.CompletedTask;
+
+                var accessToken = ctx.TokenEndpointResponse?.AccessToken;
+                if (string.IsNullOrEmpty(accessToken))
+                    return Task.CompletedTask;
+
+                try
+                {
+                    var jwt = new Microsoft.IdentityModel.JsonWebTokens.JsonWebToken(accessToken);
+
+                    if (jwt.TryGetClaim("realm_access", out var realmAccessClaim))
+                    {
+                        using var doc = System.Text.Json.JsonDocument.Parse(realmAccessClaim.Value);
+                        if (doc.RootElement.TryGetProperty("roles", out var rolesEl))
+                        {
+                            foreach (var role in rolesEl.EnumerateArray())
+                            {
+                                var value = role.GetString();
+                                if (!string.IsNullOrEmpty(value) && !identity.HasClaim("roles", value))
+                                    identity.AddClaim(new Claim("roles", value));
+                            }
+                        }
+                    }
+                }
+                catch { /* malformed access token — skip */ }
+
+                return Task.CompletedTask;
+            },
             OnAuthenticationFailed = ctx =>
             {
                 var auditLogger = ctx.HttpContext.RequestServices
@@ -283,6 +317,14 @@ app.MapGet("/bff/user", (HttpContext ctx, IAntiforgery antiforgery) =>
         xsrfToken = tokens.RequestToken,
     });
 });
+
+// ── DEBUG: dump all claims — REMOVE before going to production ───────────────
+if (app.Environment.IsDevelopment())
+{
+    app.MapGet("/bff/debug/claims", (HttpContext ctx) =>
+        Results.Ok(ctx.User.Claims.Select(c => new { c.Type, c.Value }).ToArray()))
+       .RequireAuthorization();
+}
 
 // Back-channel logout stub — Phase 4 will add JWT validation + session revocation.
 BackchannelLogoutEndpoint.Map(app);

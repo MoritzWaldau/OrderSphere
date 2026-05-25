@@ -4,16 +4,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Contracts.Events;
-using OrderSphere.BuildingBlocks.EventBus;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.Ordering.Domain.Services;
 using OrderSphere.Ordering.Infrastructure.Persistence;
+using System.Text.Json;
 
 namespace OrderSphere.Ordering.Worker.Workers;
 
 public sealed class PaymentResultProcessor(
     ServiceBusClient serviceBusClient,
-    IEventBus eventBus,
     IServiceScopeFactory scopeFactory,
     ILogger<PaymentResultProcessor> logger) : BackgroundService
 {
@@ -100,108 +99,66 @@ public sealed class PaymentResultProcessor(
                     order.Id, evt.FailureReason);
             }
 
-            await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(PaymentProcessedIntegrationEvent));
-            await context.SaveChangesAsync(args.CancellationToken);
-
+            // Queue downstream events in the outbox — committed atomically with the order state
+            // change and inbox record by the SaveChangesAsync inside MarkAsProcessedAsync.
             if (evt.Succeeded)
             {
-                await TryPublishOrderPlacedEvent(order, evt, args.CancellationToken);
+                var orderPlacedEvent = new OrderPlacedIntegrationEvent
+                {
+                    CorrelationId = evt.CorrelationId,
+                    OrderId = order.Id,
+                    CustomerEmail = evt.CustomerEmail,
+                    CustomerName = $"{order.ShippingAddress.FirstName} {order.ShippingAddress.LastName}",
+                    TrackingNumber = order.TrackingNumber!,
+                    ShippingFirstName = order.ShippingAddress.FirstName,
+                    ShippingLastName = order.ShippingAddress.LastName,
+                    ShippingStreet = order.ShippingAddress.Street,
+                    ShippingCity = order.ShippingAddress.City,
+                    ShippingPostalCode = order.ShippingAddress.PostalCode,
+                    ShippingCountry = order.ShippingAddress.Country,
+                    Items = order.Items
+                        .Select(i => new OrderPlacedItemDto(i.ProductName, i.Quantity, i.Price))
+                        .ToList(),
+                    Total = order.Items.Sum(i => i.Price * i.Quantity)
+                };
+                context.AddOutboxMessage(
+                    nameof(OrderPlacedIntegrationEvent),
+                    JsonSerializer.Serialize(orderPlacedEvent));
             }
 
-            await TryPublishRealtimeNotification(order, evt, args.CancellationToken);
-            await TryPublishWebhookEvent(order, evt, args.CancellationToken);
+            context.AddOutboxMessage(
+                nameof(RealtimeNotificationEvent),
+                JsonSerializer.Serialize(new RealtimeNotificationEvent
+                {
+                    CorrelationId = evt.CorrelationId,
+                    UserId = order.CustomerId.ToString(),
+                    Type = evt.Succeeded ? "OrderConfirmed" : "OrderCancelled",
+                    Title = evt.Succeeded ? "Order Confirmed" : "Order Cancelled",
+                    Message = evt.Succeeded
+                        ? $"Your order has been confirmed. Tracking number: {order.TrackingNumber}"
+                        : $"Your order could not be processed: {evt.FailureReason ?? "Payment failed."}",
+                    OrderId = order.Id
+                }));
+
+            context.AddOutboxMessage(
+                nameof(OrderStatusChangedIntegrationEvent),
+                JsonSerializer.Serialize(new OrderStatusChangedIntegrationEvent
+                {
+                    CorrelationId = evt.CorrelationId,
+                    OrderId = order.Id,
+                    PreviousStatus = "Pending",
+                    NewStatus = evt.Succeeded ? "Confirmed" : "Cancelled",
+                    CustomerEmail = evt.CustomerEmail
+                }));
+
+            // One SaveChangesAsync: order state + outbox rows + inbox mark — all atomic.
+            await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(PaymentProcessedIntegrationEvent));
             await args.CompleteMessageAsync(args.Message);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unhandled exception processing payment result {MessageId}. Abandoning.", messageId);
             await args.AbandonMessageAsync(args.Message);
-        }
-    }
-
-    private async Task TryPublishOrderPlacedEvent(
-        Domain.Entities.Order order,
-        PaymentProcessedIntegrationEvent evt,
-        CancellationToken ct)
-    {
-        try
-        {
-            var integrationEvent = new OrderPlacedIntegrationEvent
-            {
-                CorrelationId = evt.CorrelationId,
-                OrderId = order.Id,
-                CustomerEmail = evt.CustomerEmail,
-                CustomerName = $"{order.ShippingAddress.FirstName} {order.ShippingAddress.LastName}",
-                TrackingNumber = order.TrackingNumber!,
-                ShippingFirstName = order.ShippingAddress.FirstName,
-                ShippingLastName = order.ShippingAddress.LastName,
-                ShippingStreet = order.ShippingAddress.Street,
-                ShippingCity = order.ShippingAddress.City,
-                ShippingPostalCode = order.ShippingAddress.PostalCode,
-                ShippingCountry = order.ShippingAddress.Country,
-                Items = order.Items
-                    .Select(i => new OrderPlacedItemDto(i.ProductName, i.Quantity, i.Price))
-                    .ToList(),
-                Total = order.Items.Sum(i => i.Price * i.Quantity)
-            };
-
-            await eventBus.PublishAsync(integrationEvent, "notification-orders", ct);
-            logger.LogInformation("OrderPlacedEvent published for order {OrderId}.", order.Id);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to publish OrderPlacedEvent for order {OrderId}.", order.Id);
-        }
-    }
-
-    private async Task TryPublishRealtimeNotification(
-        Domain.Entities.Order order,
-        PaymentProcessedIntegrationEvent evt,
-        CancellationToken ct)
-    {
-        try
-        {
-            var notification = new RealtimeNotificationEvent
-            {
-                CorrelationId = evt.CorrelationId,
-                UserId = order.CustomerId.ToString(),
-                Type = evt.Succeeded ? "OrderConfirmed" : "OrderCancelled",
-                Title = evt.Succeeded ? "Order Confirmed" : "Order Cancelled",
-                Message = evt.Succeeded
-                    ? $"Your order has been confirmed. Tracking number: {order.TrackingNumber}"
-                    : $"Your order could not be processed: {evt.FailureReason ?? "Payment failed."}",
-                OrderId = order.Id
-            };
-
-            await eventBus.PublishAsync(notification, "realtime-notifications", ct);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to publish realtime notification for order {OrderId}.", order.Id);
-        }
-    }
-
-    private async Task TryPublishWebhookEvent(
-        Domain.Entities.Order order,
-        PaymentProcessedIntegrationEvent evt,
-        CancellationToken ct)
-    {
-        try
-        {
-            var webhookEvent = new OrderStatusChangedIntegrationEvent
-            {
-                CorrelationId = evt.CorrelationId,
-                OrderId = order.Id,
-                PreviousStatus = "Pending",
-                NewStatus = evt.Succeeded ? "Confirmed" : "Cancelled",
-                CustomerEmail = evt.CustomerEmail,
-            };
-
-            await eventBus.PublishAsync(webhookEvent, "webhook-events", ct);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to publish webhook event for order {OrderId}.", order.Id);
         }
     }
 

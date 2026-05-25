@@ -23,6 +23,9 @@ public static class DependencyInjection
         services.AddSingleton<RealServiceBusPublisher>();
         services.AddScoped<IOutboxEventHandler, CheckoutCartEventHandler>();
         services.AddScoped<IOutboxEventHandler, PaymentRequestedEventHandler>();
+        services.AddScoped<IOutboxEventHandler, OrderPlacedEventHandler>();
+        services.AddScoped<IOutboxEventHandler, RealtimeNotificationEventHandler>();
+        services.AddScoped<IOutboxEventHandler, OrderStatusChangedEventHandler>();
 
         // Inbox: idempotency for consumed integration events.
         services.AddScoped<IInboxStore, EfInboxStore<OrderingDbContext>>();

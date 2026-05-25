@@ -12,7 +12,7 @@ public interface IOrderingClient
     Task<List<OrderDto>> GetOrdersByCustomerAsync(CancellationToken ct = default);
     Task<OrderDto?> GetOrderByIdAsync(Guid orderId, CancellationToken ct = default);
     Task<OrderDto?> GetOrderByCorrelationIdAsync(Guid correlationId, CancellationToken ct = default);
-    Task<Guid?> CheckoutAsync(CheckoutRequest request, CancellationToken ct = default);
+    Task<Guid?> CheckoutAsync(CheckoutRequest request, Guid idempotencyKey, CancellationToken ct = default);
     Task<CouponValidationDto?> ValidateCouponAsync(string code, decimal subtotal, CancellationToken ct = default);
 }
 
@@ -73,9 +73,15 @@ public sealed class OrderingClient : IOrderingClient
         return await response.Content.ReadFromJsonAsync<OrderDto>(ct);
     }
 
-    public async Task<Guid?> CheckoutAsync(CheckoutRequest request, CancellationToken ct = default)
+    public async Task<Guid?> CheckoutAsync(CheckoutRequest request, Guid idempotencyKey, CancellationToken ct = default)
     {
-        var response = await _client.PostAsJsonAsync("/api/v1/checkout", request, ct);
+        var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/api/v1/checkout")
+        {
+            Content = JsonContent.Create(request)
+        };
+        httpRequest.Headers.Add("Idempotency-Key", idempotencyKey.ToString());
+
+        var response = await _client.SendAsync(httpRequest, ct);
         if (!response.IsSuccessStatusCode) return null;
         var result = await response.Content.ReadFromJsonAsync<CheckoutResult>(ct);
         return result?.CorrelationId;

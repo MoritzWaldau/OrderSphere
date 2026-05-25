@@ -146,6 +146,9 @@
     private List<CartItemDto> _cartItems = [];
     private bool _submitting;
 
+    // Generated once per page visit. Stable across Polly retries; changes on navigation/refresh.
+    private Guid _idempotencyKey = Guid.CreateVersion7();
+
     private readonly CheckoutFormModel _model = new()
     {
         Country = "Deutschland",
@@ -188,7 +191,7 @@
                     _model.City, _model.PostalCode, _model.Country),
                 _model.PaymentMethod);
 
-            var correlationId = await Ordering.CheckoutAsync(request);
+            var correlationId = await Ordering.CheckoutAsync(request, _idempotencyKey);
             if (correlationId is null)
             {
                 Snackbar.Add("Bestellung konnte nicht abgeschlossen werden.", Severity.Error);

@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Ordering.Api.Abstractions;
@@ -12,11 +13,24 @@ public sealed class CheckoutCartCommandHandler(
     ICatalogClient catalogClient,
     IBasketClient basketClient,
     IOrderingServiceBusPublisher serviceBusPublisher,
+    IMemoryCache idempotencyCache,
     ILogger<CheckoutCartCommandHandler> logger
 ) : IRequestHandler<CheckoutCartCommand, Result<Guid>>
 {
+    private static readonly TimeSpan IdempotencyTtl = TimeSpan.FromMinutes(30);
+
     public async Task<Result<Guid>> Handle(CheckoutCartCommand request, CancellationToken cancellationToken)
     {
+        // Idempotency guard: return the cached result for a key we have already processed.
+        var cacheKey = $"checkout:{request.CustomerId}:{request.IdempotencyKey}";
+        if (idempotencyCache.TryGetValue(cacheKey, out Guid cachedCorrelationId))
+        {
+            logger.LogInformation(
+                "Duplicate checkout request for customer {CustomerId}. Returning cached CorrelationId: {CorrelationId}",
+                request.CustomerId, cachedCorrelationId);
+            return Result<Guid>.Success(cachedCorrelationId);
+        }
+
         // Tracks items whose stock was decremented so they can be restored on failure.
         var decremented = new List<(Guid ProductId, int Quantity)>();
 
@@ -87,7 +101,10 @@ public sealed class CheckoutCartCommandHandler(
 
             await serviceBusPublisher.PublishCheckoutCartEventAsync(checkoutCartEvent);
 
-            // Publish succeeded — order is in flight. Clear compensation list so finally is a no-op.
+            // Publish succeeded — order is in flight.
+            // Cache the result before clearing the compensation list so any retry
+            // within the TTL window returns the same CorrelationId without re-processing.
+            idempotencyCache.Set(cacheKey, correlationId, IdempotencyTtl);
             decremented.Clear();
 
             // 5. Clear cart. Best-effort: the order is already committed to the bus.

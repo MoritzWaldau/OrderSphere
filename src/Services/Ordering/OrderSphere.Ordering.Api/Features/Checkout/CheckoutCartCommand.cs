@@ -10,11 +10,17 @@ namespace OrderSphere.Ordering.Api.Features.Checkout;
 /// Identity fields (<see cref="CustomerId"/>, <see cref="CustomerEmail"/>,
 /// <see cref="CustomerName"/>) are populated from the JWT token by the endpoint —
 /// the client body carries only shipping and payment data.
+/// <para>
+/// <see cref="IdempotencyKey"/> is sourced from the <c>Idempotency-Key</c> request header.
+/// Submitting the same key twice returns the first result without re-processing, preventing
+/// double stock decrements on duplicate requests.
+/// </para>
 /// </summary>
 public sealed record CheckoutCartCommand(
     Guid CustomerId,
     string CustomerEmail,
     string CustomerName,
     Address ShippingAddress,
-    PaymentMethod PaymentMethod
+    PaymentMethod PaymentMethod,
+    Guid IdempotencyKey
 ) : IRequest<Result<Guid>>;

@@ -1,4 +1,6 @@
 using FluentAssertions;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -35,12 +37,15 @@ public sealed class CheckoutCartCommandHandlerTests
 
     private static readonly Address ShippingAddress = new("Max", "Muster", "Hauptstr. 1", "Berlin", "10115", "DE");
 
+    private static readonly Guid IdempotencyKey = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
+
     private static readonly CheckoutCartCommand Command = new(
-        CustomerId:    CustomerId,
-        CustomerEmail: "max@example.com",
-        CustomerName:  "Max Muster",
+        CustomerId:      CustomerId,
+        CustomerEmail:   "max@example.com",
+        CustomerName:    "Max Muster",
         ShippingAddress: ShippingAddress,
-        PaymentMethod: PaymentMethod.CreditCard);
+        PaymentMethod:   PaymentMethod.CreditCard,
+        IdempotencyKey:  IdempotencyKey);
 
     private static BasketCartInfo CartWithItems(params (Guid productId, int qty)[] items) =>
         new(CustomerId, items.Select(i => new BasketCartItemInfo(i.productId, i.qty)).ToList());
@@ -50,14 +55,16 @@ public sealed class CheckoutCartCommandHandlerTests
 
     // ── SUT factory ──────────────────────────────────────────────────────────
 
-    private readonly ICatalogClient _catalog     = Substitute.For<ICatalogClient>();
-    private readonly IBasketClient  _basket      = Substitute.For<IBasketClient>();
+    private readonly ICatalogClient _catalog = Substitute.For<ICatalogClient>();
+    private readonly IBasketClient  _basket  = Substitute.For<IBasketClient>();
     private readonly IOrderingServiceBusPublisher _bus = Substitute.For<IOrderingServiceBusPublisher>();
+    private readonly IMemoryCache   _cache   = new ServiceCollection()
+        .AddMemoryCache().BuildServiceProvider().GetRequiredService<IMemoryCache>();
     private readonly ILogger<CheckoutCartCommandHandler> _logger =
         Substitute.For<ILogger<CheckoutCartCommandHandler>>();
 
     private CheckoutCartCommandHandler CreateHandler() =>
-        new(_catalog, _basket, _bus, _logger);
+        new(_catalog, _basket, _bus, _cache, _logger);
 
     // ── Cart retrieval failures ───────────────────────────────────────────────
 
@@ -255,5 +262,36 @@ public sealed class CheckoutCartCommandHandlerTests
         await _basket.Received(1).ClearCartItemsAsync(CustomerId, Arg.Any<CancellationToken>());
         await _catalog.DidNotReceive()
                       .RestoreStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+    }
+
+    // ── Idempotency guard ─────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task DuplicateIdempotencyKey_ReturnsCachedCorrelationId_WithoutReprocessing()
+    {
+        // Arrange: first call succeeds and populates the cache.
+        _basket.GetCartAsync(CustomerId, Arg.Any<CancellationToken>())
+               .Returns(Result<BasketCartInfo>.Success(CartWithItems((ProductId1, 1))));
+        _catalog.GetProductByIdAsync(ProductId1, Arg.Any<CancellationToken>())
+                .Returns(Result<CatalogProductInfo>.Success(Product(ProductId1)));
+        _catalog.DecrementStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+                .Returns(Result.Success());
+        _bus.PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>())
+            .Returns(Task.CompletedTask);
+        _basket.ClearCartItemsAsync(CustomerId, Arg.Any<CancellationToken>())
+               .Returns(Result.Success());
+
+        var handler = CreateHandler();
+        var firstResult = await handler.Handle(Command, CancellationToken.None);
+        firstResult.IsSuccess.Should().BeTrue();
+
+        // Act: second call with the same IdempotencyKey.
+        var secondResult = await handler.Handle(Command, CancellationToken.None);
+
+        // Assert: same CorrelationId, no second decrement or publish.
+        secondResult.IsSuccess.Should().BeTrue();
+        secondResult.Value.Should().Be(firstResult.Value, "duplicate request must return the same CorrelationId");
+        await _catalog.Received(1).DecrementStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+        await _bus.Received(1).PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>());
     }
 }

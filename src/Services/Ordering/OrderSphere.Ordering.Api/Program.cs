@@ -37,6 +37,10 @@ builder.AddAzureServiceBusClient("azure-service-bus");
 // EventBus abstraction
 builder.Services.AddAzureServiceBusEventBus();
 
+// In-memory cache for checkout idempotency key deduplication (30-min TTL per key).
+// For multi-instance deployments, replace with a distributed cache (Redis).
+builder.Services.AddMemoryCache();
+
 // MediatR — scan this assembly for handlers + pipeline behaviors
 builder.Services.AddMediatR(cfg =>
 {

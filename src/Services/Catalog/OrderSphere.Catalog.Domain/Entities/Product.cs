@@ -1,4 +1,6 @@
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.Primitives;
+using OrderSphere.Catalog.Domain.Errors;
 using System.Text.RegularExpressions;
 
 namespace OrderSphere.Catalog.Domain.Entities;
@@ -39,11 +41,12 @@ public sealed class Product : AuditableEntity
 
     public void AddToStock(int quantity) => Stock += quantity;
 
-    public void RemoveFromStock(int quantity)
+    public Result RemoveFromStock(int quantity)
     {
         if (quantity > Stock)
-            throw new InvalidOperationException("Insufficient stock.");
+            return Result.Failure(ProductErrors.InsufficientStock);
         Stock -= quantity;
+        return Result.Success();
     }
 
     public void UpdateDetails(string name, string description, decimal price, int stock, Guid categoryId, string sku, string? imageUrl = null)

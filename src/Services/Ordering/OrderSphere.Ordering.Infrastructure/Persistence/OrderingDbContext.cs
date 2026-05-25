@@ -12,6 +12,9 @@ public sealed class OrderingDbContext(DbContextOptions<OrderingDbContext> option
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     internal DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
+    public void AddOutboxMessage(string type, string content)
+        => OutboxMessages.Add(new OutboxMessage { Type = type, Content = content });
     internal DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
 
     private IDbContextTransaction? _transaction;

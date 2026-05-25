@@ -21,8 +21,9 @@ builder.AddNpgsqlDbContext<OrderingDbContext>("ordering-db", settings =>
     settings.DisableRetry = false;
 });
 
-// Ordering infrastructure (email, DI bindings)
+// Ordering infrastructure (email, outbox handler registrations, DI bindings)
 builder.Services.AddOrderingInfrastructure(builder.Environment);
+builder.Services.AddOrderingOutboxProcessing();
 builder.Services.Configure<OrderingMailConfiguration>(
     builder.Configuration.GetSection("MailServiceConfiguration"));
 

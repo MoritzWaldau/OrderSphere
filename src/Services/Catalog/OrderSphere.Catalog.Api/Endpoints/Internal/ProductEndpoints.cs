@@ -60,9 +60,10 @@ public static class ProductEndpoints
             .FirstOrDefaultAsync(p => p.Id == productId && !p.IsDeleted, ct);
 
         if (product is null) return Results.NotFound();
-        if (product.Stock < body.Quantity) return Results.Conflict("Insufficient stock.");
 
-        product.RemoveFromStock(body.Quantity);
+        var result = product.RemoveFromStock(body.Quantity);
+        if (result.IsFailure) return Results.Conflict(result.Error.Description);
+
         await context.SaveChangesAsync(ct);
         return Results.NoContent();
     }

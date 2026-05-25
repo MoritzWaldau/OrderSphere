@@ -56,9 +56,8 @@ public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogServi
             .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ctx.CancellationToken);
 
         if (product is null) return Fail("PRODUCT_NOT_FOUND", "Product not found.");
-        if (product.Stock < request.Quantity) return Fail("INSUFFICIENT_STOCK", "Insufficient stock.");
-
-        product.RemoveFromStock(request.Quantity);
+        var removeResult = product.RemoveFromStock(request.Quantity);
+        if (removeResult.IsFailure) return Fail("INSUFFICIENT_STOCK", removeResult.Error.Description);
         await context.SaveChangesAsync(ctx.CancellationToken);
         return new StockOperationResponse { Success = true };
     }

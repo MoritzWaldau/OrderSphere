@@ -4,17 +4,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Contracts.Events;
-using OrderSphere.BuildingBlocks.EventBus;
 using OrderSphere.Ordering.Domain.Entities;
 using OrderSphere.Ordering.Domain.Events;
-
 using OrderSphere.Ordering.Infrastructure.Persistence;
+using System.Text.Json;
 
 namespace OrderSphere.Ordering.Worker.Workers;
 
 public sealed class OrderProcessor(
     ServiceBusClient serviceBusClient,
-    IEventBus eventBus,
     IServiceScopeFactory scopeFactory,
     ILogger<OrderProcessor> logger) : BackgroundService
 {
@@ -125,13 +123,26 @@ public sealed class OrderProcessor(
                 evt.CorrelationId);
 
             await context.Orders.AddAsync(order, ct);
+
+            var paymentEvent = new PaymentRequestedIntegrationEvent
+            {
+                CorrelationId = evt.CorrelationId,
+                OrderId = order.Id,
+                Amount = evt.Items.Sum(i => i.Price * i.Quantity),
+                Currency = "EUR",
+                PaymentMethod = evt.CheckoutCart.PaymentMethod.ToString(),
+                CustomerEmail = evt.CheckoutCart.CustomerEmail
+            };
+
+            context.AddOutboxMessage(
+                nameof(PaymentRequestedIntegrationEvent),
+                JsonSerializer.Serialize(paymentEvent));
+
             await context.CommitAsync(ct);
 
             logger.LogInformation(
                 "Order {OrderId} created for customer {CustomerId}. CorrelationId: {CorrelationId}",
                 order.Id, order.CustomerId, evt.CorrelationId);
-
-            await TryPublishPaymentRequestedEvent(order, evt, ct);
 
             return ProcessResult.Ok();
         }
@@ -148,30 +159,6 @@ public sealed class OrderProcessor(
             logger.LogError(ex, "Failed to process order for customer {CustomerId}. CorrelationId: {CorrelationId}",
                 checkout.CustomerId, evt.CorrelationId);
             return ProcessResult.Fail(ex.Message);
-        }
-    }
-
-    private async Task TryPublishPaymentRequestedEvent(Order order, CheckoutCartEvent evt, CancellationToken ct)
-    {
-        try
-        {
-            var paymentEvent = new PaymentRequestedIntegrationEvent
-            {
-                CorrelationId = evt.CorrelationId,
-                OrderId = order.Id,
-                Amount = evt.Items.Sum(i => i.Price * i.Quantity),
-                Currency = "EUR",
-                PaymentMethod = evt.CheckoutCart.PaymentMethod.ToString(),
-                CustomerEmail = evt.CheckoutCart.CustomerEmail
-            };
-
-            await eventBus.PublishAsync(paymentEvent, "payment-requests", ct);
-
-            logger.LogInformation("PaymentRequestedEvent published for order {OrderId}.", order.Id);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to publish PaymentRequestedEvent for order {OrderId}.", order.Id);
         }
     }
 

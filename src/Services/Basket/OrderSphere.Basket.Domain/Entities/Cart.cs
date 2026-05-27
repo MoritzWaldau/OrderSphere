@@ -1,3 +1,4 @@
+using OrderSphere.Basket.Domain.DomainEvents;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 
@@ -28,5 +29,7 @@ public sealed class Cart : AuditableEntity<CartId>, IAggregateRoot
             existing.Increase(item.Quantity);
         else
             Items.Add(item);
+
+        RaiseDomainEvent(new CartItemAddedDomainEvent(Id, item.ProductId, item.Quantity));
     }
 }

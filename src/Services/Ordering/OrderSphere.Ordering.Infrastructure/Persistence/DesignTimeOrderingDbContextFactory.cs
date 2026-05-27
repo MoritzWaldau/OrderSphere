@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using OrderSphere.BuildingBlocks.Abstraction;
 
 namespace OrderSphere.Ordering.Infrastructure.Persistence;
 
@@ -12,6 +13,6 @@ public sealed class DesignTimeOrderingDbContextFactory : IDesignTimeDbContextFac
     {
         var optionsBuilder = new DbContextOptionsBuilder<OrderingDbContext>();
         optionsBuilder.UseNpgsql("Host=localhost;Database=ordering-db;Username=postgres;Password=postgres");
-        return new OrderingDbContext(optionsBuilder.Options);
+        return new OrderingDbContext(optionsBuilder.Options, NullPublisher.Instance);
     }
 }

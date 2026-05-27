@@ -1,14 +1,34 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.Basket.Domain.Entities;
+using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.BuildingBlocks.ValueObjects;
 
 namespace OrderSphere.Basket.Infrastructure.Persistence;
 
-public sealed class BasketDbContext(DbContextOptions<BasketDbContext> options) : DbContext(options)
+public sealed class BasketDbContext(
+    DbContextOptions<BasketDbContext> options,
+    IPublisher publisher) : DbContext(options)
 {
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var events = ChangeTracker.Entries()
+            .Select(e => e.Entity)
+            .OfType<IHasDomainEvents>()
+            .SelectMany(e => e.PopDomainEvents())
+            .ToList();
+
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        foreach (var @event in events)
+            await publisher.Publish(@event, cancellationToken);
+
+        return result;
+    }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

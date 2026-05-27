@@ -1,3 +1,5 @@
+using MediatR;
+using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.Payment.Infrastructure;
 using OrderSphere.Payment.Infrastructure.Persistence;
@@ -13,6 +15,9 @@ builder.AddAzureServiceBusClient("azure-service-bus");
 builder.Services.AddAzureServiceBusEventBus();
 builder.Services.AddPaymentInfrastructure();
 builder.Services.AddHostedService<PaymentProcessor>();
+
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
 
 var host = builder.Build();
 host.Run();

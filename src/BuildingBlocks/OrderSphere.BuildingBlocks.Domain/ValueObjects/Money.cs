@@ -55,5 +55,6 @@ public sealed class Money : IEquatable<Money>
 
     public static bool operator !=(Money? left, Money? right) => !(left == right);
 
-    public override string ToString() => $"{Amount:F2} {Currency}";
+    public override string ToString() =>
+        string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:F2} {1}", Amount, Currency);
 }

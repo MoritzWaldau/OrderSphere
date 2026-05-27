@@ -1,5 +1,6 @@
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.Payment.Domain.DomainEvents;
 using OrderSphere.Payment.Domain.Enums;
 
 namespace OrderSphere.Payment.Domain.Entities;
@@ -44,6 +45,7 @@ public class PaymentRecord : AuditableEntity<PaymentId>, IAggregateRoot
         TransactionId = transactionId;
         Status = PaymentStatus.Authorized;
         UpdatedAt = DateTime.UtcNow;
+        RaiseDomainEvent(new PaymentAuthorizedDomainEvent(Id, OrderId, transactionId));
     }
 
     public void MarkCaptured(string transactionId)
@@ -51,6 +53,7 @@ public class PaymentRecord : AuditableEntity<PaymentId>, IAggregateRoot
         TransactionId = transactionId;
         Status = PaymentStatus.Captured;
         UpdatedAt = DateTime.UtcNow;
+        RaiseDomainEvent(new PaymentCapturedDomainEvent(Id, OrderId, transactionId));
     }
 
     public void MarkFailed(string reason)
@@ -58,6 +61,7 @@ public class PaymentRecord : AuditableEntity<PaymentId>, IAggregateRoot
         FailureReason = reason;
         Status = PaymentStatus.Failed;
         UpdatedAt = DateTime.UtcNow;
+        RaiseDomainEvent(new PaymentFailedDomainEvent(Id, OrderId, reason));
     }
 
     public void MarkRefunded()

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using OrderSphere.BuildingBlocks.Abstraction;
 
 namespace OrderSphere.Basket.Infrastructure.Persistence;
 
@@ -13,6 +14,6 @@ public sealed class DesignTimeBasketDbContextFactory : IDesignTimeDbContextFacto
         var options = new DbContextOptionsBuilder<BasketDbContext>()
             .UseNpgsql("Host=localhost;Port=5432;Database=basket-db;Username=postgres;Password=postgres")
             .Options;
-        return new BasketDbContext(options);
+        return new BasketDbContext(options, NullPublisher.Instance);
     }
 }

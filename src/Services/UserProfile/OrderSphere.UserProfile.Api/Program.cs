@@ -1,4 +1,6 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.UserProfile.Api.Endpoints;
 using OrderSphere.UserProfile.Infrastructure.Persistence;
 
@@ -16,6 +18,9 @@ builder.AddNpgsqlDbContext<UserProfileDbContext>("userprofile-db", settings =>
 // dedicated bearer-only client in the Keycloak realm.
 builder.AddOrderSphereJwtAuth("userprofile-api");
 builder.Services.AddCurrentUser();
+
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));

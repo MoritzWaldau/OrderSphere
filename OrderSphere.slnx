@@ -65,6 +65,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/OrderSphere.Bff.Tests/OrderSphere.Bff.Tests.csproj" />
+    <Project Path="tests/OrderSphere.Domain.Tests/OrderSphere.Domain.Tests.csproj" />
     <Project Path="tests/OrderSphere.Ordering.Authorization.Tests/OrderSphere.Ordering.Authorization.Tests.csproj" />
     <Project Path="tests/OrderSphere.Ordering.Checkout.Tests/OrderSphere.Ordering.Checkout.Tests.csproj" />
     <Project Path="tests/OrderSphere.RealmContract.Tests/OrderSphere.RealmContract.Tests.csproj" />

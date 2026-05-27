@@ -1,5 +1,6 @@
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.Ordering.Domain.DomainEvents;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.ValueObjects;
 
@@ -43,6 +44,8 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
         _items.AddRange(itemList);
         Status = OrderStatus.Created;
         CorrelationId = correlationId;
+
+        RaiseDomainEvent(new OrderCreatedDomainEvent(Id, CustomerId, CorrelationId));
     }
 
     public void Confirm(string trackingNumber)
@@ -50,6 +53,7 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
         TrackingNumber = trackingNumber;
         Status = OrderStatus.Paid;
         UpdatedAt = DateTime.UtcNow;
+        RaiseDomainEvent(new OrderConfirmedDomainEvent(Id, trackingNumber));
     }
 
     public void MarkShipped()
@@ -60,6 +64,7 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
 
         Status = OrderStatus.Shipped;
         UpdatedAt = DateTime.UtcNow;
+        RaiseDomainEvent(new OrderShippedDomainEvent(Id));
     }
 
     public void MarkDelivered()
@@ -70,6 +75,7 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
 
         Status = OrderStatus.Delivered;
         UpdatedAt = DateTime.UtcNow;
+        RaiseDomainEvent(new OrderDeliveredDomainEvent(Id));
     }
 
     public void Cancel()
@@ -80,5 +86,6 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
 
         Status = OrderStatus.Cancelled;
         UpdatedAt = DateTime.UtcNow;
+        RaiseDomainEvent(new OrderCancelledDomainEvent(Id));
     }
 }

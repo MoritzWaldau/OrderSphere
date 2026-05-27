@@ -1,3 +1,5 @@
+using MediatR;
+using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.Webhooks.Infrastructure;
 using OrderSphere.Webhooks.Infrastructure.Persistence;
 using OrderSphere.Webhooks.Worker.Workers;
@@ -20,6 +22,9 @@ builder.Services.AddHttpClient("WebhookDelivery", client =>
 
 builder.Services.AddHostedService<WebhookEventProcessor>();
 builder.Services.AddHostedService<WebhookDeliveryProcessor>();
+
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
 
 var host = builder.Build();
 host.Run();

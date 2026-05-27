@@ -2,6 +2,7 @@ using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.BuildingBlocks.ValueObjects;
+using OrderSphere.Catalog.Domain.DomainEvents;
 using OrderSphere.Catalog.Domain.Errors;
 using System.Text.RegularExpressions;
 
@@ -47,6 +48,7 @@ public sealed class Product : AuditableEntity<ProductId>, IAggregateRoot
         if (quantity > Stock)
             return Result.Failure(ProductErrors.InsufficientStock);
         Stock -= quantity;
+        RaiseDomainEvent(new ProductStockDecreasedDomainEvent(Id, quantity));
         return Result.Success();
     }
 
@@ -63,6 +65,17 @@ public sealed class Product : AuditableEntity<ProductId>, IAggregateRoot
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void Activate()   { IsActive = true;  UpdatedAt = DateTime.UtcNow; }
-    public void Deactivate() { IsActive = false; UpdatedAt = DateTime.UtcNow; }
+    public void Activate()
+    {
+        IsActive = true;
+        UpdatedAt = DateTime.UtcNow;
+        RaiseDomainEvent(new ProductActivatedDomainEvent(Id));
+    }
+
+    public void Deactivate()
+    {
+        IsActive = false;
+        UpdatedAt = DateTime.UtcNow;
+        RaiseDomainEvent(new ProductDeactivatedDomainEvent(Id));
+    }
 }

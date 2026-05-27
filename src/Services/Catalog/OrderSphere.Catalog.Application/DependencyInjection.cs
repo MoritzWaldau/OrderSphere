@@ -16,6 +16,7 @@ public static class DependencyInjection
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
 
+        services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
         return services;

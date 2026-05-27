@@ -1,5 +1,7 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.BuildingBlocks.ValueObjects;
@@ -8,7 +10,9 @@ using OrderSphere.Ordering.Infrastructure.Outbox;
 
 namespace OrderSphere.Ordering.Infrastructure.Persistence;
 
-public sealed class OrderingDbContext(DbContextOptions<OrderingDbContext> options)
+public sealed class OrderingDbContext(
+    DbContextOptions<OrderingDbContext> options,
+    IPublisher publisher)
     : DbContext(options), IOrderingDbContext
 {
     public DbSet<Order> Orders => Set<Order>();
@@ -64,6 +68,22 @@ public sealed class OrderingDbContext(DbContextOptions<OrderingDbContext> option
             await _transaction.DisposeAsync();
             _transaction = null;
         }
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var events = ChangeTracker.Entries()
+            .Select(e => e.Entity)
+            .OfType<IHasDomainEvents>()
+            .SelectMany(e => e.PopDomainEvents())
+            .ToList();
+
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        foreach (var @event in events)
+            await publisher.Publish(@event, cancellationToken);
+
+        return result;
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

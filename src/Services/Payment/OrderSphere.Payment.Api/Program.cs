@@ -1,5 +1,7 @@
+using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.Payment.Api.Endpoints;
 using OrderSphere.Payment.Infrastructure;
 using OrderSphere.Payment.Infrastructure.Persistence;
@@ -14,6 +16,9 @@ builder.AddNpgsqlDbContext<PaymentDbContext>("payment-db", settings =>
 });
 
 builder.Services.AddPaymentInfrastructure();
+
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
 
 var paymentConnectionString = builder.Configuration.GetConnectionString("payment-db") ?? "";
 builder.Services.AddHealthChecks()

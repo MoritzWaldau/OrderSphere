@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Payment.Api.Models;
 using OrderSphere.Payment.Infrastructure.Persistence;
 
@@ -17,13 +18,13 @@ public static class InternalPaymentEndpoints
         {
             var payment = await db.Payments
                 .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.OrderId == orderId, ct);
+                .FirstOrDefaultAsync(p => p.OrderId == OrderId.From(orderId), ct);
 
             return payment is null
                 ? Results.NotFound()
                 : Results.Ok(new PaymentDto(
-                    payment.Id,
-                    payment.OrderId,
+                    payment.Id.Value,
+                    payment.OrderId.Value,
                     payment.Amount,
                     payment.Currency,
                     payment.PaymentMethod,

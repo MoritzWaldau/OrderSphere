@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Catalog.Domain.Errors;
 
 namespace OrderSphere.Catalog.Application.Features.Products.Admin.UpdateProduct;
@@ -18,7 +19,7 @@ public sealed class UpdateProductCommandHandler(ICatalogDbContext context)
         product.UpdateDetails(
             request.Name,
             request.Description,
-            request.Price,
+            Money.Of(request.Price),
             request.Stock,
             request.CategoryId,
             request.SKU,

@@ -21,13 +21,13 @@ public sealed class GetProductsQueryHandler(ICatalogDbContext context)
             .Take(request.PageSize)
             .Select(p => new ProductDto
             {
-                Id = p.Id,
+                Id = p.Id.Value,
                 Name = p.Name,
                 Slug = p.Slug,
                 Description = p.Description,
                 Price = p.Price,
                 Stock = p.Stock,
-                CategoryId = p.CategoryId,
+                CategoryId = p.CategoryId.Value,
                 CategoryName = p.Category!.Name,
                 SKU = p.SKU,
                 ImageUrl = p.ImageUrl,

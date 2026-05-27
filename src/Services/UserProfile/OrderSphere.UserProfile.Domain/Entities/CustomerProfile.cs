@@ -1,4 +1,5 @@
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 
 namespace OrderSphere.UserProfile.Domain.Entities;
 
@@ -7,7 +8,7 @@ namespace OrderSphere.UserProfile.Domain.Entities;
 /// saved shipping addresses and UI preferences.
 /// Keycloak subject claim is the external identifier.
 /// </summary>
-public sealed class CustomerProfile : AuditableEntity
+public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggregateRoot
 {
     public string KeycloakSubject { get; private set; }
     public string DisplayName { get; private set; }
@@ -26,6 +27,7 @@ public sealed class CustomerProfile : AuditableEntity
 
     public CustomerProfile(string keycloakSubject, string displayName, string email)
     {
+        Id = CustomerProfileId.New();
         KeycloakSubject = keycloakSubject;
         DisplayName = displayName;
         Email = email;
@@ -66,7 +68,7 @@ public sealed class CustomerProfile : AuditableEntity
         return address;
     }
 
-    public bool RemoveAddress(Guid addressId)
+    public bool RemoveAddress(SavedAddressId addressId)
     {
         var address = _addresses.FirstOrDefault(a => a.Id == addressId);
         if (address is null) return false;
@@ -81,7 +83,7 @@ public sealed class CustomerProfile : AuditableEntity
         return true;
     }
 
-    public bool SetDefaultAddress(Guid addressId)
+    public bool SetDefaultAddress(SavedAddressId addressId)
     {
         var target = _addresses.FirstOrDefault(a => a.Id == addressId);
         if (target is null) return false;

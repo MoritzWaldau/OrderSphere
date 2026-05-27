@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Domain.Services;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 using System.Text.Json;
@@ -75,7 +76,7 @@ public sealed class PaymentResultProcessor(
 
             var order = await context.Orders
                 .Include(o => o.Items)
-                .FirstOrDefaultAsync(o => o.Id == evt.OrderId, args.CancellationToken);
+                .FirstOrDefaultAsync(o => o.Id == OrderId.From(evt.OrderId), args.CancellationToken);
 
             if (order is null)
             {
@@ -106,7 +107,7 @@ public sealed class PaymentResultProcessor(
                 var orderPlacedEvent = new OrderPlacedIntegrationEvent
                 {
                     CorrelationId = evt.CorrelationId,
-                    OrderId = order.Id,
+                    OrderId = order.Id.Value,
                     CustomerEmail = evt.CustomerEmail,
                     CustomerName = $"{order.ShippingAddress.FirstName} {order.ShippingAddress.LastName}",
                     TrackingNumber = order.TrackingNumber!,
@@ -137,7 +138,7 @@ public sealed class PaymentResultProcessor(
                     Message = evt.Succeeded
                         ? $"Your order has been confirmed. Tracking number: {order.TrackingNumber}"
                         : $"Your order could not be processed: {evt.FailureReason ?? "Payment failed."}",
-                    OrderId = order.Id
+                    OrderId = order.Id.Value
                 }));
 
             context.AddOutboxMessage(
@@ -145,7 +146,7 @@ public sealed class PaymentResultProcessor(
                 JsonSerializer.Serialize(new OrderStatusChangedIntegrationEvent
                 {
                     CorrelationId = evt.CorrelationId,
-                    OrderId = order.Id,
+                    OrderId = order.Id.Value,
                     PreviousStatus = "Pending",
                     NewStatus = evt.Succeeded ? "Confirmed" : "Cancelled",
                     CustomerEmail = evt.CustomerEmail

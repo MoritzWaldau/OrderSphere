@@ -29,13 +29,13 @@ public sealed class GetProductBySlugQueryHandler(ICatalogDbContext context, Hybr
             .Where(p => p.Slug == slug && !p.IsDeleted && p.IsActive)
             .Select(p => new ProductDto
             {
-                Id = p.Id,
+                Id = p.Id.Value,
                 Name = p.Name,
                 Slug = p.Slug,
                 Description = p.Description,
                 Price = p.Price,
                 Stock = p.Stock,
-                CategoryId = p.CategoryId,
+                CategoryId = p.CategoryId.Value,
                 CategoryName = p.Category!.Name,
                 SKU = p.SKU,
                 ImageUrl = p.ImageUrl,

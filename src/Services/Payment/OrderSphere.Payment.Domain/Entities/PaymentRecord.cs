@@ -1,11 +1,12 @@
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Payment.Domain.Enums;
 
 namespace OrderSphere.Payment.Domain.Entities;
 
-public class PaymentRecord : AuditableEntity
+public class PaymentRecord : AuditableEntity<PaymentId>, IAggregateRoot
 {
-    public Guid OrderId { get; private set; }
+    public OrderId OrderId { get; private set; }
     public decimal Amount { get; private set; }
     public string Currency { get; private set; } = "EUR";
     public string PaymentMethod { get; private set; } = "";
@@ -15,17 +16,20 @@ public class PaymentRecord : AuditableEntity
     public string? FailureReason { get; private set; }
     public Guid CorrelationId { get; private set; }
 
-    private PaymentRecord() { }
+    private PaymentRecord()
+    {
+        OrderId = OrderId.Empty;
+    }
 
     public PaymentRecord(
-        Guid orderId,
+        OrderId orderId,
         decimal amount,
         string currency,
         string paymentMethod,
         string customerEmail,
         Guid correlationId)
     {
-        Id = Guid.NewGuid();
+        Id = PaymentId.New();
         OrderId = orderId;
         Amount = amount;
         Currency = currency;

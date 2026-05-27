@@ -2,6 +2,7 @@ using MediatR;
 using OrderSphere.Basket.Api.Features.Cart;
 using OrderSphere.Basket.Api.Models;
 using OrderSphere.BuildingBlocks.Security;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 
 namespace OrderSphere.Basket.Api.Endpoints;
 
@@ -27,7 +28,8 @@ public static class CartEndpoints
             if (!TryGetCustomerId(currentUser, out var customerId))
                 return Results.Unauthorized();
 
-            var result = await mediator.Send(new AddToCartCommand(customerId, req.ProductId, req.Quantity), ct);
+            var result = await mediator.Send(
+                new AddToCartCommand(customerId, ProductId.From(req.ProductId), req.Quantity), ct);
             return result.IsSuccess
                 ? Results.NoContent()
                 : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
@@ -38,7 +40,8 @@ public static class CartEndpoints
             if (!TryGetCustomerId(currentUser, out var customerId))
                 return Results.Unauthorized();
 
-            var result = await mediator.Send(new RemoveFromCartCommand(customerId, productId), ct);
+            var result = await mediator.Send(
+                new RemoveFromCartCommand(customerId, ProductId.From(productId)), ct);
             return result.IsSuccess
                 ? Results.NoContent()
                 : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
@@ -49,19 +52,29 @@ public static class CartEndpoints
             if (!TryGetCustomerId(currentUser, out var customerId))
                 return Results.Unauthorized();
 
-            var result = await mediator.Send(new DecreaseCartItemQuantityCommand(customerId, req.ProductId), ct);
+            var result = await mediator.Send(
+                new DecreaseCartItemQuantityCommand(customerId, ProductId.From(req.ProductId)), ct);
             return result.IsSuccess
                 ? Results.NoContent()
                 : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
         });
     }
 
-    private static bool TryGetCustomerId(ICurrentUser currentUser, out Guid customerId)
+    /// <summary>
+    /// Parses the Keycloak subject claim into a <see cref="CustomerId"/>.
+    /// The sub is a UUID that serves as the customer identifier across services.
+    /// </summary>
+    private static bool TryGetCustomerId(ICurrentUser currentUser, out CustomerId customerId)
     {
-        customerId = Guid.Empty;
-        return currentUser.IsAuthenticated
-            && currentUser.Sub is not null
-            && Guid.TryParse(currentUser.Sub, out customerId);
+        customerId = CustomerId.Empty;
+        if (!currentUser.IsAuthenticated || currentUser.Sub is null)
+            return false;
+
+        if (!Guid.TryParse(currentUser.Sub, out var guid))
+            return false;
+
+        customerId = CustomerId.From(guid);
+        return true;
     }
 }
 

@@ -17,7 +17,7 @@ public sealed class GetCategoriesQueryHandler(ICatalogDbContext context)
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .Select(c => new CategoryDto(
-                    c.Id,
+                    c.Id.Value,
                     c.Name,
                     c.Description,
                     context.Products.Count(p => p.CategoryId == c.Id && !p.IsDeleted)))

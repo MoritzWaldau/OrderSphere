@@ -4,6 +4,9 @@ using OrderSphere.Basket.Api.CatalogClient;
 using OrderSphere.Basket.Domain.Errors;
 using OrderSphere.Basket.Infrastructure.Persistence;
 using OrderSphere.BuildingBlocks.Primitives;
+using OrderSphere.BuildingBlocks.ValueObjects;
+using CartEntity = OrderSphere.Basket.Domain.Entities.Cart;
+using CartItemEntity = OrderSphere.Basket.Domain.Entities.CartItem;
 
 namespace OrderSphere.Basket.Api.Features.Cart;
 
@@ -22,9 +25,12 @@ public sealed class AddToCartCommandHandler(
                 .FirstOrDefaultAsync(x => x.CustomerId == request.CustomerId, cancellationToken);
 
             var isNewCart = cart is null;
-            cart ??= new Domain.Entities.Cart(request.CustomerId);
+            cart ??= new CartEntity(request.CustomerId);
 
-            var productResult = await catalogClient.GetProductByIdAsync(request.ProductId, cancellationToken);
+            // ICatalogClient still uses Guid — convert at the service boundary.
+            var productResult = await catalogClient.GetProductByIdAsync(
+                request.ProductId.Value, cancellationToken);
+
             if (productResult.IsFailure)
             {
                 logger.LogWarning("Product {ProductId} not found in Catalog", request.ProductId);
@@ -34,7 +40,8 @@ public sealed class AddToCartCommandHandler(
             var product = productResult.Value;
             if (product.Stock < request.Quantity)
             {
-                logger.LogWarning("Insufficient stock for product {ProductId}. Available: {Stock}, Requested: {Quantity}",
+                logger.LogWarning(
+                    "Insufficient stock for product {ProductId}. Available: {Stock}, Requested: {Quantity}",
                     request.ProductId, product.Stock, request.Quantity);
                 return Result.Failure(ProductErrors.InsufficientStockError);
             }
@@ -46,7 +53,7 @@ public sealed class AddToCartCommandHandler(
             }
             else
             {
-                var cartItem = new Domain.Entities.CartItem(request.ProductId, request.Quantity) { CartId = cart.Id };
+                var cartItem = new CartItemEntity(request.ProductId, Quantity.Of(request.Quantity)) { CartId = cart.Id };
                 cart.Items.Add(cartItem);
             }
 
@@ -57,7 +64,8 @@ public sealed class AddToCartCommandHandler(
 
             await context.SaveChangesAsync(cancellationToken);
 
-            logger.LogInformation("Added {Quantity} of product {ProductId} to cart for customer {CustomerId}",
+            logger.LogInformation(
+                "Added {Quantity} of product {ProductId} to cart for customer {CustomerId}",
                 request.Quantity, request.ProductId, request.CustomerId);
 
             return Result.Success();

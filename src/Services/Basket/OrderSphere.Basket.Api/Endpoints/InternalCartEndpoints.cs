@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.Basket.Api.Models;
 using OrderSphere.Basket.Infrastructure.Persistence;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 
 namespace OrderSphere.Basket.Api.Endpoints;
 
@@ -14,14 +15,14 @@ public static class InternalCartEndpoints
         {
             var cart = await context.Carts
                 .Include(c => c.Items)
-                .FirstOrDefaultAsync(c => c.CustomerId == customerId, ct);
+                .FirstOrDefaultAsync(c => c.CustomerId == CustomerId.From(customerId), ct);
 
             if (cart is null)
                 return Results.NotFound();
 
             var dto = new CartDto(
-                cart.CustomerId,
-                cart.Items.Select(ci => new CartItemDto(ci.ProductId, "", 0m, ci.Quantity)).ToList());
+                cart.CustomerId.Value,
+                cart.Items.Select(ci => new CartItemDto(ci.ProductId.Value, "", 0m, ci.Quantity)).ToList());
 
             return Results.Ok(dto);
         });
@@ -30,7 +31,7 @@ public static class InternalCartEndpoints
         {
             var cart = await context.Carts
                 .Include(c => c.Items)
-                .FirstOrDefaultAsync(c => c.CustomerId == customerId, ct);
+                .FirstOrDefaultAsync(c => c.CustomerId == CustomerId.From(customerId), ct);
 
             if (cart is null)
                 return Results.NotFound();

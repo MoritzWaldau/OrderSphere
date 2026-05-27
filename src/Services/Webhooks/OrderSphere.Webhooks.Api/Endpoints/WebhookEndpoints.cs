@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Webhooks.Domain.Entities;
 using OrderSphere.Webhooks.Domain.Enums;
 using OrderSphere.Webhooks.Infrastructure.Persistence;
@@ -31,10 +32,10 @@ public static class WebhookEndpoints
         if (customerId is null) return Results.Unauthorized();
 
         var subs = await db.Subscriptions
-            .Where(s => s.CustomerId == customerId.Value && !s.IsDeleted)
+            .Where(s => s.CustomerId == CustomerId.From(customerId.Value) && !s.IsDeleted)
             .OrderByDescending(s => s.CreatedAt)
             .Select(s => new SubscriptionDto(
-                s.Id, s.Url, s.Events, s.IsActive, s.CreatedAt, s.UpdatedAt))
+                s.Id.Value, s.Url, s.Events, s.IsActive, s.CreatedAt, s.UpdatedAt))
             .ToListAsync();
 
         return Results.Ok(subs);
@@ -49,9 +50,9 @@ public static class WebhookEndpoints
         if (customerId is null) return Results.Unauthorized();
 
         var sub = await db.Subscriptions
-            .Where(s => s.Id == id && s.CustomerId == customerId.Value && !s.IsDeleted)
+            .Where(s => s.Id == WebhookSubscriptionId.From(id) && s.CustomerId == CustomerId.From(customerId.Value) && !s.IsDeleted)
             .Select(s => new SubscriptionDto(
-                s.Id, s.Url, s.Events, s.IsActive, s.CreatedAt, s.UpdatedAt))
+                s.Id.Value, s.Url, s.Events, s.IsActive, s.CreatedAt, s.UpdatedAt))
             .FirstOrDefaultAsync();
 
         return sub is null ? Results.NotFound() : Results.Ok(sub);
@@ -79,7 +80,7 @@ public static class WebhookEndpoints
             secret = Convert.ToBase64String(Guid.NewGuid().ToByteArray())[..32];
 
         var subscription = new WebhookSubscription(
-            customerId.Value,
+            CustomerId.From(customerId.Value),
             request.Url,
             secret,
             request.Events);
@@ -88,8 +89,8 @@ public static class WebhookEndpoints
         await db.SaveChangesAsync();
 
         return Results.Created(
-            $"/api/v1/webhooks/{subscription.Id}",
-            new SubscriptionCreatedDto(subscription.Id, secret));
+            $"/api/v1/webhooks/{subscription.Id.Value}",
+            new SubscriptionCreatedDto(subscription.Id.Value, secret));
     }
 
     private static async Task<IResult> UpdateSubscription(
@@ -102,7 +103,7 @@ public static class WebhookEndpoints
         if (customerId is null) return Results.Unauthorized();
 
         var sub = await db.Subscriptions
-            .FirstOrDefaultAsync(s => s.Id == id && s.CustomerId == customerId.Value && !s.IsDeleted);
+            .FirstOrDefaultAsync(s => s.Id == WebhookSubscriptionId.From(id) && s.CustomerId == CustomerId.From(customerId.Value) && !s.IsDeleted);
 
         if (sub is null) return Results.NotFound();
 
@@ -130,7 +131,7 @@ public static class WebhookEndpoints
         if (customerId is null) return Results.Unauthorized();
 
         var sub = await db.Subscriptions
-            .FirstOrDefaultAsync(s => s.Id == id && s.CustomerId == customerId.Value && !s.IsDeleted);
+            .FirstOrDefaultAsync(s => s.Id == WebhookSubscriptionId.From(id) && s.CustomerId == CustomerId.From(customerId.Value) && !s.IsDeleted);
 
         if (sub is null) return Results.NotFound();
 
@@ -150,7 +151,7 @@ public static class WebhookEndpoints
         if (customerId is null) return Results.Unauthorized();
 
         var sub = await db.Subscriptions
-            .FirstOrDefaultAsync(s => s.Id == id && s.CustomerId == customerId.Value && !s.IsDeleted);
+            .FirstOrDefaultAsync(s => s.Id == WebhookSubscriptionId.From(id) && s.CustomerId == CustomerId.From(customerId.Value) && !s.IsDeleted);
 
         if (sub is null) return Results.NotFound();
 
@@ -169,7 +170,7 @@ public static class WebhookEndpoints
         if (customerId is null) return Results.Unauthorized();
 
         var sub = await db.Subscriptions
-            .FirstOrDefaultAsync(s => s.Id == id && s.CustomerId == customerId.Value && !s.IsDeleted);
+            .FirstOrDefaultAsync(s => s.Id == WebhookSubscriptionId.From(id) && s.CustomerId == CustomerId.From(customerId.Value) && !s.IsDeleted);
 
         if (sub is null) return Results.NotFound();
 
@@ -191,17 +192,17 @@ public static class WebhookEndpoints
 
         // Verify the subscription belongs to the caller.
         var owns = await db.Subscriptions
-            .AnyAsync(s => s.Id == id && s.CustomerId == customerId.Value && !s.IsDeleted);
+            .AnyAsync(s => s.Id == WebhookSubscriptionId.From(id) && s.CustomerId == CustomerId.From(customerId.Value) && !s.IsDeleted);
 
         if (!owns) return Results.NotFound();
 
         var deliveries = await db.Deliveries
-            .Where(d => d.SubscriptionId == id)
+            .Where(d => d.SubscriptionId == WebhookSubscriptionId.From(id))
             .OrderByDescending(d => d.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(d => new DeliveryDto(
-                d.Id, d.EventType, d.EventId, d.Status.ToString(),
+                d.Id.Value, d.EventType, d.EventId, d.Status.ToString(),
                 d.AttemptCount, d.LastHttpStatus, d.LastError,
                 d.CreatedAt, d.UpdatedAt))
             .ToListAsync();

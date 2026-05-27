@@ -1,5 +1,6 @@
 using MediatR;
 using OrderSphere.BuildingBlocks.Primitives;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.ValueObjects;
 
@@ -17,7 +18,7 @@ namespace OrderSphere.Ordering.Api.Features.Checkout;
 /// </para>
 /// </summary>
 public sealed record CheckoutCartCommand(
-    Guid CustomerId,
+    CustomerId CustomerId,
     string CustomerEmail,
     string CustomerName,
     Address ShippingAddress,

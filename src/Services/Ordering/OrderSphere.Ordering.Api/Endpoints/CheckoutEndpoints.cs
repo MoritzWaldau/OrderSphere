@@ -1,5 +1,6 @@
 using MediatR;
 using OrderSphere.BuildingBlocks.Security;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Api.Features.Checkout;
 using OrderSphere.Ordering.Api.Models;
 
@@ -25,7 +26,7 @@ public static class CheckoutEndpoints
                     : Guid.CreateVersion7();
 
                 var command = new CheckoutCartCommand(
-                    customerId,
+                    CustomerId.From(customerId),
                     currentUser.Email ?? string.Empty,
                     currentUser.Name ?? string.Empty,
                     request.ShippingAddress,

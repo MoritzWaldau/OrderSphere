@@ -1,4 +1,5 @@
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Webhooks.Domain.Enums;
 
 namespace OrderSphere.Webhooks.Domain.Entities;
@@ -7,10 +8,10 @@ namespace OrderSphere.Webhooks.Domain.Entities;
 /// A registered endpoint that receives webhook deliveries for selected event types.
 /// Each subscription belongs to a specific customer (identified by Keycloak sub claim).
 /// </summary>
-public class WebhookSubscription : AuditableEntity
+public class WebhookSubscription : AuditableEntity<WebhookSubscriptionId>, IAggregateRoot
 {
     /// <summary>Customer who owns this subscription (Keycloak sub).</summary>
-    public Guid CustomerId { get; private set; }
+    public CustomerId CustomerId { get; private set; }
 
     /// <summary>Target URL that receives POST deliveries.</summary>
     public string Url { get; private set; } = "";
@@ -24,15 +25,18 @@ public class WebhookSubscription : AuditableEntity
     /// <summary>Whether this subscription is currently active.</summary>
     public bool IsActive { get; private set; } = true;
 
-    private WebhookSubscription() { }
+    private WebhookSubscription()
+    {
+        CustomerId = CustomerId.Empty;
+    }
 
     public WebhookSubscription(
-        Guid customerId,
+        CustomerId customerId,
         string url,
         string secret,
         IEnumerable<WebhookEventType> events)
     {
-        Id = Guid.NewGuid();
+        Id = WebhookSubscriptionId.New();
         CustomerId = customerId;
         Url = url;
         Secret = secret;

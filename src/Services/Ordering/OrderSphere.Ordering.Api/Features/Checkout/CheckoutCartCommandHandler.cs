@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Api.Abstractions;
 using OrderSphere.Ordering.Domain.Errors;
 using OrderSphere.Ordering.Domain.Events;
@@ -32,12 +33,13 @@ public sealed class CheckoutCartCommandHandler(
         }
 
         // Tracks items whose stock was decremented so they can be restored on failure.
-        var decremented = new List<(Guid ProductId, int Quantity)>();
+        // ProductId kept typed; ICatalogClient calls convert to .Value at the boundary.
+        var decremented = new List<(ProductId ProductId, int Quantity)>();
 
         try
         {
-            // 1. Fetch cart.
-            var cartResult = await basketClient.GetCartAsync(request.CustomerId, cancellationToken);
+            // 1. Fetch cart. ICatalogClient still uses Guid — convert at service boundary.
+            var cartResult = await basketClient.GetCartAsync(request.CustomerId.Value, cancellationToken);
             if (cartResult.IsFailure)
             {
                 logger.LogError("Cart not found for customer {CustomerId} via Basket service", request.CustomerId);
@@ -84,7 +86,7 @@ public sealed class CheckoutCartCommandHandler(
                     // finally block restores decremented items
                 }
 
-                decremented.Add((item.ProductId, item.Quantity));
+                decremented.Add((ProductId.From(item.ProductId), item.Quantity));
             }
 
             // 4. Publish to Service Bus — if this throws, finally compensates.
@@ -92,7 +94,7 @@ public sealed class CheckoutCartCommandHandler(
             var checkoutCartEvent = new CheckoutCartEvent(
                 correlationId,
                 new CheckoutCartDto(
-                    request.CustomerId,
+                    request.CustomerId.Value,
                     request.CustomerEmail,
                     request.CustomerName,
                     request.ShippingAddress,
@@ -101,15 +103,11 @@ public sealed class CheckoutCartCommandHandler(
 
             await serviceBusPublisher.PublishCheckoutCartEventAsync(checkoutCartEvent);
 
-            // Publish succeeded — order is in flight.
-            // Cache the result before clearing the compensation list so any retry
-            // within the TTL window returns the same CorrelationId without re-processing.
             idempotencyCache.Set(cacheKey, correlationId, IdempotencyTtl);
             decremented.Clear();
 
             // 5. Clear cart. Best-effort: the order is already committed to the bus.
-            //    A stale cart is operationally recoverable; failing the checkout here is not.
-            var clearResult = await basketClient.ClearCartItemsAsync(request.CustomerId, cancellationToken);
+            var clearResult = await basketClient.ClearCartItemsAsync(request.CustomerId.Value, cancellationToken);
             if (clearResult.IsFailure)
             {
                 logger.LogWarning(
@@ -127,7 +125,6 @@ public sealed class CheckoutCartCommandHandler(
         {
             logger.LogError(ex, "Checkout failed for customer {CustomerId}", request.CustomerId);
             return Result<Guid>.Failure(CheckoutCartErrors.UnknownError);
-            // finally block compensates any decremented stock
         }
         finally
         {
@@ -139,7 +136,9 @@ public sealed class CheckoutCartCommandHandler(
 
                 foreach (var (productId, quantity) in decremented)
                 {
-                    var restoreResult = await catalogClient.RestoreStockAsync(productId, quantity, CancellationToken.None);
+                    var restoreResult = await catalogClient.RestoreStockAsync(
+                        productId.Value, quantity, CancellationToken.None);
+
                     if (restoreResult.IsFailure)
                     {
                         logger.LogError(

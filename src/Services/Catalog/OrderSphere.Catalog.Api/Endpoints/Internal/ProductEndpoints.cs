@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Catalog.Application.Abstractions;
 
 namespace OrderSphere.Catalog.Api.Endpoints.Internal;
@@ -25,8 +26,8 @@ public static class ProductEndpoints
     {
         var product = await context.Products
             .AsNoTracking()
-            .Where(p => p.Id == productId && !p.IsDeleted)
-            .Select(p => new InternalProductDto(p.Id, p.Name, p.Price, p.Stock, p.IsActive))
+            .Where(p => p.Id == ProductId.From(productId) && !p.IsDeleted)
+            .Select(p => new InternalProductDto(p.Id.Value, p.Name, p.Price.Amount, p.Stock, p.IsActive))
             .FirstOrDefaultAsync(ct);
 
         return product is null ? Results.NotFound() : Results.Ok(product);
@@ -40,13 +41,14 @@ public static class ProductEndpoints
         if (ids.Length == 0)
             return Results.Ok(new Dictionary<Guid, string>());
 
+        var typedIds = ids.Select(ProductId.From).ToList();
         var names = await context.Products
             .AsNoTracking()
-            .Where(p => ids.Contains(p.Id) && !p.IsDeleted)
+            .Where(p => typedIds.Contains(p.Id) && !p.IsDeleted)
             .Select(p => new { p.Id, p.Name })
             .ToListAsync(ct);
 
-        return Results.Ok(names.ToDictionary(p => p.Id, p => p.Name));
+        return Results.Ok(names.ToDictionary(p => p.Id.Value, p => p.Name));
     }
 
     private static async Task<IResult> DecrementStock(
@@ -57,7 +59,7 @@ public static class ProductEndpoints
     {
         var product = await context.Products
             .AsTracking()
-            .FirstOrDefaultAsync(p => p.Id == productId && !p.IsDeleted, ct);
+            .FirstOrDefaultAsync(p => p.Id == ProductId.From(productId) && !p.IsDeleted, ct);
 
         if (product is null) return Results.NotFound();
 
@@ -76,7 +78,7 @@ public static class ProductEndpoints
     {
         var product = await context.Products
             .AsTracking()
-            .FirstOrDefaultAsync(p => p.Id == productId && !p.IsDeleted, ct);
+            .FirstOrDefaultAsync(p => p.Id == ProductId.From(productId) && !p.IsDeleted, ct);
 
         if (product is null) return Results.NotFound();
 

@@ -1,12 +1,11 @@
-using System.ComponentModel.DataAnnotations;
+using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 
 namespace OrderSphere.UserProfile.Domain.Entities;
 
-public sealed class SavedAddress
+public sealed class SavedAddress : AuditableEntity<SavedAddressId>
 {
-    [Key]
-    public Guid Id { get; private set; }
-    public Guid CustomerProfileId { get; private set; }
+    public CustomerProfileId CustomerProfileId { get; private set; }
     public string Label { get; private set; }
     public string FirstName { get; private set; }
     public string LastName { get; private set; }
@@ -16,8 +15,10 @@ public sealed class SavedAddress
     public string Country { get; private set; }
     public bool IsDefault { get; private set; }
 
+    // Parameterless constructor for EF Core materialisation.
     private SavedAddress()
     {
+        CustomerProfileId = CustomerProfileId.Empty;
         Label = string.Empty;
         FirstName = string.Empty;
         LastName = string.Empty;
@@ -28,12 +29,12 @@ public sealed class SavedAddress
     }
 
     internal SavedAddress(
-        Guid customerProfileId,
+        CustomerProfileId customerProfileId,
         string label, string firstName, string lastName,
         string street, string city, string postalCode, string country,
         bool isDefault)
     {
-        Id = Guid.NewGuid();
+        Id = SavedAddressId.New();
         CustomerProfileId = customerProfileId;
         Label = label;
         FirstName = firstName;
@@ -58,6 +59,6 @@ public sealed class SavedAddress
         Country = country;
     }
 
-    internal void SetAsDefault() => IsDefault = true;
-    internal void ClearDefault() => IsDefault = false;
+    internal void SetAsDefault()    => IsDefault = true;
+    internal void ClearDefault()    => IsDefault = false;
 }

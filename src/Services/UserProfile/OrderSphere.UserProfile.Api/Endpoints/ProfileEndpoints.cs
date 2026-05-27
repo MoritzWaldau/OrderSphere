@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.UserProfile.Api.Models;
 using OrderSphere.UserProfile.Domain.Entities;
 using OrderSphere.UserProfile.Infrastructure.Persistence;
@@ -105,7 +106,7 @@ public static class ProfileEndpoints
             request.SetAsDefault);
 
         await context.SaveChangesAsync(ct);
-        return Results.Created($"/api/v1/profile/addresses/{address.Id}", ToAddressDto(address));
+        return Results.Created($"/api/v1/profile/addresses/{address.Id.Value}", ToAddressDto(address));
     }
 
     private static async Task<IResult> UpdateAddress(
@@ -118,7 +119,7 @@ public static class ProfileEndpoints
         var profile = await GetProfile(user, context, ct);
         if (profile is null) return Results.NotFound();
 
-        var address = profile.Addresses.FirstOrDefault(a => a.Id == addressId);
+        var address = profile.Addresses.FirstOrDefault(a => a.Id == SavedAddressId.From(addressId));
         if (address is null) return Results.NotFound();
 
         address.Update(
@@ -138,7 +139,7 @@ public static class ProfileEndpoints
         var profile = await GetProfile(user, context, ct);
         if (profile is null) return Results.NotFound();
 
-        var removed = profile.RemoveAddress(addressId);
+        var removed = profile.RemoveAddress(SavedAddressId.From(addressId));
         if (!removed) return Results.NotFound();
 
         await context.SaveChangesAsync(ct);
@@ -154,7 +155,7 @@ public static class ProfileEndpoints
         var profile = await GetProfile(user, context, ct);
         if (profile is null) return Results.NotFound();
 
-        var success = profile.SetDefaultAddress(addressId);
+        var success = profile.SetDefaultAddress(SavedAddressId.From(addressId));
         if (!success) return Results.NotFound();
 
         await context.SaveChangesAsync(ct);
@@ -178,7 +179,7 @@ public static class ProfileEndpoints
         => user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue("sub");
 
     private static ProfileDto ToDto(CustomerProfile p) => new(
-        p.Id,
+        p.Id.Value,
         p.KeycloakSubject,
         p.DisplayName,
         p.Email,
@@ -186,6 +187,6 @@ public static class ProfileEndpoints
         p.Addresses.Select(ToAddressDto).ToList());
 
     private static AddressDto ToAddressDto(SavedAddress a) => new(
-        a.Id, a.Label, a.FirstName, a.LastName,
+        a.Id.Value, a.Label, a.FirstName, a.LastName,
         a.Street, a.City, a.PostalCode, a.Country, a.IsDefault);
 }

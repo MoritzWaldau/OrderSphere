@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Api.Models;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Errors;
@@ -49,7 +50,7 @@ public sealed class GetOrderStatsQueryHandler(
                 .OrderByDescending(o => o.CreatedAt)
                 .Take(5)
                 .Select(o => new RecentOrderDto(
-                    o.Id,
+                    o.Id.Value,
                     $"{o.ShippingAddress.FirstName} {o.ShippingAddress.LastName}",
                     o.Items.Sum(i => i.Price * i.Quantity),
                     o.Status.ToString(),

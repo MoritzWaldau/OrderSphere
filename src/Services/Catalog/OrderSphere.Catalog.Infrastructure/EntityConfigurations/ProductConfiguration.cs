@@ -10,7 +10,18 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Name).IsRequired().HasMaxLength(200);
         builder.Property(p => p.Slug).IsRequired().HasMaxLength(200);
         builder.Property(p => p.Description).HasMaxLength(1000);
-        builder.Property(p => p.Price).HasPrecision(18, 2).IsRequired();
+        builder.ComplexProperty(p => p.Price, b =>
+        {
+            b.Property(m => m.Amount)
+             .HasColumnName("price")
+             .HasPrecision(18, 2)
+             .IsRequired();
+            b.Property(m => m.Currency)
+             .HasColumnName("price_currency")
+             .HasMaxLength(3)
+             .IsRequired()
+             .HasDefaultValue("EUR");
+        });
         builder.Property(p => p.Stock).IsRequired();
         builder.Property(p => p.SKU).IsRequired().HasMaxLength(100);
         builder.HasIndex(p => p.SKU).IsUnique().HasDatabaseName("IX_products_sku");

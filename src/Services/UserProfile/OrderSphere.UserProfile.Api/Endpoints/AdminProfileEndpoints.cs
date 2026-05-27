@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.UserProfile.Api.Models;
 using OrderSphere.UserProfile.Infrastructure.Persistence;
 
@@ -25,7 +26,7 @@ public static class AdminProfileEndpoints
             .ToListAsync(ct);
 
         var dtos = profiles.Select(p => new AdminUserSummaryDto(
-            p.Id,
+            p.Id.Value,
             p.KeycloakSubject,
             p.DisplayName,
             p.Email,
@@ -43,18 +44,18 @@ public static class AdminProfileEndpoints
         var profile = await context.CustomerProfiles
             .AsNoTracking()
             .Include(p => p.Addresses)
-            .FirstOrDefaultAsync(p => p.Id == id, ct);
+            .FirstOrDefaultAsync(p => p.Id == CustomerProfileId.From(id), ct);
 
         if (profile is null) return Results.NotFound();
 
         var dto = new ProfileDto(
-            profile.Id,
+            profile.Id.Value,
             profile.KeycloakSubject,
             profile.DisplayName,
             profile.Email,
             profile.DarkModeEnabled,
             profile.Addresses.Select(a => new AddressDto(
-                a.Id, a.Label, a.FirstName, a.LastName,
+                a.Id.Value, a.Label, a.FirstName, a.LastName,
                 a.Street, a.City, a.PostalCode, a.Country, a.IsDefault)).ToList());
 
         return Results.Ok(dto);

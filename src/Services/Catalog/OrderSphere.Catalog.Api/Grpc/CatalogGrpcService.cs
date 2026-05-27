@@ -1,5 +1,6 @@
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Catalog.Application.Abstractions;
 using OrderSphere.Catalog.V1;
 
@@ -15,7 +16,7 @@ public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogServi
         var p = await context.Products
             .Include(x => x.Category)
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, ctx.CancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == ProductId.From(id) && !x.IsDeleted, ctx.CancellationToken);
 
         return p is null ? new GetProductResponse { Found = false } : MapProduct(p);
     }
@@ -37,7 +38,7 @@ public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogServi
 
         var stock = await context.Products
             .AsNoTracking()
-            .Where(p => p.Id == id && !p.IsDeleted)
+            .Where(p => p.Id == ProductId.From(id) && !p.IsDeleted)
             .Select(p => (int?)p.Stock)
             .FirstOrDefaultAsync(ctx.CancellationToken);
 
@@ -53,7 +54,7 @@ public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogServi
 
         var product = await context.Products
             .AsTracking()
-            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ctx.CancellationToken);
+            .FirstOrDefaultAsync(p => p.Id == ProductId.From(id) && !p.IsDeleted, ctx.CancellationToken);
 
         if (product is null) return Fail("PRODUCT_NOT_FOUND", "Product not found.");
         var removeResult = product.RemoveFromStock(request.Quantity);
@@ -69,7 +70,7 @@ public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogServi
 
         var product = await context.Products
             .AsTracking()
-            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ctx.CancellationToken);
+            .FirstOrDefaultAsync(p => p.Id == ProductId.From(id) && !p.IsDeleted, ctx.CancellationToken);
 
         if (product is null) return Fail("PRODUCT_NOT_FOUND", "Product not found.");
 
@@ -80,15 +81,15 @@ public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogServi
 
     public override async Task<GetProductNamesResponse> GetProductNames(GetProductNamesRequest request, ServerCallContext ctx)
     {
-        var ids = request.ProductIds
-            .Select(s => Guid.TryParse(s, out var g) ? (Guid?)g : null)
-            .Where(g => g.HasValue)
-            .Select(g => g!.Value)
+        var typedIds = request.ProductIds
+            .Select(s => Guid.TryParse(s, out var g) ? (ProductId?)ProductId.From(g) : null)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
             .ToList();
 
         var names = await context.Products
             .AsNoTracking()
-            .Where(p => ids.Contains(p.Id) && !p.IsDeleted)
+            .Where(p => typedIds.Contains(p.Id) && !p.IsDeleted)
             .Select(p => new { p.Id, p.Name })
             .ToListAsync(ctx.CancellationToken);
 
@@ -106,7 +107,7 @@ public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogServi
         Name = p.Name,
         Slug = p.Slug,
         Description = p.Description,
-        Price = (double)p.Price,
+        Price = (double)p.Price.Amount,
         Stock = p.Stock,
         CategoryId = p.CategoryId.ToString(),
         CategoryName = p.Category?.Name ?? string.Empty,

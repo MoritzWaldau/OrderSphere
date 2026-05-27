@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Errors;
 using OrderSphere.Ordering.Infrastructure.Persistence;
@@ -20,7 +21,7 @@ public sealed class UpdateOrderStatusCommandHandler(
         try
         {
             var order = await context.Orders
-                .FirstOrDefaultAsync(o => o.Id == request.OrderId && !o.IsDeleted, cancellationToken);
+                .FirstOrDefaultAsync(o => o.Id == OrderId.From(request.OrderId) && !o.IsDeleted, cancellationToken);
 
             if (order is null)
                 return Result<bool>.Failure(OrderErrors.OrderNotFoundError);

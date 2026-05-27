@@ -12,8 +12,8 @@ public sealed class GetAllProductsAdminQueryHandler(ICatalogDbContext context)
                 .Where(p => !p.IsDeleted)
                 .OrderBy(p => p.Name)
                 .Select(p => new AdminProductDto(
-                    p.Id, p.Name, p.Slug, p.Description, p.Price, p.Stock,
-                    p.CategoryId, p.Category!.Name, p.SKU, p.IsActive, p.CreatedAt, p.UpdatedAt))
+                    p.Id.Value, p.Name, p.Slug, p.Description, p.Price, p.Stock,
+                    p.CategoryId.Value, p.Category!.Name, p.SKU, p.IsActive, p.CreatedAt, p.UpdatedAt))
                 .ToListAsync(ct);
 
             return Result<IEnumerable<AdminProductDto>>.Success(products);

@@ -5,6 +5,7 @@ using OrderSphere.Basket.Api.Models;
 using OrderSphere.Basket.Domain.Errors;
 using OrderSphere.Basket.Infrastructure.Persistence;
 using OrderSphere.BuildingBlocks.Primitives;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 
 namespace OrderSphere.Basket.Api.Features.Cart;
 
@@ -28,17 +29,17 @@ public sealed class GetCartQueryHandler(
                 return Result<CartDto>.Failure(CartErrors.CartNotFoundError);
             }
 
-            var productIds = cart.Items.Select(ci => ci.ProductId).ToList();
+            var productIds = cart.Items.Select(ci => ci.ProductId.Value).ToList();
             var namesResult = await catalogClient.GetProductNamesByIdsAsync(productIds, cancellationToken);
             var names = namesResult.IsSuccess ? namesResult.Value : new Dictionary<Guid, string>();
 
             var items = cart.Items.Select(ci =>
             {
-                names.TryGetValue(ci.ProductId, out var name);
-                return new CartItemDto(ci.ProductId, name ?? "Unknown Product", 0m, ci.Quantity);
+                names.TryGetValue(ci.ProductId.Value, out var name);
+                return new CartItemDto(ci.ProductId.Value, name ?? "Unknown Product", 0m, ci.Quantity);
             }).ToList();
 
-            return Result<CartDto>.Success(new CartDto(request.CustomerId, items));
+            return Result<CartDto>.Success(new CartDto(request.CustomerId.Value, items));
         }
         catch (Exception ex)
         {

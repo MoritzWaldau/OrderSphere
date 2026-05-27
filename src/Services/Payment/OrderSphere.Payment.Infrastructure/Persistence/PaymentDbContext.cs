@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Payment.Domain.Entities;
 
 namespace OrderSphere.Payment.Infrastructure.Persistence;
@@ -8,6 +9,12 @@ public sealed class PaymentDbContext(DbContextOptions<PaymentDbContext> options)
 {
     public DbSet<PaymentRecord> Payments => Set<PaymentRecord>();
     internal DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.Properties<PaymentId>().HaveConversion<PaymentIdConverter>();
+        configurationBuilder.Properties<OrderId>().HaveConversion<OrderIdConverter>();
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

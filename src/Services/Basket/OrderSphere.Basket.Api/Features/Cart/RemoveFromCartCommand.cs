@@ -1,6 +1,7 @@
 using MediatR;
 using OrderSphere.BuildingBlocks.Primitives;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 
 namespace OrderSphere.Basket.Api.Features.Cart;
 
-public sealed record RemoveFromCartCommand(Guid CustomerId, Guid ProductId) : IRequest<Result>;
+public sealed record RemoveFromCartCommand(CustomerId CustomerId, ProductId ProductId) : IRequest<Result>;

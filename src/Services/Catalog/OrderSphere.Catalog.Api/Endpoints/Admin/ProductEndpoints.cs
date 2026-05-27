@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Catalog.Application.DTOs.Admin;
 using OrderSphere.Catalog.Application.Features.Products.Admin.CreateProduct;
 using OrderSphere.Catalog.Application.Features.Products.Admin.DeleteProduct;
@@ -42,7 +43,7 @@ public static class ProductEndpoints
 
     private static async Task<IResult> GetByIdAdmin(Guid id, IMediator mediator, CancellationToken ct)
     {
-        var result = await mediator.Send(new GetProductByIdAdminQuery(id), ct);
+        var result = await mediator.Send(new GetProductByIdAdminQuery(ProductId.From(id)), ct);
         return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound();
     }
 
@@ -52,7 +53,7 @@ public static class ProductEndpoints
         var result = await mediator.Send(
             new CreateProductCommand(
                 input.Name, input.Description, input.Price,
-                input.Stock, input.CategoryId, input.SKU, input.ImageUrl), ct);
+                input.Stock, CategoryId.From(input.CategoryId), input.SKU, input.ImageUrl), ct);
 
         return result.IsSuccess
             ? Results.Created($"/api/v1/admin/products/{result.Value}", new { id = result.Value })
@@ -64,15 +65,15 @@ public static class ProductEndpoints
     {
         var result = await mediator.Send(
             new UpdateProductCommand(
-                id, input.Name, input.Description, input.Price,
-                input.Stock, input.CategoryId, input.SKU, input.IsActive, input.ImageUrl), ct);
+                ProductId.From(id), input.Name, input.Description, input.Price,
+                input.Stock, CategoryId.From(input.CategoryId), input.SKU, input.IsActive, input.ImageUrl), ct);
 
         return result.IsSuccess ? Results.NoContent() : Results.Problem(result.Error.Description);
     }
 
     private static async Task<IResult> Delete(Guid id, IMediator mediator, CancellationToken ct)
     {
-        var result = await mediator.Send(new DeleteProductCommand(id), ct);
+        var result = await mediator.Send(new DeleteProductCommand(ProductId.From(id)), ct);
         return result.IsSuccess ? Results.NoContent() : Results.Problem(result.Error.Description);
     }
 }

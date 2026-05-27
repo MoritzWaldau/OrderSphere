@@ -1,3 +1,5 @@
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
+
 namespace OrderSphere.Catalog.Application.Features.Products.Admin.CreateProduct;
 
 public sealed record CreateProductCommand(
@@ -5,6 +7,6 @@ public sealed record CreateProductCommand(
     string Description,
     decimal Price,
     int Stock,
-    Guid CategoryId,
+    CategoryId CategoryId,
     string SKU,
     string? ImageUrl) : IRequest<Result<Guid>>;

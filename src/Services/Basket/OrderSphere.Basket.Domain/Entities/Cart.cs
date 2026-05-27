@@ -1,11 +1,24 @@
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 
 namespace OrderSphere.Basket.Domain.Entities;
 
-public sealed class Cart(Guid customerId) : AuditableEntity
+public sealed class Cart : AuditableEntity<CartId>, IAggregateRoot
 {
-    public Guid CustomerId { get; private set; } = customerId;
+    public CustomerId CustomerId { get; private set; }
     public List<CartItem> Items { get; private set; } = [];
+
+    // Parameterless constructor for EF Core materialisation.
+    private Cart()
+    {
+        CustomerId = CustomerId.Empty;
+    }
+
+    public Cart(CustomerId customerId)
+    {
+        Id = CartId.New();
+        CustomerId = customerId;
+    }
 
     public void AddItem(CartItem item)
     {

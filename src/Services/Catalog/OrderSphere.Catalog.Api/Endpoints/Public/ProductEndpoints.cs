@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Catalog.Application.Abstractions;
 using OrderSphere.Catalog.Application.Features.Products.Public.GetProductBySlug;
 using OrderSphere.Catalog.Application.Features.Products.Public.GetProducts;
@@ -73,7 +74,7 @@ public static class ProductEndpoints
     {
         var product = await context.Products
             .AsTracking()
-            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
+            .FirstOrDefaultAsync(p => p.Id == ProductId.From(id) && !p.IsDeleted, ct);
 
         if (product is null) return Results.NotFound();
 
@@ -89,7 +90,7 @@ public static class ProductEndpoints
     {
         var product = await context.Products
             .AsTracking()
-            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
+            .FirstOrDefaultAsync(p => p.Id == ProductId.From(id) && !p.IsDeleted, ct);
 
         if (product is null) return Results.NotFound();
 

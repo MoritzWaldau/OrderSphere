@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Ordering.Domain.Entities;
 using OrderSphere.Ordering.Infrastructure.Outbox;
 
@@ -62,6 +64,15 @@ public sealed class OrderingDbContext(DbContextOptions<OrderingDbContext> option
             await _transaction.DisposeAsync();
             _transaction = null;
         }
+    }
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.Properties<OrderId>().HaveConversion<OrderIdConverter>();
+        configurationBuilder.Properties<OrderItemId>().HaveConversion<OrderItemIdConverter>();
+        configurationBuilder.Properties<CustomerId>().HaveConversion<CustomerIdConverter>();
+        configurationBuilder.Properties<ProductId>().HaveConversion<ProductIdConverter>();
+        configurationBuilder.Properties<Quantity>().HaveConversion<QuantityConverter>();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

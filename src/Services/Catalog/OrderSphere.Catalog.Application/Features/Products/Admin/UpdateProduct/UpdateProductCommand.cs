@@ -1,12 +1,14 @@
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
+
 namespace OrderSphere.Catalog.Application.Features.Products.Admin.UpdateProduct;
 
 public sealed record UpdateProductCommand(
-    Guid ProductId,
+    ProductId ProductId,
     string Name,
     string Description,
     decimal Price,
     int Stock,
-    Guid CategoryId,
+    CategoryId CategoryId,
     string SKU,
     bool IsActive,
     string? ImageUrl) : IRequest<Result<bool>>;

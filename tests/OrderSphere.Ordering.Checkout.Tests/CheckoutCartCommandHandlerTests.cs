@@ -13,6 +13,7 @@ using OrderSphere.Ordering.Domain.Events;
 using OrderSphere.Ordering.Domain.ValueObjects;
 using OrderSphere.Ordering.Infrastructure.Outbox;
 using Xunit;
+using TypedCustomerId = OrderSphere.BuildingBlocks.StronglyTypedIds.CustomerId;
 
 namespace OrderSphere.Ordering.Checkout.Tests;
 
@@ -40,7 +41,7 @@ public sealed class CheckoutCartCommandHandlerTests
     private static readonly Guid IdempotencyKey = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
 
     private static readonly CheckoutCartCommand Command = new(
-        CustomerId:      CustomerId,
+        CustomerId:      TypedCustomerId.From(CustomerId),
         CustomerEmail:   "max@example.com",
         CustomerName:    "Max Muster",
         ShippingAddress: ShippingAddress,

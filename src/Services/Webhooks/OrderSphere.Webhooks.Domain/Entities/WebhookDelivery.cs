@@ -1,4 +1,5 @@
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Webhooks.Domain.Enums;
 
 namespace OrderSphere.Webhooks.Domain.Entities;
@@ -8,12 +9,14 @@ namespace OrderSphere.Webhooks.Domain.Entities;
 /// Each integration event produces one delivery per matching subscription.
 /// Failed deliveries are retried with exponential backoff up to <see cref="MaxAttempts"/>.
 /// </summary>
-public class WebhookDelivery : AuditableEntity
+public class WebhookDelivery : AuditableEntity<WebhookDeliveryId>
 {
     public const int MaxAttempts = 5;
 
-    public Guid SubscriptionId { get; private set; }
+    public WebhookSubscriptionId SubscriptionId { get; private set; }
     public string EventType { get; private set; } = "";
+
+    /// <summary>Correlation ID of the integration event that triggered this delivery.</summary>
     public Guid EventId { get; private set; }
 
     /// <summary>Serialized JSON payload sent in the POST body.</summary>
@@ -27,15 +30,18 @@ public class WebhookDelivery : AuditableEntity
     /// <summary>When the next retry is eligible. Null if succeeded or max attempts exhausted.</summary>
     public DateTime? NextRetryAt { get; private set; }
 
-    private WebhookDelivery() { }
+    private WebhookDelivery()
+    {
+        SubscriptionId = WebhookSubscriptionId.Empty;
+    }
 
     public WebhookDelivery(
-        Guid subscriptionId,
+        WebhookSubscriptionId subscriptionId,
         string eventType,
         Guid eventId,
         string payload)
     {
-        Id = Guid.NewGuid();
+        Id = WebhookDeliveryId.New();
         SubscriptionId = subscriptionId;
         EventType = eventType;
         EventId = eventId;

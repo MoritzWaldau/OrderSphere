@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Payment.Domain.Entities;
 using OrderSphere.Payment.Infrastructure.Persistence;
 using OrderSphere.Payment.Infrastructure.Providers;
@@ -101,7 +102,7 @@ public sealed class PaymentProcessor(
         CancellationToken ct)
     {
         var existing = await context.Payments
-            .FirstOrDefaultAsync(p => p.OrderId == evt.OrderId, ct);
+            .FirstOrDefaultAsync(p => p.OrderId == OrderId.From(evt.OrderId), ct);
 
         if (existing is not null)
         {
@@ -111,7 +112,7 @@ public sealed class PaymentProcessor(
         }
 
         var record = new PaymentRecord(
-            evt.OrderId,
+            OrderId.From(evt.OrderId),
             evt.Amount,
             evt.Currency,
             evt.PaymentMethod,

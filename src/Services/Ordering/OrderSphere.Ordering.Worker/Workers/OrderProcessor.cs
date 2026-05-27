@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Contracts.Events;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Ordering.Domain.Entities;
 using OrderSphere.Ordering.Domain.Events;
 using OrderSphere.Ordering.Infrastructure.Persistence;
@@ -97,7 +99,7 @@ public sealed class OrderProcessor(
         // Idempotency check
         var existingOrderId = await context.Orders
             .Where(o => o.CorrelationId == evt.CorrelationId)
-            .Select(o => (Guid?)o.Id)
+            .Select(o => (OrderId?)o.Id)
             .FirstOrDefaultAsync(ct);
 
         if (existingOrderId is not null)
@@ -112,11 +114,11 @@ public sealed class OrderProcessor(
             await context.BeginTransactionAsync(ct);
 
             var orderItems = evt.Items
-                .Select(i => new OrderItem(i.ProductId, i.ProductName, i.Quantity, i.Price))
+                .Select(i => new OrderItem(ProductId.From(i.ProductId), i.ProductName, Quantity.Of(i.Quantity), Money.Of(i.Price)))
                 .ToList();
 
             var order = new Order(
-                checkout.CustomerId,
+                CustomerId.From(checkout.CustomerId),
                 checkout.ShippingAddress,
                 checkout.PaymentMethod,
                 orderItems,
@@ -127,7 +129,7 @@ public sealed class OrderProcessor(
             var paymentEvent = new PaymentRequestedIntegrationEvent
             {
                 CorrelationId = evt.CorrelationId,
-                OrderId = order.Id,
+                OrderId = order.Id.Value,
                 Amount = evt.Items.Sum(i => i.Price * i.Quantity),
                 Currency = "EUR",
                 PaymentMethod = evt.CheckoutCart.PaymentMethod.ToString(),

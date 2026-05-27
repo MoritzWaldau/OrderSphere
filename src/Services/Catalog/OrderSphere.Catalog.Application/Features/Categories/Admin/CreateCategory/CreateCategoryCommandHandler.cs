@@ -12,6 +12,6 @@ public sealed class CreateCategoryCommandHandler(ICatalogDbContext context)
         context.Categories.Add(category);
         await context.SaveChangesAsync(ct);
 
-        return Result<Guid>.Success(category.Id);
+        return Result<Guid>.Success(category.Id.Value);
     }
 }

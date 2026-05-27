@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Catalog.Domain.Entities;
 using OrderSphere.Catalog.Domain.Errors;
 
@@ -26,7 +27,7 @@ public sealed class CreateProductCommandHandler(ICatalogDbContext context)
         var product = new Product(
             request.Name,
             request.Description,
-            request.Price,
+            Money.Of(request.Price),
             request.Stock,
             request.CategoryId,
             request.SKU,
@@ -35,6 +36,7 @@ public sealed class CreateProductCommandHandler(ICatalogDbContext context)
         context.Products.Add(product);
         await context.SaveChangesAsync(ct);
 
-        return Result<Guid>.Success(product.Id);
+        // Return the raw Guid so the endpoint can use it in the Location header.
+        return Result<Guid>.Success(product.Id.Value);
     }
 }

@@ -1,14 +1,29 @@
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.BuildingBlocks.ValueObjects;
 
 namespace OrderSphere.Basket.Domain.Entities;
 
-public sealed class CartItem(Guid productId, int quantity) : AuditableEntity
+public sealed class CartItem : AuditableEntity<CartItemId>
 {
-    public Guid ProductId { get; private set; } = productId;
-    public int Quantity { get; private set; } = quantity;
-    public Guid CartId { get; set; }
+    public ProductId ProductId { get; private set; }
+    public Quantity Quantity { get; private set; }
+    public CartId   CartId   { get; set; }
+
+    // Parameterless constructor for EF Core materialisation.
+    private CartItem()
+    {
+        ProductId = ProductId.Empty;
+        CartId    = CartId.Empty;
+    }
+
+    public CartItem(ProductId productId, Quantity quantity)
+    {
+        Id        = CartItemId.New();
+        ProductId = productId;
+        Quantity  = quantity;
+    }
 
     public void Increase(int amount) => Quantity += amount;
-
     public void Decrease(int amount = 1) => Quantity -= amount;
 }

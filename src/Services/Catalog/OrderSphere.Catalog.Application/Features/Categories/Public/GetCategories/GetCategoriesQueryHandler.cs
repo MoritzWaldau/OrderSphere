@@ -1,7 +1,7 @@
 namespace OrderSphere.Catalog.Application.Features.Categories.Public.GetCategories;
 
 public sealed class GetCategoriesQueryHandler(ICatalogDbContext context)
-    : IRequestHandler<GetCategoriesQuery, Result<PagedResult<CategoryDto>>>
+    : IQueryHandler<GetCategoriesQuery, Result<PagedResult<CategoryDto>>>
 {
     public async Task<Result<PagedResult<CategoryDto>>> Handle(GetCategoriesQuery request, CancellationToken ct)
     {

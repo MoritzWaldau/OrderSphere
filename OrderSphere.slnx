@@ -69,5 +69,6 @@
     <Project Path="tests/OrderSphere.Ordering.Authorization.Tests/OrderSphere.Ordering.Authorization.Tests.csproj" />
     <Project Path="tests/OrderSphere.Ordering.Checkout.Tests/OrderSphere.Ordering.Checkout.Tests.csproj" />
     <Project Path="tests/OrderSphere.RealmContract.Tests/OrderSphere.RealmContract.Tests.csproj" />
+    <Project Path="tests/OrderSphere.UserProfile.Tests/OrderSphere.UserProfile.Tests.csproj" />
   </Folder>
 </Solution>

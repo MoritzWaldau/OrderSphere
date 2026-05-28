@@ -1,3 +1,3 @@
 namespace OrderSphere.Catalog.Application.Features.Products.Admin.GetAllProductsAdmin;
 
-public sealed record GetAllProductsAdminQuery : IRequest<Result<IEnumerable<AdminProductDto>>>;
+public sealed record GetAllProductsAdminQuery : IQuery<Result<IEnumerable<AdminProductDto>>>;

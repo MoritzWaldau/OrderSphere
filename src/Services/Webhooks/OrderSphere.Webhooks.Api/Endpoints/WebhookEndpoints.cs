@@ -136,7 +136,6 @@ public static class WebhookEndpoints
         if (sub is null) return Results.NotFound();
 
         sub.IsDeleted = true;
-        sub.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
 
         return Results.NoContent();

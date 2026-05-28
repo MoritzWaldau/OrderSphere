@@ -1,5 +1,6 @@
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.Catalog.Domain.DomainEvents;
 
 namespace OrderSphere.Catalog.Domain.Entities;
 
@@ -23,13 +24,18 @@ public sealed class Category : AuditableEntity<CategoryId>, IAggregateRoot
         Description = description;
     }
 
-    public void Activate()   { IsActive = true;  UpdatedAt = DateTime.UtcNow; }
-    public void Deactivate() { IsActive = false; UpdatedAt = DateTime.UtcNow; }
+    public void Activate()   { IsActive = true; }
+    public void Deactivate() { IsActive = false; }
 
     public void UpdateDetails(string name, string description)
     {
         Name = name;
         Description = description;
-        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Delete()
+    {
+        IsDeleted = true;
+        RaiseDomainEvent(new CategoryDeletedDomainEvent(Id));
     }
 }

@@ -52,7 +52,6 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
     {
         TrackingNumber = trackingNumber;
         Status = OrderStatus.Paid;
-        UpdatedAt = DateTime.UtcNow;
         RaiseDomainEvent(new OrderConfirmedDomainEvent(Id, trackingNumber));
     }
 
@@ -63,7 +62,6 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
                 $"Order can only be marked as shipped when status is Paid (current: {Status}).");
 
         Status = OrderStatus.Shipped;
-        UpdatedAt = DateTime.UtcNow;
         RaiseDomainEvent(new OrderShippedDomainEvent(Id));
     }
 
@@ -74,7 +72,6 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
                 $"Order can only be marked as delivered when status is Shipped (current: {Status}).");
 
         Status = OrderStatus.Delivered;
-        UpdatedAt = DateTime.UtcNow;
         RaiseDomainEvent(new OrderDeliveredDomainEvent(Id));
     }
 
@@ -85,7 +82,6 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
                 $"Order in status {Status} cannot be cancelled.");
 
         Status = OrderStatus.Cancelled;
-        UpdatedAt = DateTime.UtcNow;
         RaiseDomainEvent(new OrderCancelledDomainEvent(Id));
     }
 }

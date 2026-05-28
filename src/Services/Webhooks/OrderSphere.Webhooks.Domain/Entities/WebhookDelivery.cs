@@ -57,7 +57,6 @@ public class WebhookDelivery : AuditableEntity<WebhookDeliveryId>
         LastError = null;
         Status = DeliveryStatus.Succeeded;
         NextRetryAt = null;
-        UpdatedAt = DateTime.UtcNow;
     }
 
     public void RecordFailure(int? httpStatus, string error)
@@ -65,7 +64,6 @@ public class WebhookDelivery : AuditableEntity<WebhookDeliveryId>
         AttemptCount++;
         LastHttpStatus = httpStatus;
         LastError = error.Length > 1024 ? error[..1024] : error;
-        UpdatedAt = DateTime.UtcNow;
 
         if (AttemptCount >= MaxAttempts)
         {

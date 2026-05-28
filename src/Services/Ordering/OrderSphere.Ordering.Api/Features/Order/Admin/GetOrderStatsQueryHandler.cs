@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Abstraction;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
@@ -10,34 +11,31 @@ using OrderSphere.Ordering.Infrastructure.Persistence;
 
 namespace OrderSphere.Ordering.Api.Features.Order.Admin;
 
-public sealed record GetOrderStatsQuery : IRequest<Result<OrderStatsDto>>;
+public sealed record GetOrderStatsQuery : IQuery<Result<OrderStatsDto>>;
 
 public sealed class GetOrderStatsQueryHandler(
     IOrderingDbContext context,
     ILogger<GetOrderStatsQueryHandler> logger
-) : IRequestHandler<GetOrderStatsQuery, Result<OrderStatsDto>>
+) : IQueryHandler<GetOrderStatsQuery, Result<OrderStatsDto>>
 {
     public async Task<Result<OrderStatsDto>> Handle(GetOrderStatsQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var todayStart = DateTime.UtcNow.Date;
+            var todayUtc = DateTime.UtcNow.Date;
 
-            var allOrders = await context.Orders
+            // ── Scalar counts ────────────────────────────────────────────────────────
+            var totalOrders = await context.Orders
                 .AsNoTracking()
-                .Where(o => !o.IsDeleted)
-                .Include(o => o.Items)
-                .ToListAsync(cancellationToken);
+                .CountAsync(o => !o.IsDeleted, cancellationToken);
 
-            var nonCancelled = allOrders.Where(o => o.Status != OrderStatus.Cancelled).ToList();
+            var ordersToday = await context.Orders
+                .AsNoTracking()
+                .CountAsync(o => !o.IsDeleted && o.CreatedAt >= todayUtc, cancellationToken);
 
-            var totalOrders = allOrders.Count;
-            var ordersToday = allOrders.Count(o => o.CreatedAt >= todayStart);
-            var totalRevenue = nonCancelled.Sum(o => o.Items.Sum(i => i.Price * i.Quantity));
-            var revenueToday = nonCancelled
-                .Where(o => o.CreatedAt >= todayStart)
-                .Sum(o => o.Items.Sum(i => i.Price * i.Quantity));
-            var pendingShipments = allOrders.Count(o => o.Status == OrderStatus.Paid);
+            var pendingShipments = await context.Orders
+                .AsNoTracking()
+                .CountAsync(o => !o.IsDeleted && o.Status == OrderStatus.Paid, cancellationToken);
 
             var totalCustomers = await context.Orders
                 .AsNoTracking()
@@ -46,13 +44,47 @@ public sealed class GetOrderStatsQueryHandler(
                 .Distinct()
                 .CountAsync(cancellationToken);
 
-            var recent = allOrders
+            // ── Revenue aggregation ──────────────────────────────────────────────────
+            // Price is a ComplexProperty → i.Price.Amount maps to the "price" column.
+            // Quantity uses ValueConverter<Quantity,int> → (int)i.Quantity maps to the
+            // "quantity" column; the Convert node is a no-op over the already-int column.
+            var totalRevenue = await context.Orders
+                .AsNoTracking()
+                .Where(o => !o.IsDeleted && o.Status != OrderStatus.Cancelled)
+                .SelectMany(o => o.Items)
+                .SumAsync(i => i.Price.Amount * (int)i.Quantity, cancellationToken);
+
+            var revenueToday = await context.Orders
+                .AsNoTracking()
+                .Where(o => !o.IsDeleted && o.Status != OrderStatus.Cancelled && o.CreatedAt >= todayUtc)
+                .SelectMany(o => o.Items)
+                .SumAsync(i => i.Price.Amount * (int)i.Quantity, cancellationToken);
+
+            // ── Recent orders (top 5) ────────────────────────────────────────────────
+            // o.Items.Sum(...) inside Select translates to a correlated subquery.
+            // o.Status.ToString() and o.Id.Value are not SQL-translatable; they are
+            // resolved after materialisation.
+            var recentRaw = await context.Orders
+                .AsNoTracking()
+                .Where(o => !o.IsDeleted)
                 .OrderByDescending(o => o.CreatedAt)
                 .Take(5)
+                .Select(o => new
+                {
+                    o.Id,
+                    FirstName = o.ShippingAddress.FirstName,
+                    LastName  = o.ShippingAddress.LastName,
+                    Total     = o.Items.Sum(i => i.Price.Amount * (int)i.Quantity),
+                    o.Status,
+                    o.CreatedAt,
+                })
+                .ToListAsync(cancellationToken);
+
+            var recent = recentRaw
                 .Select(o => new RecentOrderDto(
                     o.Id.Value,
-                    $"{o.ShippingAddress.FirstName} {o.ShippingAddress.LastName}",
-                    o.Items.Sum(i => i.Price * i.Quantity),
+                    $"{o.FirstName} {o.LastName}",
+                    o.Total,
                     o.Status.ToString(),
                     o.CreatedAt))
                 .ToList();

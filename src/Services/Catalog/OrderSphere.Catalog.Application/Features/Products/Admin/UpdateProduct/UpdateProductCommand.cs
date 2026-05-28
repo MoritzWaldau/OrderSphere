@@ -11,4 +11,4 @@ public sealed record UpdateProductCommand(
     CategoryId CategoryId,
     string SKU,
     bool IsActive,
-    string? ImageUrl) : IRequest<Result>;
+    string? ImageUrl) : ICommand<Result>;

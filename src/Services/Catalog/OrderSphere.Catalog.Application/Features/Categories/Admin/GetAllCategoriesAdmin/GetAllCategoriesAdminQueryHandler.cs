@@ -1,7 +1,7 @@
 namespace OrderSphere.Catalog.Application.Features.Categories.Admin.GetAllCategoriesAdmin;
 
 public sealed class GetAllCategoriesAdminQueryHandler(ICatalogDbContext context)
-    : IRequestHandler<GetAllCategoriesAdminQuery, Result<IEnumerable<AdminCategoryDto>>>
+    : IQueryHandler<GetAllCategoriesAdminQuery, Result<IEnumerable<AdminCategoryDto>>>
 {
     public async Task<Result<IEnumerable<AdminCategoryDto>>> Handle(GetAllCategoriesAdminQuery request, CancellationToken ct)
     {

@@ -49,19 +49,16 @@ public class WebhookSubscription : AuditableEntity<WebhookSubscriptionId>, IAggr
         Url = url;
         Secret = secret;
         Events = string.Join(",", events.Select(e => e.ToString()));
-        UpdatedAt = DateTime.UtcNow;
     }
 
     public void Activate()
     {
         IsActive = true;
-        UpdatedAt = DateTime.UtcNow;
     }
 
     public void Deactivate()
     {
         IsActive = false;
-        UpdatedAt = DateTime.UtcNow;
     }
 
     public IReadOnlyList<WebhookEventType> GetEventTypes()

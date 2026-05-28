@@ -4,7 +4,7 @@ using OrderSphere.Catalog.Application.DTOs.Public;
 namespace OrderSphere.Catalog.Application.Features.Products.Public.GetProducts;
 
 public sealed class GetProductsQueryHandler(ICatalogDbContext context)
-    : IRequestHandler<GetProductsQuery, Result<PagedResult<ProductDto>>>
+    : IQueryHandler<GetProductsQuery, Result<PagedResult<ProductDto>>>
 {
     public async Task<Result<PagedResult<ProductDto>>> Handle(GetProductsQuery request, CancellationToken ct)
     {

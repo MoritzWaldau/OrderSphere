@@ -4,7 +4,7 @@ using OrderSphere.Catalog.Domain.Errors;
 namespace OrderSphere.Catalog.Application.Features.Products.Admin.DeleteProduct;
 
 public sealed class DeleteProductCommandHandler(ICatalogDbContext context)
-    : IRequestHandler<DeleteProductCommand, Result>
+    : ICommandHandler<DeleteProductCommand, Result>
 {
     public async Task<Result> Handle(DeleteProductCommand request, CancellationToken ct)
     {
@@ -15,8 +15,7 @@ public sealed class DeleteProductCommandHandler(ICatalogDbContext context)
         if (product is null)
             return Result.Failure(ProductErrors.NotFound);
 
-        product.IsDeleted = true;
-        product.UpdatedAt = DateTime.UtcNow;
+        product.Delete();
 
         await context.SaveChangesAsync(ct);
 

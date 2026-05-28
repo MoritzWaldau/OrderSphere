@@ -1,4 +1,4 @@
-using MediatR;
+using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Domain.Enums;
@@ -24,4 +24,4 @@ public sealed record CheckoutCartCommand(
     Address ShippingAddress,
     PaymentMethod PaymentMethod,
     Guid IdempotencyKey
-) : IRequest<Result<Guid>>;
+) : ICommand<Result<Guid>>;

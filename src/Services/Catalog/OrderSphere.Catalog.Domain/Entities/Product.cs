@@ -62,20 +62,23 @@ public sealed class Product : AuditableEntity<ProductId>, IAggregateRoot
         CategoryId = categoryId;
         SKU = sku;
         ImageUrl = imageUrl;
-        UpdatedAt = DateTime.UtcNow;
     }
 
     public void Activate()
     {
         IsActive = true;
-        UpdatedAt = DateTime.UtcNow;
         RaiseDomainEvent(new ProductActivatedDomainEvent(Id));
     }
 
     public void Deactivate()
     {
         IsActive = false;
-        UpdatedAt = DateTime.UtcNow;
         RaiseDomainEvent(new ProductDeactivatedDomainEvent(Id));
+    }
+
+    public void Delete()
+    {
+        IsDeleted = true;
+        RaiseDomainEvent(new ProductDeletedDomainEvent(Id));
     }
 }

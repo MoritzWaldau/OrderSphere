@@ -4,7 +4,7 @@ using OrderSphere.Catalog.Domain.Errors;
 namespace OrderSphere.Catalog.Application.Features.Categories.Admin.DeleteCategory;
 
 public sealed class DeleteCategoryCommandHandler(ICatalogDbContext context)
-    : IRequestHandler<DeleteCategoryCommand, Result>
+    : ICommandHandler<DeleteCategoryCommand, Result>
 {
     public async Task<Result> Handle(DeleteCategoryCommand request, CancellationToken ct)
     {
@@ -22,8 +22,7 @@ public sealed class DeleteCategoryCommandHandler(ICatalogDbContext context)
         if (hasProducts)
             return Result.Failure(CategoryErrors.HasProducts);
 
-        category.IsDeleted = true;
-        category.UpdatedAt = DateTime.UtcNow;
+        category.Delete();
 
         await context.SaveChangesAsync(ct);
 

@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.Basket.Api.CatalogClient;
 using OrderSphere.Basket.Domain.Errors;
 using OrderSphere.Basket.Infrastructure.Persistence;
@@ -14,7 +15,7 @@ public sealed class AddToCartCommandHandler(
     BasketDbContext context,
     ICatalogClient catalogClient,
     ILogger<AddToCartCommandHandler> logger
-) : IRequestHandler<AddToCartCommand, Result>
+) : ICommandHandler<AddToCartCommand, Result>
 {
     public async Task<Result> Handle(AddToCartCommand request, CancellationToken cancellationToken)
     {

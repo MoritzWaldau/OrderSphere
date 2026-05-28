@@ -31,20 +31,17 @@ public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggre
         KeycloakSubject = keycloakSubject;
         DisplayName = displayName;
         Email = email;
-        CreatedAt = DateTime.UtcNow;
     }
 
     public void UpdateDetails(string displayName, string email)
     {
         DisplayName = displayName;
         Email = email;
-        UpdatedAt = DateTime.UtcNow;
     }
 
     public void SetDarkMode(bool enabled)
     {
         DarkModeEnabled = enabled;
-        UpdatedAt = DateTime.UtcNow;
     }
 
     public SavedAddress AddAddress(
@@ -64,7 +61,6 @@ public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggre
             isDefault: setAsDefault || _addresses.Count == 0);
 
         _addresses.Add(address);
-        UpdatedAt = DateTime.UtcNow;
         return address;
     }
 
@@ -79,7 +75,6 @@ public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggre
         if (address.IsDefault && _addresses.Count > 0)
             _addresses[0].SetAsDefault();
 
-        UpdatedAt = DateTime.UtcNow;
         return true;
     }
 
@@ -92,7 +87,6 @@ public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggre
             a.ClearDefault();
 
         target.SetAsDefault();
-        UpdatedAt = DateTime.UtcNow;
         return true;
     }
 }

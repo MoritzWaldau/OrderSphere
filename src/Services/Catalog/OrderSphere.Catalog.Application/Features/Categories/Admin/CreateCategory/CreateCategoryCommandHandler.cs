@@ -3,7 +3,7 @@ using OrderSphere.Catalog.Domain.Entities;
 namespace OrderSphere.Catalog.Application.Features.Categories.Admin.CreateCategory;
 
 public sealed class CreateCategoryCommandHandler(ICatalogDbContext context)
-    : IRequestHandler<CreateCategoryCommand, Result<Guid>>
+    : ICommandHandler<CreateCategoryCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(CreateCategoryCommand request, CancellationToken ct)
     {

@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Abstraction;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
@@ -9,13 +10,13 @@ using OrderSphere.Ordering.Infrastructure.Persistence;
 
 namespace OrderSphere.Ordering.Api.Features.Order.Admin;
 
-public sealed record CancelOrderCommand(Guid OrderId) : IRequest<Result>;
+public sealed record CancelOrderCommand(Guid OrderId) : ICommand<Result>;
 
 public sealed class CancelOrderCommandHandler(
     IOrderingDbContext context,
     ICatalogClient catalogClient,
     ILogger<CancelOrderCommandHandler> logger
-) : IRequestHandler<CancelOrderCommand, Result>
+) : ICommandHandler<CancelOrderCommand, Result>
 {
     public async Task<Result> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
     {

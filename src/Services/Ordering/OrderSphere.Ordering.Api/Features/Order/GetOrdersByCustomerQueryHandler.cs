@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Abstraction;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
@@ -10,12 +11,12 @@ using OrderSphere.Ordering.Infrastructure.Persistence;
 namespace OrderSphere.Ordering.Api.Features.Order;
 
 public sealed record GetOrdersByCustomerQuery(Guid CustomerId)
-    : IRequest<Result<IReadOnlyList<OrderDto>>>;
+    : IQuery<Result<IReadOnlyList<OrderDto>>>;
 
 public sealed class GetOrdersByCustomerQueryHandler(
     IOrderingDbContext context,
     ILogger<GetOrdersByCustomerQueryHandler> logger
-) : IRequestHandler<GetOrdersByCustomerQuery, Result<IReadOnlyList<OrderDto>>>
+) : IQueryHandler<GetOrdersByCustomerQuery, Result<IReadOnlyList<OrderDto>>>
 {
     public async Task<Result<IReadOnlyList<OrderDto>>> Handle(
         GetOrdersByCustomerQuery request, CancellationToken cancellationToken)

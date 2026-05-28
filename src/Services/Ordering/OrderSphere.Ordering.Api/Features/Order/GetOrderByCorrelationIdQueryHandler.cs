@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Abstraction;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Ordering.Api.Models;
@@ -16,12 +17,12 @@ namespace OrderSphere.Ordering.Api.Features.Order;
 /// persisted (normal during Service Bus processing delay).
 /// </summary>
 public sealed record GetOrderByCorrelationIdQuery(Guid CorrelationId)
-    : IRequest<Result<OrderDto?>>;
+    : IQuery<Result<OrderDto?>>;
 
 public sealed class GetOrderByCorrelationIdQueryHandler(
     IOrderingDbContext context,
     ILogger<GetOrderByCorrelationIdQueryHandler> logger
-) : IRequestHandler<GetOrderByCorrelationIdQuery, Result<OrderDto?>>
+) : IQueryHandler<GetOrderByCorrelationIdQuery, Result<OrderDto?>>
 {
     public async Task<Result<OrderDto?>> Handle(GetOrderByCorrelationIdQuery request, CancellationToken cancellationToken)
     {

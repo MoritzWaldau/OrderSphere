@@ -44,7 +44,6 @@ public class PaymentRecord : AuditableEntity<PaymentId>, IAggregateRoot
     {
         TransactionId = transactionId;
         Status = PaymentStatus.Authorized;
-        UpdatedAt = DateTime.UtcNow;
         RaiseDomainEvent(new PaymentAuthorizedDomainEvent(Id, OrderId, transactionId));
     }
 
@@ -52,7 +51,6 @@ public class PaymentRecord : AuditableEntity<PaymentId>, IAggregateRoot
     {
         TransactionId = transactionId;
         Status = PaymentStatus.Captured;
-        UpdatedAt = DateTime.UtcNow;
         RaiseDomainEvent(new PaymentCapturedDomainEvent(Id, OrderId, transactionId));
     }
 
@@ -60,13 +58,11 @@ public class PaymentRecord : AuditableEntity<PaymentId>, IAggregateRoot
     {
         FailureReason = reason;
         Status = PaymentStatus.Failed;
-        UpdatedAt = DateTime.UtcNow;
         RaiseDomainEvent(new PaymentFailedDomainEvent(Id, OrderId, reason));
     }
 
     public void MarkRefunded()
     {
         Status = PaymentStatus.Refunded;
-        UpdatedAt = DateTime.UtcNow;
     }
 }

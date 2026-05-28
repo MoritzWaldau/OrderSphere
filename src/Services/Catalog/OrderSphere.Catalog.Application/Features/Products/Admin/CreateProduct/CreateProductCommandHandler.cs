@@ -6,7 +6,7 @@ using OrderSphere.Catalog.Domain.Errors;
 namespace OrderSphere.Catalog.Application.Features.Products.Admin.CreateProduct;
 
 public sealed class CreateProductCommandHandler(ICatalogDbContext context)
-    : IRequestHandler<CreateProductCommand, Result<Guid>>
+    : ICommandHandler<CreateProductCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(CreateProductCommand request, CancellationToken ct)
     {

@@ -1,4 +1,5 @@
 ﻿global using OrderSphere.BuildingBlocks.Primitives;
+global using OrderSphere.BuildingBlocks.Abstraction;
 global using MediatR;
 global using Microsoft.EntityFrameworkCore;
 global using OrderSphere.Catalog.Application.Abstractions;

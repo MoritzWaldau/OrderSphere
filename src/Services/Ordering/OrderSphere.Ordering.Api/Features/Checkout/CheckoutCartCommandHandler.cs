@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
+using OrderSphere.BuildingBlocks.Abstraction;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
@@ -16,7 +17,7 @@ public sealed class CheckoutCartCommandHandler(
     IOrderingServiceBusPublisher serviceBusPublisher,
     IMemoryCache idempotencyCache,
     ILogger<CheckoutCartCommandHandler> logger
-) : IRequestHandler<CheckoutCartCommand, Result<Guid>>
+) : ICommandHandler<CheckoutCartCommand, Result<Guid>>
 {
     private static readonly TimeSpan IdempotencyTtl = TimeSpan.FromMinutes(30);
 

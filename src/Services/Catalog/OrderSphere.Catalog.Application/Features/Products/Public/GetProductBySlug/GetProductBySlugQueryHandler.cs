@@ -7,7 +7,7 @@ using OrderSphere.Catalog.Domain.Errors;
 namespace OrderSphere.Catalog.Application.Features.Products.Public.GetProductBySlug;
 
 public sealed class GetProductBySlugQueryHandler(ICatalogDbContext context, HybridCache cache)
-    : IRequestHandler<GetProductBySlugQuery, Result<ProductDto>>
+    : IQueryHandler<GetProductBySlugQuery, Result<ProductDto>>
 {
     public async Task<Result<ProductDto>> Handle(GetProductBySlugQuery request, CancellationToken ct)
     {

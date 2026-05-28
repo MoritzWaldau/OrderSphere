@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
+using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Ordering.Api.Models;
 using OrderSphere.Ordering.Domain.Errors;
@@ -8,7 +9,7 @@ namespace OrderSphere.Ordering.Api.Features.Coupon;
 
 public sealed class ValidateCouponQueryHandler(
     ILogger<ValidateCouponQueryHandler> logger)
-    : IRequestHandler<ValidateCouponQuery, Result<CouponValidationDto>>
+    : IQueryHandler<ValidateCouponQuery, Result<CouponValidationDto>>
 {
     private static readonly IReadOnlyDictionary<string, CouponDefinition> KnownCoupons =
         new Dictionary<string, CouponDefinition>(StringComparer.OrdinalIgnoreCase)

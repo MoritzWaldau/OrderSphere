@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Abstraction;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
@@ -14,12 +15,12 @@ namespace OrderSphere.Ordering.Api.Features.Order;
 /// Caller identity and ownership are enforced at the endpoint via
 /// <c>IAuthorizationService.AuthorizeAsync(user, orderDto, "OrderOwnerOrStaff")</c>.
 /// </summary>
-public sealed record GetOrderByIdQuery(Guid OrderId) : IRequest<Result<OrderDto>>;
+public sealed record GetOrderByIdQuery(Guid OrderId) : IQuery<Result<OrderDto>>;
 
 public sealed class GetOrderByIdQueryHandler(
     IOrderingDbContext context,
     ILogger<GetOrderByIdQueryHandler> logger
-) : IRequestHandler<GetOrderByIdQuery, Result<OrderDto>>
+) : IQueryHandler<GetOrderByIdQuery, Result<OrderDto>>
 {
     public async Task<Result<OrderDto>> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
     {

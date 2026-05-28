@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Abstraction;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Ordering.Api.Models;
@@ -10,12 +11,12 @@ using OrderSphere.Ordering.Infrastructure.Persistence;
 namespace OrderSphere.Ordering.Api.Features.Order.Admin;
 
 public sealed record GetAllOrdersQuery(OrderStatus? StatusFilter)
-    : IRequest<Result<IReadOnlyList<OrderDto>>>;
+    : IQuery<Result<IReadOnlyList<OrderDto>>>;
 
 public sealed class GetAllOrdersQueryHandler(
     IOrderingDbContext context,
     ILogger<GetAllOrdersQueryHandler> logger
-) : IRequestHandler<GetAllOrdersQuery, Result<IReadOnlyList<OrderDto>>>
+) : IQueryHandler<GetAllOrdersQuery, Result<IReadOnlyList<OrderDto>>>
 {
     public async Task<Result<IReadOnlyList<OrderDto>>> Handle(GetAllOrdersQuery request, CancellationToken cancellationToken)
     {

@@ -1,7 +1,7 @@
 namespace OrderSphere.Catalog.Application.Features.Products.Admin.GetAllProductsAdmin;
 
 public sealed class GetAllProductsAdminQueryHandler(ICatalogDbContext context)
-    : IRequestHandler<GetAllProductsAdminQuery, Result<IEnumerable<AdminProductDto>>>
+    : IQueryHandler<GetAllProductsAdminQuery, Result<IEnumerable<AdminProductDto>>>
 {
     public async Task<Result<IEnumerable<AdminProductDto>>> Handle(GetAllProductsAdminQuery request, CancellationToken ct)
     {

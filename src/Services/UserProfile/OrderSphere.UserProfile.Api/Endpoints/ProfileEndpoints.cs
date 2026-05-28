@@ -1,9 +1,14 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.UserProfile.Api.Features.Profile.AddAddress;
+using OrderSphere.UserProfile.Api.Features.Profile.DeleteAddress;
+using OrderSphere.UserProfile.Api.Features.Profile.GetAddresses;
+using OrderSphere.UserProfile.Api.Features.Profile.GetOrCreateProfile;
+using OrderSphere.UserProfile.Api.Features.Profile.SetDefaultAddress;
+using OrderSphere.UserProfile.Api.Features.Profile.UpdateAddress;
+using OrderSphere.UserProfile.Api.Features.Profile.UpdatePreferences;
+using OrderSphere.UserProfile.Api.Features.Profile.UpdateProfile;
 using OrderSphere.UserProfile.Api.Models;
-using OrderSphere.UserProfile.Domain.Entities;
-using OrderSphere.UserProfile.Infrastructure.Persistence;
 using System.Security.Claims;
 
 namespace OrderSphere.UserProfile.Api.Endpoints;
@@ -26,167 +31,125 @@ public static class ProfileEndpoints
 
     private static async Task<IResult> GetOrCreateProfile(
         ClaimsPrincipal user,
-        UserProfileDbContext context,
+        ISender sender,
         CancellationToken ct)
     {
         var sub = GetSubject(user);
         if (sub is null) return Results.Unauthorized();
 
-        var profile = await context.CustomerProfiles
-            .Include(p => p.Addresses)
-            .FirstOrDefaultAsync(p => p.KeycloakSubject == sub, ct);
+        var displayName = user.FindFirstValue("name") ?? user.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
+        var email = user.FindFirstValue(ClaimTypes.Email) ?? user.FindFirstValue("email") ?? string.Empty;
 
-        if (profile is null)
-        {
-            var displayName = user.FindFirstValue("name") ?? user.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
-            var email = user.FindFirstValue(ClaimTypes.Email) ?? user.FindFirstValue("email") ?? string.Empty;
-
-            profile = new CustomerProfile(sub, displayName, email);
-            context.CustomerProfiles.Add(profile);
-            await context.SaveChangesAsync(ct);
-        }
-
-        return Results.Ok(ToDto(profile));
+        var result = await sender.Send(new GetOrCreateProfileQuery(sub, displayName, email), ct);
+        return result.IsSuccess ? Results.Ok(result.Value) : Results.Problem();
     }
 
     private static async Task<IResult> UpdateProfile(
         [FromBody] UpdateProfileRequest request,
         ClaimsPrincipal user,
-        UserProfileDbContext context,
+        ISender sender,
         CancellationToken ct)
     {
-        var profile = await GetProfile(user, context, ct);
-        if (profile is null) return Results.NotFound();
+        var sub = GetSubject(user);
+        if (sub is null) return Results.Unauthorized();
 
-        profile.UpdateDetails(request.DisplayName, request.Email);
-        await context.SaveChangesAsync(ct);
-        return Results.Ok(ToDto(profile));
+        var result = await sender.Send(new UpdateProfileCommand(sub, request.DisplayName, request.Email), ct);
+        return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound();
     }
 
     private static async Task<IResult> UpdatePreferences(
         [FromBody] UpdatePreferencesRequest request,
         ClaimsPrincipal user,
-        UserProfileDbContext context,
+        ISender sender,
         CancellationToken ct)
     {
-        var profile = await GetProfile(user, context, ct);
-        if (profile is null) return Results.NotFound();
+        var sub = GetSubject(user);
+        if (sub is null) return Results.Unauthorized();
 
-        profile.SetDarkMode(request.DarkModeEnabled);
-        await context.SaveChangesAsync(ct);
-        return Results.NoContent();
+        var result = await sender.Send(new UpdatePreferencesCommand(sub, request.DarkModeEnabled), ct);
+        return result.IsSuccess ? Results.NoContent() : Results.NotFound();
     }
 
     private static async Task<IResult> GetAddresses(
         ClaimsPrincipal user,
-        UserProfileDbContext context,
+        ISender sender,
         CancellationToken ct)
     {
-        var profile = await GetProfile(user, context, ct);
-        if (profile is null) return Results.NotFound();
+        var sub = GetSubject(user);
+        if (sub is null) return Results.Unauthorized();
 
-        return Results.Ok(profile.Addresses.Select(ToAddressDto).ToList());
+        var result = await sender.Send(new GetAddressesQuery(sub), ct);
+        return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound();
     }
 
     private static async Task<IResult> AddAddress(
         [FromBody] CreateAddressRequest request,
         ClaimsPrincipal user,
-        UserProfileDbContext context,
+        ISender sender,
         CancellationToken ct)
     {
-        var profile = await GetProfile(user, context, ct);
-        if (profile is null) return Results.NotFound();
+        var sub = GetSubject(user);
+        if (sub is null) return Results.Unauthorized();
 
-        if (profile.Addresses.Count >= 10)
-            return Results.BadRequest(new { error = "Maximum number of saved addresses (10) reached." });
-
-        var address = profile.AddAddress(
-            request.Label, request.FirstName, request.LastName,
+        var result = await sender.Send(new AddAddressCommand(
+            sub, request.Label, request.FirstName, request.LastName,
             request.Street, request.City, request.PostalCode, request.Country,
-            request.SetAsDefault);
+            request.SetAsDefault), ct);
 
-        await context.SaveChangesAsync(ct);
-        return Results.Created($"/api/v1/profile/addresses/{address.Id.Value}", ToAddressDto(address));
+        if (!result.IsSuccess)
+        {
+            return result.Error.Code == "UserProfile.Address.LimitExceeded"
+                ? Results.BadRequest(new { error = result.Error.Description })
+                : Results.NotFound();
+        }
+
+        return Results.Created($"/api/v1/profile/addresses/{result.Value!.Id}", result.Value);
     }
 
     private static async Task<IResult> UpdateAddress(
         Guid addressId,
         [FromBody] UpdateAddressRequest request,
         ClaimsPrincipal user,
-        UserProfileDbContext context,
+        ISender sender,
         CancellationToken ct)
     {
-        var profile = await GetProfile(user, context, ct);
-        if (profile is null) return Results.NotFound();
+        var sub = GetSubject(user);
+        if (sub is null) return Results.Unauthorized();
 
-        var address = profile.Addresses.FirstOrDefault(a => a.Id == SavedAddressId.From(addressId));
-        if (address is null) return Results.NotFound();
-
-        address.Update(
+        var result = await sender.Send(new UpdateAddressCommand(
+            sub, addressId,
             request.Label, request.FirstName, request.LastName,
-            request.Street, request.City, request.PostalCode, request.Country);
+            request.Street, request.City, request.PostalCode, request.Country), ct);
 
-        await context.SaveChangesAsync(ct);
-        return Results.Ok(ToAddressDto(address));
+        return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound();
     }
 
     private static async Task<IResult> DeleteAddress(
         Guid addressId,
         ClaimsPrincipal user,
-        UserProfileDbContext context,
+        ISender sender,
         CancellationToken ct)
     {
-        var profile = await GetProfile(user, context, ct);
-        if (profile is null) return Results.NotFound();
+        var sub = GetSubject(user);
+        if (sub is null) return Results.Unauthorized();
 
-        var removed = profile.RemoveAddress(SavedAddressId.From(addressId));
-        if (!removed) return Results.NotFound();
-
-        await context.SaveChangesAsync(ct);
-        return Results.NoContent();
+        var result = await sender.Send(new DeleteAddressCommand(sub, addressId), ct);
+        return result.IsSuccess ? Results.NoContent() : Results.NotFound();
     }
 
     private static async Task<IResult> SetDefaultAddress(
         Guid addressId,
         ClaimsPrincipal user,
-        UserProfileDbContext context,
-        CancellationToken ct)
-    {
-        var profile = await GetProfile(user, context, ct);
-        if (profile is null) return Results.NotFound();
-
-        var success = profile.SetDefaultAddress(SavedAddressId.From(addressId));
-        if (!success) return Results.NotFound();
-
-        await context.SaveChangesAsync(ct);
-        return Results.NoContent();
-    }
-
-    private static async Task<CustomerProfile?> GetProfile(
-        ClaimsPrincipal user,
-        UserProfileDbContext context,
+        ISender sender,
         CancellationToken ct)
     {
         var sub = GetSubject(user);
-        if (sub is null) return null;
+        if (sub is null) return Results.Unauthorized();
 
-        return await context.CustomerProfiles
-            .Include(p => p.Addresses)
-            .FirstOrDefaultAsync(p => p.KeycloakSubject == sub, ct);
+        var result = await sender.Send(new SetDefaultAddressCommand(sub, addressId), ct);
+        return result.IsSuccess ? Results.NoContent() : Results.NotFound();
     }
 
     private static string? GetSubject(ClaimsPrincipal user)
         => user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue("sub");
-
-    private static ProfileDto ToDto(CustomerProfile p) => new(
-        p.Id.Value,
-        p.KeycloakSubject,
-        p.DisplayName,
-        p.Email,
-        p.DarkModeEnabled,
-        p.Addresses.Select(ToAddressDto).ToList());
-
-    private static AddressDto ToAddressDto(SavedAddress a) => new(
-        a.Id.Value, a.Label, a.FirstName, a.LastName,
-        a.Street, a.City, a.PostalCode, a.Country, a.IsDefault);
 }

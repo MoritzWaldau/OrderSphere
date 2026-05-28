@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.Basket.Api.CatalogClient;
 using OrderSphere.Basket.Api.Models;
 using OrderSphere.Basket.Domain.Errors;
@@ -13,7 +14,7 @@ public sealed class GetCartQueryHandler(
     BasketDbContext context,
     ICatalogClient catalogClient,
     ILogger<GetCartQueryHandler> logger
-) : IRequestHandler<GetCartQuery, Result<CartDto>>
+) : IQueryHandler<GetCartQuery, Result<CartDto>>
 {
     public async Task<Result<CartDto>> Handle(GetCartQuery request, CancellationToken cancellationToken)
     {

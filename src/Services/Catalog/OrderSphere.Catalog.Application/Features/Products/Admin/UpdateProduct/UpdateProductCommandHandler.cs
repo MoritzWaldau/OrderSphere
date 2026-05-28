@@ -5,7 +5,7 @@ using OrderSphere.Catalog.Domain.Errors;
 namespace OrderSphere.Catalog.Application.Features.Products.Admin.UpdateProduct;
 
 public sealed class UpdateProductCommandHandler(ICatalogDbContext context)
-    : IRequestHandler<UpdateProductCommand, Result>
+    : ICommandHandler<UpdateProductCommand, Result>
 {
     public async Task<Result> Handle(UpdateProductCommand request, CancellationToken ct)
     {

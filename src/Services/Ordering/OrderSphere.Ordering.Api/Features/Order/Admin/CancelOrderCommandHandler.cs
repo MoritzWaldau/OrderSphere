@@ -9,15 +9,15 @@ using OrderSphere.Ordering.Infrastructure.Persistence;
 
 namespace OrderSphere.Ordering.Api.Features.Order.Admin;
 
-public sealed record CancelOrderCommand(Guid OrderId) : IRequest<Result<bool>>;
+public sealed record CancelOrderCommand(Guid OrderId) : IRequest<Result>;
 
 public sealed class CancelOrderCommandHandler(
     IOrderingDbContext context,
     ICatalogClient catalogClient,
     ILogger<CancelOrderCommandHandler> logger
-) : IRequestHandler<CancelOrderCommand, Result<bool>>
+) : IRequestHandler<CancelOrderCommand, Result>
 {
-    public async Task<Result<bool>> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -30,7 +30,7 @@ public sealed class CancelOrderCommandHandler(
             if (order is null)
             {
                 await context.RollbackAsync(cancellationToken);
-                return Result<bool>.Failure(OrderErrors.OrderNotFoundError);
+                return Result.Failure(OrderErrors.OrderNotFoundError);
             }
 
             try { order.Cancel(); }
@@ -38,7 +38,7 @@ public sealed class CancelOrderCommandHandler(
             {
                 await context.RollbackAsync(cancellationToken);
                 logger.LogWarning(ex, "Cannot cancel order {OrderId} in current status", request.OrderId);
-                return Result<bool>.Failure(OrderErrors.InvalidStatusTransition);
+                return Result.Failure(OrderErrors.InvalidStatusTransition);
             }
 
             foreach (var item in order.Items)
@@ -54,13 +54,13 @@ public sealed class CancelOrderCommandHandler(
             logger.LogInformation("Order {OrderId} cancelled. Stock restore attempted for {ItemCount} item(s).",
                 order.Id, order.Items.Count);
 
-            return Result<bool>.Success(true);
+            return Result.Success();
         }
         catch (Exception ex)
         {
             await context.RollbackAsync(cancellationToken);
             logger.LogError(ex, "Failed to cancel order {OrderId}", request.OrderId);
-            return Result<bool>.Failure(OrderErrors.UnknownError);
+            return Result.Failure(OrderErrors.UnknownError);
         }
     }
 }

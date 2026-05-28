@@ -9,14 +9,14 @@ using OrderSphere.Ordering.Infrastructure.Persistence;
 
 namespace OrderSphere.Ordering.Api.Features.Order.Admin;
 
-public sealed record UpdateOrderStatusCommand(Guid OrderId, OrderStatus NewStatus) : IRequest<Result<bool>>;
+public sealed record UpdateOrderStatusCommand(Guid OrderId, OrderStatus NewStatus) : IRequest<Result>;
 
 public sealed class UpdateOrderStatusCommandHandler(
     IOrderingDbContext context,
     ILogger<UpdateOrderStatusCommandHandler> logger
-) : IRequestHandler<UpdateOrderStatusCommand, Result<bool>>
+) : IRequestHandler<UpdateOrderStatusCommand, Result>
 {
-    public async Task<Result<bool>> Handle(UpdateOrderStatusCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateOrderStatusCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -24,7 +24,7 @@ public sealed class UpdateOrderStatusCommandHandler(
                 .FirstOrDefaultAsync(o => o.Id == OrderId.From(request.OrderId) && !o.IsDeleted, cancellationToken);
 
             if (order is null)
-                return Result<bool>.Failure(OrderErrors.OrderNotFoundError);
+                return Result.Failure(OrderErrors.OrderNotFoundError);
 
             try
             {
@@ -37,16 +37,16 @@ public sealed class UpdateOrderStatusCommandHandler(
                         order.MarkDelivered();
                         break;
                     case OrderStatus.Cancelled:
-                        return Result<bool>.Failure(OrderErrors.InvalidStatusTransition);
+                        return Result.Failure(OrderErrors.InvalidStatusTransition);
                     default:
-                        return Result<bool>.Failure(OrderErrors.InvalidStatusTransition);
+                        return Result.Failure(OrderErrors.InvalidStatusTransition);
                 }
             }
             catch (InvalidOperationException ex)
             {
                 logger.LogWarning(ex, "Invalid status transition for order {OrderId} to {NewStatus}",
                     request.OrderId, request.NewStatus);
-                return Result<bool>.Failure(OrderErrors.InvalidStatusTransition);
+                return Result.Failure(OrderErrors.InvalidStatusTransition);
             }
 
             context.Orders.Update(order);
@@ -54,13 +54,13 @@ public sealed class UpdateOrderStatusCommandHandler(
             await context.CommitAsync(cancellationToken);
 
             logger.LogInformation("Order {OrderId} status updated to {NewStatus}", order.Id, request.NewStatus);
-            return Result<bool>.Success(true);
+            return Result.Success();
         }
         catch (Exception ex)
         {
             await context.RollbackAsync(cancellationToken);
             logger.LogError(ex, "Failed to update status for order {OrderId}", request.OrderId);
-            return Result<bool>.Failure(OrderErrors.UnknownError);
+            return Result.Failure(OrderErrors.UnknownError);
         }
     }
 }

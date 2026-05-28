@@ -1,13 +1,24 @@
+using System.Reflection;
 using FluentValidation;
 using MediatR;
+using OrderSphere.BuildingBlocks.Primitives;
 
 namespace OrderSphere.BuildingBlocks.Behaviors;
 
+/// <summary>
+/// MediatR pipeline behavior that runs all registered FluentValidation validators for a request.
+/// For handlers that return <see cref="Result"/> or <see cref="Result{T}"/>, validation failures
+/// are returned as <c>Result.Failure</c> rather than thrown as <see cref="ValidationException"/>.
+/// Non-Result response types fall back to throwing so that existing exception handlers still apply.
+/// </summary>
 public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken)
     {
         if (!validators.Any())
             return await next(cancellationToken);
@@ -20,9 +31,28 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidat
             .Where(f => f is not null)
             .ToList();
 
-        if (failures.Count > 0)
-            throw new ValidationException(failures);
+        if (failures.Count == 0)
+            return await next(cancellationToken);
 
-        return await next(cancellationToken);
+        var error = Error.ValidationFailure(
+            string.Join("; ", failures.Select(f => f.ErrorMessage)));
+
+        // Non-generic Result — return Result.Failure(error).
+        if (typeof(TResponse) == typeof(Result))
+            return (TResponse)(object)Result.Failure(error);
+
+        // Generic Result<T> — call Result<T>.Failure(error) via reflection.
+        if (typeof(TResponse).IsGenericType &&
+            typeof(TResponse).GetGenericTypeDefinition() == typeof(Result<>))
+        {
+            var innerType = typeof(TResponse).GetGenericArguments()[0];
+            var failureMethod = typeof(Result<>)
+                .MakeGenericType(innerType)
+                .GetMethod(nameof(Result.Failure), BindingFlags.Public | BindingFlags.Static)!;
+            return (TResponse)failureMethod.Invoke(null, [error])!;
+        }
+
+        // Fallback for any non-Result handler: preserve existing exception-based behaviour.
+        throw new ValidationException(failures);
     }
 }

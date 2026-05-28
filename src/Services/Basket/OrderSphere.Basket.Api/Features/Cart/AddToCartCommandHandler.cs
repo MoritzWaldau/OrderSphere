@@ -46,16 +46,8 @@ public sealed class AddToCartCommandHandler(
                 return Result.Failure(ProductErrors.InsufficientStockError);
             }
 
-            var existingItem = cart.Items.FirstOrDefault(x => x.ProductId == request.ProductId);
-            if (existingItem is not null)
-            {
-                existingItem.Increase(request.Quantity);
-            }
-            else
-            {
-                var cartItem = new CartItemEntity(request.ProductId, Quantity.Of(request.Quantity)) { CartId = cart.Id };
-                cart.Items.Add(cartItem);
-            }
+            // Route through the aggregate method so CartItemAddedDomainEvent is raised.
+            cart.AddItem(new CartItemEntity(request.ProductId, Quantity.Of(request.Quantity)));
 
             if (isNewCart)
                 await context.Carts.AddAsync(cart, cancellationToken);

@@ -28,7 +28,10 @@ public sealed class Cart : AuditableEntity<CartId>, IAggregateRoot
         if (existing is not null)
             existing.Increase(item.Quantity);
         else
+        {
+            item.CartId = Id;
             Items.Add(item);
+        }
 
         RaiseDomainEvent(new CartItemAddedDomainEvent(Id, item.ProductId, item.Quantity));
     }

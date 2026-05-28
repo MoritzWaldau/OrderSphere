@@ -8,7 +8,7 @@ public static class OrderErrors
         new("Order.Unknown", "An unknown error occurred.");
 
     public static readonly Error OrderNotFoundError =
-        new("Not found", "Order was not found.");
+        new("Order.NotFound", "Order was not found.");
 
     public static readonly Error InvalidStatusTransition =
         new("Order.InvalidStatusTransition", "The order's current status does not allow this transition.");

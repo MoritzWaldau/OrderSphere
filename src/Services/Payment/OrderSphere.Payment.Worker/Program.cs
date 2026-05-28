@@ -12,7 +12,7 @@ builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<PaymentDbContext>("payment-db");
 builder.AddAzureServiceBusClient("azure-service-bus");
 
-builder.Services.AddAzureServiceBusEventBus();
+builder.Services.AddAzureServiceBusEventBus(); // Required by OutboxDispatcher → PaymentProcessedEventHandler
 builder.Services.AddPaymentInfrastructure();
 builder.Services.AddHostedService<PaymentProcessor>();
 

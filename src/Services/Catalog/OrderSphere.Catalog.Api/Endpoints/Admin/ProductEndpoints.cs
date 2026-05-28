@@ -7,6 +7,7 @@ using OrderSphere.Catalog.Application.Features.Products.Admin.DeleteProduct;
 using OrderSphere.Catalog.Application.Features.Products.Admin.GetAllProductsAdmin;
 using OrderSphere.Catalog.Application.Features.Products.Admin.GetProductByIdAdmin;
 using OrderSphere.Catalog.Application.Features.Products.Admin.UpdateProduct;
+using OrderSphere.ServiceDefaults;
 
 namespace OrderSphere.Catalog.Api.Endpoints.Admin;
 
@@ -38,13 +39,13 @@ public static class ProductEndpoints
     private static async Task<IResult> GetAllAdmin(IMediator mediator, CancellationToken ct)
     {
         var result = await mediator.Send(new GetAllProductsAdminQuery(), ct);
-        return result.IsSuccess ? Results.Ok(result.Value) : Results.Problem(result.Error.Description);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetByIdAdmin(Guid id, IMediator mediator, CancellationToken ct)
     {
         var result = await mediator.Send(new GetProductByIdAdminQuery(ProductId.From(id)), ct);
-        return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound();
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> Create(
@@ -55,9 +56,8 @@ public static class ProductEndpoints
                 input.Name, input.Description, input.Price,
                 input.Stock, CategoryId.From(input.CategoryId), input.SKU, input.ImageUrl), ct);
 
-        return result.IsSuccess
-            ? Results.Created($"/api/v1/admin/products/{result.Value}", new { id = result.Value })
-            : Results.Problem(result.Error.Description);
+        return result.ToHttpResult(
+            id => Results.Created($"/api/v1/admin/products/{id}", new { id }));
     }
 
     private static async Task<IResult> Update(
@@ -68,12 +68,12 @@ public static class ProductEndpoints
                 ProductId.From(id), input.Name, input.Description, input.Price,
                 input.Stock, CategoryId.From(input.CategoryId), input.SKU, input.IsActive, input.ImageUrl), ct);
 
-        return result.IsSuccess ? Results.NoContent() : Results.Problem(result.Error.Description);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> Delete(Guid id, IMediator mediator, CancellationToken ct)
     {
         var result = await mediator.Send(new DeleteProductCommand(ProductId.From(id)), ct);
-        return result.IsSuccess ? Results.NoContent() : Results.Problem(result.Error.Description);
+        return result.ToHttpResult();
     }
 }

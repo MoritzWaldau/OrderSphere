@@ -3,11 +3,13 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.UserProfile.Api.Endpoints;
+using OrderSphere.UserProfile.Api.Exceptions;
 using OrderSphere.UserProfile.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.AddOrderSphereSwagger("OrderSphere UserProfile API");
 
 // EF Core — Aspire injects the connection string via "userprofile-db"
 builder.AddNpgsqlDbContext<UserProfileDbContext>("userprofile-db", settings =>
@@ -30,6 +32,9 @@ builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEvent
 
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
+
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
 
@@ -41,8 +46,11 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<UserProfileDbContext>();
     db.Database.Migrate();
+
+    app.UseOrderSphereSwagger(docTitle: "OrderSphere UserProfile API");
 }
 
+app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 

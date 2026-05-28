@@ -1,9 +1,17 @@
+using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
+using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.Notification.Worker.Email;
+using OrderSphere.Notification.Worker.Persistence;
 using OrderSphere.Notification.Worker.Workers;
 
 var builder = Host.CreateApplicationBuilder(args);
 
 builder.AddServiceDefaults();
+
+// PostgreSQL — inbox for idempotent message processing
+builder.AddNpgsqlDbContext<NotificationDbContext>("notification-db");
+builder.Services.AddScoped<IInboxStore, EfInboxStore<NotificationDbContext>>();
 
 // Azure Service Bus
 builder.AddAzureServiceBusClient("azure-service-bus");
@@ -23,4 +31,13 @@ builder.Services.AddSingleton(sp =>
 
 builder.Services.AddHostedService<NotificationProcessor>();
 
-builder.Build().Run();
+var host = builder.Build();
+
+// Apply EF migrations on startup (dev convenience)
+using (var scope = host.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
+    db.Database.Migrate();
+}
+
+host.Run();

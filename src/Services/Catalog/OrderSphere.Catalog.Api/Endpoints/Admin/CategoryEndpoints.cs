@@ -6,6 +6,7 @@ using OrderSphere.Catalog.Application.Features.Categories.Admin.CreateCategory;
 using OrderSphere.Catalog.Application.Features.Categories.Admin.DeleteCategory;
 using OrderSphere.Catalog.Application.Features.Categories.Admin.GetAllCategoriesAdmin;
 using OrderSphere.Catalog.Application.Features.Categories.Admin.UpdateCategory;
+using OrderSphere.ServiceDefaults;
 
 namespace OrderSphere.Catalog.Api.Endpoints.Admin;
 
@@ -33,16 +34,15 @@ public static class CategoryEndpoints
     private static async Task<IResult> GetAllAdmin(IMediator mediator, CancellationToken ct)
     {
         var result = await mediator.Send(new GetAllCategoriesAdminQuery(), ct);
-        return result.IsSuccess ? Results.Ok(result.Value) : Results.Problem(result.Error.Description);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> Create(
         [FromBody] AdminCategoryInput input, IMediator mediator, CancellationToken ct)
     {
         var result = await mediator.Send(new CreateCategoryCommand(input.Name, input.Description), ct);
-        return result.IsSuccess
-            ? Results.Created($"/api/v1/admin/categories/{result.Value}", new { id = result.Value })
-            : Results.Problem(result.Error.Description);
+        return result.ToHttpResult(
+            id => Results.Created($"/api/v1/admin/categories/{id}", new { id }));
     }
 
     private static async Task<IResult> Update(
@@ -50,12 +50,12 @@ public static class CategoryEndpoints
     {
         var result = await mediator.Send(
             new UpdateCategoryCommand(CategoryId.From(id), input.Name, input.Description, input.IsActive), ct);
-        return result.IsSuccess ? Results.NoContent() : Results.Problem(result.Error.Description);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> Delete(Guid id, IMediator mediator, CancellationToken ct)
     {
         var result = await mediator.Send(new DeleteCategoryCommand(CategoryId.From(id)), ct);
-        return result.IsSuccess ? Results.NoContent() : Results.Problem(result.Error.Description);
+        return result.ToHttpResult();
     }
 }

@@ -4,18 +4,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Contracts.Events;
-using OrderSphere.BuildingBlocks.EventBus;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Payment.Domain.Entities;
+using OrderSphere.Payment.Infrastructure.Outbox;
 using OrderSphere.Payment.Infrastructure.Persistence;
 using OrderSphere.Payment.Infrastructure.Providers;
+using System.Text.Json;
 
 namespace OrderSphere.Payment.Worker.Workers;
 
 public sealed class PaymentProcessor(
     ServiceBusClient serviceBusClient,
-    IEventBus eventBus,
     IServiceScopeFactory scopeFactory,
     ILogger<PaymentProcessor> logger) : BackgroundService
 {
@@ -79,10 +79,12 @@ public sealed class PaymentProcessor(
 
             var succeeded = await ProcessPaymentAsync(evt, context, providerFactory, args.CancellationToken);
 
+            // Write outbox message and inbox entry atomically with the payment record.
+            // The OutboxDispatcher publishes to Service Bus asynchronously — eliminates
+            // event loss if the process crashes between SaveChanges and PublishAsync.
+            EnqueuePaymentProcessedOutboxMessage(context, evt, succeeded);
             await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(PaymentRequestedIntegrationEvent));
             await context.SaveChangesAsync(args.CancellationToken);
-
-            await PublishPaymentProcessedEvent(evt, succeeded, args.CancellationToken);
 
             await args.CompleteMessageAsync(args.Message);
             logger.LogInformation("Payment message {MessageId} processed. OrderId: {OrderId}, Succeeded: {Succeeded}",
@@ -159,30 +161,24 @@ public sealed class PaymentProcessor(
         return true;
     }
 
-    private async Task PublishPaymentProcessedEvent(
+    private static void EnqueuePaymentProcessedOutboxMessage(
+        PaymentDbContext context,
         PaymentRequestedIntegrationEvent source,
-        bool succeeded,
-        CancellationToken ct)
+        bool succeeded)
     {
-        try
+        var processed = new PaymentProcessedIntegrationEvent
         {
-            var processed = new PaymentProcessedIntegrationEvent
-            {
-                CorrelationId = source.CorrelationId,
-                OrderId = source.OrderId,
-                Succeeded = succeeded,
-                FailureReason = succeeded ? null : "Payment processing failed.",
-                CustomerEmail = source.CustomerEmail,
-                PaymentMethod = source.PaymentMethod
-            };
+            CorrelationId = source.CorrelationId,
+            OrderId = source.OrderId,
+            Succeeded = succeeded,
+            FailureReason = succeeded ? null : "Payment processing failed.",
+            CustomerEmail = source.CustomerEmail,
+            PaymentMethod = source.PaymentMethod
+        };
 
-            await eventBus.PublishAsync(processed, "payment-results", ct);
-            logger.LogInformation("PaymentProcessedEvent published for order {OrderId}.", source.OrderId);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to publish PaymentProcessedEvent for order {OrderId}.", source.OrderId);
-        }
+        context.AddOutboxMessage(
+            nameof(PaymentProcessedIntegrationEvent),
+            JsonSerializer.Serialize(processed));
     }
 
     private Task OnError(ProcessErrorEventArgs args)

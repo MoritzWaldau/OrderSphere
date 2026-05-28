@@ -1,12 +1,14 @@
 using Azure.Messaging.ServiceBus;
+using Microsoft.Extensions.DependencyInjection;
 using OrderSphere.BuildingBlocks.Contracts.Events;
+using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.Notification.Worker.Email;
 
 namespace OrderSphere.Notification.Worker.Workers;
 
 public sealed class NotificationProcessor(
     ServiceBusClient serviceBusClient,
-    NotificationEmailService emailService,
+    IServiceScopeFactory scopeFactory,
     ILogger<NotificationProcessor> logger) : BackgroundService
 {
     private const string QueueName = "notification-orders";
@@ -43,6 +45,10 @@ public sealed class NotificationProcessor(
         var messageId = args.Message.MessageId;
         logger.LogInformation("Received notification message {MessageId}.", messageId);
 
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var inboxStore = scope.ServiceProvider.GetRequiredService<IInboxStore>();
+        var emailService = scope.ServiceProvider.GetRequiredService<NotificationEmailService>();
+
         try
         {
             var evt = args.Message.Body.ToObjectFromJson<OrderPlacedIntegrationEvent>();
@@ -55,14 +61,26 @@ public sealed class NotificationProcessor(
                 return;
             }
 
+            // Idempotency check — guard against ASB at-least-once redelivery.
+            if (await inboxStore.HasBeenProcessedAsync(evt.Id, args.CancellationToken))
+            {
+                logger.LogInformation(
+                    "Duplicate notification message {MessageId} (EventId {EventId}) — skipping.",
+                    messageId, evt.Id);
+                await args.CompleteMessageAsync(args.Message);
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(evt.CustomerEmail))
             {
                 logger.LogWarning("OrderPlacedEvent {OrderId} has no customer email. Completing without sending.", evt.OrderId);
+                await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(OrderPlacedIntegrationEvent), args.CancellationToken);
                 await args.CompleteMessageAsync(args.Message);
                 return;
             }
 
             await emailService.SendOrderConfirmationAsync(evt, args.CancellationToken);
+            await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(OrderPlacedIntegrationEvent), args.CancellationToken);
             await args.CompleteMessageAsync(args.Message);
 
             logger.LogInformation("Notification processed for order {OrderId}.", evt.OrderId);

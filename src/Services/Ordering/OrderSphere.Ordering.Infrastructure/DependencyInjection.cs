@@ -42,6 +42,7 @@ public static class DependencyInjection
     public static IServiceCollection AddOrderingOutboxProcessing(this IServiceCollection services)
     {
         services.AddHostedService<OutboxDispatcher>();
+        services.AddHostedService<OutboxCleanupService>();
         return services;
     }
 }

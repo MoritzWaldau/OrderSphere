@@ -38,6 +38,7 @@ var basketDb = postgresServer.AddDatabase("basket-db");
 var paymentDb = postgresServer.AddDatabase("payment-db");
 var userProfileDb = postgresServer.AddDatabase("userprofile-db");
 var webhooksDb = postgresServer.AddDatabase("webhooks-db");
+var notificationDb = postgresServer.AddDatabase("notification-db");
 
 var serviceBus = builder.AddAzureServiceBus("azure-service-bus")
     .RunAsEmulator(e => e.WithLifetime(ContainerLifetime.Persistent));
@@ -126,7 +127,9 @@ builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-w
     .WithEnvironment("Keycloak__ClientSecret", orderingWorkerSecret);
 
 builder.AddProject<Projects.OrderSphere_Notification_Worker>("ordersphere-notification-worker")
+    .WithReference(notificationDb)
     .WithReference(serviceBus)
+    .WaitFor(notificationDb)
     .WaitFor(serviceBus)
     // Pre-wired for future M2M calls (e.g. UserProfile enrichment).
     .WithEnvironment("Keycloak__Authority",   keycloakRealmAuthority)

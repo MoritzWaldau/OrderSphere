@@ -1,6 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using OrderSphere.ServiceDefaults;
 using OrderSphere.UserProfile.Api.Features.Profile.AddAddress;
+using OrderSphere.UserProfile.Api.Models;
 using OrderSphere.UserProfile.Api.Features.Profile.DeleteAddress;
 using OrderSphere.UserProfile.Api.Features.Profile.GetAddresses;
 using OrderSphere.UserProfile.Api.Features.Profile.GetOrCreateProfile;
@@ -8,7 +10,6 @@ using OrderSphere.UserProfile.Api.Features.Profile.SetDefaultAddress;
 using OrderSphere.UserProfile.Api.Features.Profile.UpdateAddress;
 using OrderSphere.UserProfile.Api.Features.Profile.UpdatePreferences;
 using OrderSphere.UserProfile.Api.Features.Profile.UpdateProfile;
-using OrderSphere.UserProfile.Api.Models;
 using System.Security.Claims;
 
 namespace OrderSphere.UserProfile.Api.Endpoints;
@@ -41,7 +42,7 @@ public static class ProfileEndpoints
         var email = user.FindFirstValue(ClaimTypes.Email) ?? user.FindFirstValue("email") ?? string.Empty;
 
         var result = await sender.Send(new GetOrCreateProfileQuery(sub, displayName, email), ct);
-        return result.IsSuccess ? Results.Ok(result.Value) : Results.Problem();
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> UpdateProfile(
@@ -54,7 +55,7 @@ public static class ProfileEndpoints
         if (sub is null) return Results.Unauthorized();
 
         var result = await sender.Send(new UpdateProfileCommand(sub, request.DisplayName, request.Email), ct);
-        return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound();
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> UpdatePreferences(
@@ -67,7 +68,7 @@ public static class ProfileEndpoints
         if (sub is null) return Results.Unauthorized();
 
         var result = await sender.Send(new UpdatePreferencesCommand(sub, request.DarkModeEnabled), ct);
-        return result.IsSuccess ? Results.NoContent() : Results.NotFound();
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetAddresses(
@@ -79,7 +80,7 @@ public static class ProfileEndpoints
         if (sub is null) return Results.Unauthorized();
 
         var result = await sender.Send(new GetAddressesQuery(sub), ct);
-        return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound();
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> AddAddress(
@@ -96,14 +97,8 @@ public static class ProfileEndpoints
             request.Street, request.City, request.PostalCode, request.Country,
             request.SetAsDefault), ct);
 
-        if (!result.IsSuccess)
-        {
-            return result.Error.Code == "UserProfile.Address.LimitExceeded"
-                ? Results.BadRequest(new { error = result.Error.Description })
-                : Results.NotFound();
-        }
-
-        return Results.Created($"/api/v1/profile/addresses/{result.Value!.Id}", result.Value);
+        return result.ToHttpResult(
+            address => Results.Created($"/api/v1/profile/addresses/{address.Id}", address));
     }
 
     private static async Task<IResult> UpdateAddress(
@@ -121,7 +116,7 @@ public static class ProfileEndpoints
             request.Label, request.FirstName, request.LastName,
             request.Street, request.City, request.PostalCode, request.Country), ct);
 
-        return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound();
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> DeleteAddress(
@@ -134,7 +129,7 @@ public static class ProfileEndpoints
         if (sub is null) return Results.Unauthorized();
 
         var result = await sender.Send(new DeleteAddressCommand(sub, addressId), ct);
-        return result.IsSuccess ? Results.NoContent() : Results.NotFound();
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> SetDefaultAddress(
@@ -147,7 +142,7 @@ public static class ProfileEndpoints
         if (sub is null) return Results.Unauthorized();
 
         var result = await sender.Send(new SetDefaultAddressCommand(sub, addressId), ct);
-        return result.IsSuccess ? Results.NoContent() : Results.NotFound();
+        return result.ToHttpResult();
     }
 
     private static string? GetSubject(ClaimsPrincipal user)

@@ -480,6 +480,25 @@
       "attributes": {
         "access.token.lifespan": "300"
       }
+    },
+    {
+      "id": "b2c3d4e5-f6a7-8901-bcde-f01234567890",
+      "clientId": "swagger-ui",
+      "name": "Swagger UI (Dev)",
+      "description": "Public PKCE client used by Swagger UI in development to obtain tokens for endpoint testing.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["http://localhost/*"],
+      "webOrigins": ["http://localhost"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "defaultClientScopes": ["openid", "profile", "email", "roles"]
     }
   ],
 

@@ -1,0 +1,81 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using OrderSphere.Payment.Infrastructure.Persistence;
+
+namespace OrderSphere.Payment.Infrastructure.Outbox;
+
+public sealed class OutboxDispatcher(
+    IServiceScopeFactory scopeFactory,
+    ILogger<OutboxDispatcher> logger) : BackgroundService
+{
+    private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(10);
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            await ProcessPendingAsync(stoppingToken);
+            await Task.Delay(PollingInterval, stoppingToken).ConfigureAwait(false);
+        }
+    }
+
+    private async Task ProcessPendingAsync(CancellationToken ct)
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
+
+        var handlers = scope.ServiceProvider
+            .GetRequiredService<IEnumerable<IOutboxEventHandler>>()
+            .ToDictionary(h => h.EventType);
+
+        var messages = await context.OutboxMessages
+            .Where(m => m.ProcessedAt == null && m.RetryCount < OutboxMessage.MaxRetries)
+            .OrderBy(m => m.OccurredAt)
+            .Take(20)
+            .ToListAsync(ct);
+
+        if (messages.Count == 0)
+            return;
+
+        foreach (var message in messages)
+        {
+            try
+            {
+                await DispatchAsync(message, handlers, ct);
+                message.ProcessedAt = DateTime.UtcNow;
+                message.Error = null;
+            }
+            catch (Exception ex)
+            {
+                message.RetryCount++;
+                message.Error = ex.Message;
+
+                if (message.RetryCount >= OutboxMessage.MaxRetries)
+                    logger.LogError(ex,
+                        "Outbox message {Id} ({Type}) permanently failed after {MaxRetries} attempts.",
+                        message.Id, message.Type, OutboxMessage.MaxRetries);
+                else
+                    logger.LogWarning(ex,
+                        "Outbox message {Id} ({Type}) failed on attempt {Attempt}/{Max}. Will retry.",
+                        message.Id, message.Type, message.RetryCount, OutboxMessage.MaxRetries);
+            }
+        }
+
+        await context.SaveChangesAsync(ct);
+    }
+
+    private async Task DispatchAsync(
+        OutboxMessage message,
+        Dictionary<string, IOutboxEventHandler> handlers,
+        CancellationToken ct)
+    {
+        if (!handlers.TryGetValue(message.Type, out var handler))
+            throw new InvalidOperationException(
+                $"No handler registered for outbox event type '{message.Type}'. " +
+                $"Registered types: {string.Join(", ", handlers.Keys)}");
+
+        await handler.HandleAsync(message.Content, ct);
+    }
+}

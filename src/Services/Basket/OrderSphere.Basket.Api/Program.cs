@@ -11,6 +11,7 @@ using OrderSphere.BuildingBlocks.Behaviors;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.AddOrderSphereSwagger("OrderSphere Basket API");
 
 // EF Core — Aspire injects connection string via "basket-db"
 builder.AddNpgsqlDbContext<BasketDbContext>("basket-db", settings =>
@@ -59,6 +60,8 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<BasketDbContext>();
     db.Database.Migrate();
+
+    app.UseOrderSphereSwagger(docTitle: "OrderSphere Basket API");
 }
 
 app.UseExceptionHandler();

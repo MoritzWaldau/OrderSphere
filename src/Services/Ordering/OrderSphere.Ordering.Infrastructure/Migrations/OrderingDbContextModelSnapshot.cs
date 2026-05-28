@@ -164,11 +164,17 @@ namespace OrderSphere.Ordering.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ProcessedAt");
-
                     b.HasIndex("RetryCount");
+
+                    b.HasIndex("ProcessedAt", "OccurredAt");
 
                     b.ToTable("outbox_messages", (string)null);
                 });

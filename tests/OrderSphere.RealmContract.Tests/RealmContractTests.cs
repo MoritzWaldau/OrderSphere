@@ -288,4 +288,25 @@ public sealed class RealmContractTests
         return flows?.FirstOrDefault(f =>
             f?["alias"]?.GetValue<string>() == alias);
     }
+
+    // ── Swagger UI client ─────────────────────────────────────────────────────
+
+    [Fact]
+    public void SwaggerUiClient_IsPublicWithPkce()
+    {
+        var client = Realm["clients"]!.AsArray()
+            .Single(c => c!["clientId"]!.GetValue<string>() == "swagger-ui");
+
+        client!["publicClient"]!.GetValue<bool>().Should().BeTrue(
+            "swagger-ui must be a public client — no client secret in Swagger UI");
+        client["standardFlowEnabled"]!.GetValue<bool>().Should().BeTrue(
+            "Authorization Code flow must be enabled for Swagger UI login");
+        client["directAccessGrantsEnabled"]!.GetValue<bool>().Should().BeFalse(
+            "Resource Owner Password grant must remain disabled");
+        client["serviceAccountsEnabled"]!.GetValue<bool>().Should().BeFalse(
+            "swagger-ui must not have service account capabilities");
+        client["attributes"]!["pkce.code.challenge.method"]!
+            .GetValue<string>().Should().Be("S256",
+            "PKCE S256 must be enforced to protect the authorization code flow");
+    }
 }

@@ -19,6 +19,7 @@ using OrderSphere.Ordering.Infrastructure.Persistence;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.AddOrderSphereSwagger("OrderSphere Ordering API");
 
 // EF Core — Aspire injects connection string via "ordering-db"
 builder.AddNpgsqlDbContext<OrderingDbContext>("ordering-db", settings =>
@@ -108,6 +109,8 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
     db.Database.Migrate();
+
+    app.UseOrderSphereSwagger(docTitle: "OrderSphere Ordering API");
 }
 
 app.UseExceptionHandler();

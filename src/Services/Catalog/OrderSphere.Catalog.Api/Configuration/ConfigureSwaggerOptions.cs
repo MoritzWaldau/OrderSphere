@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -9,7 +10,8 @@ namespace OrderSphere.Catalog.Api.Configuration;
 /// so that the {version:apiVersion} route constraint is replaced with the concrete value
 /// in the generated OpenAPI spec.
 /// </summary>
-public sealed class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
+public sealed class ConfigureSwaggerOptions(IConfiguration configuration)
+    : IConfigureOptions<SwaggerGenOptions>
 {
     public void Configure(SwaggerGenOptions options)
     {
@@ -29,6 +31,42 @@ public sealed class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOption
         options.DocumentFilter<ReplaceVersionWithExactValueInPath>();
 
         options.CustomSchemaIds(type => type.FullName!.Replace("+", "."));
+
+        // OAuth2 Authorization Code + PKCE — enables token acquisition directly
+        // from Swagger UI via the swagger-ui public Keycloak client.
+        var authority = configuration["Keycloak:Authority"]
+            ?? "http://localhost:8080/realms/ordersphere";
+
+        options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.OAuth2,
+            Flows = new OpenApiOAuthFlows
+            {
+                AuthorizationCode = new OpenApiOAuthFlow
+                {
+                    AuthorizationUrl = new Uri($"{authority}/protocol/openid-connect/auth"),
+                    TokenUrl         = new Uri($"{authority}/protocol/openid-connect/token"),
+                    Scopes = new Dictionary<string, string>
+                    {
+                        ["openid"]  = "OpenID Connect identity token",
+                        ["profile"] = "Basic user profile (name, preferred_username)",
+                        ["roles"]   = "Realm roles claim"
+                    }
+                }
+            }
+        });
+
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                        { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
+                },
+                ["openid", "profile", "roles"]
+            }
+        });
     }
 }
 

@@ -9,6 +9,7 @@ using OrderSphere.Webhooks.Infrastructure.Persistence;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.AddOrderSphereSwagger("OrderSphere Webhooks API");
 
 builder.AddNpgsqlDbContext<WebhooksDbContext>("webhooks-db", settings =>
 {
@@ -35,6 +36,8 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<WebhooksDbContext>();
     db.Database.Migrate();
+
+    app.UseOrderSphereSwagger(docTitle: "OrderSphere Webhooks API");
 }
 
 app.UseExceptionHandler();

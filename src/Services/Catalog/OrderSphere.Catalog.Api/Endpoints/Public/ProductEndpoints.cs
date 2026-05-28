@@ -5,6 +5,7 @@ using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Catalog.Application.Abstractions;
 using OrderSphere.Catalog.Application.Features.Products.Public.GetProductBySlug;
 using OrderSphere.Catalog.Application.Features.Products.Public.GetProducts;
+using OrderSphere.ServiceDefaults;
 
 namespace OrderSphere.Catalog.Api.Endpoints.Public;
 
@@ -41,7 +42,7 @@ public static class ProductEndpoints
     {
         var result = await mediator.Send(
             new GetProductsQuery(page == 0 ? 1 : page, pageSize == 0 ? 20 : pageSize), ct);
-        return result.IsSuccess ? Results.Ok(result.Value) : Results.Problem(result.Error.Description);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetProductsByIds(
@@ -56,7 +57,7 @@ public static class ProductEndpoints
             .ToList();
 
         var result = await mediator.Send(new GetProductsQuery(1, int.MaxValue), ct);
-        if (!result.IsSuccess) return Results.Problem(result.Error.Description);
+        if (result.IsFailure) return result.ToHttpResult();
 
         var filtered = result.Value.Items.Where(p => productIds.Contains(p.Id));
         return Results.Ok(filtered);
@@ -66,7 +67,7 @@ public static class ProductEndpoints
         string slug, IMediator mediator, CancellationToken ct)
     {
         var result = await mediator.Send(new GetProductBySlugQuery(slug), ct);
-        return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound();
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> DecrementStock(
@@ -79,7 +80,7 @@ public static class ProductEndpoints
         if (product is null) return Results.NotFound();
 
         var result = product.RemoveFromStock(body.Quantity);
-        if (result.IsFailure) return Results.Conflict(result.Error.Description);
+        if (result.IsFailure) return result.ToHttpResult();
 
         await context.SaveChangesAsync(ct);
         return Results.NoContent();

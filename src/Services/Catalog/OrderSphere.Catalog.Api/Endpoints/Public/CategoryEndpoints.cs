@@ -1,5 +1,6 @@
 using MediatR;
 using OrderSphere.Catalog.Application.Features.Categories.Public.GetCategories;
+using OrderSphere.ServiceDefaults;
 
 namespace OrderSphere.Catalog.Api.Endpoints.Public;
 
@@ -15,6 +16,6 @@ public static class CategoryEndpoints
     private static async Task<IResult> GetCategories(IMediator mediator, CancellationToken ct)
     {
         var result = await mediator.Send(new GetCategoriesQuery(), ct);
-        return result.IsSuccess ? Results.Ok(result.Value) : Results.Problem(result.Error.Description);
+        return result.ToHttpResult();
     }
 }

@@ -18,7 +18,10 @@ public static class SwaggerExtensions
         app.UseSwagger();
         app.UseSwaggerUI(options =>
         {
-            //options.SwaggerEndpoint("/swagger/v1/swagger.json", "Catalog API v1");
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "Catalog API v1");
+            options.OAuthClientId("swagger-ui");
+            options.OAuthUsePkce();
+            options.OAuthScopes("openid", "profile", "roles");
         });
         return app;
     }

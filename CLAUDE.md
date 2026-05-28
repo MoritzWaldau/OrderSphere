@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Claude Code Instructions for OrderSphere
 
 ## Operating rules
@@ -6,7 +10,7 @@
 - Do not guess technical facts. If a concept, API, or library behavior isn't certain, research it before stating it.
 - Documents are markdown. Diagrams are mermaid.
 - State results and decisions directly.
-- Use compact the session automaticlly when the context is > 100K tokens
+- Use compact the session automatically when the context is > 100K tokens
 
 ## Architecture
 
@@ -33,7 +37,7 @@ Layer dependency direction per service: `Api → Application → Infrastructure 
 ### Services
 | Service | Projects | Notes |
 |---|---|---|
-| Catalog | `Catalog.Domain`, `Catalog.Application`, `Catalog.Infrastructure`, `Catalog.Api` | Product + Category CRUD; exposes gRPC internal endpoint; Redis hybrid caching |
+| Catalog | `Catalog.Domain`, `Catalog.Application`, `Catalog.Infrastructure`, `Catalog.Api` | Product + Category CRUD; Redis hybrid caching |
 | Ordering | `Ordering.Domain`, `Ordering.Infrastructure`, `Ordering.Api`, `Ordering.Worker` | Order lifecycle; checkout publishes to Service Bus; Worker creates orders and triggers payment |
 | Basket | `Basket.Domain`, `Basket.Infrastructure`, `Basket.Api` | Customer cart; validates stock via `ICatalogClient` on add |
 | Payment | `Payment.Domain`, `Payment.Infrastructure`, `Payment.Api`, `Payment.Worker` | Payment records; Worker consumes `payment-requests` queue |
@@ -51,10 +55,15 @@ Layer dependency direction per service: `Api → Application → Infrastructure 
 | `src/OrderSphere.Web` | Blazor WASM client — pages, components, typed API clients |
 
 ### Tests
+xUnit + FluentAssertions (NSubstitute for mocking, EF Core InMemory where a `DbContext` is needed).
+
 | Project | Covers |
 |---|---|
-| `tests/OrderSphere.Bff.Tests` | BFF integration tests |
+| `tests/OrderSphere.Domain.Tests` | Domain entity/value-object unit tests across Ordering, Basket, Catalog, Payment |
+| `tests/OrderSphere.Ordering.Checkout.Tests` | Ordering checkout flow |
 | `tests/OrderSphere.Ordering.Authorization.Tests` | Ordering authorization policy tests |
+| `tests/OrderSphere.UserProfile.Tests` | UserProfile service |
+| `tests/OrderSphere.Bff.Tests` | BFF integration tests |
 | `tests/OrderSphere.RealmContract.Tests` | Keycloak realm contract tests |
 
 ## Conventions
@@ -64,7 +73,7 @@ These are the rules that are not derivable by reading existing code. For everyth
 - Business validation returns a `Result<T>` failure. Exceptions are reserved for genuinely exceptional conditions (I/O failures, programmer errors).
 - Commands and queries return `Result<TDto>`. DTOs are `record` types; entities are `class` types.
 - New entities inherit `AuditableEntity`. Add a matching EF configuration in the service's `Infrastructure/EntityConfigurations/`.
-- New features live in the owning service's `Features/<Aggregate>/<UseCase>/` folder (e.g. `Catalog.Application/Features/Products/CreateProduct/`). Each use case co-locates its command/query, handler, and validator.
+- Features live in `Features/<Aggregate>/<UseCase>/`, co-locating command/query, handler, and validator. Catalog uses `Catalog.Application/Features/`; all other services use `<Service>.Api/Features/`.
 - Cross-service calls go through typed HTTP client interfaces (e.g. `ICatalogClient`, `IBasketClient`). No direct project references across service boundaries.
 - Integration events are defined in `BuildingBlocks.Contracts`. Publish via `IEventBus`; consume via `IIntegrationEventHandler<T>`.
 - Queries against soft-deletable entities must filter `!x.IsDeleted`.
@@ -92,14 +101,16 @@ All visual, theming, MudBlazor, and CSS rules live in `.github/copilot-instructi
 
 ## Commands
 
-Run from the repository root (`E:\CSharp\OrderSphere`).
+Run from the repository root.
 
 | Task | Command |
 |---|---|
 | Build | `dotnet build OrderSphere.slnx` |
 | Run via Aspire | `dotnet run --project src/OrderSphere.AppHost` |
 | Run BFF (with WASM) | `dotnet run --project src/Gateways/OrderSphere.Bff` |
-| Tests | `dotnet test` |
+| All tests | `dotnet test` |
+| One test project | `dotnet test tests/OrderSphere.Domain.Tests` |
+| Single test / by name | `dotnet test --filter "FullyQualifiedName~CheckoutCart"` (also accepts `Name~`, `ClassName~`) |
 
 ### EF Migrations
 
@@ -134,8 +145,3 @@ Proceed without asking for: bug fixes, refactors inside one layer, new features 
 ## Commit format
 
 Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `style:`, `test:`, `chore:`. One-line subject describing the user-visible change; body for rationale if non-obvious.
-
-
-# graphify
-- **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
-When the user types `/graphify`, invoke the Skill tool with `skill: "graphify"` before doing anything else.

@@ -6,6 +6,7 @@ using OrderSphere.Ordering.Api.Features.Order;
 using OrderSphere.Ordering.Api.Features.Order.Admin;
 using OrderSphere.Ordering.Api.Models;
 using OrderSphere.Ordering.Domain.Enums;
+using OrderSphere.ServiceDefaults;
 
 namespace OrderSphere.Ordering.Api.Endpoints;
 
@@ -24,8 +25,7 @@ public static class OrderEndpoints
                     return Results.Unauthorized();
 
                 var result = await mediator.Send(new GetOrdersByCustomerQuery(customerId), ct);
-                return result.IsSuccess ? Results.Ok(result.Value)
-                    : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
+                return result.ToHttpResult();
             });
 
         // GET /api/v1/orders/{orderId} — single order; ABAC: owner OR staff.
@@ -35,7 +35,7 @@ public static class OrderEndpoints
             {
                 var result = await mediator.Send(new GetOrderByIdQuery(orderId), ct);
                 if (result.IsFailure)
-                    return Results.NotFound(new ErrorResponse(result.Error.Code, result.Error.Description));
+                    return result.ToHttpResult();
 
                 var authResult = await authSvc.AuthorizeAsync(
                     httpContext.User, result.Value, AuthorizationPolicies.OrderOwnerOrStaff);
@@ -52,7 +52,7 @@ public static class OrderEndpoints
             {
                 var result = await mediator.Send(new GetOrderByCorrelationIdQuery(correlationId), ct);
                 if (result.IsFailure)
-                    return Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
+                    return result.ToHttpResult();
 
                 // Order may not be persisted yet (Service Bus processing latency) — return null body.
                 if (result.Value is null)
@@ -75,24 +75,21 @@ public static class OrderEndpoints
             async (OrderStatus? status, IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(new GetAllOrdersQuery(status), ct);
-                return result.IsSuccess ? Results.Ok(result.Value)
-                    : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
+                return result.ToHttpResult();
             });
 
         staffRead.MapGet("/stats",
             async (IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(new GetOrderStatsQuery(), ct);
-                return result.IsSuccess ? Results.Ok(result.Value)
-                    : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
+                return result.ToHttpResult();
             });
 
         staffRead.MapGet("/{orderId:guid}",
             async (Guid orderId, IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(new GetOrderByIdAdminQuery(orderId), ct);
-                return result.IsSuccess ? Results.Ok(result.Value)
-                    : Results.NotFound(new ErrorResponse(result.Error.Code, result.Error.Description));
+                return result.ToHttpResult();
             });
 
         // Write operations: order-manager or admin.
@@ -103,16 +100,14 @@ public static class OrderEndpoints
             async (Guid orderId, UpdateStatusRequest req, IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(new UpdateOrderStatusCommand(orderId, req.NewStatus), ct);
-                return result.IsSuccess ? Results.Ok()
-                    : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
+                return result.ToHttpResult(() => Results.Ok());
             });
 
         orderManager.MapPost("/{orderId:guid}/cancel",
             async (Guid orderId, IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(new CancelOrderCommand(orderId), ct);
-                return result.IsSuccess ? Results.Ok()
-                    : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
+                return result.ToHttpResult(() => Results.Ok());
             });
     }
 

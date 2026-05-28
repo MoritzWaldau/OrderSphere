@@ -3,6 +3,7 @@ using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Api.Features.Checkout;
 using OrderSphere.Ordering.Api.Models;
+using OrderSphere.ServiceDefaults;
 
 namespace OrderSphere.Ordering.Api.Endpoints;
 
@@ -34,9 +35,7 @@ public static class CheckoutEndpoints
                     idempotencyKey);
 
                 var result = await mediator.Send(command, ct);
-                return result.IsSuccess
-                    ? Results.Ok(new { CorrelationId = result.Value })
-                    : Results.BadRequest(new ErrorResponse(result.Error.Code, result.Error.Description));
+                return result.ToHttpResult(correlationId => Results.Ok(new { CorrelationId = correlationId }));
             }).RequireAuthorization();
     }
 }

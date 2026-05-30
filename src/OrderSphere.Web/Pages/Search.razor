@@ -75,7 +75,7 @@
         else
         {
             <MudText Typo="Typo.h5" Class="mb-6" Style="font-weight: 600;">
-                @_results.Count @(_results.Count == 1 ? "Treffer" : "Treffer") für „@Query"
+                @_results.Count Treffer für „@Query"
             </MudText>
 
             <MudGrid Spacing="3">
@@ -101,10 +101,9 @@
     private List<ProductDto> _results = [];
     private bool _loading;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         _queryInput = Query ?? string.Empty;
-        await RunSearchAsync();
     }
 
     protected override async Task OnParametersSetAsync()

@@ -26,7 +26,7 @@ public sealed class CartState
 
     public async Task InitializeAsync(CancellationToken ct = default)
     {
-        if (_initialized && _cart is not null) return;
+        if (_initialized) return;
         _initialized = true;
         await RefreshAsync(ct);
     }

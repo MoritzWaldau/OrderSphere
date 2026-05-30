@@ -1,8 +1,12 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using OrderSphere.Web.Auth;
 using OrderSphere.Web.Services;
+
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("de-DE");
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("de-DE");
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<OrderSphere.Web.App>("#app");

@@ -313,7 +313,7 @@ public sealed class RealmContractTests
         var client = Realm["clients"]!.AsArray()
             .Single(c => c!["clientId"]!.GetValue<string>() == "swagger-ui");
 
-        var mappers = client["protocolMappers"]?.AsArray();
+        var mappers = client!["protocolMappers"]?.AsArray();
         mappers.Should().NotBeNull("swagger-ui must have protocolMappers defined");
 
         var hasMapper = mappers!.Any(m =>

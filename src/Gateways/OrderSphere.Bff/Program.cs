@@ -361,8 +361,9 @@ app.Use(async (ctx, next) =>
 // ── SignalR hub ───────────────────────────────────────────────────────────
 app.MapHub<NotificationHub>("/hubs/notifications");
 
-// All /api/** calls are forwarded with the user's Bearer token attached.
-// BffUserPolicy enforces authentication — unauthenticated requests get 302 → /bff/login.
+// Default policy for all proxied routes. Routes with AuthorizationPolicy: "anonymous"
+// in config (catalog-public-products, catalog-public-categories) override this via
+// [AllowAnonymous], so public catalog GETs pass through without a session.
 app.MapReverseProxy().RequireAuthorization("BffUserPolicy");
 app.MapFallbackToFile("index.html");
 

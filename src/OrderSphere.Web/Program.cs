@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
@@ -13,18 +14,25 @@ builder.RootComponents.Add<OrderSphere.Web.App>("#app");
 
 // CSRF protection services
 builder.Services.AddScoped<CsrfTokenService>();
-builder.Services.AddScoped<AntiforgeryDelegatingHandler>();
 
 // Base HttpClient — all API calls go to the same BFF origin.
-// AntiforgeryDelegatingHandler attaches X-XSRF-TOKEN on all mutating requests.
+// Pipeline (outer → inner): UnauthorizedRedirectHandler → AntiforgeryDelegatingHandler → HttpClientHandler
+// UnauthorizedRedirectHandler: redirects to /bff/login on 401 responses.
+// AntiforgeryDelegatingHandler: attaches X-XSRF-TOKEN on mutating requests.
 builder.Services.AddScoped(sp =>
 {
+    var navigation = sp.GetRequiredService<NavigationManager>();
     var csrfService = sp.GetRequiredService<CsrfTokenService>();
-    var antiforgeryHandler = new AntiforgeryDelegatingHandler(csrfService)
+
+    var inner = new AntiforgeryDelegatingHandler(csrfService)
     {
         InnerHandler = new HttpClientHandler()
     };
-    return new HttpClient(antiforgeryHandler)
+    var outer = new UnauthorizedRedirectHandler(navigation)
+    {
+        InnerHandler = inner
+    };
+    return new HttpClient(outer)
     {
         BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
     };

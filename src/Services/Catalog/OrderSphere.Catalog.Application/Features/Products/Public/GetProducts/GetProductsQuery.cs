@@ -1,4 +1,8 @@
 namespace OrderSphere.Catalog.Application.Features.Products.Public.GetProducts;
 
-public sealed record GetProductsQuery(int Page = 1, int PageSize = 20)
+public sealed record GetProductsQuery(
+    int Page = 1,
+    int PageSize = 20,
+    string? Search = null,
+    Guid? CategoryId = null)
     : IQuery<Result<PagedResult<ProductDto>>>;

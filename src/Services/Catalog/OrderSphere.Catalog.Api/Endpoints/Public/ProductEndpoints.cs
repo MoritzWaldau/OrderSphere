@@ -37,11 +37,13 @@ public static class ProductEndpoints
     private static async Task<IResult> GetProducts(
         [FromQuery] int page,
         [FromQuery] int pageSize,
+        [FromQuery] string? search,
+        [FromQuery] Guid? categoryId,
         IMediator mediator,
         CancellationToken ct)
     {
         var result = await mediator.Send(
-            new GetProductsQuery(page == 0 ? 1 : page, pageSize == 0 ? 20 : pageSize), ct);
+            new GetProductsQuery(page == 0 ? 1 : page, pageSize == 0 ? 20 : pageSize, search, categoryId), ct);
         return result.ToHttpResult();
     }
 

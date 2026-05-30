@@ -13,6 +13,7 @@
 
 <section style="padding:48px 0 80px;">
     <MudContainer>
+        <MudForm @ref="_form" @bind-IsValid="_formValid">
         <MudGrid Spacing="4">
             <!-- Left: form -->
             <MudItem xs="12" lg="8">
@@ -23,27 +24,28 @@
                         <MudGrid Spacing="3">
                             <MudItem xs="12" md="6">
                                 <MudTextField T="string" Label="Vorname" Variant="Variant.Outlined"
-                                              FullWidth="true" Required="true"
+                                              FullWidth="true" Required="true" RequiredError="Pflichtfeld"
                                               @bind-Value="_model.FirstName" />
                             </MudItem>
                             <MudItem xs="12" md="6">
                                 <MudTextField T="string" Label="Nachname" Variant="Variant.Outlined"
-                                              FullWidth="true" Required="true"
+                                              FullWidth="true" Required="true" RequiredError="Pflichtfeld"
                                               @bind-Value="_model.LastName" />
                             </MudItem>
                             <MudItem xs="12">
                                 <MudTextField T="string" Label="Straße und Hausnummer" Variant="Variant.Outlined"
-                                              FullWidth="true" Required="true"
+                                              FullWidth="true" Required="true" RequiredError="Pflichtfeld"
                                               @bind-Value="_model.Street" />
                             </MudItem>
                             <MudItem xs="12" md="4">
                                 <MudTextField T="string" Label="PLZ" Variant="Variant.Outlined"
-                                              FullWidth="true" Required="true"
+                                              FullWidth="true" Required="true" RequiredError="Pflichtfeld"
+                                              Validation="@((string v) => System.Text.RegularExpressions.Regex.IsMatch(v ?? "", @"^\d{4,5}$") ? null : "Ungültige PLZ")"
                                               @bind-Value="_model.PostalCode" />
                             </MudItem>
                             <MudItem xs="12" md="5">
                                 <MudTextField T="string" Label="Stadt" Variant="Variant.Outlined"
-                                              FullWidth="true" Required="true"
+                                              FullWidth="true" Required="true" RequiredError="Pflichtfeld"
                                               @bind-Value="_model.City" />
                             </MudItem>
                             <MudItem xs="12" md="3">
@@ -56,7 +58,9 @@
                             </MudItem>
                             <MudItem xs="12" md="6">
                                 <MudTextField T="string" Label="E-Mail" Variant="Variant.Outlined"
-                                              FullWidth="true" Required="true" InputType="InputType.Email"
+                                              FullWidth="true" Required="true" RequiredError="Pflichtfeld"
+                                              InputType="InputType.Email"
+                                              Validation="@((string v) => v?.Contains('@') == true ? null : "Ungültige E-Mail-Adresse")"
                                               @bind-Value="_model.Email" />
                             </MudItem>
                         </MudGrid>
@@ -112,16 +116,57 @@
                             <MudText Typo="Typo.body1">Kostenlos</MudText>
                         </MudStack>
 
+                        <!-- Coupon -->
+                        <MudDivider />
+                        @if (_appliedCoupon is not null)
+                        {
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                <MudStack Spacing="0">
+                                    <MudText Typo="Typo.body2" Color="Color.Success">
+                                        Gutschein (@_couponCode.ToUpperInvariant())
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Class="text-muted">@_appliedCoupon.Message</MudText>
+                                </MudStack>
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                    <MudText Typo="Typo.body2" Color="Color.Success">
+                                        -@_appliedCoupon.DiscountAmount.ToString("0.00") €
+                                    </MudText>
+                                    <MudIconButton Icon="@Icons.Material.Outlined.Close"
+                                                   Size="Size.Small" OnClick="RemoveCoupon" />
+                                </MudStack>
+                            </MudStack>
+                        }
+                        else
+                        {
+                            <MudStack Row="true" Spacing="2">
+                                <MudTextField T="string" Label="Gutscheincode" Variant="Variant.Outlined"
+                                              FullWidth="true" @bind-Value="_couponCode"
+                                              @onkeydown="OnCouponKeyDown" />
+                                <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                           OnClick="ApplyCouponAsync" Disabled="_validatingCoupon"
+                                           Style="white-space:nowrap;align-self:center;">
+                                    @if (_validatingCoupon)
+                                    {
+                                        <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                                    }
+                                    else
+                                    {
+                                        <span>Einlösen</span>
+                                    }
+                                </MudButton>
+                            </MudStack>
+                        }
+
                         <MudDivider />
 
                         <MudStack Row="true" Justify="Justify.SpaceBetween">
                             <MudText Typo="Typo.h6">Gesamt</MudText>
-                            <MudText Typo="Typo.h6">@Subtotal.ToString("0.00") €</MudText>
+                            <MudText Typo="Typo.h6">@Total.ToString("0.00") €</MudText>
                         </MudStack>
 
                         <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                    FullWidth="true" Class="btn-pill my-4" Size="Size.Large"
-                                   Disabled="_submitting"
+                                   Disabled="_submitting || !_formValid"
                                    OnClick="SubmitAsync">
                             @if (_submitting)
                             {
@@ -137,16 +182,21 @@
                 </MudPaper>
             </MudItem>
         </MudGrid>
+        </MudForm>
     </MudContainer>
 </section>
 
 @code {
     [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
 
+    private MudForm _form = default!;
+    private bool _formValid;
     private List<CartItemDto> _cartItems = [];
     private bool _submitting;
+    private bool _validatingCoupon;
+    private string _couponCode = string.Empty;
+    private CouponValidationDto? _appliedCoupon;
 
-    // Generated once per page visit. Stable across Polly retries; changes on navigation/refresh.
     private Guid _idempotencyKey = Guid.CreateVersion7();
 
     private readonly CheckoutFormModel _model = new()
@@ -156,6 +206,8 @@
     };
 
     private decimal Subtotal => _cartItems.Sum(i => i.Quantity * i.Price);
+    private decimal Discount => _appliedCoupon?.DiscountAmount ?? 0m;
+    private decimal Total => Subtotal - Discount;
 
     protected override async Task OnInitializedAsync()
     {
@@ -171,21 +223,47 @@
         }
     }
 
+    private async Task ApplyCouponAsync()
+    {
+        var code = _couponCode.Trim();
+        if (string.IsNullOrEmpty(code)) return;
+
+        _validatingCoupon = true;
+        try
+        {
+            var result = await Ordering.ValidateCouponAsync(code, Subtotal);
+            if (result is null || !result.IsValid)
+            {
+                Snackbar.Add(result?.Message ?? "Ungültiger Gutscheincode.", Severity.Warning);
+                return;
+            }
+            _appliedCoupon = result;
+        }
+        finally
+        {
+            _validatingCoupon = false;
+        }
+    }
+
+    private void RemoveCoupon()
+    {
+        _appliedCoupon = null;
+        _couponCode = string.Empty;
+    }
+
+    private void OnCouponKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") _ = ApplyCouponAsync();
+    }
+
     private async Task SubmitAsync()
     {
-        if (string.IsNullOrWhiteSpace(_model.FirstName) || string.IsNullOrWhiteSpace(_model.LastName) ||
-            string.IsNullOrWhiteSpace(_model.Street) || string.IsNullOrWhiteSpace(_model.City) ||
-            string.IsNullOrWhiteSpace(_model.PostalCode) || string.IsNullOrWhiteSpace(_model.Email))
-        {
-            Snackbar.Add("Bitte alle Pflichtfelder ausfüllen.", Severity.Warning);
-            return;
-        }
+        await _form.ValidateAsync();
+        if (!_formValid) return;
 
         _submitting = true;
         try
         {
-            // Identity fields (CustomerId, CustomerEmail, CustomerName) are derived
-            // from the JWT token server-side and not included in the request body.
             var request = new CheckoutRequest(
                 new CheckoutAddress(_model.FirstName, _model.LastName, _model.Street,
                     _model.City, _model.PostalCode, _model.Country),
@@ -200,7 +278,7 @@
 
             await CartState.RefreshAsync();
             Navigation.NavigateTo(
-                $"/checkout/success?correlationId={correlationId}&total={Subtotal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}");
+                $"/checkout/success?correlationId={correlationId}&total={Total.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}");
         }
         finally
         {

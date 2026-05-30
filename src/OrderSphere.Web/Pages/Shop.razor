@@ -1,6 +1,5 @@
 @page "/shop"
 @page "/shop/category/{Category}"
-@attribute [Authorize]
 @inject ICatalogClient Catalog
 @inject IOrderingClient Ordering
 @inject CartState CartState
@@ -33,7 +32,11 @@
         {
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;">
                 <MudText Typo="Typo.body2" Class="text-muted">
-                    <span class="os-mono">@_products.Count</span> Produkte
+                    <span class="os-mono">@_totalCount</span> Produkte
+                    @if (!string.IsNullOrEmpty(Category))
+                    {
+                        <span> in <strong>@Uri.UnescapeDataString(Category)</strong></span>
+                    }
                 </MudText>
             </div>
 
@@ -48,6 +51,18 @@
                     </MudItem>
                 }
             </MudGrid>
+
+            @if (_totalPages > 1)
+            {
+                <MudStack AlignItems="AlignItems.Center" Class="mt-8">
+                    <MudPagination Count="_totalPages"
+                                   Selected="_page"
+                                   SelectedChanged="OnPageChangedAsync"
+                                   Color="Color.Primary"
+                                   BoundaryCount="1"
+                                   MiddleCount="3" />
+                </MudStack>
+            }
 
             <!-- Quantity dialog -->
             <MudDialog @bind-Visible="_popupOpen">
@@ -80,18 +95,43 @@
     [Parameter] public string? Category { get; set; }
 
     private List<ProductDto> _products = [];
+    private List<CategoryDto> _allCategories = [];
     private bool _loading = true;
     private bool _popupOpen;
     private bool _addingToCart;
     private ProductDto? _selectedProduct;
     private int _quantity = 1;
+    private int _page = 1;
+    private int _totalCount;
+    private int _totalPages;
+    private const int PageSize = 12;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        _page = 1;
+        await LoadProductsAsync();
+    }
+
+    private async Task LoadProductsAsync()
+    {
+        _loading = true;
         try
         {
-            var all = await Catalog.GetProductsAsync();
-            _products = all.Items.Where(p => p.IsActive).ToList();
+            if (_allCategories.Count == 0)
+                _allCategories = (await Catalog.GetCategoriesAsync()).Items.ToList();
+
+            Guid? categoryId = null;
+            if (!string.IsNullOrEmpty(Category))
+            {
+                var match = _allCategories.FirstOrDefault(c =>
+                    string.Equals(c.Name, Uri.UnescapeDataString(Category), StringComparison.OrdinalIgnoreCase));
+                categoryId = match?.Id;
+            }
+
+            var result = await Catalog.GetProductsAsync(page: _page, pageSize: PageSize, categoryId: categoryId);
+            _products = result.Items.ToList();
+            _totalCount = result.TotalCount;
+            _totalPages = result.TotalPages;
         }
         catch (Exception ex)
         {
@@ -101,6 +141,12 @@
         {
             _loading = false;
         }
+    }
+
+    private async Task OnPageChangedAsync(int page)
+    {
+        _page = page;
+        await LoadProductsAsync();
     }
 
     private void OpenDetails(ProductDto product)

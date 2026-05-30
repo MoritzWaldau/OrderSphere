@@ -1,4 +1,6 @@
 @page "/"
+@inject ICatalogClient Catalog
+@inject NavigationManager Navigation
 
 <PageTitle>OrderSphere</PageTitle>
 
@@ -52,8 +54,10 @@
             @foreach (var cat in _categories)
             {
                 <MudItem xs="6" sm="3">
-                    <MudPaper Elevation="0" Class="product-card pa-6 text-center" Style="cursor:default;" tabindex="-1">
-                        <MudIcon Icon="@cat.Icon" Color="Color.Primary" Style="font-size:40px;" />
+                    <MudPaper Elevation="0" Class="product-card pa-6 text-center"
+                              Style="cursor:pointer;"
+                              @onclick="@(() => Navigation.NavigateTo($"/shop/category/{Uri.EscapeDataString(cat.Name)}"))">
+                        <MudIcon Icon="@GetCategoryIcon(cat.Name)" Color="Color.Primary" Style="font-size:40px;" />
                         <MudText Typo="Typo.body1" Style="font-weight:600;margin-top:12px;">@cat.Name</MudText>
                     </MudPaper>
                 </MudItem>
@@ -98,11 +102,23 @@
 </section>
 
 @code {
-    private readonly List<(string Icon, string Name)> _categories =
-    [
-        (Icons.Material.Outlined.Laptop, "Laptops"),
-        (Icons.Material.Outlined.PhoneIphone, "Smartphones"),
-        (Icons.Material.Outlined.Tablet, "Tablets"),
-        (Icons.Material.Outlined.Headphones, "Zubehör"),
-    ];
+    private List<CategoryDto> _categories = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await Catalog.GetCategoriesAsync();
+        _categories = result.Items.ToList();
+    }
+
+    private static string GetCategoryIcon(string name) => name.ToLowerInvariant() switch
+    {
+        var n when n.Contains("laptop") => Icons.Material.Outlined.Laptop,
+        var n when n.Contains("phone") || n.Contains("smartphone") => Icons.Material.Outlined.PhoneIphone,
+        var n when n.Contains("tablet") => Icons.Material.Outlined.Tablet,
+        var n when n.Contains("zubehör") || n.Contains("accessor") => Icons.Material.Outlined.Headphones,
+        var n when n.Contains("audio") => Icons.Material.Outlined.Speaker,
+        var n when n.Contains("monitor") || n.Contains("display") => Icons.Material.Outlined.Monitor,
+        var n when n.Contains("kamera") || n.Contains("camera") => Icons.Material.Outlined.PhotoCamera,
+        _ => Icons.Material.Outlined.Devices
+    };
 }

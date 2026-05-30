@@ -295,4 +295,34 @@ public sealed class RealmContractTests
             .GetValue<string>().Should().Be("S256",
             "PKCE S256 must be enforced to protect the authorization code flow");
     }
+
+    // ── Swagger UI — audience mappers must cover all resource servers ─────────
+    // The swagger-ui client issues tokens used directly against individual service
+    // Swagger UIs. Each resource server validates aud against its own client ID.
+    // A missing mapper here produces a silent 401 on that service's Swagger UI.
+
+    [Theory]
+    [InlineData("basket-api")]
+    [InlineData("ordering-api")]
+    [InlineData("catalog-api")]
+    [InlineData("userprofile-api")]
+    [InlineData("payment-api")]
+    [InlineData("webhooks-api")]
+    public void SwaggerUiClient_HasAudienceMapperFor(string apiClientId)
+    {
+        var client = Realm["clients"]!.AsArray()
+            .Single(c => c!["clientId"]!.GetValue<string>() == "swagger-ui");
+
+        var mappers = client["protocolMappers"]?.AsArray();
+        mappers.Should().NotBeNull("swagger-ui must have protocolMappers defined");
+
+        var hasMapper = mappers!.Any(m =>
+            m?["protocolMapper"]?.GetValue<string>() == "oidc-audience-mapper" &&
+            m["config"]?["included.client.audience"]?.GetValue<string>() == apiClientId &&
+            m["config"]?["access.token.claim"]?.GetValue<string>() == "true");
+
+        hasMapper.Should().BeTrue(
+            $"swagger-ui must have an oidc-audience-mapper for '{apiClientId}' " +
+            $"so Swagger UI tokens can reach that service's endpoints");
+    }
 }

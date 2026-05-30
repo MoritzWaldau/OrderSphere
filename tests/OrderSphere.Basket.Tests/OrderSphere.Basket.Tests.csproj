@@ -22,14 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!--
-      The handler tests need:
-        - BasketDbContext (Infrastructure)
-        - Cart / CartItem domain entities
-        - AddToCartCommand etc. (Api/Features)
-        - ICatalogClient (Api/CatalogClient)
-    -->
-    <ProjectReference Include="..\..\src\Services\Basket\OrderSphere.Basket.Api\OrderSphere.Basket.Api.csproj" />
+    <ProjectReference Include="..\..\src\Services\Basket\OrderSphere.Basket.Application\OrderSphere.Basket.Application.csproj" />
+    <ProjectReference Include="..\..\src\Services\Basket\OrderSphere.Basket.Infrastructure\OrderSphere.Basket.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\BuildingBlocks\OrderSphere.BuildingBlocks.Domain\OrderSphere.BuildingBlocks.csproj" />
   </ItemGroup>
 

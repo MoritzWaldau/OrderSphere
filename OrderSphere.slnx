@@ -30,6 +30,7 @@
   </Folder>
   <Folder Name="/src/Services/Basket/">
     <Project Path="src/Services/Basket/OrderSphere.Basket.Api/OrderSphere.Basket.Api.csproj" />
+    <Project Path="src/Services/Basket/OrderSphere.Basket.Application/OrderSphere.Basket.Application.csproj" />
     <Project Path="src/Services/Basket/OrderSphere.Basket.Domain/OrderSphere.Basket.Domain.csproj" />
     <Project Path="src/Services/Basket/OrderSphere.Basket.Infrastructure/OrderSphere.Basket.Infrastructure.csproj" />
   </Folder>

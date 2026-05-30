@@ -1,7 +1,9 @@
 using System.Net.Http.Json;
+using Microsoft.Extensions.Logging;
+using OrderSphere.Basket.Application.Abstractions;
 using OrderSphere.BuildingBlocks.Primitives;
 
-namespace OrderSphere.Basket.Api.CatalogClient;
+namespace OrderSphere.Basket.Infrastructure.CatalogClient;
 
 public sealed class HttpCatalogClient(HttpClient httpClient, ILogger<HttpCatalogClient> logger) : ICatalogClient
 {

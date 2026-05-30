@@ -1,6 +1,6 @@
 using OrderSphere.BuildingBlocks.Primitives;
 
-namespace OrderSphere.Basket.Api.CatalogClient;
+namespace OrderSphere.Basket.Application.Abstractions;
 
 public interface ICatalogClient
 {

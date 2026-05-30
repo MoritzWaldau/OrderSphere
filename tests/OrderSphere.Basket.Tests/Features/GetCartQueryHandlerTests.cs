@@ -1,4 +1,3 @@
-using OrderSphere.Basket.Api.Models;
 using OrderSphere.Basket.Tests.Helpers;
 
 namespace OrderSphere.Basket.Tests.Features;
@@ -80,10 +79,10 @@ public sealed class GetCartQueryHandlerTests
         result.Value.Items.Should().ContainSingle(i => i.ProductName == "Super Widget" && i.Quantity == 3);
     }
 
-    // ── Exception path ──────────────────────────────────────────────────────────
+    // ── Exception path — propagates when catalog client throws ──────────────────
 
     [Fact]
-    public async Task Handle_CatalogClientThrows_ReturnsUnknownError()
+    public async Task Handle_CatalogClientThrows_PropagatesException()
     {
         using var ctx = BasketDbContextFactory.Create();
         var cart = new Cart(Customer);
@@ -95,10 +94,7 @@ public sealed class GetCartQueryHandlerTests
         catalog.GetProductNamesByIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
                .ThrowsAsync(new HttpRequestException("network error"));
 
-        var result = await CreateHandler(ctx, catalog)
-            .Handle(new GetCartQuery(Customer), default);
-
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(CartErrors.UnknownError);
+        await Assert.ThrowsAsync<HttpRequestException>(
+            () => CreateHandler(ctx, catalog).Handle(new GetCartQuery(Customer), default));
     }
 }

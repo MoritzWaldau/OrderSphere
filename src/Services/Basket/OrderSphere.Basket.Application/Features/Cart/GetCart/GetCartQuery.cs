@@ -1,8 +1,8 @@
-using OrderSphere.Basket.Api.Models;
+using OrderSphere.Basket.Application.DTOs;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 
-namespace OrderSphere.Basket.Api.Features.Cart;
+namespace OrderSphere.Basket.Application.Features.Cart.GetCart;
 
 public sealed record GetCartQuery(CustomerId CustomerId) : IQuery<Result<CartDto>>;

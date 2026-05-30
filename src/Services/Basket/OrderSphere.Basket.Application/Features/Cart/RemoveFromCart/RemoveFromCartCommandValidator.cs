@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace OrderSphere.Basket.Api.Features.Cart;
+namespace OrderSphere.Basket.Application.Features.Cart.RemoveFromCart;
 
 public sealed class RemoveFromCartCommandValidator : AbstractValidator<RemoveFromCartCommand>
 {

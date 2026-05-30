@@ -1,35 +1,20 @@
-using FluentValidation;
-using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
-using OrderSphere.Basket.Api.CatalogClient;
+using OrderSphere.Basket.Application;
+using OrderSphere.Basket.Application.Abstractions;
 using OrderSphere.Basket.Api.Endpoints;
 using OrderSphere.Basket.Api.Exceptions;
+using OrderSphere.Basket.Infrastructure;
+using OrderSphere.Basket.Infrastructure.CatalogClient;
 using OrderSphere.Basket.Infrastructure.Persistence;
-using OrderSphere.BuildingBlocks.Behaviors;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddOrderSphereSwagger("OrderSphere Basket API");
 
-// EF Core — Aspire injects connection string via "basket-db"
-builder.AddNpgsqlDbContext<BasketDbContext>("basket-db", settings =>
-{
-    settings.DisableRetry = false;
-});
-
-// MediatR — scan this assembly for handlers + pipeline behaviors
-builder.Services.AddMediatR(cfg =>
-{
-    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
-    cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
-    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
-});
-builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
-
-// FluentValidation
-builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+builder.AddBasketInfrastructure();
+builder.Services.AddBasketApplication();
 
 // HTTP client for Catalog service (stock verification)
 builder.Services.AddHttpClient<ICatalogClient, HttpCatalogClient>(client =>

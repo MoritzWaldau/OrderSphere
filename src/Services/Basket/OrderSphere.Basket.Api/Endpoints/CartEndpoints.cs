@@ -1,5 +1,8 @@
 using MediatR;
-using OrderSphere.Basket.Api.Features.Cart;
+using OrderSphere.Basket.Application.Features.Cart.AddToCart;
+using OrderSphere.Basket.Application.Features.Cart.DecreaseCartItem;
+using OrderSphere.Basket.Application.Features.Cart.GetCart;
+using OrderSphere.Basket.Application.Features.Cart.RemoveFromCart;
 using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.ServiceDefaults;

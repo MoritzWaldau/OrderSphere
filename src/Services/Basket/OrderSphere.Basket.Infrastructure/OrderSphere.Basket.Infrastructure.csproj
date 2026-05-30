@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OrderSphere.Basket.Application\OrderSphere.Basket.Application.csproj" />
     <ProjectReference Include="..\OrderSphere.Basket.Domain\OrderSphere.Basket.Domain.csproj" />
   </ItemGroup>
 

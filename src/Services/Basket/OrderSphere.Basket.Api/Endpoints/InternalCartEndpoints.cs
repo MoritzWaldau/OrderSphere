@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using OrderSphere.Basket.Api.Models;
-using OrderSphere.Basket.Infrastructure.Persistence;
+using OrderSphere.Basket.Application.Abstractions;
+using OrderSphere.Basket.Application.DTOs;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 
 namespace OrderSphere.Basket.Api.Endpoints;
@@ -11,7 +11,7 @@ public static class InternalCartEndpoints
     {
         var group = app.MapGroup("/internal/cart");
 
-        group.MapGet("/{customerId:guid}", async (Guid customerId, BasketDbContext context, CancellationToken ct) =>
+        group.MapGet("/{customerId:guid}", async (Guid customerId, IBasketDbContext context, CancellationToken ct) =>
         {
             var cart = await context.Carts
                 .Include(c => c.Items)
@@ -27,7 +27,7 @@ public static class InternalCartEndpoints
             return Results.Ok(dto);
         });
 
-        group.MapDelete("/{customerId:guid}/items", async (Guid customerId, BasketDbContext context, CancellationToken ct) =>
+        group.MapDelete("/{customerId:guid}/items", async (Guid customerId, IBasketDbContext context, CancellationToken ct) =>
         {
             var cart = await context.Carts
                 .Include(c => c.Items)

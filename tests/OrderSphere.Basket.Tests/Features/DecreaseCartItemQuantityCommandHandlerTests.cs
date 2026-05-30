@@ -9,7 +9,7 @@ public sealed class DecreaseCartItemQuantityCommandHandlerTests
     private static readonly ProductId  Product2 = ProductId.New();
 
     private static DecreaseCartItemQuantityCommandHandler CreateHandler(BasketDbContext ctx) =>
-        new(ctx, Substitute.For<ILogger<DecreaseCartItemQuantityCommandHandler>>());
+        new(ctx);
 
     // ── Cart not found ──────────────────────────────────────────────────────────
 

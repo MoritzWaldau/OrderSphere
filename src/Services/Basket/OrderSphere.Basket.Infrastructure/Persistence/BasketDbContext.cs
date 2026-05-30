@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.Basket.Application.Abstractions;
 using OrderSphere.Basket.Domain.Entities;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Extensions;
@@ -10,7 +11,7 @@ namespace OrderSphere.Basket.Infrastructure.Persistence;
 
 public sealed class BasketDbContext(
     DbContextOptions<BasketDbContext> options,
-    IPublisher publisher) : DbContext(options)
+    IPublisher publisher) : DbContext(options), IBasketDbContext
 {
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();

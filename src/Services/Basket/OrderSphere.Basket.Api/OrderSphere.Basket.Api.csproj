@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OrderSphere.Basket.Domain\OrderSphere.Basket.Domain.csproj" />
+    <ProjectReference Include="..\OrderSphere.Basket.Application\OrderSphere.Basket.Application.csproj" />
     <ProjectReference Include="..\OrderSphere.Basket.Infrastructure\OrderSphere.Basket.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
   </ItemGroup>

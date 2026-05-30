@@ -101,19 +101,17 @@ public sealed class AddToCartCommandHandlerTests
         reloaded!.Items.Single(i => i.ProductId == ProductA).Quantity.Value.Should().Be(5);
     }
 
-    // ── Exception path ──────────────────────────────────────────────────────────
+    // ── Exception path — propagates when catalog client throws ──────────────────
 
     [Fact]
-    public async Task Handle_CatalogClientThrows_ReturnsUnknownError()
+    public async Task Handle_CatalogClientThrows_PropagatesException()
     {
         using var ctx = BasketDbContextFactory.Create();
         var catalog = Substitute.For<ICatalogClient>();
         catalog.GetProductByIdAsync(ProductA.Value, Arg.Any<CancellationToken>())
                .ThrowsAsync(new HttpRequestException("network error"));
 
-        var result = await CreateHandler(ctx, catalog).Handle(ValidCommand(), default);
-
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(CartErrors.UnknownError);
+        await Assert.ThrowsAsync<HttpRequestException>(
+            () => CreateHandler(ctx, catalog).Handle(ValidCommand(), default));
     }
 }

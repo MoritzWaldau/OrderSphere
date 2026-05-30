@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace OrderSphere.Basket.Api.Features.Cart;
+namespace OrderSphere.Basket.Application.Features.Cart.DecreaseCartItem;
 
 public sealed class DecreaseCartItemQuantityCommandValidator : AbstractValidator<DecreaseCartItemQuantityCommand>
 {

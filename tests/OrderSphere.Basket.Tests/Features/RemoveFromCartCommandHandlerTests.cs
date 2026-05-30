@@ -9,7 +9,7 @@ public sealed class RemoveFromCartCommandHandlerTests
     private static readonly ProductId  Product2 = ProductId.New();
 
     private static RemoveFromCartCommandHandler CreateHandler(BasketDbContext ctx) =>
-        new(ctx, Substitute.For<ILogger<RemoveFromCartCommandHandler>>());
+        new(ctx);
 
     // ── Cart not found ──────────────────────────────────────────────────────────
 

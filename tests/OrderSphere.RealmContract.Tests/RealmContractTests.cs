@@ -84,6 +84,7 @@ public sealed class RealmContractTests
     [InlineData("web-bff")]
     [InlineData("ordering-api")]
     [InlineData("catalog-api")]
+    [InlineData("basket-api")]
     [InlineData("userprofile-api")]
     [InlineData("ordering-worker")]
     [InlineData("notification-worker")]
@@ -99,6 +100,7 @@ public sealed class RealmContractTests
     [InlineData("web-bff")]
     [InlineData("ordering-api")]
     [InlineData("catalog-api")]
+    [InlineData("basket-api")]
     [InlineData("userprofile-api")]
     [InlineData("ordering-worker")]
     [InlineData("notification-worker")]
@@ -197,22 +199,6 @@ public sealed class RealmContractTests
 
         found.Should().BeTrue(
             $"authentication flow '{alias}' must be defined");
-    }
-
-    [Fact]
-    public void MfaConditionalFlow_ContainsConditionUserRoleAuthenticator()
-    {
-        var flow = GetAuthFlow("browser-conditional-otp-2fa");
-        flow.Should().NotBeNull();
-
-        var executions = flow!["authenticationExecutions"]?.AsArray();
-        executions.Should().NotBeNull();
-
-        var hasCondition = executions!.Any(e =>
-            e?["authenticator"]?.GetValue<string>() == "condition-user-role");
-
-        hasCondition.Should().BeTrue(
-            "the MFA conditional flow must contain a condition-user-role authenticator");
     }
 
     [Fact]

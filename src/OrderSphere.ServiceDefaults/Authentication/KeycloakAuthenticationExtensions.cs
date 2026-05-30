@@ -73,9 +73,30 @@ public static class KeycloakAuthenticationExtensions
                             .CreateLogger("OrderSphere.Security");
 
                         logger.LogWarning(
-                            "JWT authentication failed for {Path}: {ErrorType}",
+                            "JWT validation failed for {Method} {Path}: {ErrorType} — {ErrorMessage}",
+                            ctx.HttpContext.Request.Method,
                             ctx.HttpContext.Request.Path,
-                            ctx.Exception.GetType().Name);
+                            ctx.Exception.GetType().Name,
+                            ctx.Exception.Message);
+
+                        return Task.CompletedTask;
+                    },
+
+                    OnChallenge = ctx =>
+                    {
+                        // OnAuthenticationFailed already covers the invalid-token case.
+                        // This branch fires when no Bearer token was presented at all.
+                        if (ctx.AuthenticateFailure is null)
+                        {
+                            var logger = ctx.HttpContext.RequestServices
+                                .GetRequiredService<ILoggerFactory>()
+                                .CreateLogger("OrderSphere.Security");
+
+                            logger.LogWarning(
+                                "No bearer token for {Method} {Path} — 401 issued",
+                                ctx.HttpContext.Request.Method,
+                                ctx.HttpContext.Request.Path);
+                        }
 
                         return Task.CompletedTask;
                     },

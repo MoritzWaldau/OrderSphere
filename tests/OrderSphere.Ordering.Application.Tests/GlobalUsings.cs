@@ -1,0 +1,14 @@
+global using FluentAssertions;
+global using MockQueryable.NSubstitute;
+global using NSubstitute;
+global using NSubstitute.ExceptionExtensions;
+global using Microsoft.Extensions.Logging;
+global using Xunit;
+global using OrderSphere.BuildingBlocks.Primitives;
+global using OrderSphere.BuildingBlocks.StronglyTypedIds;
+global using OrderSphere.BuildingBlocks.ValueObjects;
+global using OrderSphere.Ordering.Domain.Entities;
+global using OrderSphere.Ordering.Domain.Enums;
+global using OrderSphere.Ordering.Domain.Errors;
+global using OrderSphere.Ordering.Domain.ValueObjects;
+global using OrderSphere.Ordering.Infrastructure.Persistence;

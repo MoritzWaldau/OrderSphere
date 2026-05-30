@@ -1,0 +1,15 @@
+global using FluentAssertions;
+global using NSubstitute;
+global using Xunit;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.Extensions.Logging;
+global using NSubstitute.ExceptionExtensions;
+global using OrderSphere.BuildingBlocks.Abstraction;
+global using OrderSphere.BuildingBlocks.Primitives;
+global using OrderSphere.BuildingBlocks.StronglyTypedIds;
+global using OrderSphere.BuildingBlocks.ValueObjects;
+global using OrderSphere.Basket.Domain.Entities;
+global using OrderSphere.Basket.Domain.Errors;
+global using OrderSphere.Basket.Api.CatalogClient;
+global using OrderSphere.Basket.Api.Features.Cart;
+global using OrderSphere.Basket.Infrastructure.Persistence;

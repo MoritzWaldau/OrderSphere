@@ -1,4 +1,5 @@
 @page "/search"
+@attribute [Authorize]
 @inject ICatalogClient Catalog
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
@@ -122,8 +123,15 @@
         _loading = true;
         try
         {
-            var res = await Catalog.GetProductsAsync(page: 1, pageSize: 50, search: Query.Trim());
-            _results = res.Items.ToList();
+            var res = await Catalog.GetProductsAsync();
+
+            var all = res.Items;
+            var term = Query.Trim();
+            _results = all.Where(p =>
+                (p.Name?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (p.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (p.CategoryName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
+                .ToList();
         }
         catch (Exception ex)
         {

@@ -7,39 +7,39 @@ namespace OrderSphere.Web.Services;
 
 public interface ICatalogClient
 {
-    Task<PagedResult<ProductDto>> GetProductsAsync(
-        int page = 1, int pageSize = 20,
-        string? search = null, Guid? categoryId = null,
-        CancellationToken ct = default);
+    Task<PagedResult<ProductDto>> GetProductsAsync(CancellationToken ct = default);
     Task<ProductDto?> GetProductBySlugAsync(string slug, CancellationToken ct = default);
-    Task<PagedResult<CategoryDto>> GetCategoriesAsync(int page = 1, int pageSize = 100, CancellationToken ct = default);
+    Task<PagedResult<CategoryDto>> GetCategoriesAsync(CancellationToken ct = default);
 }
 
 public sealed class CatalogClient(HttpClient client) : ICatalogClient
 {
     private readonly HttpClient _client = client;
 
-    public async Task<PagedResult<ProductDto>> GetProductsAsync(
-        int page = 1, int pageSize = 20,
-        string? search = null, Guid? categoryId = null,
-        CancellationToken ct = default)
+    public async Task<PagedResult<ProductDto>> GetProductsAsync(CancellationToken ct = default)
     {
-        var qs = new System.Text.StringBuilder($"/api/v1/products?page={page}&pageSize={pageSize}");
-        if (!string.IsNullOrWhiteSpace(search))
-            qs.Append($"&search={Uri.EscapeDataString(search)}");
-        if (categoryId.HasValue)
-            qs.Append($"&categoryId={categoryId.Value}");
+        var result = await _client.GetFromJsonAsync<PagedResult<ProductDto>>("/api/v1/products?page=1&pageSize=10", ct);
 
-        return await _client.GetFromJsonAsync<PagedResult<ProductDto>>(qs.ToString(), ct)
-               ?? new PagedResult<ProductDto>([], 0, page, pageSize);
+        if (result == null)
+        {
+            return new PagedResult<ProductDto>([], 0, 1, 10);
+        }
+
+        return result;
     }
 
     public async Task<ProductDto?> GetProductBySlugAsync(string slug, CancellationToken ct = default)
         => await _client.GetFromJsonAsync<ProductDto?>($"/api/v1/products/{Uri.EscapeDataString(slug)}", ct);
 
-    public async Task<PagedResult<CategoryDto>> GetCategoriesAsync(int page = 1, int pageSize = 100, CancellationToken ct = default)
+    public async Task<PagedResult<CategoryDto>> GetCategoriesAsync(CancellationToken ct = default)
     {
-        return await _client.GetFromJsonAsync<PagedResult<CategoryDto>>($"/api/v1/categories?page={page}&pageSize={pageSize}", ct)
-               ?? new PagedResult<CategoryDto>([], 0, page, pageSize);
+        var result = await _client.GetFromJsonAsync<PagedResult<CategoryDto>>("/api/v1/categories?page=1&pageSize=10", ct);
+
+        if(result is null)
+        {
+            return new PagedResult<CategoryDto>([], 0, 1, 10);
+        }
+
+        return result;
     }
 }

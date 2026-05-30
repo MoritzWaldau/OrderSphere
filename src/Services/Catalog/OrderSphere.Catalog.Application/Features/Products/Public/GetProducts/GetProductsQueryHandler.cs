@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Catalog.Application.DTOs.Public;
 
 namespace OrderSphere.Catalog.Application.Features.Products.Public.GetProducts;
@@ -13,21 +12,6 @@ public sealed class GetProductsQueryHandler(ICatalogDbContext context)
             .Include(p => p.Category)
             .AsNoTracking()
             .Where(p => !p.IsDeleted && p.IsActive);
-
-        if (!string.IsNullOrWhiteSpace(request.Search))
-        {
-            var term = request.Search.Trim().ToLower();
-            query = query.Where(p =>
-                p.Name.ToLower().Contains(term) ||
-                (p.Description != null && p.Description.ToLower().Contains(term)) ||
-                p.SKU.ToLower().Contains(term));
-        }
-
-        if (request.CategoryId.HasValue)
-        {
-            var catId = CategoryId.From(request.CategoryId.Value);
-            query = query.Where(p => p.CategoryId == catId);
-        }
 
         var total = await query.CountAsync(ct);
 

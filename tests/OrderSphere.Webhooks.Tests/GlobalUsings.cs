@@ -1,5 +1,11 @@
 global using FluentAssertions;
+global using MockQueryable.NSubstitute;
+global using NSubstitute;
 global using Xunit;
+global using OrderSphere.BuildingBlocks.Primitives;
 global using OrderSphere.BuildingBlocks.StronglyTypedIds;
+global using OrderSphere.Webhooks.Application.Abstractions;
+global using OrderSphere.Webhooks.Application.DTOs;
 global using OrderSphere.Webhooks.Domain.Entities;
 global using OrderSphere.Webhooks.Domain.Enums;
+global using OrderSphere.Webhooks.Domain.Errors;

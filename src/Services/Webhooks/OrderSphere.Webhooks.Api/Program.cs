@@ -1,7 +1,6 @@
-using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
-using OrderSphere.BuildingBlocks.Behaviors;
+using OrderSphere.Webhooks.Application;
 using OrderSphere.Webhooks.Api.Endpoints;
 using OrderSphere.Webhooks.Infrastructure;
 using OrderSphere.Webhooks.Infrastructure.Persistence;
@@ -11,15 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.AddOrderSphereSwagger("OrderSphere Webhooks API");
 
-builder.AddNpgsqlDbContext<WebhooksDbContext>("webhooks-db", settings =>
-{
-    settings.DisableRetry = false;
-});
-
-builder.Services.AddWebhooksInfrastructure();
-
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
-builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
+builder.AddWebhooksInfrastructure();
+builder.Services.AddWebhooksApplication();
 
 var webhooksConnectionString = builder.Configuration.GetConnectionString("webhooks-db") ?? "";
 builder.Services.AddHealthChecks()

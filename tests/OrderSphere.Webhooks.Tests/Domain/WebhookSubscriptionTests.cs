@@ -140,4 +140,26 @@ public sealed class WebhookSubscriptionTests
 
         sub.ListensTo(WebhookEventType.OrderPlaced).Should().BeFalse();
     }
+
+    // ── Delete ───────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Delete_SetsIsDeletedTrue()
+    {
+        var sub = CreateSubscription(WebhookEventType.OrderPlaced);
+
+        sub.Delete();
+
+        sub.IsDeleted.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Delete_SetsIsActiveFalse()
+    {
+        var sub = CreateSubscription(WebhookEventType.OrderPlaced);
+
+        sub.Delete();
+
+        sub.IsActive.Should().BeFalse();
+    }
 }

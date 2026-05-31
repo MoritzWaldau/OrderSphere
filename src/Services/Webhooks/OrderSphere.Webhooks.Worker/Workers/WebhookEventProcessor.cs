@@ -43,6 +43,9 @@ public sealed class WebhookEventProcessor(
 
     private async Task ProcessMessageAsync(ProcessMessageEventArgs args)
     {
+        var messageId = args.Message.MessageId;
+        logger.LogInformation("Received webhook event message {MessageId}.", messageId);
+
         using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<WebhooksDbContext>();
         var inboxStore = scope.ServiceProvider.GetRequiredService<IInboxStore>();
@@ -54,29 +57,54 @@ public sealed class WebhookEventProcessor(
 
             if (eventType is null)
             {
-                logger.LogWarning("Unknown message type on webhook-events queue. Completing without processing.");
-                await args.CompleteMessageAsync(args.Message, args.CancellationToken);
+                logger.LogWarning(
+                    "Message {MessageId} has an unknown or missing EventType. Dead-lettering.", messageId);
+                await args.DeadLetterMessageAsync(args.Message,
+                    deadLetterReason: "UnknownEventType",
+                    deadLetterErrorDescription: "Could not determine event type from message properties or body.",
+                    cancellationToken: args.CancellationToken);
                 return;
             }
 
-            var eventId = ExtractEventId(body);
+            Guid eventId;
+            try
+            {
+                eventId = ExtractEventId(body);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex,
+                    "Message {MessageId} body could not be deserialized. Dead-lettering.", messageId);
+                await args.DeadLetterMessageAsync(args.Message,
+                    deadLetterReason: "DeserializationFailed",
+                    deadLetterErrorDescription: ex.Message,
+                    cancellationToken: args.CancellationToken);
+                return;
+            }
 
             // Inbox check — idempotent processing.
             if (await inboxStore.HasBeenProcessedAsync(eventId, args.CancellationToken))
             {
-                logger.LogInformation("Event {EventId} already processed (inbox). Skipping.", eventId);
+                logger.LogInformation("Event {EventId} already processed (inbox). Completing message.", eventId);
                 await args.CompleteMessageAsync(args.Message, args.CancellationToken);
+                return;
+            }
+
+            // Map integration event type to webhook domain event type.
+            var webhookEventType = MapToWebhookEventType(eventType);
+            if (webhookEventType is null)
+            {
+                logger.LogWarning(
+                    "Message {MessageId} has event type '{EventType}' with no webhook mapping. Dead-lettering.",
+                    messageId, eventType);
+                await args.DeadLetterMessageAsync(args.Message,
+                    deadLetterReason: "UnknownEventType",
+                    deadLetterErrorDescription: $"No webhook mapping for event type '{eventType}'.",
+                    cancellationToken: args.CancellationToken);
                 return;
             }
 
             // Find all active subscriptions that listen to this event type.
-            var webhookEventType = MapToWebhookEventType(eventType);
-            if (webhookEventType is null)
-            {
-                await args.CompleteMessageAsync(args.Message, args.CancellationToken);
-                return;
-            }
-
             var eventTypeName = webhookEventType.Value.ToString();
             var subscriptions = await db.Subscriptions
                 .Where(s => s.IsActive && !s.IsDeleted && s.Events.Contains(eventTypeName))
@@ -117,14 +145,17 @@ public sealed class WebhookEventProcessor(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error processing webhook event. Message will be retried.");
+            logger.LogError(ex,
+                "Unhandled exception processing webhook event message {MessageId}. Abandoning.", messageId);
             await args.AbandonMessageAsync(args.Message, cancellationToken: args.CancellationToken);
         }
     }
 
     private Task ProcessErrorAsync(ProcessErrorEventArgs args)
     {
-        logger.LogError(args.Exception, "Service Bus error on {Source}.", args.ErrorSource);
+        logger.LogError(args.Exception,
+            "Service Bus processor error. Source: {Source}, Entity: {Entity}",
+            args.ErrorSource, args.EntityPath);
         return Task.CompletedTask;
     }
 
@@ -147,13 +178,9 @@ public sealed class WebhookEventProcessor(
 
     private static Guid ExtractEventId(string body)
     {
-        try
-        {
-            using var doc = JsonDocument.Parse(body);
-            if (doc.RootElement.TryGetProperty("Id", out var idProp))
-                return idProp.GetGuid();
-        }
-        catch { /* Fallback to new Guid. */ }
+        using var doc = JsonDocument.Parse(body);
+        if (doc.RootElement.TryGetProperty("Id", out var idProp))
+            return idProp.GetGuid();
 
         return Guid.NewGuid();
     }

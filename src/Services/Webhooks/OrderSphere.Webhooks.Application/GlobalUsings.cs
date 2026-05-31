@@ -1,0 +1,9 @@
+global using OrderSphere.BuildingBlocks.Primitives;
+global using OrderSphere.BuildingBlocks.Abstraction;
+global using MediatR;
+global using Microsoft.EntityFrameworkCore;
+global using OrderSphere.Webhooks.Application.Abstractions;
+global using OrderSphere.Webhooks.Application.DTOs;
+global using OrderSphere.Webhooks.Domain.Errors;
+global using FluentValidation;
+global using Microsoft.Extensions.DependencyInjection;

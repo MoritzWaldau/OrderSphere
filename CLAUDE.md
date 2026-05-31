@@ -37,7 +37,7 @@ These are the rules that are not derivable by reading existing code. For everyth
 
 ## UI and styling
 
-All visual, theming, MudBlazor, and CSS rules live in `.github/copilot-instructions.md`. Do not duplicate them here. When making UI changes, read that file first.
+All visual, theming, MudBlazor, and CSS rules live in [`docs/ui-conventions.md`](docs/ui-conventions.md). Do not duplicate them here. When making UI changes, read that file first.
 
 ## Commands
 
@@ -60,7 +60,7 @@ Run from the repository root. Full EF migration matrix is in [docs/architecture.
 - Changing authentication or authorization flow.
 - Breaking a public contract consumed by the UI client.
 
-Proceed without asking for: bug fixes, refactors inside one layer, new features that follow an existing feature pattern, UI changes consistent with `copilot-instructions.md`, performance improvements with no behavior change.
+Proceed without asking for: bug fixes, refactors inside one layer, new features that follow an existing feature pattern, UI changes consistent with `docs/ui-conventions.md`, performance improvements with no behavior change.
 
 ## Commit format
 

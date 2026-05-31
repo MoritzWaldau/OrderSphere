@@ -128,7 +128,7 @@ The full EF Core migration matrix (per service) is in
 
 Repository conventions — layer rules, the `Result<T>` contract, feature layout, integration-event
 patterns, and commit format — are documented in [CLAUDE.md](CLAUDE.md). UI, theming, and CSS rules
-are in [.github/copilot-instructions.md](.github/copilot-instructions.md).
+are in [docs/ui-conventions.md](docs/ui-conventions.md).
 
 ## License
 

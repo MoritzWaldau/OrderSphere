@@ -13,7 +13,6 @@ using OrderSphere.Ordering.Api.Configuration;
 using OrderSphere.Ordering.Api.Endpoints;
 using OrderSphere.Ordering.Api.Exceptions;
 using OrderSphere.Ordering.Infrastructure;
-using OrderSphere.Ordering.Infrastructure.Email;
 using OrderSphere.Ordering.Infrastructure.Idempotency;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 
@@ -31,9 +30,6 @@ builder.AddNpgsqlDbContext<OrderingDbContext>("ordering-db", settings =>
 // Ordering Infrastructure
 builder.Services.AddOrderingInfrastructure(builder.Environment);
 builder.Services.AddOrderingOutboxProcessing();
-builder.Services.Configure<OrderingMailConfiguration>(
-    builder.Configuration.GetSection("MailServiceConfiguration"));
-
 // Azure Service Bus (for OutboxDispatcher → RealServiceBusPublisher)
 builder.AddAzureServiceBusClient("azure-service-bus");
 

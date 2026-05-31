@@ -12,6 +12,8 @@ public sealed class SavedAddressConfiguration : IEntityTypeConfiguration<SavedAd
 
         builder.HasKey(a => a.Id);
 
+        builder.HasQueryFilter(a => !a.IsDeleted);
+
         builder.Property(a => a.Label).IsRequired().HasMaxLength(100);
         builder.Property(a => a.FirstName).IsRequired().HasMaxLength(100);
         builder.Property(a => a.LastName).IsRequired().HasMaxLength(100);

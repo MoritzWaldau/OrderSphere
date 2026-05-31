@@ -101,6 +101,30 @@ public sealed class AddToCartCommandHandlerTests
         reloaded!.Items.Single(i => i.ProductId == ProductA).Quantity.Value.Should().Be(5);
     }
 
+    // ── Kumulative Stock-Prüfung ────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_ExistingCartExceedsStockCumulatively_ReturnsInsufficientStockError()
+    {
+        using var ctx = BasketDbContextFactory.Create();
+
+        // 5 Einheiten bereits im Korb
+        var cart = new Cart(Customer);
+        cart.AddItem(new CartItem(ProductA, Quantity.Of(5)));
+        await ctx.Carts.AddAsync(cart);
+        await ctx.SaveChangesAsync();
+
+        // Stock = 6, weitere 5 angefordert → 5 + 5 > 6
+        var catalog = Substitute.For<ICatalogClient>();
+        catalog.GetProductByIdAsync(ProductA.Value, Arg.Any<CancellationToken>())
+               .Returns(Result<CatalogProductInfo>.Success(AvailableProduct(stock: 6)));
+
+        var result = await CreateHandler(ctx, catalog).Handle(ValidCommand(qty: 5), default);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(ProductErrors.InsufficientStockError);
+    }
+
     // ── Exception path — propagates when catalog client throws ──────────────────
 
     [Fact]

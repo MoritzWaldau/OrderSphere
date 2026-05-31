@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
 using OrderSphere.UserProfile.Application.Features.Profile.SetDefaultAddress;
 using OrderSphere.UserProfile.Domain.Entities;
 using OrderSphere.UserProfile.Domain.Errors;
@@ -13,7 +12,7 @@ public sealed class SetDefaultAddressCommandHandlerTests
 {
     private static SetDefaultAddressCommandHandler CreateHandler(
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
-        => new(ctx, NullLogger<SetDefaultAddressCommandHandler>.Instance);
+        => new(ctx);
 
     // ── Profile not found ─────────────────────────────────────────────────────
 

@@ -12,7 +12,4 @@ public static class UserProfileErrors
 
     public static readonly Error AddressLimitExceeded =
         new("UserProfile.Address.LimitExceeded", "Maximum number of saved addresses reached.", ErrorType.Conflict);
-
-    public static readonly Error UnknownError =
-        new("UserProfile.UnknownError", "An unexpected error occurred.", ErrorType.Unexpected);
 }

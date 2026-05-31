@@ -27,6 +27,8 @@ public sealed class UpdateOrderStatusCommandHandler(
             if (order is null)
                 return Result.Failure(OrderErrors.OrderNotFoundError);
 
+            await context.BeginTransactionAsync(cancellationToken);
+
             try
             {
                 switch (request.NewStatus)
@@ -37,8 +39,6 @@ public sealed class UpdateOrderStatusCommandHandler(
                     case OrderStatus.Delivered:
                         order.MarkDelivered();
                         break;
-                    case OrderStatus.Cancelled:
-                        return Result.Failure(OrderErrors.InvalidStatusTransition);
                     default:
                         return Result.Failure(OrderErrors.InvalidStatusTransition);
                 }
@@ -50,8 +50,6 @@ public sealed class UpdateOrderStatusCommandHandler(
                 return Result.Failure(OrderErrors.InvalidStatusTransition);
             }
 
-            context.Orders.Update(order);
-            await context.BeginTransactionAsync(cancellationToken);
             await context.CommitAsync(cancellationToken);
 
             logger.LogInformation("Order {OrderId} status updated to {NewStatus}", order.Id, request.NewStatus);

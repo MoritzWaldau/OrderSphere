@@ -61,6 +61,11 @@ public sealed class Cart : AuditableEntity<CartId>, IAggregateRoot
     /// Raises <see cref="CartItemDecreasedDomainEvent"/>.
     /// Returns <see cref="Result.Failure"/> if the item does not exist in this cart.
     /// </summary>
+    public void ClearItems()
+    {
+        Items.Clear();
+    }
+
     public Result DecreaseItem(ProductId productId)
     {
         var item = Items.FirstOrDefault(x => x.ProductId == productId);

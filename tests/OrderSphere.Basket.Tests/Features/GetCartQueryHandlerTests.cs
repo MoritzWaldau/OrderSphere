@@ -9,33 +9,33 @@ public sealed class GetCartQueryHandlerTests
 
     private static GetCartQueryHandler CreateHandler(
         BasketDbContext ctx,
-        ICatalogClient? catalog = null,
-        ILogger<GetCartQueryHandler>? logger = null)
+        ICatalogClient? catalog = null)
     {
         catalog ??= Substitute.For<ICatalogClient>();
-        logger  ??= Substitute.For<ILogger<GetCartQueryHandler>>();
-        return new GetCartQueryHandler(ctx, catalog, logger);
+        return new GetCartQueryHandler(ctx, catalog);
     }
 
-    // ── Cart not found ──────────────────────────────────────────────────────────
+    private static CatalogProductInfo ProductInfo(string name = "Widget", decimal price = 9.99m) =>
+        new(ProductA.Value, name, price, Stock: 10, IsActive: true);
+
+    // ── No cart → 200 with empty items ─────────────────────────────────────────
 
     [Fact]
-    public async Task Handle_CartNotFound_ReturnsCartNotFoundError()
+    public async Task Handle_CartNotFound_ReturnsEmptyCartDto()
     {
         using var ctx = BasketDbContextFactory.Create();
-        var catalog = Substitute.For<ICatalogClient>();
 
-        var result = await CreateHandler(ctx, catalog)
-            .Handle(new GetCartQuery(Customer), default);
+        var result = await CreateHandler(ctx).Handle(new GetCartQuery(Customer), default);
 
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(CartErrors.CartNotFoundError);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Items.Should().BeEmpty();
+        result.Value.CustomerId.Should().Be(Customer.Value);
     }
 
-    // ── Catalog names call fails — still returns CartDto with fallback names ───
+    // ── Catalog infos call fails — returns fallback name and zero price ─────────
 
     [Fact]
-    public async Task Handle_CatalogNamesFails_ReturnsCartDtoWithUnknownProductName()
+    public async Task Handle_CatalogInfosFails_ReturnsCartDtoWithFallbackValues()
     {
         using var ctx = BasketDbContextFactory.Create();
         var cart = new Cart(Customer);
@@ -44,21 +44,21 @@ public sealed class GetCartQueryHandlerTests
         await ctx.SaveChangesAsync();
 
         var catalog = Substitute.For<ICatalogClient>();
-        catalog.GetProductNamesByIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
-               .Returns(Result<IReadOnlyDictionary<Guid, string>>.Failure(
+        catalog.GetProductInfosByIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+               .Returns(Result<IReadOnlyDictionary<Guid, CatalogProductInfo>>.Failure(
                    new Error("catalog.unavailable", "unavailable")));
 
-        var result = await CreateHandler(ctx, catalog)
-            .Handle(new GetCartQuery(Customer), default);
+        var result = await CreateHandler(ctx, catalog).Handle(new GetCartQuery(Customer), default);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Items.Should().ContainSingle(i => i.ProductName == "Unknown Product");
+        result.Value.Items.Should().ContainSingle(i =>
+            i.ProductName == "Unknown Product" && i.Price == 0m);
     }
 
-    // ── Happy path — catalog names resolved ─────────────────────────────────────
+    // ── Happy path — name and price filled from Catalog ─────────────────────────
 
     [Fact]
-    public async Task Handle_CartExists_ReturnsCartDtoWithProductNames()
+    public async Task Handle_CartExists_ReturnsCartDtoWithNameAndPrice()
     {
         using var ctx = BasketDbContextFactory.Create();
         var cart = new Cart(Customer);
@@ -66,17 +66,20 @@ public sealed class GetCartQueryHandlerTests
         await ctx.Carts.AddAsync(cart);
         await ctx.SaveChangesAsync();
 
-        var names = new Dictionary<Guid, string> { [ProductA.Value] = "Super Widget" };
+        var infos = new Dictionary<Guid, CatalogProductInfo>
+        {
+            [ProductA.Value] = ProductInfo("Super Widget", 19.99m)
+        };
         var catalog = Substitute.For<ICatalogClient>();
-        catalog.GetProductNamesByIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
-               .Returns(Result<IReadOnlyDictionary<Guid, string>>.Success(names));
+        catalog.GetProductInfosByIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+               .Returns(Result<IReadOnlyDictionary<Guid, CatalogProductInfo>>.Success(infos));
 
-        var result = await CreateHandler(ctx, catalog)
-            .Handle(new GetCartQuery(Customer), default);
+        var result = await CreateHandler(ctx, catalog).Handle(new GetCartQuery(Customer), default);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.CustomerId.Should().Be(Customer.Value);
-        result.Value.Items.Should().ContainSingle(i => i.ProductName == "Super Widget" && i.Quantity == 3);
+        result.Value.Items.Should().ContainSingle(i =>
+            i.ProductName == "Super Widget" && i.Price == 19.99m && i.Quantity == 3);
     }
 
     // ── Exception path — propagates when catalog client throws ──────────────────
@@ -91,7 +94,7 @@ public sealed class GetCartQueryHandlerTests
         await ctx.SaveChangesAsync();
 
         var catalog = Substitute.For<ICatalogClient>();
-        catalog.GetProductNamesByIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+        catalog.GetProductInfosByIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
                .ThrowsAsync(new HttpRequestException("network error"));
 
         await Assert.ThrowsAsync<HttpRequestException>(

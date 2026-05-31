@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdateAddress;
 using OrderSphere.UserProfile.Domain.Entities;
@@ -14,7 +13,7 @@ public sealed class UpdateAddressCommandHandlerTests
 {
     private static UpdateAddressCommandHandler CreateHandler(
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
-        => new(ctx, NullLogger<UpdateAddressCommandHandler>.Instance);
+        => new(ctx);
 
     private static UpdateAddressCommand ValidCommand(string sub, Guid addressId) => new(
         sub, addressId, "Work", "Alice", "Smith",

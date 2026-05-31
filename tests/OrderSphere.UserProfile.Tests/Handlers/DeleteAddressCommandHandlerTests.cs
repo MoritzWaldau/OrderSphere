@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
 using OrderSphere.UserProfile.Application.Features.Profile.DeleteAddress;
 using OrderSphere.UserProfile.Domain.Entities;
 using OrderSphere.UserProfile.Domain.Errors;
@@ -13,7 +12,7 @@ public sealed class DeleteAddressCommandHandlerTests
 {
     private static DeleteAddressCommandHandler CreateHandler(
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
-        => new(ctx, NullLogger<DeleteAddressCommandHandler>.Instance);
+        => new(ctx);
 
     // ── Profile not found ─────────────────────────────────────────────────────
 
@@ -87,6 +86,32 @@ public sealed class DeleteAddressCommandHandlerTests
             .Include(p => p.Addresses)
             .SingleAsync(p => p.KeycloakSubject == "sub-del-persist");
         stored.Addresses.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Handle_AddressExists_SoftDeletesRowButKeepsItInDatabase()
+    {
+        await using var ctx = DbContextFactory.Create();
+
+        var profile = new CustomerProfile("sub-soft-del", "Sara", "sara@example.com");
+        ctx.CustomerProfiles.Add(profile);
+        await ctx.SaveChangesAsync();
+
+        var address = profile.AddAddress("Home", "Sara", "Doe", "Str 3", "Cologne", "50667", "DE");
+        await ctx.SaveChangesAsync();
+
+        var cmd = new DeleteAddressCommand("sub-soft-del", address.Id.Value);
+        await CreateHandler(ctx).Handle(cmd, CancellationToken.None);
+
+        ctx.ChangeTracker.Clear();
+
+        // Default query filter hides it…
+        var visible = await ctx.SavedAddresses.ToListAsync();
+        visible.Should().BeEmpty();
+
+        // …but the row physically remains with IsDeleted = true.
+        var all = await ctx.SavedAddresses.IgnoreQueryFilters().ToListAsync();
+        all.Should().ContainSingle().Which.IsDeleted.Should().BeTrue();
     }
 
     [Fact]

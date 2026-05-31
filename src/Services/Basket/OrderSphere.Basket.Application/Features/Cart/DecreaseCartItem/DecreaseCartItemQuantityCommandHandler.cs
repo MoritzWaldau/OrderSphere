@@ -14,7 +14,7 @@ public sealed class DecreaseCartItemQuantityCommandHandler(
     {
         var cart = await context.Carts
             .Include(x => x.Items)
-            .FirstOrDefaultAsync(x => x.CustomerId == request.CustomerId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.CustomerId == request.CustomerId && !x.IsDeleted, cancellationToken);
 
         if (cart is null)
             return Result.Failure(CartErrors.CartNotFoundError);

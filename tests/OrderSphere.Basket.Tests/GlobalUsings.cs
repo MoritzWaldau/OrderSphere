@@ -16,4 +16,6 @@ global using OrderSphere.Basket.Application.Features.Cart.AddToCart;
 global using OrderSphere.Basket.Application.Features.Cart.RemoveFromCart;
 global using OrderSphere.Basket.Application.Features.Cart.DecreaseCartItem;
 global using OrderSphere.Basket.Application.Features.Cart.GetCart;
+global using OrderSphere.Basket.Application.Features.Cart.GetCartInternal;
+global using OrderSphere.Basket.Application.Features.Cart.ClearCart;
 global using OrderSphere.Basket.Infrastructure.Persistence;

@@ -69,9 +69,11 @@
     <Project Path="tests/OrderSphere.Basket.Tests/OrderSphere.Basket.Tests.csproj" />
     <Project Path="tests/OrderSphere.Catalog.Tests/OrderSphere.Catalog.Tests.csproj" />
     <Project Path="tests/OrderSphere.Domain.Tests/OrderSphere.Domain.Tests.csproj" />
+    <Project Path="tests/OrderSphere.Notification.Tests/OrderSphere.Notification.Tests.csproj" />
     <Project Path="tests/OrderSphere.Ordering.Application.Tests/OrderSphere.Ordering.Application.Tests.csproj" />
     <Project Path="tests/OrderSphere.Ordering.Authorization.Tests/OrderSphere.Ordering.Authorization.Tests.csproj" />
     <Project Path="tests/OrderSphere.Ordering.Checkout.Tests/OrderSphere.Ordering.Checkout.Tests.csproj" />
+    <Project Path="tests/OrderSphere.Payment.Tests/OrderSphere.Payment.Tests.csproj" />
     <Project Path="tests/OrderSphere.RealmContract.Tests/OrderSphere.RealmContract.Tests.csproj" />
     <Project Path="tests/OrderSphere.UserProfile.Tests/OrderSphere.UserProfile.Tests.csproj" />
     <Project Path="tests/OrderSphere.Webhooks.Tests/OrderSphere.Webhooks.Tests.csproj" />

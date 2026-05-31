@@ -97,7 +97,7 @@ public sealed class PaymentProcessor(
         }
     }
 
-    private async Task<bool> ProcessPaymentAsync(
+    internal async Task<bool> ProcessPaymentAsync(
         PaymentRequestedIntegrationEvent evt,
         PaymentDbContext context,
         IPaymentProviderFactory providerFactory,

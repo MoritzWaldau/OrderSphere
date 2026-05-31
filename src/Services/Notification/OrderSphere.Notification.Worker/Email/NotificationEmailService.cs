@@ -37,7 +37,7 @@ public sealed class NotificationEmailService(
         }
     }
 
-    private static string BuildPlainText(OrderPlacedIntegrationEvent evt)
+    internal static string BuildPlainText(OrderPlacedIntegrationEvent evt)
     {
         var de = CultureInfo.GetCultureInfo("de-DE");
         var sb = new StringBuilder();
@@ -60,7 +60,7 @@ public sealed class NotificationEmailService(
         return sb.ToString();
     }
 
-    private static string BuildHtml(OrderPlacedIntegrationEvent evt)
+    internal static string BuildHtml(OrderPlacedIntegrationEvent evt)
     {
         var de = CultureInfo.GetCultureInfo("de-DE");
         var itemRows = new StringBuilder();

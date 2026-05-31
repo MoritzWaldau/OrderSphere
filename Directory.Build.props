@@ -27,4 +27,16 @@
     <NoWarn>$(NoWarn);CS8669</NoWarn>
   </PropertyGroup>
 
+  <!-- Solution-weite Produktversion. Einziger Pflegeort; gilt für alle Projekte.
+       MSBuild leitet aus VersionPrefix AssemblyVersion, FileVersion und
+       InformationalVersion ab. VersionSuffix (z. B. -rc.1) bleibt per Build-Flag
+       ergänzbar, ohne den Prefix zu ändern. -->
+  <PropertyGroup>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <Product>OrderSphere</Product>
+    <Company>OrderSphere</Company>
+    <!-- Vermeidet den +<sha>-Suffix in der InformationalVersion. -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
 </Project>

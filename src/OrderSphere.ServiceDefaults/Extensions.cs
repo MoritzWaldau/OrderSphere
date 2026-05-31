@@ -1,5 +1,7 @@
+using System.Reflection;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +21,7 @@ namespace Microsoft.Extensions.Hosting
     {
         private const string HealthEndpointPath = "/health";
         private const string AlivenessEndpointPath = "/alive";
+        private const string VersionEndpointPath = "/version";
 
         public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
         {
@@ -69,6 +72,7 @@ namespace Microsoft.Extensions.Hosting
                             tracing.Filter = context =>
                                 !context.Request.Path.StartsWithSegments(HealthEndpointPath)
                                 && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath)
+                                && !context.Request.Path.StartsWithSegments(VersionEndpointPath)
                         )
                         // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                         //.AddGrpcClientInstrumentation()
@@ -128,6 +132,22 @@ namespace Microsoft.Extensions.Hosting
             {
                 Predicate = r => r.Tags.Contains("live")
             });
+
+            // Expose the compiled product version (from VersionPrefix in Directory.Build.props).
+            app.MapGet(VersionEndpointPath, () =>
+            {
+                var assembly = Assembly.GetEntryAssembly();
+                var informational = assembly?
+                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+                    .InformationalVersion;
+                return Results.Ok(new
+                {
+                    service = assembly?.GetName().Name,
+                    version = informational ?? assembly?.GetName().Version?.ToString()
+                });
+            })
+            .WithName("Version")
+            .ExcludeFromDescription();
 
             return app;
         }

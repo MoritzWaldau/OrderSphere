@@ -1,4 +1,12 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Claude Code Instructions for OrderSphere
+
+> Architecture reference (project layout, per-service tables, EF migration commands,
+> external service wiring) lives in [docs/architecture.md](docs/architecture.md).
+> Read it when you need a map of the system; it is not repeated here.
 
 ## Operating rules
 
@@ -9,22 +17,9 @@
 
 ## Architecture
 
-Clean Architecture with CQRS (MediatR) over a DDD domain model. Errors flow through `Result<T>`, not exceptions. Entities carry audit fields and soft-delete via `AuditableEntity`. Domain events implement MediatR `INotification`. Order processing is asynchronous via Azure Service Bus.
+Microservices over Clean Architecture with CQRS (MediatR) and DDD. Each service is independently deployable and owns its domain, persistence, and infrastructure. Errors flow through `Result<T>`, not exceptions. Entities carry audit fields and soft-delete via `AuditableEntity`.
 
-Layer dependency direction: `UI → Application → Infrastructure → Domain`. Domain has no outward dependencies.
-
-## Project layout
-
-| Project | Responsibility |
-|---|---|
-| `src/OrderSphere.Domain` | Entities, value objects, domain events, errors, `Result<T>`, CQRS abstractions (`ICommand`, `IQuery`, `ICommandHandler`, `IQueryHandler`) |
-| `src/OrderSphere.Application` | Feature handlers under `Features/<Aggregate>/<UseCase>/`, DTOs, validators, MediatR registration |
-| `src/OrderSphere.Infrastructure` | EF Core (`Persistence/`), entity configurations (`EntityConfigurations/`), Azure email (`Email/`), Azure Service Bus (`ServiceBus/`), interceptors |
-| `src/OrderSphere.UI/OrderSphere.UI` | Blazor Server host, pages, layouts, DI wiring — startup project |
-| `src/OrderSphere.UI/OrderSphere.UI.Client` | Client-side interactive components |
-| `src/OrderSphere.AppHost` | .NET Aspire orchestration (Postgres, Service Bus, app) |
-| `tests/OrderSphere.Domain.Tests` | Domain unit tests |
-| `tests/OrderSphere.Application.Tests` | Application/handler tests |
+Layer dependencies point inward toward the domain (canonical Clean Architecture): `Api → Infrastructure → Application → Domain → BuildingBlocks.Domain`, and `Api → Application`. Application defines abstractions (`I<Service>DbContext`, client interfaces); Infrastructure implements them — so `Infrastructure → Application` is correct, not a violation. Application never references Infrastructure. No service references another service's projects directly — cross-service communication uses HTTP clients or Service Bus events. Shared primitives live in `BuildingBlocks` (see [docs/architecture.md](docs/architecture.md)).
 
 ## Conventions
 
@@ -32,49 +27,30 @@ These are the rules that are not derivable by reading existing code. For everyth
 
 - Business validation returns a `Result<T>` failure. Exceptions are reserved for genuinely exceptional conditions (I/O failures, programmer errors).
 - Commands and queries return `Result<TDto>`. DTOs are `record` types; entities are `class` types.
-- New entities inherit `AuditableEntity`. Add a matching configuration in `src/OrderSphere.Infrastructure/EntityConfigurations/`.
-- New features live in `src/OrderSphere.Application/Features/<Aggregate>/<UseCase>/`. Each use case co-locates its command/query, handler, and validator.
+- New entities inherit `AuditableEntity`. Add a matching EF configuration in the service's `Infrastructure/EntityConfigurations/`.
+- Features live in `Features/<Aggregate>/<UseCase>/`, co-locating command/query, handler, and validator. Every service has a `<Service>.Application` project — no exceptions, regardless of size. Use-cases go in `<Service>.Application/Features/`. The DbContext is reached through an `I<Service>DbContext` interface declared in `<Service>.Application/Abstractions/` and implemented by the concrete context in `<Service>.Infrastructure/Persistence/`; handlers depend on the interface, never the concrete context.
+- Cross-service calls go through typed HTTP client interfaces (e.g. `ICatalogClient`, `IBasketClient`). No direct project references across service boundaries.
+- Integration events are defined in `BuildingBlocks.Contracts`. Publish via `IEventBus`; consume via `IIntegrationEventHandler<T>`.
 - Queries against soft-deletable entities must filter `!x.IsDeleted`.
 - All I/O is `async`/`await`. No `.Result`, no `.Wait()`, no `.GetAwaiter().GetResult()`.
 - Nullable reference types are enabled. Treat warnings as real.
 
-## Features
-
-| Aggregate | Notes |
-|---|---|
-| Cart | Customer cart, add/remove/update items |
-| Order | Order placement, retrieval, status transitions |
-| Product | Catalog product CRUD and lookups (by id, by slug) |
-| Category | Product category hierarchy |
-| Checkout | Cart-to-order checkout flow, publishes `CheckoutCartEvent` to Service Bus |
-| Coupon | Coupon validation (`ValidateCoupon` query); errors in `Domain/Errors/CouponErrors.cs` |
-| Admin | Administrative operations |
-
 ## UI and styling
 
-All visual, theming, MudBlazor, and CSS rules live in `.github/copilot-instructions.md`. Do not duplicate them here. When making UI changes, read that file first.
+All visual, theming, MudBlazor, and CSS rules live in [`docs/ui-conventions.md`](docs/ui-conventions.md). Do not duplicate them here. When making UI changes, read that file first.
 
 ## Commands
 
-Run from the repository root (`E:\CSharp\OrderSphere`).
+Run from the repository root. Full EF migration matrix is in [docs/architecture.md](docs/architecture.md).
 
 | Task | Command |
 |---|---|
 | Build | `dotnet build OrderSphere.slnx` |
 | Run via Aspire | `dotnet run --project src/OrderSphere.AppHost` |
-| Run UI directly | `dotnet run --project src/OrderSphere.UI/OrderSphere.UI` |
-| UI hot reload | `dotnet watch --project src/OrderSphere.UI/OrderSphere.UI` |
-| Tests | `dotnet test` |
-| Add EF migration | `dotnet ef migrations add <Name> -p src/OrderSphere.Infrastructure -s src/OrderSphere.UI/OrderSphere.UI` |
-| Apply EF migrations | `dotnet ef database update -p src/OrderSphere.Infrastructure -s src/OrderSphere.UI/OrderSphere.UI` |
-
-Startup project for EF tooling is `src/OrderSphere.UI/OrderSphere.UI`, not `src/OrderSphere.UI`.
-
-## External services
-
-- **Database**: PostgreSQL via EF Core. `OrderSphereDbContext` in `src/OrderSphere.Infrastructure/Persistence/`. Configurations applied via `ApplyConfigurationsFromAssembly`.
-- **Email**: Azure Communication Services. `IEmailService` in `src/OrderSphere.Infrastructure/Email/`. Settings under `MailServiceConfiguration` in `appsettings.json`.
-- **Service Bus**: Azure Service Bus. Publisher in `src/OrderSphere.Infrastructure/ServiceBus/`. Queue `orders` carries `CheckoutCartEvent` for asynchronous order processing.
+| Run BFF (with WASM) | `dotnet run --project src/Gateways/OrderSphere.Bff` |
+| All tests | `dotnet test` |
+| One test project | `dotnet test tests/OrderSphere.Domain.Tests` |
+| Single test / by name | `dotnet test --filter "FullyQualifiedName~CheckoutCart"` (also accepts `Name~`, `ClassName~`) |
 
 ## Ask before
 
@@ -84,7 +60,7 @@ Startup project for EF tooling is `src/OrderSphere.UI/OrderSphere.UI`, not `src/
 - Changing authentication or authorization flow.
 - Breaking a public contract consumed by the UI client.
 
-Proceed without asking for: bug fixes, refactors inside one layer, new features that follow an existing feature pattern, UI changes consistent with `copilot-instructions.md`, performance improvements with no behavior change.
+Proceed without asking for: bug fixes, refactors inside one layer, new features that follow an existing feature pattern, UI changes consistent with `docs/ui-conventions.md`, performance improvements with no behavior change.
 
 ## Commit format
 

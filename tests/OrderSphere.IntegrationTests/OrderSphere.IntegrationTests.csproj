@@ -1,28 +1,30 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.Testing" />
-    <PackageReference Include="Azure.Messaging.ServiceBus" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="FluentAssertions" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NSubstitute" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\OrderSphere.AppHost\OrderSphere.AppHost.csproj" />
-    <ProjectReference Include="..\..\src\OrderSphere.Application\OrderSphere.Application.csproj" />
-    <ProjectReference Include="..\..\src\OrderSphere.Domain\OrderSphere.Domain.csproj" />
-    <ProjectReference Include="..\..\src\OrderSphere.Infrastructure\OrderSphere.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Services\Ordering\OrderSphere.Ordering.Api\OrderSphere.Ordering.Api.csproj" />
+    <ProjectReference Include="..\..\src\Services\Ordering\OrderSphere.Ordering.Worker\OrderSphere.Ordering.Worker.csproj" />
   </ItemGroup>
 
 </Project>

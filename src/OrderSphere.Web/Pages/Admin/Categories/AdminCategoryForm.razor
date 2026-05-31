@@ -1,0 +1,101 @@
+@page "/admin/categories/new"
+@page "/admin/categories/{CategoryId:guid}"
+@inject IAdminCatalogClient AdminCatalog
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>@(IsEdit ? "Kategorie bearbeiten" : "Neue Kategorie") — Admin</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-8">
+    <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ArrowBack"
+               Href="/admin/categories" Class="mb-4">
+        Zurück zur Liste
+    </MudButton>
+
+    <MudText Typo="Typo.h4" Class="mb-6" Style="font-weight: 700;">
+        @(IsEdit ? "Kategorie bearbeiten" : "Neue Kategorie")
+    </MudText>
+
+    @if (_loading)
+    {
+        <MudStack AlignItems="AlignItems.Center" Class="py-12">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        </MudStack>
+    }
+    else
+    {
+        <MudPaper Elevation="0" Class="pa-6" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
+            <MudStack Spacing="4">
+                <MudTextField @bind-Value="_name" Label="Name"
+                              Variant="Variant.Outlined" Required="true"
+                              RequiredError="Name ist erforderlich" />
+
+                <MudTextField @bind-Value="_description" Label="Beschreibung"
+                              Variant="Variant.Outlined" Lines="3" />
+
+                @if (IsEdit)
+                {
+                    <MudSwitch T="bool" @bind-Value="_isActive"
+                               Label="Aktiv" Color="Color.Primary" />
+                }
+
+                <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-2">
+                    <MudButton Variant="Variant.Outlined" Href="/admin/categories">Abbrechen</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               StartIcon="@Icons.Material.Outlined.Save"
+                               Disabled="_saving" OnClick="SaveAsync">
+                        @(IsEdit ? "Speichern" : "Anlegen")
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public Guid? CategoryId { get; set; }
+
+    private bool IsEdit => CategoryId.HasValue;
+    private bool _loading = true;
+    private bool _saving;
+    private string _name = string.Empty;
+    private string _description = string.Empty;
+    private bool _isActive = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEdit)
+        {
+            try
+            {
+                var cats = await AdminCatalog.GetCategoriesAsync();
+                var cat = cats.FirstOrDefault(c => c.Id == CategoryId!.Value);
+                if (cat is not null) { _name = cat.Name; _description = cat.Description; _isActive = cat.IsActive; }
+            }
+            catch (Exception ex) { Snackbar.Add($"Fehler: {ex.Message}", Severity.Error); }
+        }
+        _loading = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        try
+        {
+            var input = new AdminCategoryInput(_name, _description, _isActive);
+            if (IsEdit)
+            {
+                var ok = await AdminCatalog.UpdateCategoryAsync(CategoryId!.Value, input);
+                if (ok) { Snackbar.Add("Gespeichert.", Severity.Success); Navigation.NavigateTo("/admin/categories"); }
+                else Snackbar.Add("Fehler beim Speichern.", Severity.Error);
+            }
+            else
+            {
+                var id = await AdminCatalog.CreateCategoryAsync(input);
+                if (id.HasValue) { Snackbar.Add("Kategorie angelegt.", Severity.Success); Navigation.NavigateTo("/admin/categories"); }
+                else Snackbar.Add("Fehler beim Anlegen.", Severity.Error);
+            }
+        }
+        finally { _saving = false; }
+    }
+}

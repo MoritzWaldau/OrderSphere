@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package ordersphere.catalog.v1;
+
+option csharp_namespace = "OrderSphere.Catalog.V1";
+
+service CatalogService {
+  rpc GetProduct (GetProductRequest) returns (GetProductResponse);
+  rpc GetProductBySlug (GetProductBySlugRequest) returns (GetProductResponse);
+  rpc CheckStock (CheckStockRequest) returns (CheckStockResponse);
+  rpc DecrementStock (DecrementStockRequest) returns (StockOperationResponse);
+  rpc RestoreStock (RestoreStockRequest) returns (StockOperationResponse);
+  rpc GetProductNames (GetProductNamesRequest) returns (GetProductNamesResponse);
+}
+
+message GetProductRequest {
+  string product_id = 1;
+}
+
+message GetProductBySlugRequest {
+  string slug = 1;
+}
+
+message GetProductResponse {
+  bool found = 1;
+  string id = 2;
+  string name = 3;
+  string slug = 4;
+  string description = 5;
+  double price = 6;
+  int32 stock = 7;
+  string category_id = 8;
+  string category_name = 9;
+  string sku = 10;
+  string image_url = 11;
+  bool is_active = 12;
+}
+
+message CheckStockRequest {
+  string product_id = 1;
+  int32 quantity = 2;
+}
+
+message CheckStockResponse {
+  bool is_available = 1;
+  int32 current_stock = 2;
+}
+
+message DecrementStockRequest {
+  string product_id = 1;
+  int32 quantity = 2;
+}
+
+message RestoreStockRequest {
+  string product_id = 1;
+  int32 quantity = 2;
+}
+
+message StockOperationResponse {
+  bool success = 1;
+  string error_code = 2;
+  string error_description = 3;
+}
+
+message GetProductNamesRequest {
+  repeated string product_ids = 1;
+}
+
+message GetProductNamesResponse {
+  map<string, string> names = 1;
+}

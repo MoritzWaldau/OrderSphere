@@ -1,0 +1,39 @@
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Behaviors;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
+using OrderSphere.Ordering.Infrastructure;
+using OrderSphere.Ordering.Infrastructure.Email;
+using OrderSphere.Ordering.Infrastructure.Persistence;
+using OrderSphere.Ordering.Worker.Workers;
+
+var builder = Host.CreateApplicationBuilder(args);
+
+builder.AddServiceDefaults();
+
+// Azure Service Bus
+builder.AddAzureServiceBusClient("azure-service-bus");
+
+// EventBus abstraction
+builder.Services.AddAzureServiceBusEventBus();
+
+// EF Core — Aspire injects connection string via "ordering-db"
+builder.AddNpgsqlDbContext<OrderingDbContext>("ordering-db", settings =>
+{
+    settings.DisableRetry = false;
+});
+
+// Ordering infrastructure (email, outbox handler registrations, DI bindings)
+builder.Services.AddOrderingInfrastructure(builder.Environment);
+builder.Services.AddOrderingOutboxProcessing();
+builder.Services.Configure<OrderingMailConfiguration>(
+    builder.Configuration.GetSection("MailServiceConfiguration"));
+
+// Service Bus consumers
+builder.Services.AddHostedService<OrderProcessor>();
+builder.Services.AddHostedService<PaymentResultProcessor>();
+
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
+
+builder.Build().Run();

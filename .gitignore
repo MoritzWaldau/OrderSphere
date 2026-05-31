@@ -16,6 +16,9 @@
 # Mono auto generated files
 mono_crash.*
 
+# Cygwin/MSYS/Git-Bash crash dumps
+*.stackdump
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
@@ -364,3 +367,9 @@ FodyWeavers.xsd
 
 # JetBrains IDEs (Rider, ReSharper, etc.)
 .idea/
+
+# Claude Code – per-developer permission overrides (not shared)
+.claude/settings.local.json
+
+# Claude Code – skills live in ~/.claude/skills (global), not in the repo
+.claude/skills/

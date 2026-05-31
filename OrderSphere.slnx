@@ -1,18 +1,86 @@
 <Solution>
-  <Folder Name="/src/">
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Packages.props" />
+    <File Path=".gitignore" />
+    <File Path=".gitattributes" />
+    <File Path="CLAUDE.md" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/OrderSphere.BuildingBlocks.csproj" />
+    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.EventBus/OrderSphere.BuildingBlocks.EventBus.csproj" />
+    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.EventBus.AzureServiceBus/OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.csproj" />
+    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Contracts/OrderSphere.BuildingBlocks.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/src/Hosting/">
     <Project Path="src/OrderSphere.AppHost/OrderSphere.AppHost.csproj" />
-    <Project Path="src/OrderSphere.Application/OrderSphere.Application.csproj" />
-    <Project Path="src/OrderSphere.Domain/OrderSphere.Domain.csproj" />
-    <Project Path="src/OrderSphere.Hosting/OrderSphere.Hosting.csproj" />
-    <Project Path="src/OrderSphere.Infrastructure/OrderSphere.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Catalog/">
+    <Project Path="src/Services/Catalog/OrderSphere.Catalog.Api/OrderSphere.Catalog.Api.csproj" />
+    <Project Path="src/Services/Catalog/OrderSphere.Catalog.Application/OrderSphere.Catalog.Application.csproj" Id="4670507a-202e-412d-8409-5ee89cfb1049" />
+    <Project Path="src/Services/Catalog/OrderSphere.Catalog.Domain/OrderSphere.Catalog.Domain.csproj" />
+    <Project Path="src/Services/Catalog/OrderSphere.Catalog.Infrastructure/OrderSphere.Catalog.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Ordering/">
+    <Project Path="src/Services/Ordering/OrderSphere.Ordering.Api/OrderSphere.Ordering.Api.csproj" />
+    <Project Path="src/Services/Ordering/OrderSphere.Ordering.Application/OrderSphere.Ordering.Application.csproj" />
+    <Project Path="src/Services/Ordering/OrderSphere.Ordering.Domain/OrderSphere.Ordering.Domain.csproj" />
+    <Project Path="src/Services/Ordering/OrderSphere.Ordering.Infrastructure/OrderSphere.Ordering.Infrastructure.csproj" />
+    <Project Path="src/Services/Ordering/OrderSphere.Ordering.Worker/OrderSphere.Ordering.Worker.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Basket/">
+    <Project Path="src/Services/Basket/OrderSphere.Basket.Api/OrderSphere.Basket.Api.csproj" />
+    <Project Path="src/Services/Basket/OrderSphere.Basket.Application/OrderSphere.Basket.Application.csproj" />
+    <Project Path="src/Services/Basket/OrderSphere.Basket.Domain/OrderSphere.Basket.Domain.csproj" />
+    <Project Path="src/Services/Basket/OrderSphere.Basket.Infrastructure/OrderSphere.Basket.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Payment/">
+    <Project Path="src/Services/Payment/OrderSphere.Payment.Api/OrderSphere.Payment.Api.csproj" />
+    <Project Path="src/Services/Payment/OrderSphere.Payment.Application/OrderSphere.Payment.Application.csproj" />
+    <Project Path="src/Services/Payment/OrderSphere.Payment.Domain/OrderSphere.Payment.Domain.csproj" />
+    <Project Path="src/Services/Payment/OrderSphere.Payment.Infrastructure/OrderSphere.Payment.Infrastructure.csproj" />
+    <Project Path="src/Services/Payment/OrderSphere.Payment.Worker/OrderSphere.Payment.Worker.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Webhooks/">
+    <Project Path="src/Services/Webhooks/OrderSphere.Webhooks.Api/OrderSphere.Webhooks.Api.csproj" />
+    <Project Path="src/Services/Webhooks/OrderSphere.Webhooks.Domain/OrderSphere.Webhooks.Domain.csproj" />
+    <Project Path="src/Services/Webhooks/OrderSphere.Webhooks.Infrastructure/OrderSphere.Webhooks.Infrastructure.csproj" />
+    <Project Path="src/Services/Webhooks/OrderSphere.Webhooks.Worker/OrderSphere.Webhooks.Worker.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Notification/">
+    <Project Path="src/Services/Notification/OrderSphere.Notification.Worker/OrderSphere.Notification.Worker.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/UserProfile/">
+    <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Api/OrderSphere.UserProfile.Api.csproj" />
+    <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Application/OrderSphere.UserProfile.Application.csproj" />
+    <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Domain/OrderSphere.UserProfile.Domain.csproj" />
+    <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Infrastructure/OrderSphere.UserProfile.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/">
     <Project Path="src/OrderSphere.ServiceDefaults/OrderSphere.ServiceDefaults.csproj" />
-    <Project Path="src/OrderSphere.UI/OrderSphere.UI/OrderSphere.UI.csproj" />
-    <Project Path="src/OrderSphere.Worker/OrderSphere.Worker.csproj" />
+  </Folder>
+  <Folder Name="/src/Gateways/">
+    <Project Path="src/Gateways/OrderSphere.ApiGateway/OrderSphere.ApiGateway.csproj" />
+    <Project Path="src/Gateways/OrderSphere.Bff/OrderSphere.Bff.csproj" />
+  </Folder>
+  <Folder Name="/src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/" />
+  <Folder Name="/src/Frontend/">
+    <Project Path="src/OrderSphere.Web/OrderSphere.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/OrderSphere.Bff.Tests/OrderSphere.Bff.Tests.csproj" />
+    <Project Path="tests/OrderSphere.Basket.Tests/OrderSphere.Basket.Tests.csproj" />
+    <Project Path="tests/OrderSphere.Catalog.Tests/OrderSphere.Catalog.Tests.csproj" />
     <Project Path="tests/OrderSphere.Domain.Tests/OrderSphere.Domain.Tests.csproj" />
-    <Project Path="tests/OrderSphere.Application.Tests/OrderSphere.Application.Tests.csproj" />
     <Project Path="tests/OrderSphere.IntegrationTests/OrderSphere.IntegrationTests.csproj" />
-    <Project Path="tests/OrderSphere.UI.Tests/OrderSphere.UI.Tests.csproj" />
+    <Project Path="tests/OrderSphere.Notification.Tests/OrderSphere.Notification.Tests.csproj" />
+    <Project Path="tests/OrderSphere.Ordering.Application.Tests/OrderSphere.Ordering.Application.Tests.csproj" />
+    <Project Path="tests/OrderSphere.Ordering.Authorization.Tests/OrderSphere.Ordering.Authorization.Tests.csproj" />
+    <Project Path="tests/OrderSphere.Ordering.Checkout.Tests/OrderSphere.Ordering.Checkout.Tests.csproj" />
+    <Project Path="tests/OrderSphere.Payment.Tests/OrderSphere.Payment.Tests.csproj" />
+    <Project Path="tests/OrderSphere.RealmContract.Tests/OrderSphere.RealmContract.Tests.csproj" />
+    <Project Path="tests/OrderSphere.UserProfile.Tests/OrderSphere.UserProfile.Tests.csproj" />
+    <Project Path="tests/OrderSphere.Webhooks.Tests/OrderSphere.Webhooks.Tests.csproj" />
   </Folder>
 </Solution>

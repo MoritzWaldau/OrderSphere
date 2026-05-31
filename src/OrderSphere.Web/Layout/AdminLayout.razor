@@ -1,0 +1,69 @@
+@inherits LayoutComponentBase
+@inject ThemeState ThemeState
+@inject NavigationManager Navigation
+@inject HttpClient Http
+
+<MudThemeProvider Theme="ThemeState.Theme" IsDarkMode="ThemeState.IsDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="0" Style="border-bottom: 1px solid var(--mud-palette-divider);">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                       OnClick="ToggleDrawer" />
+        <MudText Typo="Typo.h6" Style="font-weight: 700; margin-left: 4px;">OrderSphere Admin</MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Text" Color="Color.Inherit"
+                   StartIcon="@Icons.Material.Outlined.Storefront"
+                   Href="/shop">
+            Zum Shop
+        </MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit"
+                   StartIcon="@Icons.Material.Outlined.Logout"
+                   OnClick="HandleLogout">
+            Abmelden
+        </MudButton>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="0" Variant="DrawerVariant.Responsive"
+               Style="border-right: 1px solid var(--mud-palette-divider);">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">
+                Navigation
+            </MudText>
+        </MudDrawerHeader>
+        <MudNavMenu>
+            <MudNavLink Href="/admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Dashboard">
+                Dashboard
+            </MudNavLink>
+            <MudNavLink Href="/admin/orders" Icon="@Icons.Material.Outlined.Receipt">
+                Bestellungen
+            </MudNavLink>
+            <MudNavLink Href="/admin/products" Icon="@Icons.Material.Outlined.Inventory2">
+                Produkte
+            </MudNavLink>
+            <MudNavLink Href="/admin/categories" Icon="@Icons.Material.Outlined.Category">
+                Kategorien
+            </MudNavLink>
+            <MudNavLink Href="/admin/users" Icon="@Icons.Material.Outlined.Group">
+                Kunden
+            </MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent Style="padding-top: 64px;">
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    private async Task HandleLogout()
+    {
+        try { await Http.PostAsync("/bff/logout", content: null); } catch { }
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+}

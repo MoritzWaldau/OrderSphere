@@ -1,0 +1,70 @@
+@page "/admin/users"
+@inject IAdminUserClient AdminUsers
+@inject ISnackbar Snackbar
+
+<PageTitle>Kunden — Admin</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+    <MudStack Spacing="0" Class="mb-6">
+        <MudText Typo="Typo.h4" Style="font-weight: 700;">Kunden</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Registrierte Kundenprofile</MudText>
+    </MudStack>
+
+    @if (_loading)
+    {
+        <MudStack AlignItems="AlignItems.Center" Class="py-12">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        </MudStack>
+    }
+    else if (_users.Count == 0)
+    {
+        <MudPaper Elevation="0" Class="pa-12 text-center" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
+            <MudIcon Icon="@Icons.Material.Outlined.Group" Color="Color.Secondary" Style="font-size:64px;" Class="mb-3" />
+            <MudText Typo="Typo.h6">Noch keine registrierten Kunden</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Elevation="0" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);overflow:hidden;">
+            <MudTable Items="_users" Hover="true" Dense="false">
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh>E-Mail</MudTh>
+                    <MudTh Style="text-align:center;">Adressen</MudTh>
+                    <MudTh>Dark Mode</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Name">
+                        <MudText Typo="Typo.body2" Style="font-weight:500;">@context.DisplayName</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="os-mono">
+                            @context.KeycloakSubject[..8]…
+                        </MudText>
+                    </MudTd>
+                    <MudTd DataLabel="E-Mail">
+                        <MudText Typo="Typo.body2">@context.Email</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Adressen" Style="text-align:center;">
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@context.AddressCount</MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Dark Mode">
+                        <MudIcon Icon="@(context.DarkModeEnabled ? Icons.Material.Outlined.DarkMode : Icons.Material.Outlined.LightMode)"
+                                 Size="Size.Small"
+                                 Color="@(context.DarkModeEnabled ? Color.Primary : Color.Default)" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private List<AdminUserSummaryDto> _users = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _users = await AdminUsers.GetUsersAsync(); }
+        catch (Exception ex) { Snackbar.Add($"Fehler: {ex.Message}", Severity.Error); }
+        finally { _loading = false; }
+    }
+}

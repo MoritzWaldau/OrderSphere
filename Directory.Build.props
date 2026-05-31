@@ -1,0 +1,30 @@
+<Project>
+
+  <!--
+    Solution-wide compiler and analysis settings.
+    Per-project .csproj files may still override individual properties where needed.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Quality gate: warnings fail the build so they cannot accumulate. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Run .editorconfig code-style rules during build, but only as warnings
+         (see EnforceCodeStyleInBuild). Style violations surface without failing
+         the build, while genuine compiler warnings (promoted above) do fail. -->
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest</AnalysisLevel>
+
+    <!--
+      CS8669: nullable annotation in generated code without an explicit #nullable
+      directive. Emitted only by the Razor source generator for .razor-derived
+      code; not actionable in hand-written source. Suppressed solution-wide.
+    -->
+    <NoWarn>$(NoWarn);CS8669</NoWarn>
+  </PropertyGroup>
+
+</Project>

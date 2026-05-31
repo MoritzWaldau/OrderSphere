@@ -1,0 +1,100 @@
+using Azure.Messaging.ServiceBus;
+using Microsoft.AspNetCore.SignalR;
+using OrderSphere.Bff.Hubs;
+using OrderSphere.BuildingBlocks.Contracts.Events;
+
+namespace OrderSphere.Bff.Workers;
+
+public sealed class RealtimeNotificationProcessor(
+    ServiceBusClient serviceBusClient,
+    IHubContext<NotificationHub> hubContext,
+    ILogger<RealtimeNotificationProcessor> logger) : BackgroundService
+{
+    private const string QueueName = "realtime-notifications";
+    private ServiceBusProcessor? _processor;
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _processor = serviceBusClient.CreateProcessor(QueueName, new ServiceBusProcessorOptions
+        {
+            MaxConcurrentCalls = 4,
+            AutoCompleteMessages = false
+        });
+
+        _processor.ProcessMessageAsync += OnMessageReceived;
+        _processor.ProcessErrorAsync += OnError;
+
+        await _processor.StartProcessingAsync(stoppingToken);
+        logger.LogInformation("RealtimeNotificationProcessor started, listening on queue '{Queue}'.", QueueName);
+
+        try
+        {
+            await Task.Delay(Timeout.Infinite, stoppingToken);
+        }
+        catch (OperationCanceledException) { }
+        finally
+        {
+            await _processor.StopProcessingAsync(CancellationToken.None);
+            logger.LogInformation("RealtimeNotificationProcessor stopped.");
+        }
+    }
+
+    private async Task OnMessageReceived(ProcessMessageEventArgs args)
+    {
+        var messageId = args.Message.MessageId;
+
+        try
+        {
+            var evt = args.Message.Body.ToObjectFromJson<RealtimeNotificationEvent>();
+            if (evt is null)
+            {
+                logger.LogWarning("Message {MessageId} could not be deserialized. Dead-lettering.", messageId);
+                await args.DeadLetterMessageAsync(args.Message,
+                    deadLetterReason: "DeserializationFailed",
+                    deadLetterErrorDescription: "Body was not a valid RealtimeNotificationEvent.");
+                return;
+            }
+
+            await hubContext.Clients.Group(evt.UserId).SendAsync(
+                "ReceiveNotification",
+                new
+                {
+                    evt.Type,
+                    evt.Title,
+                    evt.Message,
+                    evt.OrderId,
+                    evt.CreatedAt
+                },
+                args.CancellationToken);
+
+            logger.LogInformation(
+                "Pushed {Type} notification to user {UserId}. MessageId: {MessageId}",
+                evt.Type, evt.UserId, messageId);
+
+            await args.CompleteMessageAsync(args.Message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error processing realtime notification {MessageId}. Abandoning.", messageId);
+            await args.AbandonMessageAsync(args.Message);
+        }
+    }
+
+    private Task OnError(ProcessErrorEventArgs args)
+    {
+        logger.LogError(args.Exception,
+            "Service Bus processor error. Source: {Source}, Entity: {Entity}",
+            args.ErrorSource, args.EntityPath);
+        return Task.CompletedTask;
+    }
+
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        if (_processor is not null)
+        {
+            await _processor.DisposeAsync();
+            _processor = null;
+        }
+        await base.StopAsync(cancellationToken);
+    }
+}

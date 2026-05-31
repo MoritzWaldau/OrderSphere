@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>ordering-api-dev-secrets</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <!-- JwtBearer is provided via ServiceDefaults → FrameworkReference Microsoft.AspNetCore.App -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OrderSphere.Ordering.Application\OrderSphere.Ordering.Application.csproj" />
+    <ProjectReference Include="..\OrderSphere.Ordering.Domain\OrderSphere.Ordering.Domain.csproj" />
+    <ProjectReference Include="..\OrderSphere.Ordering.Infrastructure\OrderSphere.Ordering.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.EventBus.AzureServiceBus\OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.csproj" />
+  </ItemGroup>
+
+</Project>

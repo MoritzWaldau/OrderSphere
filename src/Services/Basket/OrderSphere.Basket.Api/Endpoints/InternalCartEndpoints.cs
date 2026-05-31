@@ -1,0 +1,45 @@
+using Microsoft.EntityFrameworkCore;
+using OrderSphere.Basket.Application.Abstractions;
+using OrderSphere.Basket.Application.DTOs;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
+
+namespace OrderSphere.Basket.Api.Endpoints;
+
+public static class InternalCartEndpoints
+{
+    public static void MapInternalCartEndpoints(this IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("/internal/cart");
+
+        group.MapGet("/{customerId:guid}", async (Guid customerId, IBasketDbContext context, CancellationToken ct) =>
+        {
+            var cart = await context.Carts
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.CustomerId == CustomerId.From(customerId), ct);
+
+            if (cart is null)
+                return Results.NotFound();
+
+            var dto = new CartDto(
+                cart.CustomerId.Value,
+                cart.Items.Select(ci => new CartItemDto(ci.ProductId.Value, "", 0m, ci.Quantity)).ToList());
+
+            return Results.Ok(dto);
+        });
+
+        group.MapDelete("/{customerId:guid}/items", async (Guid customerId, IBasketDbContext context, CancellationToken ct) =>
+        {
+            var cart = await context.Carts
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.CustomerId == CustomerId.From(customerId), ct);
+
+            if (cart is null)
+                return Results.NotFound();
+
+            context.CartItems.RemoveRange(cart.Items);
+            await context.SaveChangesAsync(ct);
+
+            return Results.NoContent();
+        });
+    }
+}

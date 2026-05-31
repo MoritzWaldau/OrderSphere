@@ -1,0 +1,137 @@
+@page "/admin/orders"
+@inject IAdminOrderingClient AdminOrdering
+@inject ISnackbar Snackbar
+
+<PageTitle>Bestellungen — Admin</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-6">
+        <MudStack Spacing="0">
+            <MudText Typo="Typo.h4" Style="font-weight: 700;">Bestellungen</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Übersicht aller Bestellungen im System</MudText>
+        </MudStack>
+
+        <MudSelect T="string?" Value="_statusFilter" ValueChanged="OnStatusFilterChanged"
+                   Variant="Variant.Outlined" Style="min-width: 220px;"
+                   Clearable="true" Placeholder="Alle Status">
+            <MudSelectItem Value="@((string?)"Created")">Eingegangen</MudSelectItem>
+            <MudSelectItem Value="@((string?)"Paid")">Bezahlt</MudSelectItem>
+            <MudSelectItem Value="@((string?)"Shipped")">Versendet</MudSelectItem>
+            <MudSelectItem Value="@((string?)"Delivered")">Zugestellt</MudSelectItem>
+            <MudSelectItem Value="@((string?)"Cancelled")">Storniert</MudSelectItem>
+        </MudSelect>
+    </MudStack>
+
+    @if (_loading)
+    {
+        <MudStack AlignItems="AlignItems.Center" Class="py-12">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        </MudStack>
+    }
+    else if (_orders.Count == 0)
+    {
+        <MudPaper Elevation="0" Class="pa-12 text-center" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
+            <MudIcon Icon="@Icons.Material.Outlined.Inbox" Color="Color.Secondary" Style="font-size:64px;" Class="mb-3" />
+            <MudText Typo="Typo.h6">Keine Bestellungen gefunden</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Elevation="0" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);overflow:hidden;">
+            <MudTable Items="_orders" Hover="true" Bordered="false" Dense="false">
+                <HeaderContent>
+                    <MudTh>Bestellung</MudTh>
+                    <MudTh>Kunde</MudTh>
+                    <MudTh>Datum</MudTh>
+                    <MudTh>Tracking</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh Style="text-align:right;">Gesamt</MudTh>
+                    <MudTh Style="text-align:right;">Aktion</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Bestellung">
+                        <MudText Typo="Typo.body2" Class="os-mono">
+                            #@context.Id.ToString("N")[..8].ToUpperInvariant()
+                        </MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Kunde">
+                        <MudText Typo="Typo.body2">
+                            @context.ShippingAddress.FirstName @context.ShippingAddress.LastName
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@context.ShippingAddress.City</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Datum">
+                        <MudText Typo="Typo.body2">
+                            @context.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                        </MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Tracking">
+                        <MudText Typo="Typo.body2" Class="os-mono">@(context.TrackingNumber ?? "—")</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Color="@StatusColor(context.Status)" Size="Size.Small"
+                                 Variant="Variant.Filled" Style="border-radius:100px;font-weight:600;">
+                            @StatusLabel(context.Status)
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Gesamt" Style="text-align:right;">
+                        <MudText Typo="Typo.body2" Style="font-weight:600;">
+                            @context.Total.ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) €
+                        </MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Aktion" Style="text-align:right;">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                                   Href="@($"/admin/orders/{context.Id}")"
+                                   Style="border-radius:100px;">
+                            Details
+                        </MudButton>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private List<OrderDto> _orders = [];
+    private string? _statusFilter;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task OnStatusFilterChanged(string? value)
+    {
+        _statusFilter = value;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            _orders = await AdminOrdering.GetOrdersAsync(_statusFilter);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Fehler beim Laden: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static Color StatusColor(string s) => s switch
+    {
+        "Paid" => Color.Info, "Shipped" => Color.Warning,
+        "Delivered" => Color.Success, "Cancelled" => Color.Error,
+        _ => Color.Default
+    };
+
+    private static string StatusLabel(string s) => s switch
+    {
+        "Created" => "Eingegangen", "Paid" => "Bezahlt", "Shipped" => "Versendet",
+        "Delivered" => "Zugestellt", "Cancelled" => "Storniert", _ => s
+    };
+}

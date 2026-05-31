@@ -4,15 +4,16 @@
       "Bash(gh api *)",
       "WebFetch(domain:github.com)",
       "Bash(git clone *)",
-      "Bash(where python *)",
-      "Bash(pip install *)",
-      "Bash(uv sync *)",
-      "Bash(curl -sI \"https://esm.sh/@excalidraw/excalidraw?bundle\")",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
       "Bash(dotnet build *)",
       "Bash(dotnet ef *)",
       "Bash(dotnet test *)",
       "Bash(dotnet restore *)",
       "Bash(dotnet list *)",
+      "Bash(dotnet run*)",
+      "Bash(dotnet format*)"
     ]
   }
 }

@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>ordering-worker-dev-secrets</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Azure.Messaging.ServiceBus" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="OrderSphere.IntegrationTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OrderSphere.Ordering.Domain\OrderSphere.Ordering.Domain.csproj" />
+    <ProjectReference Include="..\OrderSphere.Ordering.Infrastructure\OrderSphere.Ordering.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.EventBus\OrderSphere.BuildingBlocks.EventBus.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.EventBus.AzureServiceBus\OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.Contracts\OrderSphere.BuildingBlocks.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

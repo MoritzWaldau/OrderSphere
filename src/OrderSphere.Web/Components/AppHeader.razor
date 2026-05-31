@@ -1,0 +1,99 @@
+@inject CartState CartState
+@inject NavigationManager Navigation
+@inject HttpClient Http
+
+<MudAppBar Elevation="0" Fixed="true" Class="header-appbar">
+
+    <MudLink Href="/" Underline="Underline.None" Class="d-flex align-center gap-2 text-decoration-none">
+        <div class="os-logo-mark">○</div>
+        <MudText Typo="Typo.h6" Class="os-display"
+                 Style="color: var(--mud-palette-text-primary); font-weight: 600; letter-spacing: -0.02em;">
+            OrderSphere
+        </MudText>
+    </MudLink>
+
+    <MudSpacer />
+
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <MudButton Variant="Variant.Text" Href="/shop" Color="Color.Default">Shop</MudButton>
+        <MudButton Variant="Variant.Text" Href="/categories" Color="Color.Default">Kategorien</MudButton>
+    </MudHidden>
+
+    <MudSpacer />
+
+    <MudBadge Content="@CartItemCount" Color="Color.Primary" Overlap="true" Visible="@(CartItemCount > 0)">
+        <MudIconButton Icon="@Icons.Material.Outlined.ShoppingCart"
+                       OnClick="OnCartToggle"
+                       aria-label="@($"Warenkorb mit {CartItemCount} Artikeln")"
+                       Color="Color.Default" />
+    </MudBadge>
+
+    <AuthorizeView>
+        <Authorized>
+            <MudMenu Icon="@Icons.Material.Outlined.AccountCircle"
+                     Color="Color.Default"
+                     Variant="Variant.Text"
+                     AnchorOrigin="Origin.BottomRight"
+                     TransformOrigin="Origin.TopRight"
+                     aria-label="Konto-Menü"
+                     Dense="true">
+
+                <div class="pa-4" style="border-bottom: 1px solid var(--mud-palette-divider); min-width: 220px;">
+                    <MudText Typo="Typo.body1" Style="font-weight: 600;">
+                        @context.User.Identity?.Name
+                    </MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @context.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                    </MudText>
+                </div>
+
+                <MudMenuItem Icon="@Icons.Material.Outlined.ShoppingBag" Href="/account/orders">
+                    Meine Bestellungen
+                </MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.Person" Href="/account/profile">
+                    Mein Profil
+                </MudMenuItem>
+
+                <AuthorizeView Roles="admin" Context="adminCtx">
+                    <MudMenuItem Icon="@Icons.Material.Outlined.AdminPanelSettings" Href="/admin">
+                        Admin
+                    </MudMenuItem>
+                </AuthorizeView>
+
+                <MudDivider />
+
+                <MudMenuItem Icon="@Icons.Material.Outlined.Logout"
+                             IconColor="Color.Error"
+                             OnClick="HandleLogout">
+                    <MudText Color="Color.Error">Abmelden</MudText>
+                </MudMenuItem>
+            </MudMenu>
+        </Authorized>
+        <NotAuthorized>
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Primary"
+                       Href="/bff/login"
+                       Class="btn-pill ml-2"
+                       Style="padding: 6px 20px !important;">
+                Anmelden
+            </MudButton>
+        </NotAuthorized>
+    </AuthorizeView>
+
+</MudAppBar>
+
+@code {
+    [Parameter] public EventCallback OnCartToggle { get; set; }
+    [Parameter] public int CartItemCount { get; set; }
+    [Parameter] public bool IsCartOpen { get; set; }
+
+    private async Task HandleLogout()
+    {
+        // POST with X-XSRF-TOKEN attached by AntiforgeryDelegatingHandler.
+        // HttpClient follows the redirect chain (BFF → Keycloak end_session → BFF /).
+        // After completion the session cookie is gone; force a full reload to /bff/logout
+        // so Keycloak's post-logout redirect lands on a clean state.
+        try { await Http.PostAsync("/bff/logout", content: null); } catch { /* redirect responses may throw */ }
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+}

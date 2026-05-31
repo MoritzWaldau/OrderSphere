@@ -1,0 +1,117 @@
+@page "/checkout"
+@attribute [Authorize]
+@inject IOrderingClient Ordering
+@inject CartState CartState
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Checkout — OrderSphere</PageTitle>
+
+<PageHero Eyebrow="Warenkorb → Checkout → Bestätigung"
+          Title="Checkout"
+          Subtitle="Prüfe deine Angaben, wähle Versand und Zahlung." />
+
+<section style="padding:48px 0 80px;">
+    <MudContainer>
+        <MudGrid Spacing="4">
+            <!-- Left: form -->
+            <MudItem xs="12" lg="8">
+                <MudStack Spacing="4">
+                    <CheckoutAddressForm Model="_model" />
+                    <CheckoutPaymentForm Model="_model" />
+                </MudStack>
+            </MudItem>
+
+            <!-- Right: order summary -->
+            <MudItem xs="12" lg="4">
+                <OrderSummary Title="Bestellübersicht"
+                              ShowLineItems="true"
+                              Items="_cartItems"
+                              Subtotal="Subtotal"
+                              StickyTop="100px">
+                    <Actions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   FullWidth="true" Class="btn-pill my-4" Size="Size.Large"
+                                   Disabled="_submitting"
+                                   OnClick="SubmitAsync">
+                            @if (_submitting)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            }
+                            Bestellung abschließen
+                        </MudButton>
+
+                        <MudText Typo="Typo.caption" Class="text-muted">
+                            Mit dem Abschluss stimmst du unseren AGB zu.
+                        </MudText>
+                    </Actions>
+                </OrderSummary>
+            </MudItem>
+        </MudGrid>
+    </MudContainer>
+</section>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private List<CartItemDto> _cartItems = [];
+    private bool _submitting;
+
+    // Generated once per page visit. Stable across Polly retries; changes on navigation/refresh.
+    private Guid _idempotencyKey = Guid.CreateVersion7();
+
+    private readonly CheckoutFormModel _model = new();
+
+    private decimal Subtotal => _cartItems.Sum(i => i.Quantity * i.Price);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
+        var email = state.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? string.Empty;
+        _model.Email = email;
+
+        _cartItems = CartState.Cart?.Items ?? [];
+        if (!_cartItems.Any())
+        {
+            var cart = await Ordering.GetCartAsync();
+            _cartItems = cart?.Items ?? [];
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_model.FirstName) || string.IsNullOrWhiteSpace(_model.LastName) ||
+            string.IsNullOrWhiteSpace(_model.Street) || string.IsNullOrWhiteSpace(_model.City) ||
+            string.IsNullOrWhiteSpace(_model.PostalCode) || string.IsNullOrWhiteSpace(_model.Email))
+        {
+            Snackbar.Add("Bitte alle Pflichtfelder ausfüllen.", Severity.Warning);
+            return;
+        }
+
+        _submitting = true;
+        try
+        {
+            // Identity fields (CustomerId, CustomerEmail, CustomerName) are derived
+            // from the JWT token server-side and not included in the request body.
+            var request = new CheckoutRequest(
+                new CheckoutAddress(_model.FirstName, _model.LastName, _model.Street,
+                    _model.City, _model.PostalCode, _model.Country),
+                _model.PaymentMethod);
+
+            var correlationId = await Ordering.CheckoutAsync(request, _idempotencyKey);
+            if (correlationId is null)
+            {
+                Snackbar.Add("Bestellung konnte nicht abgeschlossen werden.", Severity.Error);
+                return;
+            }
+
+            await CartState.RefreshAsync();
+            Navigation.NavigateTo(
+                $"/checkout/success?correlationId={correlationId}&total={Subtotal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}");
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+}

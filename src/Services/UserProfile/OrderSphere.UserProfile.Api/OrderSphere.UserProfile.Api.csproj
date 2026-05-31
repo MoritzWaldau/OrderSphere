@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>userprofile-api-dev-secrets</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- JwtBearer is provided via ServiceDefaults → FrameworkReference Microsoft.AspNetCore.App -->
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OrderSphere.UserProfile.Application\OrderSphere.UserProfile.Application.csproj" />
+    <ProjectReference Include="..\OrderSphere.UserProfile.Infrastructure\OrderSphere.UserProfile.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

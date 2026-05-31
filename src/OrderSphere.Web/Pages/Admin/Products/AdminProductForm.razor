@@ -1,0 +1,136 @@
+@page "/admin/products/new"
+@page "/admin/products/{ProductId:guid}"
+@inject IAdminCatalogClient AdminCatalog
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>@(IsEdit ? "Produkt bearbeiten" : "Neues Produkt") — Admin</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-8">
+    <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ArrowBack"
+               Href="/admin/products" Class="mb-4">
+        Zurück zur Liste
+    </MudButton>
+
+    <MudText Typo="Typo.h4" Class="mb-6" Style="font-weight: 700;">
+        @(IsEdit ? "Produkt bearbeiten" : "Neues Produkt")
+    </MudText>
+
+    @if (_loading)
+    {
+        <MudStack AlignItems="AlignItems.Center" Class="py-12">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        </MudStack>
+    }
+    else
+    {
+        <MudPaper Elevation="0" Class="pa-6" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
+            <MudStack Spacing="4">
+                <MudTextField @bind-Value="_model.Name" Label="Produktname"
+                              Variant="Variant.Outlined" Required="true"
+                              RequiredError="Name ist erforderlich" />
+
+                <MudTextField @bind-Value="_model.SKU" Label="SKU"
+                              Variant="Variant.Outlined" Required="true"
+                              RequiredError="SKU ist erforderlich" />
+
+                <MudTextField @bind-Value="_model.Description" Label="Beschreibung"
+                              Variant="Variant.Outlined" Lines="3" />
+
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_model.Price" Label="Preis (€)"
+                                         Variant="Variant.Outlined" Min="0.01m" Step="0.01m" Format="F2"
+                                         Culture="@System.Globalization.CultureInfo.GetCultureInfo("de-DE")" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_model.Stock" Label="Lagerbestand"
+                                         Variant="Variant.Outlined" Min="0" />
+                    </MudItem>
+                </MudGrid>
+
+                <MudSelect T="Guid" @bind-Value="_model.CategoryId" Label="Kategorie"
+                           Variant="Variant.Outlined" Required="true" RequiredError="Kategorie ist erforderlich">
+                    @foreach (var cat in _categories)
+                    {
+                        <MudSelectItem T="Guid" Value="@cat.Id">@cat.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                @if (IsEdit)
+                {
+                    <MudSwitch T="bool" @bind-Value="_model.IsActive"
+                               Label="Aktiv (im Shop sichtbar)" Color="Color.Primary" />
+                }
+
+                <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-2">
+                    <MudButton Variant="Variant.Outlined" Href="/admin/products">Abbrechen</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               StartIcon="@Icons.Material.Outlined.Save"
+                               Disabled="_saving" OnClick="SaveAsync">
+                        @(IsEdit ? "Speichern" : "Anlegen")
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public Guid? ProductId { get; set; }
+
+    private bool IsEdit => ProductId.HasValue;
+    private bool _loading = true;
+    private bool _saving;
+    private List<AdminCategoryDto> _categories = [];
+    private ProductModel _model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _categories = await AdminCatalog.GetCategoriesAsync();
+            if (IsEdit)
+            {
+                var p = await AdminCatalog.GetProductByIdAsync(ProductId!.Value);
+                if (p is not null)
+                    _model = new ProductModel { Name = p.Name, SKU = p.SKU, Description = p.Description, Price = p.Price, Stock = p.Stock, CategoryId = p.CategoryId, IsActive = p.IsActive };
+            }
+        }
+        catch (Exception ex) { Snackbar.Add($"Fehler: {ex.Message}", Severity.Error); }
+        finally { _loading = false; }
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        try
+        {
+            var input = new AdminProductInput(_model.Name, _model.Description, _model.Price, _model.Stock, _model.CategoryId, _model.SKU, _model.IsActive);
+            if (IsEdit)
+            {
+                var ok = await AdminCatalog.UpdateProductAsync(ProductId!.Value, input);
+                if (ok) { Snackbar.Add("Gespeichert.", Severity.Success); Navigation.NavigateTo("/admin/products"); }
+                else Snackbar.Add("Fehler beim Speichern.", Severity.Error);
+            }
+            else
+            {
+                var id = await AdminCatalog.CreateProductAsync(input);
+                if (id.HasValue) { Snackbar.Add("Produkt angelegt.", Severity.Success); Navigation.NavigateTo("/admin/products"); }
+                else Snackbar.Add("Fehler beim Anlegen.", Severity.Error);
+            }
+        }
+        finally { _saving = false; }
+    }
+
+    private sealed class ProductModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string SKU { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal Price { get; set; } = 0.01m;
+        public int Stock { get; set; }
+        public Guid CategoryId { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+}

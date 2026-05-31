@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <!-- Branch coverage is the primary metric for the 70%-target. -->
+          <Format>cobertura</Format>
+          <!--
+            Comma-separated filter expressions: [Assembly]TypeFilter
+            Only the business-logic assemblies count toward the quota.
+          -->
+          <Include>
+            [OrderSphere.Ordering.Domain]*,
+            [OrderSphere.Basket.Domain]*,
+            [OrderSphere.Catalog.Domain]*,
+            [OrderSphere.Payment.Domain]*,
+            [OrderSphere.Webhooks.Domain]*,
+            [OrderSphere.UserProfile.Domain]*,
+            [OrderSphere.Catalog.Application]*,
+            [OrderSphere.Ordering.Api]*Features*,
+            [OrderSphere.Basket.Api]*Features*,
+            [OrderSphere.UserProfile.Api]*Features*,
+            [OrderSphere.BuildingBlocks]*
+          </Include>
+          <Exclude>
+            [*.Infrastructure]*,
+            [*.AppHost]*,
+            [*.ServiceDefaults]*,
+            [*.Bff]*,
+            [*.ApiGateway]*,
+            [*.Web]*
+          </Exclude>
+          <ExcludeByFile>
+            **/Migrations/*.cs,
+            **/Migrations/**/*.cs
+          </ExcludeByFile>
+          <ExcludeByAttribute>
+            GeneratedCodeAttribute,
+            CompilerGeneratedAttribute,
+            ExcludeFromCodeCoverageAttribute
+          </ExcludeByAttribute>
+          <SingleHit>false</SingleHit>
+          <UseSourceLink>true</UseSourceLink>
+          <IncludeTestAssembly>false</IncludeTestAssembly>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

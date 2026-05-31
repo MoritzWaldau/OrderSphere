@@ -1,0 +1,11 @@
+using Microsoft.EntityFrameworkCore;
+using OrderSphere.Catalog.Domain.Entities;
+
+namespace OrderSphere.Catalog.Application.Abstractions;
+
+public interface ICatalogDbContext
+{
+    DbSet<Product> Products { get; }
+    DbSet<Category> Categories { get; }
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+}

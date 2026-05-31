@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>catalog-api-dev-secrets</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Asp.Versioning.Http" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+    <PackageReference Include="Grpc.AspNetCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="..\..\..\..\contracts\proto\catalog\v1\catalog.proto" GrpcServices="Server" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OrderSphere.Catalog.Application\OrderSphere.Catalog.Application.csproj" />
+    <ProjectReference Include="..\OrderSphere.Catalog.Infrastructure\OrderSphere.Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\src\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -31,6 +31,10 @@ public sealed class GetOrderByIdAdminQueryHandler(
 
             return Result<OrderDto>.Success(GetOrdersByCustomerQueryHandler.ToDto(order));
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error retrieving admin order {OrderId}", request.OrderId);

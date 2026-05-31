@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.Ordering.Infrastructure;
-using OrderSphere.Ordering.Infrastructure.Email;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 using OrderSphere.Ordering.Worker.Workers;
 
@@ -23,11 +22,9 @@ builder.AddNpgsqlDbContext<OrderingDbContext>("ordering-db", settings =>
     settings.DisableRetry = false;
 });
 
-// Ordering infrastructure (email, outbox handler registrations, DI bindings)
+// Ordering infrastructure (outbox handler registrations, DI bindings)
 builder.Services.AddOrderingInfrastructure(builder.Environment);
 builder.Services.AddOrderingOutboxProcessing();
-builder.Services.Configure<OrderingMailConfiguration>(
-    builder.Configuration.GetSection("MailServiceConfiguration"));
 
 // Service Bus consumers
 builder.Services.AddHostedService<OrderProcessor>();

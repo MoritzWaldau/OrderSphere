@@ -36,6 +36,10 @@ public sealed class GetOrdersByCustomerQueryHandler(
             var dtos = orders.Select(o => ToDto(o)).ToList();
             return Result<IReadOnlyList<OrderDto>>.Success(dtos);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error retrieving orders for customer {CustomerId}", request.CustomerId);

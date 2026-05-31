@@ -4,5 +4,5 @@ namespace OrderSphere.Ordering.Application.Abstractions;
 
 public interface IOrderingServiceBusPublisher
 {
-    Task PublishCheckoutCartEventAsync(CheckoutCartEvent checkoutCartEvent);
+    Task PublishCheckoutCartEventAsync(CheckoutCartEvent checkoutCartEvent, CancellationToken ct = default);
 }

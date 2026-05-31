@@ -43,7 +43,7 @@ public sealed class CheckoutToPaymentFlowTests
     {
         public List<CheckoutCartEvent> Published { get; } = [];
 
-        public Task PublishCheckoutCartEventAsync(CheckoutCartEvent checkoutCartEvent)
+        public Task PublishCheckoutCartEventAsync(CheckoutCartEvent checkoutCartEvent, CancellationToken ct = default)
         {
             Published.Add(checkoutCartEvent);
             return Task.CompletedTask;

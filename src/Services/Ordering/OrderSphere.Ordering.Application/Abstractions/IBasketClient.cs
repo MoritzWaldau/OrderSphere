@@ -1,6 +1,6 @@
 using OrderSphere.BuildingBlocks.Primitives;
 
-namespace OrderSphere.Ordering.Api.Abstractions;
+namespace OrderSphere.Ordering.Application.Abstractions;
 
 public interface IBasketClient
 {

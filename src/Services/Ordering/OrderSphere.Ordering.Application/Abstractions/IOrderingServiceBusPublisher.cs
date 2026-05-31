@@ -1,6 +1,6 @@
 using OrderSphere.Ordering.Domain.Events;
 
-namespace OrderSphere.Ordering.Infrastructure.Outbox;
+namespace OrderSphere.Ordering.Application.Abstractions;
 
 public interface IOrderingServiceBusPublisher
 {

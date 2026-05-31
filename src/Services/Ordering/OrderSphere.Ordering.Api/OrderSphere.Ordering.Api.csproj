@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OrderSphere.Ordering.Application\OrderSphere.Ordering.Application.csproj" />
     <ProjectReference Include="..\OrderSphere.Ordering.Domain\OrderSphere.Ordering.Domain.csproj" />
     <ProjectReference Include="..\OrderSphere.Ordering.Infrastructure\OrderSphere.Ordering.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />

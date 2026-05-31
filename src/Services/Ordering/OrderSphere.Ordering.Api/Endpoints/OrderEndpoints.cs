@@ -2,9 +2,9 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.Ordering.Api.Configuration;
-using OrderSphere.Ordering.Api.Features.Order;
-using OrderSphere.Ordering.Api.Features.Order.Admin;
-using OrderSphere.Ordering.Api.Models;
+using OrderSphere.Ordering.Application.Features.Order;
+using OrderSphere.Ordering.Application.Features.Order.Admin;
+using OrderSphere.Ordering.Application.Models;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.ServiceDefaults;
 

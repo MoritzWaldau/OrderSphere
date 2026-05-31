@@ -1,14 +1,15 @@
+using Microsoft.Extensions.Logging;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
-using OrderSphere.UserProfile.Api.Features.Profile;
-using OrderSphere.UserProfile.Api.Models;
+using OrderSphere.UserProfile.Application.Features.Profile;
+using OrderSphere.UserProfile.Application.Models;
 using OrderSphere.UserProfile.Domain.Errors;
-using OrderSphere.UserProfile.Infrastructure.Persistence;
+using OrderSphere.UserProfile.Application.Abstractions;
 
-namespace OrderSphere.UserProfile.Api.Features.Profile.UpdateProfile;
+namespace OrderSphere.UserProfile.Application.Features.Profile.UpdateProfile;
 
 public sealed record UpdateProfileCommand(
     string KeycloakSubject,
@@ -26,7 +27,7 @@ public sealed class UpdateProfileCommandValidator : AbstractValidator<UpdateProf
 }
 
 public sealed class UpdateProfileCommandHandler(
-    UserProfileDbContext context,
+    IUserProfileDbContext context,
     ILogger<UpdateProfileCommandHandler> logger
 ) : ICommandHandler<UpdateProfileCommand, Result<ProfileDto>>
 {

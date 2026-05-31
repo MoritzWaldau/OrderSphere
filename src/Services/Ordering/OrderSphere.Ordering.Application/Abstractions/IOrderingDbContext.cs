@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.Ordering.Domain.Entities;
 
-namespace OrderSphere.Ordering.Infrastructure.Persistence;
+namespace OrderSphere.Ordering.Application.Abstractions;
 
 public interface IOrderingDbContext
 {

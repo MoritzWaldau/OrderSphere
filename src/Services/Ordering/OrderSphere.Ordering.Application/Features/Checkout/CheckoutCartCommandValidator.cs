@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace OrderSphere.Ordering.Api.Features.Checkout;
+namespace OrderSphere.Ordering.Application.Features.Checkout;
 
 public sealed class CheckoutCartCommandValidator : AbstractValidator<CheckoutCartCommand>
 {

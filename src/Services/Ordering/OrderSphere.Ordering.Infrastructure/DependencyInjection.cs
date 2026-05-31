@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
+using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Infrastructure.Email;
 using OrderSphere.Ordering.Infrastructure.Outbox;
 using OrderSphere.Ordering.Infrastructure.Persistence;

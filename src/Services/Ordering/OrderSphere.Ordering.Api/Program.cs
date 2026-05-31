@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
-using OrderSphere.Ordering.Api.Abstractions;
+using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Api.Authorization;
-using OrderSphere.Ordering.Api.CatalogClient;
-using HttpBasketClient = OrderSphere.Ordering.Api.CatalogClient.HttpBasketClient;
+using OrderSphere.Ordering.Infrastructure.CatalogClient;
+using HttpBasketClient = OrderSphere.Ordering.Infrastructure.CatalogClient.HttpBasketClient;
 using OrderSphere.Ordering.Api.Configuration;
 using OrderSphere.Ordering.Api.Endpoints;
 using OrderSphere.Ordering.Api.Exceptions;
@@ -46,14 +46,14 @@ builder.Services.AddMemoryCache();
 // MediatR — scan this assembly for handlers + pipeline behaviors
 builder.Services.AddMediatR(cfg =>
 {
-    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(IOrderingDbContext).Assembly);
     cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
     cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
 
 // FluentValidation — scan this assembly for validators
-builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+builder.Services.AddValidatorsFromAssembly(typeof(IOrderingDbContext).Assembly);
 
 // HTTP client for Catalog service (internal stock operations).
 // ClientCredentialsTokenHandler acquires a Keycloak client_credentials token (configured

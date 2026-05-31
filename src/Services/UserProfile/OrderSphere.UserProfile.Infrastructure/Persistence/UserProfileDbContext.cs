@@ -3,13 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Extensions;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.UserProfile.Application.Abstractions;
 using OrderSphere.UserProfile.Domain.Entities;
 
 namespace OrderSphere.UserProfile.Infrastructure.Persistence;
 
 public sealed class UserProfileDbContext(
     DbContextOptions<UserProfileDbContext> options,
-    IPublisher publisher) : DbContext(options)
+    IPublisher publisher) : DbContext(options), IUserProfileDbContext
 {
     public DbSet<CustomerProfile> CustomerProfiles => Set<CustomerProfile>();
     public DbSet<SavedAddress> SavedAddresses => Set<SavedAddress>();

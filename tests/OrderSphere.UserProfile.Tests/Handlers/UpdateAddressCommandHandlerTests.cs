@@ -2,7 +2,7 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
-using OrderSphere.UserProfile.Api.Features.Profile.UpdateAddress;
+using OrderSphere.UserProfile.Application.Features.Profile.UpdateAddress;
 using OrderSphere.UserProfile.Domain.Entities;
 using OrderSphere.UserProfile.Domain.Errors;
 using OrderSphere.UserProfile.Tests.Helpers;

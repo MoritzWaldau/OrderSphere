@@ -1,4 +1,4 @@
-namespace OrderSphere.Ordering.Api.Models;
+namespace OrderSphere.Ordering.Application.Models;
 
 public sealed record OrderStatsDto(
     int TotalOrders,

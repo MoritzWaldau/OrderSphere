@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Microservices over Clean Architecture with CQRS (MediatR) and DDD. Each service is independently deployable and owns its domain, persistence, and infrastructure. Errors flow through `Result<T>`, not exceptions. Entities carry audit fields and soft-delete via `AuditableEntity`.
 
-Layer dependency direction per service: `Api → Application → Infrastructure → Domain → BuildingBlocks.Domain`. No service references another service's projects directly — cross-service communication uses HTTP clients or Service Bus events. Shared primitives live in `BuildingBlocks` (see [docs/architecture.md](docs/architecture.md)).
+Layer dependencies point inward toward the domain (canonical Clean Architecture): `Api → Infrastructure → Application → Domain → BuildingBlocks.Domain`, and `Api → Application`. Application defines abstractions (`I<Service>DbContext`, client interfaces); Infrastructure implements them — so `Infrastructure → Application` is correct, not a violation. Application never references Infrastructure. No service references another service's projects directly — cross-service communication uses HTTP clients or Service Bus events. Shared primitives live in `BuildingBlocks` (see [docs/architecture.md](docs/architecture.md)).
 
 ## Conventions
 
@@ -28,7 +28,7 @@ These are the rules that are not derivable by reading existing code. For everyth
 - Business validation returns a `Result<T>` failure. Exceptions are reserved for genuinely exceptional conditions (I/O failures, programmer errors).
 - Commands and queries return `Result<TDto>`. DTOs are `record` types; entities are `class` types.
 - New entities inherit `AuditableEntity`. Add a matching EF configuration in the service's `Infrastructure/EntityConfigurations/`.
-- Features live in `Features/<Aggregate>/<UseCase>/`, co-locating command/query, handler, and validator. Catalog uses `Catalog.Application/Features/`; all other services use `<Service>.Api/Features/`.
+- Features live in `Features/<Aggregate>/<UseCase>/`, co-locating command/query, handler, and validator. Every service that exposes application use-cases (Basket, Catalog, Ordering, Payment, UserProfile) places them in `<Service>.Application/Features/`. The DbContext is reached through an `I<Service>DbContext` interface declared in `<Service>.Application/Abstractions/` and implemented by the concrete context in `<Service>.Infrastructure/Persistence/`; handlers depend on the interface, never the concrete context. Webhooks and Notification have no Application layer — they perform event ingestion/dispatch only, with no CQRS handlers.
 - Cross-service calls go through typed HTTP client interfaces (e.g. `ICatalogClient`, `IBasketClient`). No direct project references across service boundaries.
 - Integration events are defined in `BuildingBlocks.Contracts`. Publish via `IEventBus`; consume via `IIntegrationEventHandler<T>`.
 - Queries against soft-deletable entities must filter `!x.IsDeleted`.

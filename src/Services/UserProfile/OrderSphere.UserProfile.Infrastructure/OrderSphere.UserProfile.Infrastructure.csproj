@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OrderSphere.UserProfile.Application\OrderSphere.UserProfile.Application.csproj" />
     <ProjectReference Include="..\OrderSphere.UserProfile.Domain\OrderSphere.UserProfile.Domain.csproj" />
   </ItemGroup>
 

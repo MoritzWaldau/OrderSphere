@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using OrderSphere.UserProfile.Api.Features.Profile.GetOrCreateProfile;
+using OrderSphere.UserProfile.Application.Features.Profile.GetOrCreateProfile;
 using OrderSphere.UserProfile.Domain.Entities;
 using OrderSphere.UserProfile.Tests.Helpers;
 using Xunit;

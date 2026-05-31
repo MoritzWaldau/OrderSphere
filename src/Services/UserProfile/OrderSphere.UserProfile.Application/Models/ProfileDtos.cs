@@ -1,4 +1,4 @@
-namespace OrderSphere.UserProfile.Api.Models;
+namespace OrderSphere.UserProfile.Application.Models;
 
 public sealed record ProfileDto(
     Guid Id,

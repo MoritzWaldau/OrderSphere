@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -5,9 +6,9 @@ using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.UserProfile.Domain.Errors;
-using OrderSphere.UserProfile.Infrastructure.Persistence;
+using OrderSphere.UserProfile.Application.Abstractions;
 
-namespace OrderSphere.UserProfile.Api.Features.Profile.DeleteAddress;
+namespace OrderSphere.UserProfile.Application.Features.Profile.DeleteAddress;
 
 public sealed record DeleteAddressCommand(
     string KeycloakSubject,
@@ -23,7 +24,7 @@ public sealed class DeleteAddressCommandValidator : AbstractValidator<DeleteAddr
 }
 
 public sealed class DeleteAddressCommandHandler(
-    UserProfileDbContext context,
+    IUserProfileDbContext context,
     ILogger<DeleteAddressCommandHandler> logger
 ) : ICommandHandler<DeleteAddressCommand, Result>
 {

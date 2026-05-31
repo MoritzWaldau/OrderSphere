@@ -4,12 +4,11 @@ using OrderSphere.BuildingBlocks.Abstraction;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
-using OrderSphere.Ordering.Api.Abstractions;
+using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Errors;
 using OrderSphere.Ordering.Domain.Events;
-using OrderSphere.Ordering.Infrastructure.Outbox;
 
-namespace OrderSphere.Ordering.Api.Features.Checkout;
+namespace OrderSphere.Ordering.Application.Features.Checkout;
 
 public sealed class CheckoutCartCommandHandler(
     ICatalogClient catalogClient,

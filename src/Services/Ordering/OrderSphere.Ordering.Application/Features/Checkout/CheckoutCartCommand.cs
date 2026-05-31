@@ -4,7 +4,7 @@ using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.ValueObjects;
 
-namespace OrderSphere.Ordering.Api.Features.Checkout;
+namespace OrderSphere.Ordering.Application.Features.Checkout;
 
 /// <summary>
 /// Initiates cart-to-order checkout for the authenticated customer.

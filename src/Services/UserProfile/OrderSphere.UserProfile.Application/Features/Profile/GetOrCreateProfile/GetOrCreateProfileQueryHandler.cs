@@ -1,14 +1,15 @@
+using Microsoft.Extensions.Logging;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
-using OrderSphere.UserProfile.Api.Features.Profile;
-using OrderSphere.UserProfile.Api.Models;
+using OrderSphere.UserProfile.Application.Features.Profile;
+using OrderSphere.UserProfile.Application.Models;
 using OrderSphere.UserProfile.Domain.Entities;
 using OrderSphere.UserProfile.Domain.Errors;
-using OrderSphere.UserProfile.Infrastructure.Persistence;
+using OrderSphere.UserProfile.Application.Abstractions;
 
-namespace OrderSphere.UserProfile.Api.Features.Profile.GetOrCreateProfile;
+namespace OrderSphere.UserProfile.Application.Features.Profile.GetOrCreateProfile;
 
 public sealed record GetOrCreateProfileQuery(
     string KeycloakSubject,
@@ -16,7 +17,7 @@ public sealed record GetOrCreateProfileQuery(
     string Email) : IQuery<Result<ProfileDto>>;
 
 public sealed class GetOrCreateProfileQueryHandler(
-    UserProfileDbContext context,
+    IUserProfileDbContext context,
     ILogger<GetOrCreateProfileQueryHandler> logger
 ) : IQueryHandler<GetOrCreateProfileQuery, Result<ProfileDto>>
 {

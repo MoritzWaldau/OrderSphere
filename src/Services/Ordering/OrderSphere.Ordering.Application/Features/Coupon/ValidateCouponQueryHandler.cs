@@ -2,10 +2,10 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
-using OrderSphere.Ordering.Api.Models;
+using OrderSphere.Ordering.Application.Models;
 using OrderSphere.Ordering.Domain.Errors;
 
-namespace OrderSphere.Ordering.Api.Features.Coupon;
+namespace OrderSphere.Ordering.Application.Features.Coupon;
 
 public sealed class ValidateCouponQueryHandler(
     ILogger<ValidateCouponQueryHandler> logger)

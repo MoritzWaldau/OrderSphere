@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace OrderSphere.Ordering.Api.Features.Order.Admin;
+namespace OrderSphere.Ordering.Application.Features.Order.Admin;
 
 public sealed class CancelOrderCommandValidator : AbstractValidator<CancelOrderCommand>
 {

@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Behaviors;
+using OrderSphere.Payment.Application.Abstractions;
 using OrderSphere.Payment.Api.Endpoints;
 using OrderSphere.Payment.Api.Exceptions;
 using OrderSphere.Payment.Infrastructure;
@@ -22,11 +23,11 @@ builder.Services.AddPaymentInfrastructure();
 
 builder.Services.AddMediatR(cfg =>
 {
-    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(IPaymentDbContext).Assembly);
     cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
     cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
-builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+builder.Services.AddValidatorsFromAssembly(typeof(IPaymentDbContext).Assembly);
 builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
 
 var paymentConnectionString = builder.Configuration.GetConnectionString("payment-db") ?? "";

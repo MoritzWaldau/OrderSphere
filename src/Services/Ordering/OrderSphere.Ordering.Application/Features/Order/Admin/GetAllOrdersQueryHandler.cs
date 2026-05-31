@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Abstraction;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
-using OrderSphere.Ordering.Api.Models;
+using OrderSphere.Ordering.Application.Models;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Errors;
-using OrderSphere.Ordering.Infrastructure.Persistence;
+using OrderSphere.Ordering.Application.Abstractions;
 
-namespace OrderSphere.Ordering.Api.Features.Order.Admin;
+namespace OrderSphere.Ordering.Application.Features.Order.Admin;
 
 public sealed record GetAllOrdersQuery(OrderStatus? StatusFilter)
     : IQuery<Result<IReadOnlyList<OrderDto>>>;

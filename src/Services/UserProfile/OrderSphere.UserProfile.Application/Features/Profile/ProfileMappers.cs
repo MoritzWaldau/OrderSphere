@@ -1,7 +1,7 @@
-using OrderSphere.UserProfile.Api.Models;
+using OrderSphere.UserProfile.Application.Models;
 using OrderSphere.UserProfile.Domain.Entities;
 
-namespace OrderSphere.UserProfile.Api.Features.Profile;
+namespace OrderSphere.UserProfile.Application.Features.Profile;
 
 internal static class ProfileMappers
 {

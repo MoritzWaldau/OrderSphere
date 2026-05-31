@@ -1,8 +1,9 @@
+using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using OrderSphere.BuildingBlocks.Primitives;
-using OrderSphere.Ordering.Api.Abstractions;
+using OrderSphere.Ordering.Application.Abstractions;
 
-namespace OrderSphere.Ordering.Api.CatalogClient;
+namespace OrderSphere.Ordering.Infrastructure.CatalogClient;
 
 public sealed class HttpBasketClient(HttpClient httpClient, ILogger<HttpBasketClient> logger) : IBasketClient
 {

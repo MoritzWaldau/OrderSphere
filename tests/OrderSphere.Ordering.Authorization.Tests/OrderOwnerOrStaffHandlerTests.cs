@@ -2,7 +2,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Authorization;
 using OrderSphere.Ordering.Api.Authorization;
 using Xunit;
-using OrderSphere.Ordering.Api.Models;
+using OrderSphere.Ordering.Application.Models;
 using OrderSphere.Ordering.Domain.Enums;
 using System.Security.Claims;
 

@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
-using OrderSphere.UserProfile.Api.Features.Profile.SetDefaultAddress;
+using OrderSphere.UserProfile.Application.Features.Profile.SetDefaultAddress;
 using OrderSphere.UserProfile.Domain.Entities;
 using OrderSphere.UserProfile.Domain.Errors;
 using OrderSphere.UserProfile.Tests.Helpers;

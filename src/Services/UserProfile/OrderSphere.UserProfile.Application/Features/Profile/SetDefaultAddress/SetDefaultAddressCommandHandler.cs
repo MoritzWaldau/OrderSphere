@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -5,9 +6,9 @@ using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.UserProfile.Domain.Errors;
-using OrderSphere.UserProfile.Infrastructure.Persistence;
+using OrderSphere.UserProfile.Application.Abstractions;
 
-namespace OrderSphere.UserProfile.Api.Features.Profile.SetDefaultAddress;
+namespace OrderSphere.UserProfile.Application.Features.Profile.SetDefaultAddress;
 
 public sealed record SetDefaultAddressCommand(
     string KeycloakSubject,
@@ -23,7 +24,7 @@ public sealed class SetDefaultAddressCommandValidator : AbstractValidator<SetDef
 }
 
 public sealed class SetDefaultAddressCommandHandler(
-    UserProfileDbContext context,
+    IUserProfileDbContext context,
     ILogger<SetDefaultAddressCommandHandler> logger
 ) : ICommandHandler<SetDefaultAddressCommand, Result>
 {

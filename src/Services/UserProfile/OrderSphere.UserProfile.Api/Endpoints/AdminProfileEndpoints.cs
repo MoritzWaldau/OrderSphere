@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
-using OrderSphere.UserProfile.Api.Models;
+using OrderSphere.UserProfile.Application.Models;
 using OrderSphere.UserProfile.Infrastructure.Persistence;
 
 namespace OrderSphere.UserProfile.Api.Endpoints;

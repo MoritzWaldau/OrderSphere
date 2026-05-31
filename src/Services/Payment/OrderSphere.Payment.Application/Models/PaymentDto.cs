@@ -1,4 +1,4 @@
-namespace OrderSphere.Payment.Api.Models;
+namespace OrderSphere.Payment.Application.Models;
 
 public sealed record PaymentDto(
     Guid Id,

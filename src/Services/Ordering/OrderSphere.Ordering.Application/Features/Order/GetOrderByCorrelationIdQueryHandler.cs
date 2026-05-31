@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Abstraction;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
-using OrderSphere.Ordering.Api.Models;
+using OrderSphere.Ordering.Application.Models;
 using OrderSphere.Ordering.Domain.Errors;
-using OrderSphere.Ordering.Infrastructure.Persistence;
+using OrderSphere.Ordering.Application.Abstractions;
 
-namespace OrderSphere.Ordering.Api.Features.Order;
+namespace OrderSphere.Ordering.Application.Features.Order;
 
 /// <summary>
 /// Loads an order by its Service Bus correlation ID without a customer filter.

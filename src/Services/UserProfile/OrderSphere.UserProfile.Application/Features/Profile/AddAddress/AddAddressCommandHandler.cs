@@ -1,14 +1,15 @@
+using Microsoft.Extensions.Logging;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
-using OrderSphere.UserProfile.Api.Features.Profile;
-using OrderSphere.UserProfile.Api.Models;
+using OrderSphere.UserProfile.Application.Features.Profile;
+using OrderSphere.UserProfile.Application.Models;
 using OrderSphere.UserProfile.Domain.Errors;
-using OrderSphere.UserProfile.Infrastructure.Persistence;
+using OrderSphere.UserProfile.Application.Abstractions;
 
-namespace OrderSphere.UserProfile.Api.Features.Profile.AddAddress;
+namespace OrderSphere.UserProfile.Application.Features.Profile.AddAddress;
 
 public sealed record AddAddressCommand(
     string KeycloakSubject,
@@ -37,7 +38,7 @@ public sealed class AddAddressCommandValidator : AbstractValidator<AddAddressCom
 }
 
 public sealed class AddAddressCommandHandler(
-    UserProfileDbContext context,
+    IUserProfileDbContext context,
     ILogger<AddAddressCommandHandler> logger
 ) : ICommandHandler<AddAddressCommand, Result<AddressDto>>
 {

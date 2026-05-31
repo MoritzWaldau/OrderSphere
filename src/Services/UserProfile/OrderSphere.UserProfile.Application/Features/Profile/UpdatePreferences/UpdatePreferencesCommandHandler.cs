@@ -1,12 +1,13 @@
+using Microsoft.Extensions.Logging;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.UserProfile.Domain.Errors;
-using OrderSphere.UserProfile.Infrastructure.Persistence;
+using OrderSphere.UserProfile.Application.Abstractions;
 
-namespace OrderSphere.UserProfile.Api.Features.Profile.UpdatePreferences;
+namespace OrderSphere.UserProfile.Application.Features.Profile.UpdatePreferences;
 
 public sealed record UpdatePreferencesCommand(
     string KeycloakSubject,
@@ -21,7 +22,7 @@ public sealed class UpdatePreferencesCommandValidator : AbstractValidator<Update
 }
 
 public sealed class UpdatePreferencesCommandHandler(
-    UserProfileDbContext context,
+    IUserProfileDbContext context,
     ILogger<UpdatePreferencesCommandHandler> logger
 ) : ICommandHandler<UpdatePreferencesCommand, Result>
 {

@@ -4,11 +4,10 @@ using OrderSphere.BuildingBlocks.Abstraction;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
-using OrderSphere.Ordering.Api.Abstractions;
+using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Errors;
-using OrderSphere.Ordering.Infrastructure.Persistence;
 
-namespace OrderSphere.Ordering.Api.Features.Order.Admin;
+namespace OrderSphere.Ordering.Application.Features.Order.Admin;
 
 public sealed record CancelOrderCommand(Guid OrderId) : ICommand<Result>;
 

@@ -24,6 +24,7 @@
   </Folder>
   <Folder Name="/src/Services/Ordering/">
     <Project Path="src/Services/Ordering/OrderSphere.Ordering.Api/OrderSphere.Ordering.Api.csproj" />
+    <Project Path="src/Services/Ordering/OrderSphere.Ordering.Application/OrderSphere.Ordering.Application.csproj" />
     <Project Path="src/Services/Ordering/OrderSphere.Ordering.Domain/OrderSphere.Ordering.Domain.csproj" />
     <Project Path="src/Services/Ordering/OrderSphere.Ordering.Infrastructure/OrderSphere.Ordering.Infrastructure.csproj" />
     <Project Path="src/Services/Ordering/OrderSphere.Ordering.Worker/OrderSphere.Ordering.Worker.csproj" />
@@ -36,6 +37,7 @@
   </Folder>
   <Folder Name="/src/Services/Payment/">
     <Project Path="src/Services/Payment/OrderSphere.Payment.Api/OrderSphere.Payment.Api.csproj" />
+    <Project Path="src/Services/Payment/OrderSphere.Payment.Application/OrderSphere.Payment.Application.csproj" />
     <Project Path="src/Services/Payment/OrderSphere.Payment.Domain/OrderSphere.Payment.Domain.csproj" />
     <Project Path="src/Services/Payment/OrderSphere.Payment.Infrastructure/OrderSphere.Payment.Infrastructure.csproj" />
     <Project Path="src/Services/Payment/OrderSphere.Payment.Worker/OrderSphere.Payment.Worker.csproj" />
@@ -51,6 +53,7 @@
   </Folder>
   <Folder Name="/src/Services/UserProfile/">
     <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Api/OrderSphere.UserProfile.Api.csproj" />
+    <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Application/OrderSphere.UserProfile.Application.csproj" />
     <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Domain/OrderSphere.UserProfile.Domain.csproj" />
     <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Infrastructure/OrderSphere.UserProfile.Infrastructure.csproj" />
   </Folder>
@@ -61,6 +64,7 @@
     <Project Path="src/Gateways/OrderSphere.ApiGateway/OrderSphere.ApiGateway.csproj" />
     <Project Path="src/Gateways/OrderSphere.Bff/OrderSphere.Bff.csproj" />
   </Folder>
+  <Folder Name="/src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/" />
   <Folder Name="/src/Frontend/">
     <Project Path="src/OrderSphere.Web/OrderSphere.Web.csproj" />
   </Folder>

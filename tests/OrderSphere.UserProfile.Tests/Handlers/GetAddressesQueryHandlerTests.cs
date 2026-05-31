@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using OrderSphere.UserProfile.Api.Features.Profile.GetAddresses;
+using OrderSphere.UserProfile.Application.Features.Profile.GetAddresses;
 using OrderSphere.UserProfile.Domain.Entities;
 using OrderSphere.UserProfile.Domain.Errors;
 using OrderSphere.UserProfile.Tests.Helpers;

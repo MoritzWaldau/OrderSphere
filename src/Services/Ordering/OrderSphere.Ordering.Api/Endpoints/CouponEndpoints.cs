@@ -1,5 +1,5 @@
 using MediatR;
-using OrderSphere.Ordering.Api.Features.Coupon;
+using OrderSphere.Ordering.Application.Features.Coupon;
 using OrderSphere.ServiceDefaults;
 
 namespace OrderSphere.Ordering.Api.Endpoints;

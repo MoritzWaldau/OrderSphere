@@ -1,15 +1,15 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OrderSphere.ServiceDefaults;
-using OrderSphere.UserProfile.Api.Features.Profile.AddAddress;
-using OrderSphere.UserProfile.Api.Models;
-using OrderSphere.UserProfile.Api.Features.Profile.DeleteAddress;
-using OrderSphere.UserProfile.Api.Features.Profile.GetAddresses;
-using OrderSphere.UserProfile.Api.Features.Profile.GetOrCreateProfile;
-using OrderSphere.UserProfile.Api.Features.Profile.SetDefaultAddress;
-using OrderSphere.UserProfile.Api.Features.Profile.UpdateAddress;
-using OrderSphere.UserProfile.Api.Features.Profile.UpdatePreferences;
-using OrderSphere.UserProfile.Api.Features.Profile.UpdateProfile;
+using OrderSphere.UserProfile.Application.Features.Profile.AddAddress;
+using OrderSphere.UserProfile.Application.Models;
+using OrderSphere.UserProfile.Application.Features.Profile.DeleteAddress;
+using OrderSphere.UserProfile.Application.Features.Profile.GetAddresses;
+using OrderSphere.UserProfile.Application.Features.Profile.GetOrCreateProfile;
+using OrderSphere.UserProfile.Application.Features.Profile.SetDefaultAddress;
+using OrderSphere.UserProfile.Application.Features.Profile.UpdateAddress;
+using OrderSphere.UserProfile.Application.Features.Profile.UpdatePreferences;
+using OrderSphere.UserProfile.Application.Features.Profile.UpdateProfile;
 using System.Security.Claims;
 
 namespace OrderSphere.UserProfile.Api.Endpoints;

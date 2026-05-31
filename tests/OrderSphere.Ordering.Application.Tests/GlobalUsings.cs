@@ -11,4 +11,4 @@ global using OrderSphere.Ordering.Domain.Entities;
 global using OrderSphere.Ordering.Domain.Enums;
 global using OrderSphere.Ordering.Domain.Errors;
 global using OrderSphere.Ordering.Domain.ValueObjects;
-global using OrderSphere.Ordering.Infrastructure.Persistence;
+global using OrderSphere.Ordering.Application.Abstractions;

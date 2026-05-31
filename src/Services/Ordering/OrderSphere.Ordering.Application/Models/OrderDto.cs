@@ -1,6 +1,6 @@
 using OrderSphere.Ordering.Domain.Enums;
 
-namespace OrderSphere.Ordering.Api.Models;
+namespace OrderSphere.Ordering.Application.Models;
 
 public sealed record OrderDto(
     Guid Id,

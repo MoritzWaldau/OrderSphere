@@ -1,4 +1,4 @@
-using OrderSphere.Ordering.Api.Features.Coupon;
+using OrderSphere.Ordering.Application.Features.Coupon;
 using Microsoft.Extensions.Logging;
 
 namespace OrderSphere.Ordering.Application.Tests.Features;

@@ -6,9 +6,9 @@ using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Errors;
-using OrderSphere.Ordering.Infrastructure.Persistence;
+using OrderSphere.Ordering.Application.Abstractions;
 
-namespace OrderSphere.Ordering.Api.Features.Order.Admin;
+namespace OrderSphere.Ordering.Application.Features.Order.Admin;
 
 public sealed record UpdateOrderStatusCommand(Guid OrderId, OrderStatus NewStatus) : ICommand<Result>;
 

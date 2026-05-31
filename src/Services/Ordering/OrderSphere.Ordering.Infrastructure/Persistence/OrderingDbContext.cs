@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Extensions;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;

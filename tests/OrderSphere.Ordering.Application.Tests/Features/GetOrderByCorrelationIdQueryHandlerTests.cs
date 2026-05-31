@@ -1,4 +1,4 @@
-using OrderSphere.Ordering.Api.Features.Order;
+using OrderSphere.Ordering.Application.Features.Order;
 
 namespace OrderSphere.Ordering.Application.Tests.Features;
 

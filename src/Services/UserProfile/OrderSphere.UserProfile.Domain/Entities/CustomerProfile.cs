@@ -10,6 +10,9 @@ namespace OrderSphere.UserProfile.Domain.Entities;
 /// </summary>
 public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggregateRoot
 {
+    /// <summary>Maximum number of active saved addresses a profile may hold.</summary>
+    public const int MaxAddresses = 10;
+
     public string KeycloakSubject { get; private set; }
     public string DisplayName { get; private set; }
     public string Email { get; private set; }
@@ -51,14 +54,15 @@ public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggre
     {
         if (setAsDefault)
         {
-            foreach (var existing in _addresses)
+            foreach (var existing in _addresses.Where(a => !a.IsDeleted))
                 existing.ClearDefault();
         }
 
+        var hasActiveAddress = _addresses.Any(a => !a.IsDeleted);
         var address = new SavedAddress(
             Id, label, firstName, lastName,
             street, city, postalCode, country,
-            isDefault: setAsDefault || _addresses.Count == 0);
+            isDefault: setAsDefault || !hasActiveAddress);
 
         _addresses.Add(address);
         return address;
@@ -66,24 +70,26 @@ public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggre
 
     public bool RemoveAddress(SavedAddressId addressId)
     {
-        var address = _addresses.FirstOrDefault(a => a.Id == addressId);
+        var address = _addresses.FirstOrDefault(a => a.Id == addressId && !a.IsDeleted);
         if (address is null) return false;
 
-        _addresses.Remove(address);
+        var wasDefault = address.IsDefault;
+        address.ClearDefault();
+        address.MarkDeleted();
 
-        // If the removed address was the default, promote the first remaining one.
-        if (address.IsDefault && _addresses.Count > 0)
-            _addresses[0].SetAsDefault();
+        // If the removed address was the default, promote the first remaining active one.
+        if (wasDefault)
+            _addresses.FirstOrDefault(a => !a.IsDeleted)?.SetAsDefault();
 
         return true;
     }
 
     public bool SetDefaultAddress(SavedAddressId addressId)
     {
-        var target = _addresses.FirstOrDefault(a => a.Id == addressId);
+        var target = _addresses.FirstOrDefault(a => a.Id == addressId && !a.IsDeleted);
         if (target is null) return false;
 
-        foreach (var a in _addresses)
+        foreach (var a in _addresses.Where(a => !a.IsDeleted))
             a.ClearDefault();
 
         target.SetAsDefault();

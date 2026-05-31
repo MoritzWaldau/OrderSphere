@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
 using OrderSphere.UserProfile.Application.Features.Profile.AddAddress;
 using OrderSphere.UserProfile.Domain.Entities;
 using OrderSphere.UserProfile.Domain.Errors;
@@ -13,7 +12,7 @@ public sealed class AddAddressCommandHandlerTests
 {
     private static AddAddressCommandHandler CreateHandler(
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
-        => new(ctx, NullLogger<AddAddressCommandHandler>.Instance);
+        => new(ctx);
 
     private static AddAddressCommand ValidCommand(string sub, bool setAsDefault = false) => new(
         sub, "Home", "Alice", "Smith", "Hauptstr. 1", "Berlin", "10115", "DE", setAsDefault);

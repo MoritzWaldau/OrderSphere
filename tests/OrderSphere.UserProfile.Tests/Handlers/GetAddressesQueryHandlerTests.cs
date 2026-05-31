@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
 using OrderSphere.UserProfile.Application.Features.Profile.GetAddresses;
 using OrderSphere.UserProfile.Domain.Entities;
 using OrderSphere.UserProfile.Domain.Errors;
@@ -12,7 +11,7 @@ public sealed class GetAddressesQueryHandlerTests
 {
     private static GetAddressesQueryHandler CreateHandler(
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
-        => new(ctx, NullLogger<GetAddressesQueryHandler>.Instance);
+        => new(ctx);
 
     // ── Profile not found ─────────────────────────────────────────────────────
 

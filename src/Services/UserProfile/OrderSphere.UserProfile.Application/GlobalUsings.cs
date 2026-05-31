@@ -1,0 +1,11 @@
+global using OrderSphere.BuildingBlocks.Primitives;
+global using OrderSphere.BuildingBlocks.Abstraction;
+global using OrderSphere.BuildingBlocks.StronglyTypedIds;
+global using MediatR;
+global using Microsoft.EntityFrameworkCore;
+global using FluentValidation;
+global using OrderSphere.UserProfile.Application.Abstractions;
+global using OrderSphere.UserProfile.Application.Models;
+global using OrderSphere.UserProfile.Application.Features.Profile;
+global using OrderSphere.UserProfile.Domain.Entities;
+global using OrderSphere.UserProfile.Domain.Errors;

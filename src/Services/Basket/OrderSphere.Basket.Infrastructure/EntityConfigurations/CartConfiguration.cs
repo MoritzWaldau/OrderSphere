@@ -13,6 +13,10 @@ internal sealed class CartConfiguration : IEntityTypeConfiguration<Cart>
 
         builder.Property(x => x.CustomerId).IsRequired();
         builder.HasIndex(x => x.CustomerId).IsUnique();
+        builder.Property<uint>("xmin")
+            .HasColumnType("xid")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
 
         builder.HasMany(x => x.Items)
             .WithOne()

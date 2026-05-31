@@ -15,6 +15,7 @@ public static class ProductEndpoints
     {
         group.MapGet("/{productId:guid}", GetProductById);
         group.MapGet("/names", GetProductNamesByIds);
+        group.MapGet("/infos", GetProductInfosByIds);
         group.MapPost("/{productId:guid}/decrement-stock", DecrementStock);
         group.MapPost("/{productId:guid}/restore-stock", RestoreStock);
     }
@@ -49,6 +50,24 @@ public static class ProductEndpoints
             .ToListAsync(ct);
 
         return Results.Ok(names.ToDictionary(p => p.Id.Value, p => p.Name));
+    }
+
+    private static async Task<IResult> GetProductInfosByIds(
+        [FromQuery(Name = "ids")] Guid[] ids,
+        ICatalogDbContext context,
+        CancellationToken ct)
+    {
+        if (ids.Length == 0)
+            return Results.Ok(new Dictionary<Guid, InternalProductDto>());
+
+        var typedIds = ids.Select(ProductId.From).ToList();
+        var products = await context.Products
+            .AsNoTracking()
+            .Where(p => typedIds.Contains(p.Id) && !p.IsDeleted)
+            .Select(p => new InternalProductDto(p.Id.Value, p.Name, p.Price.Amount, p.Stock, p.IsActive))
+            .ToListAsync(ct);
+
+        return Results.Ok(products.ToDictionary(p => p.Id));
     }
 
     private static async Task<IResult> DecrementStock(

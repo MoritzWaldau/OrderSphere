@@ -1,8 +1,10 @@
+using Asp.Versioning;
 using MediatR;
 using OrderSphere.Basket.Application.Features.Cart.AddToCart;
 using OrderSphere.Basket.Application.Features.Cart.DecreaseCartItem;
 using OrderSphere.Basket.Application.Features.Cart.GetCart;
 using OrderSphere.Basket.Application.Features.Cart.RemoveFromCart;
+using OrderSphere.Basket.Api.Configuration;
 using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.ServiceDefaults;
@@ -11,9 +13,19 @@ namespace OrderSphere.Basket.Api.Endpoints;
 
 public static class CartEndpoints
 {
-    public static void MapCartEndpoints(this IEndpointRouteBuilder app)
+    public static void MapCartEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/v1/cart").RequireAuthorization();
+        var versionSet = app.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1, 0))
+            .ReportApiVersions()
+            .Build();
+
+        var group = app
+            .MapGroup("api/v{version:apiVersion}/cart")
+            .WithApiVersionSet(versionSet)
+            .HasApiVersion(1.0)
+            .RequireAuthorization()
+            .RequireRateLimiting(RateLimitingExtensions.CartPolicy);
 
         group.MapGet("/", async (ICurrentUser currentUser, IMediator mediator, CancellationToken ct) =>
         {

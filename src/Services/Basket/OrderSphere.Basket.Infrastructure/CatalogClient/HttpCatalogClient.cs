@@ -27,29 +27,32 @@ public sealed class HttpCatalogClient(HttpClient httpClient, ILogger<HttpCatalog
         }
     }
 
-    public async Task<Result<IReadOnlyDictionary<Guid, string>>> GetProductNamesByIdsAsync(
+    public async Task<Result<IReadOnlyDictionary<Guid, CatalogProductInfo>>> GetProductInfosByIdsAsync(
         IEnumerable<Guid> productIds, CancellationToken ct = default)
     {
         try
         {
             var ids = productIds.ToList();
             if (ids.Count == 0)
-                return Result<IReadOnlyDictionary<Guid, string>>.Success(new Dictionary<Guid, string>());
+                return Result<IReadOnlyDictionary<Guid, CatalogProductInfo>>.Success(
+                    new Dictionary<Guid, CatalogProductInfo>());
 
             var query = string.Join("&", ids.Select(id => $"ids={id}"));
-            var response = await httpClient.GetAsync($"/internal/products/names?{query}", ct);
+            var response = await httpClient.GetAsync($"/internal/products/infos?{query}", ct);
 
             if (!response.IsSuccessStatusCode)
-                return Result<IReadOnlyDictionary<Guid, string>>.Success(new Dictionary<Guid, string>());
+                return Result<IReadOnlyDictionary<Guid, CatalogProductInfo>>.Success(
+                    new Dictionary<Guid, CatalogProductInfo>());
 
-            var dict = await response.Content.ReadFromJsonAsync<Dictionary<Guid, string>>(ct);
-            return Result<IReadOnlyDictionary<Guid, string>>.Success(
-                dict ?? new Dictionary<Guid, string>());
+            var dict = await response.Content.ReadFromJsonAsync<Dictionary<Guid, CatalogProductInfo>>(ct);
+            return Result<IReadOnlyDictionary<Guid, CatalogProductInfo>>.Success(
+                dict ?? new Dictionary<Guid, CatalogProductInfo>());
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error fetching product names from Catalog");
-            return Result<IReadOnlyDictionary<Guid, string>>.Success(new Dictionary<Guid, string>());
+            logger.LogError(ex, "Error fetching product infos from Catalog");
+            return Result<IReadOnlyDictionary<Guid, CatalogProductInfo>>.Success(
+                new Dictionary<Guid, CatalogProductInfo>());
         }
     }
 }

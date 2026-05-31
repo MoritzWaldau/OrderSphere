@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.Basket.Application;
 using OrderSphere.Basket.Application.Abstractions;
+using OrderSphere.Basket.Api.Configuration;
 using OrderSphere.Basket.Api.Endpoints;
 using OrderSphere.Basket.Api.Exceptions;
 using OrderSphere.Basket.Infrastructure;
@@ -29,6 +30,9 @@ var basketConnectionString = builder.Configuration.GetConnectionString("basket-d
 builder.Services.AddHealthChecks()
     .AddNpgSql(basketConnectionString, name: "postgres");
 
+builder.Services.AddBasketApiVersioning();
+builder.Services.AddBasketRateLimiting();
+
 // Validation exception → HTTP 400
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -50,6 +54,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseExceptionHandler();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

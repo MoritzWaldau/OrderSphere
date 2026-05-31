@@ -21,7 +21,7 @@ public sealed class AddToCartCommandHandler(
     {
         var cart = await context.Carts
             .Include(x => x.Items)
-            .FirstOrDefaultAsync(x => x.CustomerId == request.CustomerId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.CustomerId == request.CustomerId && !x.IsDeleted, cancellationToken);
 
         var isNewCart = cart is null;
         cart ??= new CartEntity(request.CustomerId);
@@ -36,11 +36,14 @@ public sealed class AddToCartCommandHandler(
         }
 
         var product = productResult.Value;
-        if (product.Stock < request.Quantity)
+        var existingQty = cart.Items
+            .FirstOrDefault(i => i.ProductId == request.ProductId)?.Quantity.Value ?? 0;
+
+        if (existingQty + request.Quantity > product.Stock)
         {
             logger.LogWarning(
-                "Insufficient stock for product {ProductId}. Available: {Stock}, Requested: {Quantity}",
-                request.ProductId, product.Stock, request.Quantity);
+                "Insufficient stock for product {ProductId}. Available: {Stock}, InCart: {ExistingQty}, Requested: {Quantity}",
+                request.ProductId, product.Stock, existingQty, request.Quantity);
             return Result.Failure(ProductErrors.InsufficientStockError);
         }
 
@@ -48,8 +51,6 @@ public sealed class AddToCartCommandHandler(
 
         if (isNewCart)
             await context.Carts.AddAsync(cart, cancellationToken);
-        else
-            context.Carts.Update(cart);
 
         await context.SaveChangesAsync(cancellationToken);
 

@@ -1,7 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using OrderSphere.Basket.Application.Abstractions;
-using OrderSphere.Basket.Application.DTOs;
+using MediatR;
+using OrderSphere.Basket.Application.Features.Cart.ClearCart;
+using OrderSphere.Basket.Application.Features.Cart.GetCartInternal;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.ServiceDefaults;
 
 namespace OrderSphere.Basket.Api.Endpoints;
 
@@ -11,35 +12,16 @@ public static class InternalCartEndpoints
     {
         var group = app.MapGroup("/internal/cart");
 
-        group.MapGet("/{customerId:guid}", async (Guid customerId, IBasketDbContext context, CancellationToken ct) =>
+        group.MapGet("/{customerId:guid}", async (Guid customerId, IMediator mediator, CancellationToken ct) =>
         {
-            var cart = await context.Carts
-                .Include(c => c.Items)
-                .FirstOrDefaultAsync(c => c.CustomerId == CustomerId.From(customerId), ct);
-
-            if (cart is null)
-                return Results.NotFound();
-
-            var dto = new CartDto(
-                cart.CustomerId.Value,
-                cart.Items.Select(ci => new CartItemDto(ci.ProductId.Value, "", 0m, ci.Quantity)).ToList());
-
-            return Results.Ok(dto);
+            var result = await mediator.Send(new GetCartInternalQuery(CustomerId.From(customerId)), ct);
+            return result.ToHttpResult();
         });
 
-        group.MapDelete("/{customerId:guid}/items", async (Guid customerId, IBasketDbContext context, CancellationToken ct) =>
+        group.MapDelete("/{customerId:guid}/items", async (Guid customerId, IMediator mediator, CancellationToken ct) =>
         {
-            var cart = await context.Carts
-                .Include(c => c.Items)
-                .FirstOrDefaultAsync(c => c.CustomerId == CustomerId.From(customerId), ct);
-
-            if (cart is null)
-                return Results.NotFound();
-
-            context.CartItems.RemoveRange(cart.Items);
-            await context.SaveChangesAsync(ct);
-
-            return Results.NoContent();
+            var result = await mediator.Send(new ClearCartCommand(CustomerId.From(customerId)), ct);
+            return result.ToHttpResult();
         });
     }
 }

@@ -89,7 +89,7 @@ public sealed class OrderProcessor(
         }
     }
 
-    private async Task<ProcessResult> ProcessOrderAsync(
+    internal async Task<ProcessResult> ProcessOrderAsync(
         CheckoutCartEvent evt,
         OrderingDbContext context,
         CancellationToken ct)
@@ -191,7 +191,7 @@ public sealed class OrderProcessor(
         await base.StopAsync(cancellationToken);
     }
 
-    private sealed record ProcessResult(bool IsSuccess, string? ErrorMessage)
+    internal sealed record ProcessResult(bool IsSuccess, string? ErrorMessage)
     {
         public static ProcessResult Ok() => new(true, null);
         public static ProcessResult Fail(string error) => new(false, error);

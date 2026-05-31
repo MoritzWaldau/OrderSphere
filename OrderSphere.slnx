@@ -69,6 +69,7 @@
     <Project Path="tests/OrderSphere.Basket.Tests/OrderSphere.Basket.Tests.csproj" />
     <Project Path="tests/OrderSphere.Catalog.Tests/OrderSphere.Catalog.Tests.csproj" />
     <Project Path="tests/OrderSphere.Domain.Tests/OrderSphere.Domain.Tests.csproj" />
+    <Project Path="tests/OrderSphere.IntegrationTests/OrderSphere.IntegrationTests.csproj" />
     <Project Path="tests/OrderSphere.Notification.Tests/OrderSphere.Notification.Tests.csproj" />
     <Project Path="tests/OrderSphere.Ordering.Application.Tests/OrderSphere.Ordering.Application.Tests.csproj" />
     <Project Path="tests/OrderSphere.Ordering.Authorization.Tests/OrderSphere.Ordering.Authorization.Tests.csproj" />

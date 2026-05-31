@@ -326,7 +326,9 @@ if (app.Environment.IsDevelopment())
        .RequireAuthorization();
 }
 
-// Back-channel logout stub — Phase 4 will add JWT validation + session revocation.
+// Back-channel logout: validates Keycloak logout_token (JWT), then revokes the
+// matching Redis session via the sid secondary index in RedisTicketStore.
+// Keycloak client config must set backchannel.logout.url = https://{bff-host}/bff/backchannel-logout.
 BackchannelLogoutEndpoint.Map(app);
 
 // ── Antiforgery middleware for /api/* mutations ───────────────────────────────

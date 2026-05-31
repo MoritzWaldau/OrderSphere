@@ -36,6 +36,10 @@ public sealed class GetOrderByIdQueryHandler(
 
             return Result<OrderDto>.Success(GetOrdersByCustomerQueryHandler.ToDto(order));
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error retrieving order {OrderId}", request.OrderId);

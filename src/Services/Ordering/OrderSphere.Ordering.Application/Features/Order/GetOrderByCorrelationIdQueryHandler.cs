@@ -38,6 +38,10 @@ public sealed class GetOrderByCorrelationIdQueryHandler(
 
             return Result<OrderDto?>.Success(GetOrdersByCustomerQueryHandler.ToDto(order));
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error retrieving order by correlationId {CorrelationId}", request.CorrelationId);

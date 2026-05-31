@@ -93,6 +93,10 @@ public sealed class GetOrderStatsQueryHandler(
                 totalOrders, ordersToday, totalRevenue, revenueToday,
                 pendingShipments, totalCustomers, recent));
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error building order stats");

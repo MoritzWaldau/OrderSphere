@@ -6,6 +6,8 @@ using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Errors;
 using OrderSphere.Ordering.Domain.Events;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace OrderSphere.Ordering.Application.Features.Checkout;
 
@@ -91,7 +93,10 @@ public sealed class CheckoutCartCommandHandler(
             }
 
             // 4. Publish to Service Bus — if this throws, finally compensates.
-            var correlationId = Guid.CreateVersion7();
+            // CorrelationId is derived deterministically so retries produce the same value,
+            // letting the Worker's CorrelationId uniqueness check deduplicate concurrent or
+            // repeated checkout attempts for the same IdempotencyKey.
+            var correlationId = DeriveCorrelationId(request.CustomerId, request.IdempotencyKey);
             var checkoutCartEvent = new CheckoutCartEvent(
                 correlationId,
                 new CheckoutCartDto(
@@ -102,7 +107,7 @@ public sealed class CheckoutCartCommandHandler(
                     request.PaymentMethod),
                 orderItemDtos);
 
-            await serviceBusPublisher.PublishCheckoutCartEventAsync(checkoutCartEvent);
+            await serviceBusPublisher.PublishCheckoutCartEventAsync(checkoutCartEvent, cancellationToken);
 
             await idempotencyStore.SetCorrelationIdAsync(cacheKey, correlationId, IdempotencyTtl, cancellationToken);
             decremented.Clear();
@@ -149,5 +154,12 @@ public sealed class CheckoutCartCommandHandler(
                 }
             }
         }
+    }
+
+    private static Guid DeriveCorrelationId(CustomerId customerId, Guid idempotencyKey)
+    {
+        var input = Encoding.UTF8.GetBytes($"{customerId.Value}:{idempotencyKey}");
+        var hash = SHA256.HashData(input);
+        return new Guid(hash.AsSpan()[..16]);
     }
 }

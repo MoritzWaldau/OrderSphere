@@ -23,47 +23,66 @@ public sealed class OutboxDispatcher(
 
     private async Task ProcessPendingAsync(CancellationToken ct)
     {
-        await using var scope = scopeFactory.CreateAsyncScope();
-        var context = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
-
-        var handlers = scope.ServiceProvider
-            .GetRequiredService<IEnumerable<IOutboxEventHandler>>()
-            .ToDictionary(h => h.EventType);
-
-        var messages = await context.OutboxMessages
-            .Where(m => m.ProcessedAt == null && m.RetryCount < OutboxMessage.MaxRetries)
-            .OrderBy(m => m.OccurredAt)
-            .Take(20)
-            .ToListAsync(ct);
-
-        if (messages.Count == 0)
-            return;
-
-        foreach (var message in messages)
+        try
         {
-            try
-            {
-                await DispatchAsync(message, handlers, ct);
-                message.ProcessedAt = DateTime.UtcNow;
-                message.Error = null;
-            }
-            catch (Exception ex)
-            {
-                message.RetryCount++;
-                message.Error = ex.Message;
+            await using var scope = scopeFactory.CreateAsyncScope();
+            var context = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
 
-                if (message.RetryCount >= OutboxMessage.MaxRetries)
-                    logger.LogError(ex,
-                        "Outbox message {Id} ({Type}) permanently failed after {MaxRetries} attempts",
-                        message.Id, message.Type, OutboxMessage.MaxRetries);
-                else
-                    logger.LogWarning(ex,
-                        "Outbox message {Id} ({Type}) failed on attempt {Attempt}/{Max}. Will retry.",
-                        message.Id, message.Type, message.RetryCount, OutboxMessage.MaxRetries);
+            var handlers = scope.ServiceProvider
+                .GetRequiredService<IEnumerable<IOutboxEventHandler>>()
+                .ToDictionary(h => h.EventType);
+
+            var poisonCount = await context.OutboxMessages
+                .CountAsync(m => m.ProcessedAt == null && m.RetryCount >= OutboxMessage.MaxRetries, ct);
+
+            if (poisonCount > 0)
+                logger.LogWarning(
+                    "{Count} outbox message(s) permanently failed (RetryCount >= {Max}). Inspect the Error column in OutboxMessages.",
+                    poisonCount, OutboxMessage.MaxRetries);
+
+            var messages = await context.OutboxMessages
+                .Where(m => m.ProcessedAt == null && m.RetryCount < OutboxMessage.MaxRetries)
+                .OrderBy(m => m.OccurredAt)
+                .Take(20)
+                .ToListAsync(ct);
+
+            if (messages.Count == 0)
+                return;
+
+            foreach (var message in messages)
+            {
+                try
+                {
+                    await DispatchAsync(message, handlers, ct);
+                    message.ProcessedAt = DateTime.UtcNow;
+                    message.Error = null;
+                }
+                catch (Exception ex)
+                {
+                    message.RetryCount++;
+                    message.Error = ex.Message;
+
+                    if (message.RetryCount >= OutboxMessage.MaxRetries)
+                        logger.LogError(ex,
+                            "Outbox message {Id} ({Type}) permanently failed after {MaxRetries} attempts",
+                            message.Id, message.Type, OutboxMessage.MaxRetries);
+                    else
+                        logger.LogWarning(ex,
+                            "Outbox message {Id} ({Type}) failed on attempt {Attempt}/{Max}. Will retry.",
+                            message.Id, message.Type, message.RetryCount, OutboxMessage.MaxRetries);
+                }
             }
+
+            await context.SaveChangesAsync(ct);
         }
-
-        await context.SaveChangesAsync(ct);
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "OutboxDispatcher: transient error in ProcessPendingAsync. Loop continues.");
+        }
     }
 
     private async Task DispatchAsync(

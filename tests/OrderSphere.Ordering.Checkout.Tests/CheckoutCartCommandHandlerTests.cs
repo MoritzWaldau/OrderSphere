@@ -186,7 +186,7 @@ public sealed class CheckoutCartCommandHandlerTests
         _catalog.RestoreStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
                 .Returns(Result.Success());
 
-        _bus.PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>())
+        _bus.PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Service Bus unavailable"));
 
         var result = await CreateHandler().Handle(Command, CancellationToken.None);
@@ -213,7 +213,7 @@ public sealed class CheckoutCartCommandHandlerTests
         _catalog.DecrementStockAsync(ProductId1, 1, Arg.Any<CancellationToken>())
                 .Returns(Result.Success());
 
-        _bus.PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>())
+        _bus.PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         _basket.ClearCartItemsAsync(CustomerId, Arg.Any<CancellationToken>())
@@ -243,7 +243,7 @@ public sealed class CheckoutCartCommandHandlerTests
         _catalog.DecrementStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
                 .Returns(Result.Success());
 
-        _bus.PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>())
+        _bus.PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         _basket.ClearCartItemsAsync(CustomerId, Arg.Any<CancellationToken>())
@@ -274,7 +274,7 @@ public sealed class CheckoutCartCommandHandlerTests
                 .Returns(Result<CatalogProductInfo>.Success(Product(ProductId1)));
         _catalog.DecrementStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
                 .Returns(Result.Success());
-        _bus.PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>())
+        _bus.PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
         _basket.ClearCartItemsAsync(CustomerId, Arg.Any<CancellationToken>())
                .Returns(Result.Success());

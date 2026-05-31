@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.Ordering.Application.Abstractions;
-using OrderSphere.Ordering.Infrastructure.Email;
 using OrderSphere.Ordering.Infrastructure.Outbox;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 using OrderSphere.Ordering.Infrastructure.ServiceBus;
@@ -30,10 +29,7 @@ public static class DependencyInjection
         // Inbox: idempotency for consumed integration events.
         services.AddScoped<IInboxStore, EfInboxStore<OrderingDbContext>>();
 
-        // Email service for order confirmations.
-        services.AddScoped<IOrderingEmailService, OrderingEmailService>();
-
-        return services;
+return services;
     }
 
     /// <summary>

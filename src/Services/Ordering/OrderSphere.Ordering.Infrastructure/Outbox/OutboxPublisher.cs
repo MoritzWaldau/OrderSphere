@@ -11,7 +11,7 @@ namespace OrderSphere.Ordering.Infrastructure.Outbox;
 /// </summary>
 internal sealed class OutboxPublisher(OrderingDbContext context) : IOrderingServiceBusPublisher
 {
-    public Task PublishCheckoutCartEventAsync(CheckoutCartEvent checkoutCartEvent)
+    public async Task PublishCheckoutCartEventAsync(CheckoutCartEvent checkoutCartEvent, CancellationToken ct = default)
     {
         var message = new OutboxMessage
         {
@@ -20,6 +20,6 @@ internal sealed class OutboxPublisher(OrderingDbContext context) : IOrderingServ
         };
 
         context.OutboxMessages.Add(message);
-        return Task.CompletedTask;
+        await context.SaveChangesAsync(ct);
     }
 }

@@ -12,6 +12,8 @@ public sealed class CustomerProfileConfiguration : IEntityTypeConfiguration<Cust
 
         builder.HasKey(p => p.Id);
 
+        builder.HasQueryFilter(p => !p.IsDeleted);
+
         builder.HasIndex(p => p.KeycloakSubject).IsUnique();
 
         builder.Property(p => p.KeycloakSubject).IsRequired().HasMaxLength(256);

@@ -1,14 +1,3 @@
-using Microsoft.Extensions.Logging;
-using FluentValidation;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using OrderSphere.BuildingBlocks.Abstraction;
-using OrderSphere.BuildingBlocks.Primitives;
-using OrderSphere.UserProfile.Application.Features.Profile;
-using OrderSphere.UserProfile.Application.Models;
-using OrderSphere.UserProfile.Domain.Errors;
-using OrderSphere.UserProfile.Application.Abstractions;
-
 namespace OrderSphere.UserProfile.Application.Features.Profile.AddAddress;
 
 public sealed record AddAddressCommand(
@@ -30,47 +19,35 @@ public sealed class AddAddressCommandValidator : AbstractValidator<AddAddressCom
         RuleFor(x => x.Label).NotEmpty().MaximumLength(100);
         RuleFor(x => x.FirstName).NotEmpty().MaximumLength(100);
         RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.Street).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Street).NotEmpty().MaximumLength(300);
         RuleFor(x => x.City).NotEmpty().MaximumLength(100);
         RuleFor(x => x.PostalCode).NotEmpty().MaximumLength(20);
         RuleFor(x => x.Country).NotEmpty().MaximumLength(100);
     }
 }
 
-public sealed class AddAddressCommandHandler(
-    IUserProfileDbContext context,
-    ILogger<AddAddressCommandHandler> logger
-) : ICommandHandler<AddAddressCommand, Result<AddressDto>>
+public sealed class AddAddressCommandHandler(IUserProfileDbContext context)
+    : ICommandHandler<AddAddressCommand, Result<AddressDto>>
 {
-    private const int MaxAddresses = 10;
-
     public async Task<Result<AddressDto>> Handle(AddAddressCommand request, CancellationToken ct)
     {
-        try
-        {
-            var profile = await context.CustomerProfiles
-                .Include(p => p.Addresses)
-                .FirstOrDefaultAsync(p => p.KeycloakSubject == request.KeycloakSubject, ct);
+        var profile = await context.CustomerProfiles
+            .Include(p => p.Addresses)
+            .FirstOrDefaultAsync(p => p.KeycloakSubject == request.KeycloakSubject, ct);
 
-            if (profile is null)
-                return Result<AddressDto>.Failure(UserProfileErrors.ProfileNotFound);
+        if (profile is null)
+            return Result<AddressDto>.Failure(UserProfileErrors.ProfileNotFound);
 
-            if (profile.Addresses.Count >= MaxAddresses)
-                return Result<AddressDto>.Failure(UserProfileErrors.AddressLimitExceeded);
+        if (profile.Addresses.Count >= CustomerProfile.MaxAddresses)
+            return Result<AddressDto>.Failure(UserProfileErrors.AddressLimitExceeded);
 
-            var address = profile.AddAddress(
-                request.Label, request.FirstName, request.LastName,
-                request.Street, request.City, request.PostalCode, request.Country,
-                request.SetAsDefault);
+        var address = profile.AddAddress(
+            request.Label, request.FirstName, request.LastName,
+            request.Street, request.City, request.PostalCode, request.Country,
+            request.SetAsDefault);
 
-            await context.SaveChangesAsync(ct);
+        await context.SaveChangesAsync(ct);
 
-            return Result<AddressDto>.Success(ProfileMappers.ToAddressDto(address));
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error adding address for subject {Subject}", request.KeycloakSubject);
-            return Result<AddressDto>.Failure(UserProfileErrors.UnknownError);
-        }
+        return Result<AddressDto>.Success(ProfileMappers.ToAddressDto(address));
     }
 }

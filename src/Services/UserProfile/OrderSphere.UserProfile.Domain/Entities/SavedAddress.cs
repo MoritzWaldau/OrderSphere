@@ -61,4 +61,5 @@ public sealed class SavedAddress : AuditableEntity<SavedAddressId>
 
     internal void SetAsDefault()    => IsDefault = true;
     internal void ClearDefault()    => IsDefault = false;
+    internal void MarkDeleted()     => IsDeleted = true;
 }

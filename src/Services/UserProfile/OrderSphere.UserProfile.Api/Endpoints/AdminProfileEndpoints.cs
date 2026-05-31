@@ -1,7 +1,7 @@
-using Microsoft.EntityFrameworkCore;
-using OrderSphere.BuildingBlocks.StronglyTypedIds;
-using OrderSphere.UserProfile.Application.Models;
-using OrderSphere.UserProfile.Infrastructure.Persistence;
+using MediatR;
+using OrderSphere.ServiceDefaults;
+using OrderSphere.UserProfile.Application.Features.Profile.Admin.GetAllUsers;
+using OrderSphere.UserProfile.Application.Features.Profile.Admin.GetUserById;
 
 namespace OrderSphere.UserProfile.Api.Endpoints;
 
@@ -15,49 +15,15 @@ public static class AdminProfileEndpoints
         admin.MapGet("/{id:guid}", GetUserById);
     }
 
-    private static async Task<IResult> GetAllUsers(
-        UserProfileDbContext context,
-        CancellationToken ct)
+    private static async Task<IResult> GetAllUsers(ISender sender, CancellationToken ct)
     {
-        var profiles = await context.CustomerProfiles
-            .AsNoTracking()
-            .Include(p => p.Addresses)
-            .OrderBy(p => p.DisplayName)
-            .ToListAsync(ct);
-
-        var dtos = profiles.Select(p => new AdminUserSummaryDto(
-            p.Id.Value,
-            p.KeycloakSubject,
-            p.DisplayName,
-            p.Email,
-            p.DarkModeEnabled,
-            p.Addresses.Count)).ToList();
-
-        return Results.Ok(dtos);
+        var result = await sender.Send(new GetAllUsersQuery(), ct);
+        return result.ToHttpResult();
     }
 
-    private static async Task<IResult> GetUserById(
-        Guid id,
-        UserProfileDbContext context,
-        CancellationToken ct)
+    private static async Task<IResult> GetUserById(Guid id, ISender sender, CancellationToken ct)
     {
-        var profile = await context.CustomerProfiles
-            .AsNoTracking()
-            .Include(p => p.Addresses)
-            .FirstOrDefaultAsync(p => p.Id == CustomerProfileId.From(id), ct);
-
-        if (profile is null) return Results.NotFound();
-
-        var dto = new ProfileDto(
-            profile.Id.Value,
-            profile.KeycloakSubject,
-            profile.DisplayName,
-            profile.Email,
-            profile.DarkModeEnabled,
-            profile.Addresses.Select(a => new AddressDto(
-                a.Id.Value, a.Label, a.FirstName, a.LastName,
-                a.Street, a.City, a.PostalCode, a.Country, a.IsDefault)).ToList());
-
-        return Results.Ok(dto);
+        var result = await sender.Send(new GetUserByIdQuery(id), ct);
+        return result.ToHttpResult();
     }
 }

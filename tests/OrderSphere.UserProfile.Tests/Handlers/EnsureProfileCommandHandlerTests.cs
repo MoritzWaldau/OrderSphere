@@ -1,17 +1,16 @@
 using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
-using OrderSphere.UserProfile.Application.Features.Profile.GetOrCreateProfile;
+using OrderSphere.UserProfile.Application.Features.Profile.EnsureProfile;
 using OrderSphere.UserProfile.Domain.Entities;
 using OrderSphere.UserProfile.Tests.Helpers;
 using Xunit;
 
 namespace OrderSphere.UserProfile.Tests.Handlers;
 
-public sealed class GetOrCreateProfileQueryHandlerTests
+public sealed class EnsureProfileCommandHandlerTests
 {
-    private static GetOrCreateProfileQueryHandler CreateHandler(
+    private static EnsureProfileCommandHandler CreateHandler(
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
-        => new(ctx, NullLogger<GetOrCreateProfileQueryHandler>.Instance);
+        => new(ctx);
 
     // ── Profile does not exist ────────────────────────────────────────────────
 
@@ -19,9 +18,9 @@ public sealed class GetOrCreateProfileQueryHandlerTests
     public async Task Handle_ProfileDoesNotExist_CreatesProfile()
     {
         await using var ctx = DbContextFactory.Create();
-        var query = new GetOrCreateProfileQuery("sub-new", "Alice", "alice@example.com");
+        var cmd = new EnsureProfileCommand("sub-new", "Alice", "alice@example.com");
 
-        var result = await CreateHandler(ctx).Handle(query, CancellationToken.None);
+        var result = await CreateHandler(ctx).Handle(cmd, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         ctx.CustomerProfiles.Should().ContainSingle(p => p.KeycloakSubject == "sub-new");
@@ -31,9 +30,9 @@ public sealed class GetOrCreateProfileQueryHandlerTests
     public async Task Handle_ProfileDoesNotExist_ReturnsCorrectDto()
     {
         await using var ctx = DbContextFactory.Create();
-        var query = new GetOrCreateProfileQuery("sub-new", "Alice", "alice@example.com");
+        var cmd = new EnsureProfileCommand("sub-new", "Alice", "alice@example.com");
 
-        var result = await CreateHandler(ctx).Handle(query, CancellationToken.None);
+        var result = await CreateHandler(ctx).Handle(cmd, CancellationToken.None);
 
         result.Value.KeycloakSubject.Should().Be("sub-new");
         result.Value.DisplayName.Should().Be("Alice");
@@ -45,9 +44,9 @@ public sealed class GetOrCreateProfileQueryHandlerTests
     public async Task Handle_ProfileDoesNotExist_AuditFieldsPopulated()
     {
         await using var ctx = DbContextFactory.Create();
-        var query = new GetOrCreateProfileQuery("sub-audit", "Bob", "bob@example.com");
+        var cmd = new EnsureProfileCommand("sub-audit", "Bob", "bob@example.com");
 
-        await CreateHandler(ctx).Handle(query, CancellationToken.None);
+        await CreateHandler(ctx).Handle(cmd, CancellationToken.None);
 
         var profile = ctx.CustomerProfiles.Single(p => p.KeycloakSubject == "sub-audit");
         profile.CreatedAt.Should().NotBe(default);
@@ -64,8 +63,8 @@ public sealed class GetOrCreateProfileQueryHandlerTests
         ctx.CustomerProfiles.Add(existing);
         await ctx.SaveChangesAsync();
 
-        var query = new GetOrCreateProfileQuery("sub-existing", "Updated Name", "updated@example.com");
-        var result = await CreateHandler(ctx).Handle(query, CancellationToken.None);
+        var cmd = new EnsureProfileCommand("sub-existing", "Updated Name", "updated@example.com");
+        var result = await CreateHandler(ctx).Handle(cmd, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.DisplayName.Should().Be("Carol", "existing profile must not be overwritten");

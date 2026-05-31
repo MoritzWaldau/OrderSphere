@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdatePreferences;
 using OrderSphere.UserProfile.Domain.Entities;
 using OrderSphere.UserProfile.Domain.Errors;
@@ -13,7 +12,7 @@ public sealed class UpdatePreferencesCommandHandlerTests
 {
     private static UpdatePreferencesCommandHandler CreateHandler(
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
-        => new(ctx, NullLogger<UpdatePreferencesCommandHandler>.Instance);
+        => new(ctx);
 
     // ── Profile not found ─────────────────────────────────────────────────────
 

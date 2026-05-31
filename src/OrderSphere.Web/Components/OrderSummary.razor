@@ -1,0 +1,52 @@
+@* Sticky order-summary card shared by the cart and checkout pages.
+   Set ShowLineItems to render the itemised list above the totals.
+   Place page-specific buttons/notes into the Actions fragment. *@
+
+<MudPaper Elevation="0" Class="surface-card-lg pa-6" Style="@($"position:sticky;top:{StickyTop};")">
+    <MudText Typo="Typo.h5" Class="mb-4" Style="font-weight:600;">@Title</MudText>
+    <MudStack Spacing="3">
+        @if (ShowLineItems)
+        {
+            @foreach (var item in Items)
+            {
+                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.subtitle2">@item.ProductName</MudText>
+                        <MudText Typo="Typo.caption" Class="text-muted">Menge: @item.Quantity</MudText>
+                    </MudStack>
+                    <MudText Typo="Typo.body2">@((item.Price * item.Quantity).ToString("C"))</MudText>
+                </MudStack>
+            }
+            <MudDivider />
+        }
+
+        <MudStack Row="true" Justify="Justify.SpaceBetween">
+            <MudText Typo="Typo.body2" Class="text-muted">Zwischensumme</MudText>
+            <MudText Typo="Typo.body2">@Subtotal.ToString("C")</MudText>
+        </MudStack>
+        <MudStack Row="true" Justify="Justify.SpaceBetween">
+            <MudText Typo="Typo.body2" Class="text-muted">Versand</MudText>
+            <MudText Typo="Typo.body2" Class="shipping-free">Kostenlos</MudText>
+        </MudStack>
+
+        <MudDivider />
+
+        <MudStack Row="true" Justify="Justify.SpaceBetween">
+            <MudText Typo="Typo.h6" Style="font-weight:700;">Gesamt</MudText>
+            <MudText Typo="Typo.h6" Style="font-weight:700;color:var(--mud-palette-primary);">
+                @Subtotal.ToString("C")
+            </MudText>
+        </MudStack>
+
+        @Actions
+    </MudStack>
+</MudPaper>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Zusammenfassung";
+    [Parameter] public decimal Subtotal { get; set; }
+    [Parameter] public bool ShowLineItems { get; set; }
+    [Parameter] public IReadOnlyList<CartItemDto> Items { get; set; } = [];
+    [Parameter] public string StickyTop { get; set; } = "24px";
+    [Parameter] public RenderFragment? Actions { get; set; }
+}

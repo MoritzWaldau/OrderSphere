@@ -17,108 +17,19 @@
             <!-- Left: form -->
             <MudItem xs="12" lg="8">
                 <MudStack Spacing="4">
-                    <!-- Shipping -->
-                    <MudPaper Elevation="0" Class="surface-card-lg pa-6">
-                        <MudText Typo="Typo.h5" Class="mb-4">Lieferadresse</MudText>
-                        <MudGrid Spacing="3">
-                            <MudItem xs="12" md="6">
-                                <MudTextField T="string" Label="Vorname" Variant="Variant.Outlined"
-                                              FullWidth="true" Required="true"
-                                              @bind-Value="_model.FirstName" />
-                            </MudItem>
-                            <MudItem xs="12" md="6">
-                                <MudTextField T="string" Label="Nachname" Variant="Variant.Outlined"
-                                              FullWidth="true" Required="true"
-                                              @bind-Value="_model.LastName" />
-                            </MudItem>
-                            <MudItem xs="12">
-                                <MudTextField T="string" Label="Straße und Hausnummer" Variant="Variant.Outlined"
-                                              FullWidth="true" Required="true"
-                                              @bind-Value="_model.Street" />
-                            </MudItem>
-                            <MudItem xs="12" md="4">
-                                <MudTextField T="string" Label="PLZ" Variant="Variant.Outlined"
-                                              FullWidth="true" Required="true"
-                                              @bind-Value="_model.PostalCode" />
-                            </MudItem>
-                            <MudItem xs="12" md="5">
-                                <MudTextField T="string" Label="Stadt" Variant="Variant.Outlined"
-                                              FullWidth="true" Required="true"
-                                              @bind-Value="_model.City" />
-                            </MudItem>
-                            <MudItem xs="12" md="3">
-                                <MudSelect T="string" Label="Land" Variant="Variant.Outlined"
-                                           FullWidth="true" @bind-Value="_model.Country">
-                                    <MudSelectItem T="string" Value="@("Deutschland")">Deutschland</MudSelectItem>
-                                    <MudSelectItem T="string" Value="@("Österreich")">Österreich</MudSelectItem>
-                                    <MudSelectItem T="string" Value="@("Schweiz")">Schweiz</MudSelectItem>
-                                </MudSelect>
-                            </MudItem>
-                            <MudItem xs="12" md="6">
-                                <MudTextField T="string" Label="E-Mail" Variant="Variant.Outlined"
-                                              FullWidth="true" Required="true" InputType="InputType.Email"
-                                              @bind-Value="_model.Email" />
-                            </MudItem>
-                        </MudGrid>
-                    </MudPaper>
-
-                    <!-- Payment -->
-                    <MudPaper Elevation="0" Class="surface-card-lg pa-6">
-                        <MudText Typo="Typo.h5" Class="mb-4">Zahlungsart</MudText>
-                        <MudRadioGroup T="int" @bind-Value="_model.PaymentMethod">
-                            <MudStack Spacing="2">
-                                <MudPaper Elevation="0" Class="surface-card pa-4">
-                                    <MudRadio T="int" Value="0" Color="Color.Primary">Kreditkarte</MudRadio>
-                                </MudPaper>
-                                <MudPaper Elevation="0" Class="surface-card pa-4">
-                                    <MudRadio T="int" Value="1" Color="Color.Primary">PayPal</MudRadio>
-                                </MudPaper>
-                                <MudPaper Elevation="0" Class="surface-card pa-4">
-                                    <MudRadio T="int" Value="2" Color="Color.Primary">Kauf auf Rechnung</MudRadio>
-                                </MudPaper>
-                            </MudStack>
-                        </MudRadioGroup>
-                    </MudPaper>
+                    <CheckoutAddressForm Model="_model" />
+                    <CheckoutPaymentForm Model="_model" />
                 </MudStack>
             </MudItem>
 
             <!-- Right: order summary -->
             <MudItem xs="12" lg="4">
-                <MudPaper Elevation="0" Class="surface-card-lg pa-6"
-                          Style="position:sticky;top:100px;">
-                    <MudText Typo="Typo.h5" Class="mb-4">Bestellübersicht</MudText>
-                    <MudStack Spacing="3">
-                        @foreach (var item in _cartItems)
-                        {
-                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                                <MudStack Spacing="0">
-                                    <MudText Typo="Typo.subtitle2">@item.ProductName</MudText>
-                                    <MudText Typo="Typo.caption" Class="text-muted">Menge: @item.Quantity</MudText>
-                                </MudStack>
-                                <MudText Typo="Typo.body2">
-                                    @((item.Price * item.Quantity).ToString("0.00")) €
-                                </MudText>
-                            </MudStack>
-                        }
-
-                        <MudDivider />
-
-                        <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudText Typo="Typo.body1">Zwischensumme</MudText>
-                            <MudText Typo="Typo.body1">@Subtotal.ToString("0.00") €</MudText>
-                        </MudStack>
-                        <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudText Typo="Typo.body1">Versand</MudText>
-                            <MudText Typo="Typo.body1">Kostenlos</MudText>
-                        </MudStack>
-
-                        <MudDivider />
-
-                        <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudText Typo="Typo.h6">Gesamt</MudText>
-                            <MudText Typo="Typo.h6">@Subtotal.ToString("0.00") €</MudText>
-                        </MudStack>
-
+                <OrderSummary Title="Bestellübersicht"
+                              ShowLineItems="true"
+                              Items="_cartItems"
+                              Subtotal="Subtotal"
+                              StickyTop="100px">
+                    <Actions>
                         <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                    FullWidth="true" Class="btn-pill my-4" Size="Size.Large"
                                    Disabled="_submitting"
@@ -133,8 +44,8 @@
                         <MudText Typo="Typo.caption" Class="text-muted">
                             Mit dem Abschluss stimmst du unseren AGB zu.
                         </MudText>
-                    </MudStack>
-                </MudPaper>
+                    </Actions>
+                </OrderSummary>
             </MudItem>
         </MudGrid>
     </MudContainer>
@@ -149,11 +60,7 @@
     // Generated once per page visit. Stable across Polly retries; changes on navigation/refresh.
     private Guid _idempotencyKey = Guid.CreateVersion7();
 
-    private readonly CheckoutFormModel _model = new()
-    {
-        Country = "Deutschland",
-        PaymentMethod = 0
-    };
+    private readonly CheckoutFormModel _model = new();
 
     private decimal Subtotal => _cartItems.Sum(i => i.Quantity * i.Price);
 
@@ -206,17 +113,5 @@
         {
             _submitting = false;
         }
-    }
-
-    private sealed class CheckoutFormModel
-    {
-        public string FirstName { get; set; } = string.Empty;
-        public string LastName  { get; set; } = string.Empty;
-        public string Street    { get; set; } = string.Empty;
-        public string PostalCode { get; set; } = string.Empty;
-        public string City      { get; set; } = string.Empty;
-        public string Country   { get; set; } = string.Empty;
-        public string Email     { get; set; } = string.Empty;
-        public int PaymentMethod { get; set; }
     }
 }

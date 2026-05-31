@@ -87,50 +87,28 @@
                 </MudItem>
 
                 <MudItem xs="12" lg="4">
-                    <MudPaper Elevation="0" Class="surface-card-lg pa-6"
-                              Style="position: sticky; top: 24px;">
-                        <MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: 600;">
-                            Zusammenfassung
-                        </MudText>
+                    <OrderSummary Title="Zusammenfassung" Subtotal="Subtotal">
+                        <Actions>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Size="Size.Large"
+                                       FullWidth="true"
+                                       Href="/checkout"
+                                       EndIcon="@Icons.Material.Outlined.ArrowForward"
+                                       Class="mt-2"
+                                       Style="border-radius: 100px;">
+                                Zur Kasse
+                            </MudButton>
 
-                        <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mb-2">
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Zwischensumme</MudText>
-                            <MudText Typo="Typo.body2">@Subtotal.ToString("C")</MudText>
-                        </MudStack>
-
-                        <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mb-2">
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Versand</MudText>
-                            <MudText Typo="Typo.body2" Style="color: var(--mud-palette-success);">Kostenlos</MudText>
-                        </MudStack>
-
-                        <MudDivider Class="my-4" />
-
-                        <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mb-6">
-                            <MudText Typo="Typo.h6" Style="font-weight: 700;">Gesamt</MudText>
-                            <MudText Typo="Typo.h6" Style="font-weight: 700; color: var(--mud-palette-primary);">
-                                @Subtotal.ToString("C")
-                            </MudText>
-                        </MudStack>
-
-                        <MudButton Variant="Variant.Filled"
-                                   Color="Color.Primary"
-                                   Size="Size.Large"
-                                   FullWidth="true"
-                                   Href="/checkout"
-                                   EndIcon="@Icons.Material.Outlined.ArrowForward"
-                                   Style="border-radius: 100px;">
-                            Zur Kasse
-                        </MudButton>
-
-                        <MudButton Variant="Variant.Text"
-                                   FullWidth="true"
-                                   Href="/shop"
-                                   Color="Color.Default"
-                                   Class="mt-2"
-                                   Style="border-radius: 100px;">
-                            Weiter shoppen
-                        </MudButton>
-                    </MudPaper>
+                            <MudButton Variant="Variant.Text"
+                                       FullWidth="true"
+                                       Href="/shop"
+                                       Color="Color.Default"
+                                       Style="border-radius: 100px;">
+                                Weiter shoppen
+                            </MudButton>
+                        </Actions>
+                    </OrderSummary>
                 </MudItem>
             </MudGrid>
         }

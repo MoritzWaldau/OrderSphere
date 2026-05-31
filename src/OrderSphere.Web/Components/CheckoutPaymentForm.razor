@@ -1,0 +1,22 @@
+@* Payment-method section of the checkout page. Binds Model.PaymentMethod. *@
+
+<MudPaper Elevation="0" Class="surface-card-lg pa-6">
+    <MudText Typo="Typo.h5" Class="mb-4">Zahlungsart</MudText>
+    <MudRadioGroup T="int" @bind-Value="Model.PaymentMethod">
+        <MudStack Spacing="2">
+            <MudPaper Elevation="0" Class="surface-card pa-4">
+                <MudRadio T="int" Value="0" Color="Color.Primary">Kreditkarte</MudRadio>
+            </MudPaper>
+            <MudPaper Elevation="0" Class="surface-card pa-4">
+                <MudRadio T="int" Value="1" Color="Color.Primary">PayPal</MudRadio>
+            </MudPaper>
+            <MudPaper Elevation="0" Class="surface-card pa-4">
+                <MudRadio T="int" Value="2" Color="Color.Primary">Kauf auf Rechnung</MudRadio>
+            </MudPaper>
+        </MudStack>
+    </MudRadioGroup>
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired] public CheckoutFormModel Model { get; set; } = default!;
+}

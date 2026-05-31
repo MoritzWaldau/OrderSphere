@@ -1,4 +1,3 @@
-@inject ThemeState ThemeState
 @inject CartState CartState
 @inject NavigationManager Navigation
 @inject HttpClient Http
@@ -21,11 +20,6 @@
     </MudHidden>
 
     <MudSpacer />
-
-    <MudIconButton Icon="@(ThemeState.IsDarkMode ? Icons.Material.Outlined.LightMode : Icons.Material.Outlined.DarkMode)"
-                   Color="Color.Default"
-                   OnClick="ThemeState.Toggle"
-                   aria-label="Farbschema umschalten" />
 
     <MudBadge Content="@CartItemCount" Color="Color.Primary" Overlap="true" Visible="@(CartItemCount > 0)">
         <MudIconButton Icon="@Icons.Material.Outlined.ShoppingCart"

@@ -14,6 +14,7 @@ using OrderSphere.Ordering.Api.Endpoints;
 using OrderSphere.Ordering.Api.Exceptions;
 using OrderSphere.Ordering.Infrastructure;
 using OrderSphere.Ordering.Infrastructure.Email;
+using OrderSphere.Ordering.Infrastructure.Idempotency;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,9 +40,10 @@ builder.AddAzureServiceBusClient("azure-service-bus");
 // EventBus abstraction
 builder.Services.AddAzureServiceBusEventBus();
 
-// In-memory cache for checkout idempotency key deduplication (30-min TTL per key).
-// For multi-instance deployments, replace with a distributed cache (Redis).
-builder.Services.AddMemoryCache();
+// Distributed cache (Redis) for checkout idempotency key deduplication (30-min TTL per key).
+// Redis-backed so the guard holds across multiple Ordering.Api instances.
+builder.AddRedisDistributedCache("redis");
+builder.Services.AddScoped<ICheckoutIdempotencyStore, RedisCheckoutIdempotencyStore>();
 
 // MediatR — scan this assembly for handlers + pipeline behaviors
 builder.Services.AddMediatR(cfg =>

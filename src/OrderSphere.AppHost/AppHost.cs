@@ -108,8 +108,10 @@ var ordering = builder.AddProject<Projects.OrderSphere_Ordering_Api>("orderspher
     .WithReference(serviceBus)
     .WithReference(catalog)
     .WithReference(basket)
+    .WithReference(redis)
     .WaitFor(orderingDb)
     .WaitFor(serviceBus)
+    .WaitFor(redis)
     .WithEnvironment("Keycloak__Authority",   keycloakRealmAuthority)
     .WithEnvironment("Keycloak__Audience",     "ordering-api")
     // Service-account credentials used by HttpCatalogClient (client_credentials grant).

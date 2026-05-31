@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.Extensions.Caching.Memory;
 using OrderSphere.BuildingBlocks.Abstraction;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
@@ -14,7 +13,7 @@ public sealed class CheckoutCartCommandHandler(
     ICatalogClient catalogClient,
     IBasketClient basketClient,
     IOrderingServiceBusPublisher serviceBusPublisher,
-    IMemoryCache idempotencyCache,
+    ICheckoutIdempotencyStore idempotencyStore,
     ILogger<CheckoutCartCommandHandler> logger
 ) : ICommandHandler<CheckoutCartCommand, Result<Guid>>
 {
@@ -22,14 +21,16 @@ public sealed class CheckoutCartCommandHandler(
 
     public async Task<Result<Guid>> Handle(CheckoutCartCommand request, CancellationToken cancellationToken)
     {
-        // Idempotency guard: return the cached result for a key we have already processed.
+        // Idempotency guard: return the stored result for a key we have already processed.
+        // Distributed (Redis) so the guard holds across service instances.
         var cacheKey = $"checkout:{request.CustomerId}:{request.IdempotencyKey}";
-        if (idempotencyCache.TryGetValue(cacheKey, out Guid cachedCorrelationId))
+        var cachedCorrelationId = await idempotencyStore.TryGetCorrelationIdAsync(cacheKey, cancellationToken);
+        if (cachedCorrelationId is { } existingCorrelationId)
         {
             logger.LogInformation(
                 "Duplicate checkout request for customer {CustomerId}. Returning cached CorrelationId: {CorrelationId}",
-                request.CustomerId, cachedCorrelationId);
-            return Result<Guid>.Success(cachedCorrelationId);
+                request.CustomerId, existingCorrelationId);
+            return Result<Guid>.Success(existingCorrelationId);
         }
 
         // Tracks items whose stock was decremented so they can be restored on failure.
@@ -103,7 +104,7 @@ public sealed class CheckoutCartCommandHandler(
 
             await serviceBusPublisher.PublishCheckoutCartEventAsync(checkoutCartEvent);
 
-            idempotencyCache.Set(cacheKey, correlationId, IdempotencyTtl);
+            await idempotencyStore.SetCorrelationIdAsync(cacheKey, correlationId, IdempotencyTtl, cancellationToken);
             decremented.Clear();
 
             // 5. Clear cart. Best-effort: the order is already committed to the bus.

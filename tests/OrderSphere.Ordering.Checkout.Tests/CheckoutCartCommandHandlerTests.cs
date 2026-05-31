@@ -1,6 +1,4 @@
 using FluentAssertions;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -59,13 +57,12 @@ public sealed class CheckoutCartCommandHandlerTests
     private readonly ICatalogClient _catalog = Substitute.For<ICatalogClient>();
     private readonly IBasketClient  _basket  = Substitute.For<IBasketClient>();
     private readonly IOrderingServiceBusPublisher _bus = Substitute.For<IOrderingServiceBusPublisher>();
-    private readonly IMemoryCache   _cache   = new ServiceCollection()
-        .AddMemoryCache().BuildServiceProvider().GetRequiredService<IMemoryCache>();
+    private readonly InMemoryCheckoutIdempotencyStore _idempotency = new();
     private readonly ILogger<CheckoutCartCommandHandler> _logger =
         Substitute.For<ILogger<CheckoutCartCommandHandler>>();
 
     private CheckoutCartCommandHandler CreateHandler() =>
-        new(_catalog, _basket, _bus, _cache, _logger);
+        new(_catalog, _basket, _bus, _idempotency, _logger);
 
     // ── Cart retrieval failures ───────────────────────────────────────────────
 

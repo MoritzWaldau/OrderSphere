@@ -3,7 +3,6 @@ using FluentAssertions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
@@ -91,8 +90,9 @@ public sealed class CheckoutToPaymentFlowTests
     }
 
     private static CheckoutCartCommandHandler NewHandler(
-        ICatalogClient catalog, IBasketClient basket, IOrderingServiceBusPublisher publisher, IMemoryCache cache) =>
-        new(catalog, basket, publisher, cache, NullLogger<CheckoutCartCommandHandler>.Instance);
+        ICatalogClient catalog, IBasketClient basket, IOrderingServiceBusPublisher publisher,
+        ICheckoutIdempotencyStore idempotency) =>
+        new(catalog, basket, publisher, idempotency, NullLogger<CheckoutCartCommandHandler>.Instance);
 
     // --- Stage 2: worker wiring --------------------------------------------------------------
 
@@ -118,10 +118,10 @@ public sealed class CheckoutToPaymentFlowTests
     {
         var (catalog, basket) = WireSuccessfulClients();
         var publisher = new CapturingPublisher();
-        using var cache = new MemoryCache(new MemoryCacheOptions());
+        var idempotency = new InMemoryCheckoutIdempotencyStore();
 
         // Stage 1 — checkout accepts and publishes to the 'orders' queue.
-        var checkoutResult = await NewHandler(catalog, basket, publisher, cache)
+        var checkoutResult = await NewHandler(catalog, basket, publisher, idempotency)
             .Handle(NewCommand(Guid.NewGuid()), CancellationToken.None);
 
         checkoutResult.IsSuccess.Should().BeTrue();
@@ -182,9 +182,9 @@ public sealed class CheckoutToPaymentFlowTests
         basket.GetCartAsync(CustomerGuid, Arg.Any<CancellationToken>())
             .Returns(Result<BasketCartInfo>.Success(new BasketCartInfo(CustomerGuid, [])));
         var publisher = new CapturingPublisher();
-        using var cache = new MemoryCache(new MemoryCacheOptions());
+        var idempotency = new InMemoryCheckoutIdempotencyStore();
 
-        var result = await NewHandler(catalog, basket, publisher, cache)
+        var result = await NewHandler(catalog, basket, publisher, idempotency)
             .Handle(NewCommand(Guid.NewGuid()), CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
@@ -211,9 +211,9 @@ public sealed class CheckoutToPaymentFlowTests
             .Returns(Result.Success());
 
         var publisher = new CapturingPublisher();
-        using var cache = new MemoryCache(new MemoryCacheOptions());
+        var idempotency = new InMemoryCheckoutIdempotencyStore();
 
-        var result = await NewHandler(catalog, basket, publisher, cache)
+        var result = await NewHandler(catalog, basket, publisher, idempotency)
             .Handle(NewCommand(Guid.NewGuid()), CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
@@ -226,8 +226,8 @@ public sealed class CheckoutToPaymentFlowTests
     {
         var (catalog, basket) = WireSuccessfulClients();
         var publisher = new CapturingPublisher();
-        using var cache = new MemoryCache(new MemoryCacheOptions());
-        var handler = NewHandler(catalog, basket, publisher, cache);
+        var idempotency = new InMemoryCheckoutIdempotencyStore();
+        var handler = NewHandler(catalog, basket, publisher, idempotency);
         var key = Guid.NewGuid();
 
         var first = await handler.Handle(NewCommand(key), CancellationToken.None);
@@ -244,9 +244,9 @@ public sealed class CheckoutToPaymentFlowTests
     {
         var (catalog, basket) = WireSuccessfulClients();
         var publisher = new CapturingPublisher();
-        using var cache = new MemoryCache(new MemoryCacheOptions());
+        var idempotency = new InMemoryCheckoutIdempotencyStore();
 
-        await NewHandler(catalog, basket, publisher, cache)
+        await NewHandler(catalog, basket, publisher, idempotency)
             .Handle(NewCommand(Guid.NewGuid()), CancellationToken.None);
         var orderEvent = publisher.Published[0];
 

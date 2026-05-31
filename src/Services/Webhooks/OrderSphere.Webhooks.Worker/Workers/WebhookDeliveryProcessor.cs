@@ -56,7 +56,6 @@ public sealed class WebhookDeliveryProcessor(
         var now = DateTime.UtcNow;
 
         var deliveries = await db.Deliveries
-            .Include(d => d) // Load full entity
             .Where(d => d.Status == DeliveryStatus.Pending
                 || (d.Status != DeliveryStatus.Succeeded
                     && d.Status != DeliveryStatus.Failed

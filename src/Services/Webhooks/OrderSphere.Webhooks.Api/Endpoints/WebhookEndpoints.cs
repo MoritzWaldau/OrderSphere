@@ -1,9 +1,16 @@
 using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
-using OrderSphere.BuildingBlocks.StronglyTypedIds;
-using OrderSphere.Webhooks.Domain.Entities;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using OrderSphere.ServiceDefaults;
+using OrderSphere.Webhooks.Application.Features.Subscriptions.GetSubscriptions;
+using OrderSphere.Webhooks.Application.Features.Subscriptions.GetSubscription;
+using OrderSphere.Webhooks.Application.Features.Subscriptions.CreateSubscription;
+using OrderSphere.Webhooks.Application.Features.Subscriptions.UpdateSubscription;
+using OrderSphere.Webhooks.Application.Features.Subscriptions.DeleteSubscription;
+using OrderSphere.Webhooks.Application.Features.Subscriptions.ActivateSubscription;
+using OrderSphere.Webhooks.Application.Features.Subscriptions.DeactivateSubscription;
+using OrderSphere.Webhooks.Application.Features.Deliveries.GetDeliveries;
 using OrderSphere.Webhooks.Domain.Enums;
-using OrderSphere.Webhooks.Infrastructure.Persistence;
 
 namespace OrderSphere.Webhooks.Api.Endpoints;
 
@@ -25,188 +32,93 @@ public static class WebhookEndpoints
     }
 
     private static async Task<IResult> GetSubscriptions(
-        WebhooksDbContext db,
-        ClaimsPrincipal user)
+        IMediator mediator, ClaimsPrincipal user, CancellationToken ct)
     {
         var customerId = GetCustomerId(user);
         if (customerId is null) return Results.Unauthorized();
 
-        var subs = await db.Subscriptions
-            .Where(s => s.CustomerId == CustomerId.From(customerId.Value) && !s.IsDeleted)
-            .OrderByDescending(s => s.CreatedAt)
-            .Select(s => new SubscriptionDto(
-                s.Id.Value, s.Url, s.Events, s.IsActive, s.CreatedAt, s.UpdatedAt))
-            .ToListAsync();
-
-        return Results.Ok(subs);
+        var result = await mediator.Send(new GetSubscriptionsQuery(customerId.Value), ct);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetSubscription(
-        Guid id,
-        WebhooksDbContext db,
-        ClaimsPrincipal user)
+        Guid id, IMediator mediator, ClaimsPrincipal user, CancellationToken ct)
     {
         var customerId = GetCustomerId(user);
         if (customerId is null) return Results.Unauthorized();
 
-        var sub = await db.Subscriptions
-            .Where(s => s.Id == WebhookSubscriptionId.From(id) && s.CustomerId == CustomerId.From(customerId.Value) && !s.IsDeleted)
-            .Select(s => new SubscriptionDto(
-                s.Id.Value, s.Url, s.Events, s.IsActive, s.CreatedAt, s.UpdatedAt))
-            .FirstOrDefaultAsync();
-
-        return sub is null ? Results.NotFound() : Results.Ok(sub);
+        var result = await mediator.Send(new GetSubscriptionQuery(id, customerId.Value), ct);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> CreateSubscription(
-        CreateSubscriptionRequest request,
-        WebhooksDbContext db,
-        ClaimsPrincipal user)
+        [FromBody] CreateSubscriptionRequest request,
+        IMediator mediator, ClaimsPrincipal user, CancellationToken ct)
     {
         var customerId = GetCustomerId(user);
         if (customerId is null) return Results.Unauthorized();
 
-        if (string.IsNullOrWhiteSpace(request.Url) || !Uri.TryCreate(request.Url, UriKind.Absolute, out var uri))
-            return Results.BadRequest("A valid absolute URL is required.");
+        var result = await mediator.Send(
+            new CreateSubscriptionCommand(customerId.Value, request.Url, request.Secret, request.Events), ct);
 
-        if (uri.Scheme != "https")
-            return Results.BadRequest("Only HTTPS URLs are accepted.");
-
-        if (request.Events is null || request.Events.Length == 0)
-            return Results.BadRequest("At least one event type is required.");
-
-        var secret = request.Secret;
-        if (string.IsNullOrWhiteSpace(secret))
-            secret = Convert.ToBase64String(Guid.NewGuid().ToByteArray())[..32];
-
-        var subscription = new WebhookSubscription(
-            CustomerId.From(customerId.Value),
-            request.Url,
-            secret,
-            request.Events);
-
-        db.Subscriptions.Add(subscription);
-        await db.SaveChangesAsync();
-
-        return Results.Created(
-            $"/api/v1/webhooks/{subscription.Id.Value}",
-            new SubscriptionCreatedDto(subscription.Id.Value, secret));
+        return result.ToHttpResult(
+            dto => Results.Created($"/api/v1/webhooks/{dto.Id}", dto));
     }
 
     private static async Task<IResult> UpdateSubscription(
-        Guid id,
-        UpdateSubscriptionRequest request,
-        WebhooksDbContext db,
-        ClaimsPrincipal user)
+        Guid id, [FromBody] UpdateSubscriptionRequest request,
+        IMediator mediator, ClaimsPrincipal user, CancellationToken ct)
     {
         var customerId = GetCustomerId(user);
         if (customerId is null) return Results.Unauthorized();
 
-        var sub = await db.Subscriptions
-            .FirstOrDefaultAsync(s => s.Id == WebhookSubscriptionId.From(id) && s.CustomerId == CustomerId.From(customerId.Value) && !s.IsDeleted);
+        var result = await mediator.Send(
+            new UpdateSubscriptionCommand(id, customerId.Value, request.Url, request.Secret, request.Events), ct);
 
-        if (sub is null) return Results.NotFound();
-
-        if (string.IsNullOrWhiteSpace(request.Url) || !Uri.TryCreate(request.Url, UriKind.Absolute, out var uri))
-            return Results.BadRequest("A valid absolute URL is required.");
-
-        if (uri.Scheme != "https")
-            return Results.BadRequest("Only HTTPS URLs are accepted.");
-
-        if (request.Events is null || request.Events.Length == 0)
-            return Results.BadRequest("At least one event type is required.");
-
-        sub.Update(request.Url, request.Secret ?? sub.Secret, request.Events);
-        await db.SaveChangesAsync();
-
-        return Results.NoContent();
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> DeleteSubscription(
-        Guid id,
-        WebhooksDbContext db,
-        ClaimsPrincipal user)
+        Guid id, IMediator mediator, ClaimsPrincipal user, CancellationToken ct)
     {
         var customerId = GetCustomerId(user);
         if (customerId is null) return Results.Unauthorized();
 
-        var sub = await db.Subscriptions
-            .FirstOrDefaultAsync(s => s.Id == WebhookSubscriptionId.From(id) && s.CustomerId == CustomerId.From(customerId.Value) && !s.IsDeleted);
-
-        if (sub is null) return Results.NotFound();
-
-        sub.IsDeleted = true;
-        await db.SaveChangesAsync();
-
-        return Results.NoContent();
+        var result = await mediator.Send(new DeleteSubscriptionCommand(id, customerId.Value), ct);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> ActivateSubscription(
-        Guid id,
-        WebhooksDbContext db,
-        ClaimsPrincipal user)
+        Guid id, IMediator mediator, ClaimsPrincipal user, CancellationToken ct)
     {
         var customerId = GetCustomerId(user);
         if (customerId is null) return Results.Unauthorized();
 
-        var sub = await db.Subscriptions
-            .FirstOrDefaultAsync(s => s.Id == WebhookSubscriptionId.From(id) && s.CustomerId == CustomerId.From(customerId.Value) && !s.IsDeleted);
-
-        if (sub is null) return Results.NotFound();
-
-        sub.Activate();
-        await db.SaveChangesAsync();
-
-        return Results.NoContent();
+        var result = await mediator.Send(new ActivateSubscriptionCommand(id, customerId.Value), ct);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> DeactivateSubscription(
-        Guid id,
-        WebhooksDbContext db,
-        ClaimsPrincipal user)
+        Guid id, IMediator mediator, ClaimsPrincipal user, CancellationToken ct)
     {
         var customerId = GetCustomerId(user);
         if (customerId is null) return Results.Unauthorized();
 
-        var sub = await db.Subscriptions
-            .FirstOrDefaultAsync(s => s.Id == WebhookSubscriptionId.From(id) && s.CustomerId == CustomerId.From(customerId.Value) && !s.IsDeleted);
-
-        if (sub is null) return Results.NotFound();
-
-        sub.Deactivate();
-        await db.SaveChangesAsync();
-
-        return Results.NoContent();
+        var result = await mediator.Send(new DeactivateSubscriptionCommand(id, customerId.Value), ct);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetDeliveries(
-        Guid id,
-        WebhooksDbContext db,
-        ClaimsPrincipal user,
-        int page = 1,
-        int pageSize = 20)
+        Guid id, IMediator mediator, ClaimsPrincipal user, CancellationToken ct,
+        int page = 1, int pageSize = 20)
     {
         var customerId = GetCustomerId(user);
         if (customerId is null) return Results.Unauthorized();
 
-        // Verify the subscription belongs to the caller.
-        var owns = await db.Subscriptions
-            .AnyAsync(s => s.Id == WebhookSubscriptionId.From(id) && s.CustomerId == CustomerId.From(customerId.Value) && !s.IsDeleted);
+        var result = await mediator.Send(
+            new GetDeliveriesQuery(id, customerId.Value, page, pageSize), ct);
 
-        if (!owns) return Results.NotFound();
-
-        var deliveries = await db.Deliveries
-            .Where(d => d.SubscriptionId == WebhookSubscriptionId.From(id))
-            .OrderByDescending(d => d.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(d => new DeliveryDto(
-                d.Id.Value, d.EventType, d.EventId, d.Status.ToString(),
-                d.AttemptCount, d.LastHttpStatus, d.LastError,
-                d.CreatedAt, d.UpdatedAt))
-            .ToListAsync();
-
-        return Results.Ok(deliveries);
+        return result.ToHttpResult();
     }
 
     private static Guid? GetCustomerId(ClaimsPrincipal user)
@@ -216,13 +128,7 @@ public static class WebhookEndpoints
     }
 }
 
-// ── DTOs ──────────────────────────────────────────────────────────────────────
-
-public sealed record SubscriptionDto(
-    Guid Id, string Url, string Events, bool IsActive,
-    DateTime CreatedAt, DateTime? UpdatedAt);
-
-public sealed record SubscriptionCreatedDto(Guid Id, string Secret);
+// ── Request models ────────────────────────────────────────────────────────────
 
 public sealed record CreateSubscriptionRequest(
     string Url,
@@ -233,8 +139,3 @@ public sealed record UpdateSubscriptionRequest(
     string Url,
     string? Secret,
     WebhookEventType[] Events);
-
-public sealed record DeliveryDto(
-    Guid Id, string EventType, Guid EventId, string Status,
-    int AttemptCount, int? LastHttpStatus, string? LastError,
-    DateTime CreatedAt, DateTime? UpdatedAt);

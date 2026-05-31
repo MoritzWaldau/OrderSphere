@@ -4,13 +4,14 @@ using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Extensions;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.Webhooks.Application.Abstractions;
 using OrderSphere.Webhooks.Domain.Entities;
 
 namespace OrderSphere.Webhooks.Infrastructure.Persistence;
 
 public sealed class WebhooksDbContext(
     DbContextOptions<WebhooksDbContext> options,
-    IPublisher publisher) : DbContext(options)
+    IPublisher publisher) : DbContext(options), IWebhooksDbContext
 {
     public DbSet<WebhookSubscription> Subscriptions => Set<WebhookSubscription>();
     public DbSet<WebhookDelivery> Deliveries => Set<WebhookDelivery>();

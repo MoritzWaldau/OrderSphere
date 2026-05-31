@@ -44,6 +44,7 @@
   </Folder>
   <Folder Name="/src/Services/Webhooks/">
     <Project Path="src/Services/Webhooks/OrderSphere.Webhooks.Api/OrderSphere.Webhooks.Api.csproj" />
+    <Project Path="src/Services/Webhooks/OrderSphere.Webhooks.Application/OrderSphere.Webhooks.Application.csproj" />
     <Project Path="src/Services/Webhooks/OrderSphere.Webhooks.Domain/OrderSphere.Webhooks.Domain.csproj" />
     <Project Path="src/Services/Webhooks/OrderSphere.Webhooks.Infrastructure/OrderSphere.Webhooks.Infrastructure.csproj" />
     <Project Path="src/Services/Webhooks/OrderSphere.Webhooks.Worker/OrderSphere.Webhooks.Worker.csproj" />

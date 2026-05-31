@@ -61,6 +61,12 @@ public class WebhookSubscription : AuditableEntity<WebhookSubscriptionId>, IAggr
         IsActive = false;
     }
 
+    public void Delete()
+    {
+        IsDeleted = true;
+        IsActive = false;
+    }
+
     public IReadOnlyList<WebhookEventType> GetEventTypes()
     {
         if (string.IsNullOrEmpty(Events)) return [];

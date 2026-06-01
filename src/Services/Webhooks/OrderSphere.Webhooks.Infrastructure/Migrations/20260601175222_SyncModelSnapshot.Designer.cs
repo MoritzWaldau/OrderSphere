@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OrderSphere.Webhooks.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using OrderSphere.Webhooks.Infrastructure.Persistence;
 namespace OrderSphere.Webhooks.Infrastructure.Migrations
 {
     [DbContext(typeof(WebhooksDbContext))]
-    partial class WebhooksDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260601175222_SyncModelSnapshot")]
+    partial class SyncModelSnapshot
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

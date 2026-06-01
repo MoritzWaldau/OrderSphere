@@ -86,3 +86,38 @@ Each service owns its migrations. Pattern: `-p <Infrastructure project> -s <Api 
 - **Cache**: Redis via .NET Hybrid Cache. Used by Catalog service for product/category reads.
 - **Email**: Azure Communication Services. Implemented in `Notification.Worker/Email/NotificationEmailService.cs`. Triggered by `OrderPlacedIntegrationEvent`. Connection string and sender address read from configuration.
 - **Service Bus**: Azure Service Bus via `BuildingBlocks.EventBus.AzureServiceBus`. Key queues/topics: `orders` (checkout → ordering), `payment-requests` (ordering → payment), `order-placed` (ordering → notification/webhooks).
+
+## Payment provider integration
+
+### Architecture
+
+Payment processing is abstracted behind `IPaymentProvider` (in `Payment.Infrastructure/Providers/`).
+The interface models a two-phase flow: `AuthorizeAsync → CaptureAsync → RefundAsync`, all returning
+`Result<T>`. `PaymentProviderFactory` resolves the correct provider by `MethodName` (case-insensitive).
+
+The current providers (`CreditCardPaymentProvider`, `PayPalPaymentProvider`, `InvoicePaymentProvider`)
+are simulated placeholders. `CreditCardPaymentProvider` is the designated slot for a future Stripe
+integration.
+
+### Adding a new provider (e.g. Stripe)
+
+1. **Create** `XyzPaymentProvider : IPaymentProvider` in `Payment.Infrastructure/Providers/`.
+   - `MethodName` must match the string sent in `PaymentRequestedIntegrationEvent.PaymentMethod`.
+   - `AuthorizeAsync` creates the charge intent; `CaptureAsync` finalises it; `RefundAsync` reverses it.
+   - Use `IOptions<PaymentOptions>` (or a dedicated sub-options class) for API keys and secrets.
+     Never hardcode credentials — inject via User Secrets locally and Key Vault in production.
+2. **Register** in `DependencyInjection.AddPaymentInfrastructure`:
+   `services.AddSingleton<IPaymentProvider, XyzPaymentProvider>();`
+   Remove or retain the placeholder provider as appropriate.
+3. **Idempotency**: `PaymentRequest.OrderId` is suitable as an idempotency key for providers that
+   support it (e.g. Stripe's `IdempotencyKey` header). Use it to prevent double-charges on retries.
+4. **Webhook-based capture** (asynchronous confirmation) is not yet modelled. The current
+   `Authorize → Capture` sequence is synchronous and suitable for providers with manual capture.
+   Asynchronous capture confirmation requires a separate webhook endpoint and a new domain transition
+   on `PaymentRecord` — treat that as a separate feature.
+
+### Development bypass
+
+When `Payment:BypassProviders` is `true` (default in `appsettings.Development.json`), no provider
+is contacted. The `PaymentProcessor` marks every payment as `Captured` immediately with a `DEV-*`
+transaction ID. Set to `false` locally to exercise the real provider path.

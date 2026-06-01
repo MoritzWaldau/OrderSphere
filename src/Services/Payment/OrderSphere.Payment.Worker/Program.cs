@@ -1,6 +1,5 @@
-using MediatR;
-using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
+using OrderSphere.Payment.Application;
 using OrderSphere.Payment.Infrastructure;
 using OrderSphere.Payment.Infrastructure.Persistence;
 using OrderSphere.Payment.Worker.Workers;
@@ -13,11 +12,10 @@ builder.AddNpgsqlDbContext<PaymentDbContext>("payment-db");
 builder.AddAzureServiceBusClient("azure-service-bus");
 
 builder.Services.AddAzureServiceBusEventBus(); // Required by OutboxDispatcher → PaymentProcessedEventHandler
-builder.Services.AddPaymentInfrastructure();
+builder.Services.AddPaymentInfrastructure(builder.Configuration);
 builder.Services.AddHostedService<PaymentProcessor>();
 
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
-builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
+builder.Services.AddPaymentApplication();
 
 var host = builder.Build();
 host.Run();

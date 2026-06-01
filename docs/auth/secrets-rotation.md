@@ -11,6 +11,7 @@ dotnet user-secrets set "Parameters:keycloak-admin-password"     "admin"        
 dotnet user-secrets set "Parameters:bff-client-secret"           "web-bff-dev-secret-change-in-prod"             --project src/OrderSphere.AppHost
 dotnet user-secrets set "Parameters:ordering-worker-secret"      "ordering-worker-dev-secret-change-in-prod"     --project src/OrderSphere.AppHost
 dotnet user-secrets set "Parameters:notification-worker-secret"  "notification-worker-dev-secret-change-in-prod" --project src/OrderSphere.AppHost
+dotnet user-secrets set "Parameters:payment-worker-secret"       "payment-worker-dev-secret-change-in-prod"      --project src/OrderSphere.AppHost
 ```
 
 ---

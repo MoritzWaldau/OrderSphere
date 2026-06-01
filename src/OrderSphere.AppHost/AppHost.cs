@@ -149,7 +149,9 @@ builder.AddProject<Projects.OrderSphere_Notification_Worker>("ordersphere-notifi
 
 var payment = builder.AddProject<Projects.OrderSphere_Payment_Api>("ordersphere-payment")
     .WithReference(paymentDb)
+    .WithReference(serviceBus)
     .WaitFor(paymentDb)
+    .WaitFor(serviceBus)
     .WithEnvironment("Keycloak__Authority", keycloakAuthority)
     .WithEnvironment("Keycloak__Audience", "payment-api");
 

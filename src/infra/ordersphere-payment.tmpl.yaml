@@ -21,6 +21,8 @@ properties:
       - server: {{ .Env.AZURE_CONTAINER_REGISTRY_ENDPOINT }}
         identity: {{ .Env.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}
     secrets:
+      - name: connectionstrings--azure-service-bus
+        value: '{{ .Env.AZURE_SERVICE_BUS_SERVICEBUSENDPOINT }}'
       - name: connectionstrings--payment-db
         value: '{{ .Env.POSTGRES_CONNECTIONSTRING }};Database=payment-db'
   template:
@@ -50,6 +52,12 @@ properties:
             value: "5432"
           - name: PAYMENT_DB_URI
             value: postgresql://{{ .Env.POSTGRES_HOSTNAME }}/payment-db
+          - name: AZURE_SERVICE_BUS_HOST
+            value: '{{ .Env.AZURE_SERVICE_BUS_SERVICEBUSHOSTNAME }}'
+          - name: AZURE_SERVICE_BUS_URI
+            value: '{{ .Env.AZURE_SERVICE_BUS_SERVICEBUSENDPOINT }}'
+          - name: ConnectionStrings__azure-service-bus
+            secretRef: connectionstrings--azure-service-bus
           - name: ConnectionStrings__payment-db
             secretRef: connectionstrings--payment-db
     scale:

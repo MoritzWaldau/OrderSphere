@@ -65,3 +65,46 @@ jobs:
           AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+
+      - name: Azure CLI login (for smoke test)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Smoke test — BFF health endpoint
+        run: |
+          RESOURCE_GROUP="rg-${{ vars.AZURE_ENV_NAME }}"
+          BFF_FQDN=$(az containerapp show \
+            --name ordersphere-bff \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "properties.configuration.ingress.fqdn" \
+            --output tsv)
+          echo "BFF endpoint: https://${BFF_FQDN}"
+          for i in {1..6}; do
+            STATUS=$(curl --silent --output /dev/null --write-out "%{http_code}" \
+              --max-time 20 "https://${BFF_FQDN}/health/live")
+            echo "Attempt ${i}: HTTP ${STATUS}"
+            [ "$STATUS" = "200" ] && break
+            sleep 10
+          done
+          [ "$STATUS" = "200" ] || { echo "BFF /health/live did not return 200 after retries"; exit 1; }
+
+      - name: Smoke test — Container Apps running state
+        run: |
+          RESOURCE_GROUP="rg-${{ vars.AZURE_ENV_NAME }}"
+          FAILED=0
+          for APP in ordersphere-bff ordersphere-apigateway ordersphere-catalog \
+                     ordersphere-basket ordersphere-ordering ordersphere-ordering-worker \
+                     ordersphere-payment ordersphere-payment-worker ordersphere-userprofile \
+                     ordersphere-webhooks ordersphere-webhooks-worker ordersphere-notification-worker; do
+            STATE=$(az containerapp revision list \
+              --name "$APP" \
+              --resource-group "$RESOURCE_GROUP" \
+              --query "[0].properties.runningState" \
+              --output tsv 2>/dev/null || echo "unknown")
+            echo "$APP: $STATE"
+            [ "$STATE" = "Running" ] || FAILED=1
+          done
+          [ "$FAILED" = "0" ] || { echo "One or more Container Apps are not in Running state"; exit 1; }

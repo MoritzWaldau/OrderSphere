@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.Payment.Application;
 using OrderSphere.Payment.Api.Endpoints;
 using OrderSphere.Payment.Api.Exceptions;
@@ -15,6 +16,9 @@ builder.AddNpgsqlDbContext<PaymentDbContext>("payment-db", settings =>
 {
     settings.DisableRetry = false;
 });
+
+builder.AddAzureServiceBusClient("azure-service-bus");
+builder.Services.AddAzureServiceBusEventBus();
 
 builder.Services.AddPaymentInfrastructure(builder.Configuration);
 

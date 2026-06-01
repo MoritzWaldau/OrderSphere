@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
@@ -10,8 +11,11 @@ namespace OrderSphere.Payment.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddPaymentInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddPaymentInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
+        services.Configure<PaymentOptions>(configuration.GetSection(PaymentOptions.SectionName));
         services.AddScoped<IPaymentDbContext>(sp => sp.GetRequiredService<PaymentDbContext>());
 
         services.AddScoped<IInboxStore, EfInboxStore<PaymentDbContext>>();

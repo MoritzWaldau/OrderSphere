@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
@@ -17,6 +18,7 @@ namespace OrderSphere.Payment.Worker.Workers;
 public sealed class PaymentProcessor(
     ServiceBusClient serviceBusClient,
     IServiceScopeFactory scopeFactory,
+    IOptions<PaymentOptions> options,
     ILogger<PaymentProcessor> logger) : BackgroundService
 {
     private const string QueueName = "payment-requests";
@@ -79,9 +81,10 @@ public sealed class PaymentProcessor(
 
             var succeeded = await ProcessPaymentAsync(evt, context, providerFactory, args.CancellationToken);
 
-            // Write outbox message and inbox entry atomically with the payment record.
-            // The OutboxDispatcher publishes to Service Bus asynchronously — eliminates
-            // event loss if the process crashes between SaveChanges and PublishAsync.
+            // Payment record, outbox message, and inbox entry are all written in one
+            // SaveChangesAsync below — a single PostgreSQL transaction guarantees atomicity.
+            // The OutboxDispatcher publishes to Service Bus asynchronously, so a crash
+            // between Save and publish does not lose the event.
             EnqueuePaymentProcessedOutboxMessage(context, evt, succeeded);
             await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(PaymentRequestedIntegrationEvent));
             await context.SaveChangesAsync(args.CancellationToken);
@@ -121,12 +124,22 @@ public sealed class PaymentProcessor(
             evt.CustomerEmail,
             evt.CorrelationId);
 
+        if (options.Value.BypassProviders)
+        {
+            var devTransactionId = $"DEV-{Guid.CreateVersion7():N}";
+            record.MarkCaptured(devTransactionId);
+            await context.Payments.AddAsync(record, ct);
+            logger.LogInformation(
+                "Provider bypass active — marking order {OrderId} as captured without contacting a provider. TransactionId: {TransactionId}",
+                evt.OrderId, devTransactionId);
+            return true;
+        }
+
         var provider = providerFactory.GetProvider(evt.PaymentMethod);
         if (provider is null)
         {
             record.MarkFailed($"Unsupported payment method: {evt.PaymentMethod}");
             await context.Payments.AddAsync(record, ct);
-            await context.SaveChangesAsync(ct);
             return false;
         }
 
@@ -137,7 +150,6 @@ public sealed class PaymentProcessor(
         {
             record.MarkFailed(authResult.Error.Description ?? "Authorization failed.");
             await context.Payments.AddAsync(record, ct);
-            await context.SaveChangesAsync(ct);
             return false;
         }
 
@@ -147,13 +159,11 @@ public sealed class PaymentProcessor(
         {
             record.MarkFailed(captureResult.Error.Description ?? "Capture failed.");
             await context.Payments.AddAsync(record, ct);
-            await context.SaveChangesAsync(ct);
             return false;
         }
 
         record.MarkCaptured(captureResult.Value.TransactionId);
         await context.Payments.AddAsync(record, ct);
-        await context.SaveChangesAsync(ct);
 
         logger.LogInformation("Payment captured for order {OrderId}. TransactionId: {TransactionId}",
             evt.OrderId, captureResult.Value.TransactionId);

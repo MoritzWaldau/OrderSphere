@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.Primitives;
@@ -29,10 +30,11 @@ public sealed class PaymentProcessorTests
         return new PaymentDbContext(options, Substitute.For<IPublisher>());
     }
 
-    private static PaymentProcessor NewProcessor()
+    private static PaymentProcessor NewProcessor(bool bypassProviders = false)
         => new(
             Substitute.For<ServiceBusClient>(),
             Substitute.For<IServiceScopeFactory>(),
+            Options.Create(new PaymentOptions { BypassProviders = bypassProviders }),
             NullLogger<PaymentProcessor>.Instance);
 
     private static PaymentRequestedIntegrationEvent NewEvent(string method = Method)
@@ -66,6 +68,7 @@ public sealed class PaymentProcessorTests
 
         var result = await NewProcessor().ProcessPaymentAsync(
             evt, context, FactoryReturning(provider), CancellationToken.None);
+        await context.SaveChangesAsync(); // mirrors the single Save in OnMessageReceived
 
         result.Should().BeTrue();
 
@@ -82,6 +85,7 @@ public sealed class PaymentProcessorTests
 
         var result = await NewProcessor().ProcessPaymentAsync(
             evt, context, FactoryReturning(provider: null, method: "bitcoin"), CancellationToken.None);
+        await context.SaveChangesAsync();
 
         result.Should().BeFalse();
 
@@ -102,6 +106,7 @@ public sealed class PaymentProcessorTests
 
         var result = await NewProcessor().ProcessPaymentAsync(
             evt, context, FactoryReturning(provider), CancellationToken.None);
+        await context.SaveChangesAsync();
 
         result.Should().BeFalse();
 
@@ -125,6 +130,7 @@ public sealed class PaymentProcessorTests
 
         var result = await NewProcessor().ProcessPaymentAsync(
             evt, context, FactoryReturning(provider), CancellationToken.None);
+        await context.SaveChangesAsync();
 
         result.Should().BeFalse();
 
@@ -153,5 +159,25 @@ public sealed class PaymentProcessorTests
         result.Should().BeTrue();
         (await context.Payments.CountAsync(p => p.OrderId == OrderId.From(evt.OrderId))).Should().Be(1);
         await provider.DidNotReceive().AuthorizeAsync(Arg.Any<PaymentRequest>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task BypassProviders_marks_payment_as_captured_without_contacting_provider()
+    {
+        await using var context = NewContext();
+        var evt = NewEvent();
+        var factory = Substitute.For<IPaymentProviderFactory>();
+
+        var result = await NewProcessor(bypassProviders: true).ProcessPaymentAsync(
+            evt, context, factory, CancellationToken.None);
+        await context.SaveChangesAsync();
+
+        result.Should().BeTrue();
+
+        var record = await context.Payments.SingleAsync(p => p.OrderId == OrderId.From(evt.OrderId));
+        record.Status.Should().Be(PaymentStatus.Captured);
+        record.TransactionId.Should().StartWith("DEV-");
+
+        factory.DidNotReceive().GetProvider(Arg.Any<string>());
     }
 }

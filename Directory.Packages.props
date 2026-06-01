@@ -68,6 +68,7 @@
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.9.0" />
     <PackageVersion Include="Asp.Versioning.Http" Version="8.1.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.7" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="ReportGenerator" Version="5.4.4" />
   </ItemGroup>

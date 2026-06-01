@@ -67,18 +67,9 @@ public sealed class PaymentResultProcessor(
             var context = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
             var inboxStore = scope.ServiceProvider.GetRequiredService<IInboxStore>();
 
-            if (await inboxStore.HasBeenProcessedAsync(evt.Id))
-            {
-                logger.LogInformation("Event {EventId} already processed. Completing message.", evt.Id);
-                await args.CompleteMessageAsync(args.Message);
-                return;
-            }
+            var outcome = await ProcessPaymentResultAsync(evt, context, inboxStore, args.CancellationToken);
 
-            var order = await context.Orders
-                .Include(o => o.Items)
-                .FirstOrDefaultAsync(o => o.Id == OrderId.From(evt.OrderId), args.CancellationToken);
-
-            if (order is null)
+            if (outcome == PaymentResultOutcome.OrderNotFound)
             {
                 logger.LogWarning("Order {OrderId} not found for payment result. Dead-lettering.", evt.OrderId);
                 await args.DeadLetterMessageAsync(args.Message,
@@ -87,73 +78,6 @@ public sealed class PaymentResultProcessor(
                 return;
             }
 
-            if (evt.Succeeded)
-            {
-                order.Confirm(TrackingNumberGenerator.Generate());
-                logger.LogInformation("Order {OrderId} confirmed after payment. TrackingNumber: {TrackingNumber}",
-                    order.Id, order.TrackingNumber);
-            }
-            else
-            {
-                order.Cancel();
-                logger.LogWarning("Order {OrderId} cancelled due to payment failure: {Reason}",
-                    order.Id, evt.FailureReason);
-            }
-
-            // Queue downstream events in the outbox — committed atomically with the order state
-            // change and inbox record by the SaveChangesAsync inside MarkAsProcessedAsync.
-            if (evt.Succeeded)
-            {
-                var orderPlacedEvent = new OrderPlacedIntegrationEvent
-                {
-                    CorrelationId = evt.CorrelationId,
-                    OrderId = order.Id.Value,
-                    CustomerEmail = evt.CustomerEmail,
-                    CustomerName = $"{order.ShippingAddress.FirstName} {order.ShippingAddress.LastName}",
-                    TrackingNumber = order.TrackingNumber!,
-                    ShippingFirstName = order.ShippingAddress.FirstName,
-                    ShippingLastName = order.ShippingAddress.LastName,
-                    ShippingStreet = order.ShippingAddress.Street,
-                    ShippingCity = order.ShippingAddress.City,
-                    ShippingPostalCode = order.ShippingAddress.PostalCode,
-                    ShippingCountry = order.ShippingAddress.Country,
-                    Items = order.Items
-                        .Select(i => new OrderPlacedItemDto(i.ProductName, i.Quantity, i.Price))
-                        .ToList(),
-                    Total = order.Items.Sum(i => i.Price * i.Quantity)
-                };
-                context.AddOutboxMessage(
-                    nameof(OrderPlacedIntegrationEvent),
-                    JsonSerializer.Serialize(orderPlacedEvent));
-            }
-
-            context.AddOutboxMessage(
-                nameof(RealtimeNotificationEvent),
-                JsonSerializer.Serialize(new RealtimeNotificationEvent
-                {
-                    CorrelationId = evt.CorrelationId,
-                    UserId = order.CustomerId.ToString(),
-                    Type = evt.Succeeded ? "OrderConfirmed" : "OrderCancelled",
-                    Title = evt.Succeeded ? "Order Confirmed" : "Order Cancelled",
-                    Message = evt.Succeeded
-                        ? $"Your order has been confirmed. Tracking number: {order.TrackingNumber}"
-                        : $"Your order could not be processed: {evt.FailureReason ?? "Payment failed."}",
-                    OrderId = order.Id.Value
-                }));
-
-            context.AddOutboxMessage(
-                nameof(OrderStatusChangedIntegrationEvent),
-                JsonSerializer.Serialize(new OrderStatusChangedIntegrationEvent
-                {
-                    CorrelationId = evt.CorrelationId,
-                    OrderId = order.Id.Value,
-                    PreviousStatus = "Pending",
-                    NewStatus = evt.Succeeded ? "Confirmed" : "Cancelled",
-                    CustomerEmail = evt.CustomerEmail
-                }));
-
-            // One SaveChangesAsync: order state + outbox rows + inbox mark — all atomic.
-            await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(PaymentProcessedIntegrationEvent));
             await args.CompleteMessageAsync(args.Message);
         }
         catch (Exception ex)
@@ -162,6 +86,100 @@ public sealed class PaymentResultProcessor(
             await args.AbandonMessageAsync(args.Message);
         }
     }
+
+    internal async Task<PaymentResultOutcome> ProcessPaymentResultAsync(
+        PaymentProcessedIntegrationEvent evt,
+        OrderingDbContext context,
+        IInboxStore inboxStore,
+        CancellationToken ct)
+    {
+        if (await inboxStore.HasBeenProcessedAsync(evt.Id, ct))
+        {
+            logger.LogInformation("Event {EventId} already processed.", evt.Id);
+            return PaymentResultOutcome.AlreadyProcessed;
+        }
+
+        var order = await context.Orders
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.Id == OrderId.From(evt.OrderId), ct);
+
+        if (order is null)
+        {
+            return PaymentResultOutcome.OrderNotFound;
+        }
+
+        if (evt.Succeeded)
+        {
+            order.Confirm(TrackingNumberGenerator.Generate());
+            logger.LogInformation("Order {OrderId} confirmed after payment. TrackingNumber: {TrackingNumber}",
+                order.Id, order.TrackingNumber);
+        }
+        else
+        {
+            order.Cancel();
+            logger.LogWarning("Order {OrderId} cancelled due to payment failure: {Reason}",
+                order.Id, evt.FailureReason);
+        }
+
+        // Queue downstream events in the outbox — committed atomically with the order state
+        // change and inbox record by the SaveChangesAsync inside MarkAsProcessedAsync.
+        if (evt.Succeeded)
+        {
+            var orderPlacedEvent = new OrderPlacedIntegrationEvent
+            {
+                CorrelationId = evt.CorrelationId,
+                OrderId = order.Id.Value,
+                CustomerEmail = evt.CustomerEmail,
+                CustomerName = $"{order.ShippingAddress.FirstName} {order.ShippingAddress.LastName}",
+                TrackingNumber = order.TrackingNumber!,
+                ShippingFirstName = order.ShippingAddress.FirstName,
+                ShippingLastName = order.ShippingAddress.LastName,
+                ShippingStreet = order.ShippingAddress.Street,
+                ShippingCity = order.ShippingAddress.City,
+                ShippingPostalCode = order.ShippingAddress.PostalCode,
+                ShippingCountry = order.ShippingAddress.Country,
+                Items = order.Items
+                    .Select(i => new OrderPlacedItemDto(i.ProductName, i.Quantity, i.Price))
+                    .ToList(),
+                Total = order.Items.Sum(i => i.Price * i.Quantity)
+            };
+            context.AddOutboxMessage(
+                nameof(OrderPlacedIntegrationEvent),
+                JsonSerializer.Serialize(orderPlacedEvent));
+        }
+
+        context.AddOutboxMessage(
+            nameof(RealtimeNotificationEvent),
+            JsonSerializer.Serialize(new RealtimeNotificationEvent
+            {
+                CorrelationId = evt.CorrelationId,
+                UserId = order.CustomerId.ToString(),
+                Type = evt.Succeeded ? "OrderConfirmed" : "OrderCancelled",
+                Title = evt.Succeeded ? "Order Confirmed" : "Order Cancelled",
+                Message = evt.Succeeded
+                    ? $"Your order has been confirmed. Tracking number: {order.TrackingNumber}"
+                    : $"Your order could not be processed: {evt.FailureReason ?? "Payment failed."}",
+                OrderId = order.Id.Value
+            }));
+
+        context.AddOutboxMessage(
+            nameof(OrderStatusChangedIntegrationEvent),
+            JsonSerializer.Serialize(new OrderStatusChangedIntegrationEvent
+            {
+                CorrelationId = evt.CorrelationId,
+                OrderId = order.Id.Value,
+                PreviousStatus = "Pending",
+                NewStatus = evt.Succeeded ? "Confirmed" : "Cancelled",
+                CustomerEmail = evt.CustomerEmail
+            }));
+
+        // One SaveChangesAsync: order state + outbox rows + inbox mark — all atomic.
+        await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(PaymentProcessedIntegrationEvent), ct);
+
+        return PaymentResultOutcome.Processed;
+    }
+
+    internal enum PaymentResultOutcome { Processed, AlreadyProcessed, OrderNotFound }
 
     private Task OnError(ProcessErrorEventArgs args)
     {

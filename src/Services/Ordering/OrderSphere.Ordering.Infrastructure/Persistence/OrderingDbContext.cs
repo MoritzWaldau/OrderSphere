@@ -102,6 +102,18 @@ public sealed class OrderingDbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(OrderingDbContext).Assembly);
+
+        // xmin is a PostgreSQL system column — only configure it when the provider is Npgsql.
+        // SQLite (used in tests) and other providers do not support the xid column type.
+        if (Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL")
+        {
+            modelBuilder.Entity<OutboxMessage>()
+                .Property<uint>("xmin")
+                .HasColumnType("xid")
+                .ValueGeneratedOnAddOrUpdate()
+                .IsConcurrencyToken();
+        }
+
         base.OnModelCreating(modelBuilder);
     }
 }

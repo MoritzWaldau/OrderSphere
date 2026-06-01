@@ -23,7 +23,7 @@ var connectionString = mailConfig["ConnectionString"]
 var senderAddress = mailConfig["SenderAddress"]
     ?? throw new InvalidOperationException("MailServiceConfiguration:SenderAddress is not configured.");
 
-builder.Services.AddSingleton(sp =>
+builder.Services.AddSingleton<INotificationEmailService>(sp =>
     new NotificationEmailService(
         connectionString,
         senderAddress,

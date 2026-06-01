@@ -14,13 +14,7 @@ namespace OrderSphere.Ordering.Infrastructure.Migrations
                 name: "IX_outbox_messages_ProcessedAt",
                 table: "outbox_messages");
 
-            migrationBuilder.AddColumn<uint>(
-                name: "xmin",
-                table: "outbox_messages",
-                type: "xid",
-                rowVersion: true,
-                nullable: false,
-                defaultValue: 0u);
+            // xmin is a PostgreSQL system column present on every row — no DDL required.
 
             migrationBuilder.CreateIndex(
                 name: "IX_outbox_messages_ProcessedAt_OccurredAt",
@@ -33,10 +27,6 @@ namespace OrderSphere.Ordering.Infrastructure.Migrations
         {
             migrationBuilder.DropIndex(
                 name: "IX_outbox_messages_ProcessedAt_OccurredAt",
-                table: "outbox_messages");
-
-            migrationBuilder.DropColumn(
-                name: "xmin",
                 table: "outbox_messages");
 
             migrationBuilder.CreateIndex(

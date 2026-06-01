@@ -1,0 +1,54 @@
+api-version: 2024-02-02-preview
+location: {{ .Env.AZURE_LOCATION }}
+identity:
+  type: UserAssigned
+  userAssignedIdentities:
+    ? "{{ .Env.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}"
+    : {}
+properties:
+  environmentId: {{ .Env.AZURE_CONTAINER_APPS_ENVIRONMENT_ID }}
+  configuration:
+    activeRevisionsMode: single
+    runtime:
+      dotnet:
+        autoConfigureDataProtection: true
+    registries:
+      - server: {{ .Env.AZURE_CONTAINER_REGISTRY_ENDPOINT }}
+        identity: {{ .Env.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}
+    secrets:
+      - name: connectionstrings--azure-service-bus
+        value: '{{ .Env.AZURE_SERVICE_BUS_SERVICEBUSENDPOINT }}'
+      - name: connectionstrings--webhooks-db
+        value: '{{ .Env.POSTGRES_CONNECTIONSTRING }};Database=webhooks-db'
+  template:
+    containers:
+      - image: {{ .Image }}
+        name: ordersphere-webhooks-worker
+        env:
+          - name: AZURE_CLIENT_ID
+            value: {{ .Env.MANAGED_IDENTITY_CLIENT_ID }}
+          - name: AZURE_SERVICE_BUS_HOST
+            value: '{{ .Env.AZURE_SERVICE_BUS_SERVICEBUSHOSTNAME }}'
+          - name: AZURE_SERVICE_BUS_URI
+            value: '{{ .Env.AZURE_SERVICE_BUS_SERVICEBUSENDPOINT }}'
+          - name: OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY
+            value: in_memory
+          - name: WEBHOOKS_DB_DATABASENAME
+            value: webhooks-db
+          - name: WEBHOOKS_DB_HOST
+            value: '{{ .Env.POSTGRES_HOSTNAME }}'
+          - name: WEBHOOKS_DB_JDBCCONNECTIONSTRING
+            value: jdbc:postgresql://{{ .Env.POSTGRES_HOSTNAME }}/webhooks-db?sslmode=require&authenticationPluginClassName=com.azure.identity.extensions.jdbc.postgresql.AzurePostgresqlAuthenticationPlugin
+          - name: WEBHOOKS_DB_PORT
+            value: "5432"
+          - name: WEBHOOKS_DB_URI
+            value: postgresql://{{ .Env.POSTGRES_HOSTNAME }}/webhooks-db
+          - name: ConnectionStrings__azure-service-bus
+            secretRef: connectionstrings--azure-service-bus
+          - name: ConnectionStrings__webhooks-db
+            secretRef: connectionstrings--webhooks-db
+    scale:
+      minReplicas: 1
+tags:
+  azd-service-name: ordersphere-webhooks-worker
+  aspire-resource-name: ordersphere-webhooks-worker

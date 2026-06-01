@@ -24,16 +24,20 @@ builder.AddAzureKeyVault("ordersphere-kv");
 //   Realm file is mounted and imported once on first start via --import-realm.
 //   After first start, run: contracts/keycloak/seed-dev-passwords.ps1
 // In publish mode (Azure): Keycloak is externally hosted; container is excluded.
+IResourceBuilder<ContainerResource>? keycloak = null;
+
 if (!builder.ExecutionContext.IsPublishMode)
 {
-    builder.AddContainer("keycloak", "quay.io/keycloak/keycloak", "26.1")
+    keycloak = builder.AddContainer("keycloak", "quay.io/keycloak/keycloak", "26.1")
         .WithHttpEndpoint(port: 8080, targetPort: 8080, name: "http")
         .WithEnvironment("KEYCLOAK_ADMIN", "admin")
         .WithEnvironment("KEYCLOAK_ADMIN_PASSWORD", keycloakAdminPwd)
         .WithBindMount("../../contracts/keycloak/ordersphere-realm.json", "/opt/keycloak/data/import/ordersphere-realm.json", isReadOnly: true)
         .WithArgs("start-dev", "--import-realm")
         .WithVolume("keycloak-data", "/opt/keycloak/data")
-        .WithLifetime(ContainerLifetime.Persistent);
+        .WithLifetime(ContainerLifetime.Persistent)
+        // Wait until the realm is fully imported before any service starts JWT validation.
+        .WithHttpHealthCheck("/realms/ordersphere/.well-known/openid-configuration", endpointName: "http");
 }
 
 // Authority URL for all services. Local default is in appsettings.Development.json;
@@ -102,6 +106,7 @@ var catalog = builder.AddProject<Projects.OrderSphere_Catalog_Api>("ordersphere-
     .WaitFor(redis)
     .WithEnvironment("Keycloak__Authority", keycloakAuthority)
     .WithEnvironment("Keycloak__Audience", "catalog-api");
+if (keycloak is not null) catalog.WaitFor(keycloak);
 
 var basket = builder.AddProject<Projects.OrderSphere_Basket_Api>("ordersphere-basket")
     .WithReference(basketDb)
@@ -111,6 +116,7 @@ var basket = builder.AddProject<Projects.OrderSphere_Basket_Api>("ordersphere-ba
     .WithEnvironment("Keycloak__Audience", "basket-api")
     .WithEnvironment("Keycloak__ClientId", "ordering-worker")
     .WithEnvironment("Keycloak__ClientSecret", orderingWorkerSecret);
+if (keycloak is not null) basket.WaitFor(keycloak);
 
 var ordering = builder.AddProject<Projects.OrderSphere_Ordering_Api>("ordersphere-ordering")
     .WithReference(orderingDb)
@@ -126,6 +132,7 @@ var ordering = builder.AddProject<Projects.OrderSphere_Ordering_Api>("orderspher
     // Service-account credentials used by HttpCatalogClient (client_credentials grant).
     .WithEnvironment("Keycloak__ClientId",     "ordering-worker")
     .WithEnvironment("Keycloak__ClientSecret", orderingWorkerSecret);
+if (keycloak is not null) ordering.WaitFor(keycloak);
 
 builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-worker")
     .WithReference(orderingDb)
@@ -154,6 +161,7 @@ var payment = builder.AddProject<Projects.OrderSphere_Payment_Api>("ordersphere-
     .WaitFor(serviceBus)
     .WithEnvironment("Keycloak__Authority", keycloakAuthority)
     .WithEnvironment("Keycloak__Audience", "payment-api");
+if (keycloak is not null) payment.WaitFor(keycloak);
 
 builder.AddProject<Projects.OrderSphere_Payment_Worker>("ordersphere-payment-worker")
     .WithReference(paymentDb)
@@ -170,12 +178,14 @@ var userProfile = builder.AddProject<Projects.OrderSphere_UserProfile_Api>("orde
     .WaitFor(userProfileDb)
     .WithEnvironment("Keycloak__Authority", keycloakAuthority)
     .WithEnvironment("Keycloak__Audience", "userprofile-api");
+if (keycloak is not null) userProfile.WaitFor(keycloak);
 
 var webhooks = builder.AddProject<Projects.OrderSphere_Webhooks_Api>("ordersphere-webhooks")
     .WithReference(webhooksDb)
     .WaitFor(webhooksDb)
     .WithEnvironment("Keycloak__Authority", keycloakAuthority)
     .WithEnvironment("Keycloak__Audience", "webhooks-api");
+if (keycloak is not null) webhooks.WaitFor(keycloak);
 
 builder.AddProject<Projects.OrderSphere_Webhooks_Worker>("ordersphere-webhooks-worker")
     .WithReference(webhooksDb)
@@ -197,6 +207,7 @@ var apiGateway = builder.AddProject<Projects.OrderSphere_ApiGateway>("orderspher
     .WaitFor(userProfile)
     .WaitFor(webhooks)
     .WithEnvironment("Keycloak__Authority", keycloakAuthority);
+if (keycloak is not null) apiGateway.WaitFor(keycloak);
 
 builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")
     .WithReference(apiGateway)

@@ -101,13 +101,13 @@ builder.Services.AddSingleton<IAuthorizationHandler, OrderOwnerOrStaffHandler>()
 
 var app = builder.Build();
 
-// Apply EF migrations on startup (dev convenience)
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<OrderingDbContext>().Database.Migrate();
+}
+
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
-    db.Database.Migrate();
-
     app.UseOrderSphereSwagger(docTitle: "OrderSphere Ordering API");
 }
 

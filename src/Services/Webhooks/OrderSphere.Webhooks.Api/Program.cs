@@ -23,12 +23,13 @@ builder.AddOrderSphereJwtAuth("webhooks-api");
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<WebhooksDbContext>().Database.Migrate();
+}
+
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<WebhooksDbContext>();
-    db.Database.Migrate();
-
     app.UseOrderSphereSwagger(docTitle: "OrderSphere Webhooks API");
 }
 

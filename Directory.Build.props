@@ -39,4 +39,12 @@
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
+  <!-- SDK Container Publishing (opt-in via <EnableSdkContainerSupport>true</EnableSdkContainerSupport>).
+       Only set in deployable projects (*.Api, *.Worker, ApiGateway, Bff).
+       azd overrides ContainerRegistry and ContainerImageTag at deploy time. -->
+  <PropertyGroup Condition="'$(EnableSdkContainerSupport)' == 'true'">
+    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled</ContainerBaseImage>
+    <ContainerUser>app</ContainerUser>
+  </PropertyGroup>
+
 </Project>

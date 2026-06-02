@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.Payment.Application;
 using OrderSphere.Payment.Api.Endpoints;
 using OrderSphere.Payment.Api.Exceptions;
@@ -16,6 +17,9 @@ builder.AddNpgsqlDbContext<PaymentDbContext>("payment-db", settings =>
     settings.DisableRetry = false;
 });
 
+builder.AddAzureServiceBusClient("azure-service-bus");
+builder.Services.AddAzureServiceBusEventBus();
+
 builder.Services.AddPaymentInfrastructure(builder.Configuration);
 
 builder.Services.AddPaymentApplication();
@@ -31,12 +35,13 @@ builder.AddOrderSphereJwtAuth("payment-api");
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<PaymentDbContext>().Database.Migrate();
+}
+
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
-    db.Database.Migrate();
-
     app.UseOrderSphereSwagger(docTitle: "OrderSphere Payment API");
 }
 

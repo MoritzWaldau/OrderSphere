@@ -45,10 +45,6 @@ public sealed class NotificationProcessor(
         var messageId = args.Message.MessageId;
         logger.LogInformation("Received notification message {MessageId}.", messageId);
 
-        await using var scope = scopeFactory.CreateAsyncScope();
-        var inboxStore = scope.ServiceProvider.GetRequiredService<IInboxStore>();
-        var emailService = scope.ServiceProvider.GetRequiredService<NotificationEmailService>();
-
         try
         {
             var evt = args.Message.Body.ToObjectFromJson<OrderPlacedIntegrationEvent>();
@@ -61,35 +57,44 @@ public sealed class NotificationProcessor(
                 return;
             }
 
-            // Idempotency check — guard against ASB at-least-once redelivery.
-            if (await inboxStore.HasBeenProcessedAsync(evt.Id, args.CancellationToken))
-            {
-                logger.LogInformation(
-                    "Duplicate notification message {MessageId} (EventId {EventId}) — skipping.",
-                    messageId, evt.Id);
-                await args.CompleteMessageAsync(args.Message);
-                return;
-            }
+            await using var scope = scopeFactory.CreateAsyncScope();
+            var inboxStore = scope.ServiceProvider.GetRequiredService<IInboxStore>();
+            var emailService = scope.ServiceProvider.GetRequiredService<INotificationEmailService>();
 
-            if (string.IsNullOrWhiteSpace(evt.CustomerEmail))
-            {
-                logger.LogWarning("OrderPlacedEvent {OrderId} has no customer email. Completing without sending.", evt.OrderId);
-                await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(OrderPlacedIntegrationEvent), args.CancellationToken);
-                await args.CompleteMessageAsync(args.Message);
-                return;
-            }
-
-            await emailService.SendOrderConfirmationAsync(evt, args.CancellationToken);
-            await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(OrderPlacedIntegrationEvent), args.CancellationToken);
+            await ProcessNotificationAsync(evt, inboxStore, emailService, args.CancellationToken);
             await args.CompleteMessageAsync(args.Message);
-
-            logger.LogInformation("Notification processed for order {OrderId}.", evt.OrderId);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unhandled exception processing notification message {MessageId}. Abandoning.", messageId);
             await args.AbandonMessageAsync(args.Message);
         }
+    }
+
+    internal async Task ProcessNotificationAsync(
+        OrderPlacedIntegrationEvent evt,
+        IInboxStore inboxStore,
+        INotificationEmailService emailService,
+        CancellationToken ct)
+    {
+        // Idempotency check — guard against ASB at-least-once redelivery.
+        if (await inboxStore.HasBeenProcessedAsync(evt.Id, ct))
+        {
+            logger.LogInformation("Duplicate notification event {EventId} — skipping.", evt.Id);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(evt.CustomerEmail))
+        {
+            logger.LogWarning("OrderPlacedEvent {OrderId} has no customer email. Completing without sending.", evt.OrderId);
+            await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(OrderPlacedIntegrationEvent), ct);
+            return;
+        }
+
+        await emailService.SendOrderConfirmationAsync(evt, ct);
+        await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(OrderPlacedIntegrationEvent), ct);
+
+        logger.LogInformation("Notification processed for order {OrderId}.", evt.OrderId);
     }
 
     private Task OnError(ProcessErrorEventArgs args)

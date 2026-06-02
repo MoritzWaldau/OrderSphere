@@ -46,6 +46,7 @@ public static class KeycloakAuthenticationExtensions
             {
                 options.Authority = authority;
                 options.RequireHttpsMetadata = !IsDevEnvironment(builder);
+                options.BackchannelTimeout = TimeSpan.FromSeconds(10);
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {

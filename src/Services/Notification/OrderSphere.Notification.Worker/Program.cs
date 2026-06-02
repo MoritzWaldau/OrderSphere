@@ -16,18 +16,23 @@ builder.Services.AddScoped<IInboxStore, EfInboxStore<NotificationDbContext>>();
 // Azure Service Bus
 builder.AddAzureServiceBusClient("azure-service-bus");
 
-// Email service — reads connection string and sender address from configuration
+// Email service — in development without mail config, log-only mock is used.
 var mailConfig = builder.Configuration.GetSection("MailServiceConfiguration");
-var connectionString = mailConfig["ConnectionString"]
-    ?? throw new InvalidOperationException("MailServiceConfiguration:ConnectionString is not configured.");
-var senderAddress = mailConfig["SenderAddress"]
-    ?? throw new InvalidOperationException("MailServiceConfiguration:SenderAddress is not configured.");
+var connectionString = mailConfig["ConnectionString"];
+var senderAddress = mailConfig["SenderAddress"];
 
-builder.Services.AddSingleton(sp =>
-    new NotificationEmailService(
-        connectionString,
-        senderAddress,
-        sp.GetRequiredService<ILogger<NotificationEmailService>>()));
+if (!string.IsNullOrWhiteSpace(connectionString) && !string.IsNullOrWhiteSpace(senderAddress))
+{
+    builder.Services.AddSingleton<INotificationEmailService>(sp =>
+        new NotificationEmailService(
+            connectionString,
+            senderAddress,
+            sp.GetRequiredService<ILogger<NotificationEmailService>>()));
+}
+else
+{
+    builder.Services.AddSingleton<INotificationEmailService, LoggingNotificationEmailService>();
+}
 
 builder.Services.AddHostedService<NotificationProcessor>();
 

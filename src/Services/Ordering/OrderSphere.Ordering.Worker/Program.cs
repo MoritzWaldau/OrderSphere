@@ -33,4 +33,11 @@ builder.Services.AddHostedService<PaymentResultProcessor>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
 
-builder.Build().Run();
+var host = builder.Build();
+
+using (var scope = host.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<OrderingDbContext>().Database.Migrate();
+}
+
+host.Run();

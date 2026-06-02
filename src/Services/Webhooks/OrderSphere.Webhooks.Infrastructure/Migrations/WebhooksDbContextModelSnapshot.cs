@@ -46,7 +46,6 @@ namespace OrderSphere.Webhooks.Infrastructure.Migrations
             modelBuilder.Entity("OrderSphere.Webhooks.Domain.Entities.WebhookDelivery", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<int>("AttemptCount")
@@ -105,7 +104,6 @@ namespace OrderSphere.Webhooks.Infrastructure.Migrations
             modelBuilder.Entity("OrderSphere.Webhooks.Domain.Entities.WebhookSubscription", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")

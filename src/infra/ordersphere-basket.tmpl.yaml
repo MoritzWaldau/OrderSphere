@@ -1,0 +1,73 @@
+api-version: 2024-02-02-preview
+location: {{ .Env.AZURE_LOCATION }}
+identity:
+  type: UserAssigned
+  userAssignedIdentities:
+    ? "{{ .Env.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}"
+    : {}
+properties:
+  environmentId: {{ .Env.AZURE_CONTAINER_APPS_ENVIRONMENT_ID }}
+  configuration:
+    activeRevisionsMode: single
+    runtime:
+      dotnet:
+        autoConfigureDataProtection: true
+    ingress:
+      external: false
+      targetPort: {{ targetPortOrDefault 8080 }}
+      transport: http
+      allowInsecure: true
+    registries:
+      - server: {{ .Env.AZURE_CONTAINER_REGISTRY_ENDPOINT }}
+        identity: {{ .Env.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}
+    secrets:
+      - name: connectionstrings--basket-db
+        value: '{{ .Env.POSTGRES_CONNECTIONSTRING }};Database=basket-db'
+      - name: keycloak--clientsecret
+        value: '{{ securedParameter "ordering_worker_secret" }}'
+  template:
+    containers:
+      - image: {{ .Image }}
+        name: ordersphere-basket
+        env:
+          - name: AZURE_CLIENT_ID
+            value: {{ .Env.MANAGED_IDENTITY_CLIENT_ID }}
+          - name: ASPNETCORE_FORWARDEDHEADERS_ENABLED
+            value: "true"
+          - name: BASKET_DB_DATABASENAME
+            value: basket-db
+          - name: BASKET_DB_HOST
+            value: '{{ .Env.POSTGRES_HOSTNAME }}'
+          - name: BASKET_DB_JDBCCONNECTIONSTRING
+            value: jdbc:postgresql://{{ .Env.POSTGRES_HOSTNAME }}/basket-db?sslmode=require&authenticationPluginClassName=com.azure.identity.extensions.jdbc.postgresql.AzurePostgresqlAuthenticationPlugin
+          - name: BASKET_DB_PORT
+            value: "5432"
+          - name: BASKET_DB_URI
+            value: postgresql://{{ .Env.POSTGRES_HOSTNAME }}/basket-db
+          - name: HTTP_PORTS
+            value: '{{ targetPortOrDefault 0 }}'
+          - name: Keycloak__Audience
+            value: basket-api
+          - name: Keycloak__Authority
+            value: '{{ parameter "keycloak_realm_authority" }}'
+          - name: Keycloak__ClientId
+            value: ordering-worker
+          - name: ORDERSPHERE_CATALOG_HTTP
+            value: http://ordersphere-catalog.internal.{{ .Env.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}
+          - name: ORDERSPHERE_CATALOG_HTTPS
+            value: https://ordersphere-catalog.internal.{{ .Env.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}
+          - name: OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY
+            value: in_memory
+          - name: services__ordersphere-catalog__http__0
+            value: http://ordersphere-catalog.internal.{{ .Env.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}
+          - name: services__ordersphere-catalog__https__0
+            value: https://ordersphere-catalog.internal.{{ .Env.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN }}
+          - name: ConnectionStrings__basket-db
+            secretRef: connectionstrings--basket-db
+          - name: Keycloak__ClientSecret
+            secretRef: keycloak--clientsecret
+    scale:
+      minReplicas: 1
+tags:
+  azd-service-name: ordersphere-basket
+  aspire-resource-name: ordersphere-basket

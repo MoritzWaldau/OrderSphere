@@ -9,7 +9,7 @@ namespace OrderSphere.Notification.Worker.Email;
 public sealed class NotificationEmailService(
     string connectionString,
     string senderAddress,
-    ILogger<NotificationEmailService> logger)
+    ILogger<NotificationEmailService> logger) : INotificationEmailService
 {
     public async Task SendOrderConfirmationAsync(OrderPlacedIntegrationEvent evt, CancellationToken ct = default)
     {

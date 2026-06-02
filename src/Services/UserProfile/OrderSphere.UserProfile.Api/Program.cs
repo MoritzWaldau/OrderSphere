@@ -27,13 +27,13 @@ builder.Services.AddAuthorizationBuilder()
 
 var app = builder.Build();
 
-// Apply EF migrations on startup (dev convenience)
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<UserProfileDbContext>().Database.Migrate();
+}
+
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<UserProfileDbContext>();
-    db.Database.Migrate();
-
     app.UseOrderSphereSwagger(docTitle: "OrderSphere UserProfile API");
 }
 

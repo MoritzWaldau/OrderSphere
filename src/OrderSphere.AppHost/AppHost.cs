@@ -210,6 +210,7 @@ var apiGateway = builder.AddProject<Projects.OrderSphere_ApiGateway>("orderspher
 if (keycloak is not null) apiGateway.WaitFor(keycloak);
 
 builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")
+    .WithExternalHttpEndpoints()
     .WithReference(apiGateway)
     .WithReference(redis)
     .WithReference(serviceBus)

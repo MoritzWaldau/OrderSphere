@@ -1,0 +1,111 @@
+# OrderSphere — Azure-Deployment (azd)
+
+Bereitstellung von OrderSphere in eine eigene Azure-DEV-Umgebung über die Azure Developer CLI
+(`azd`). OrderSphere ist eine .NET-Aspire-Anwendung: das AppHost-Manifest
+(`src/OrderSphere.AppHost`) ist die einzige Quelle der Ressourcentopologie. `azd` liest das
+Manifest und generiert daraus die Bicep-Vorlagen (Container Apps, PostgreSQL Flexible Server,
+Service Bus, Azure Managed Redis, Key Vault). Es gibt bewusst **keinen** handgepflegten
+`infra/`-Ordner.
+
+Keycloak ist **nicht** Teil dieser Bereitstellung. Es läuft als unabhängiger zentraler
+SSO-Provider (siehe [`deploy/sso/`](../deploy/sso/README.md)). Die Kopplung erfolgt ausschließlich
+über die Issuer-URL und vier Client-Secrets.
+
+## Voraussetzungen
+
+- `azd` installiert (`azd version`), `dotnet` 10 SDK.
+- Azure-Subscription mit Berechtigung, die Resource Group `rg-ordersphere-dev` anzulegen.
+- Laufendes Cloud-Keycloak (Issuer-URL bekannt).
+- Docker (für den lokalen Container-Build durch `azd`).
+
+## Eckdaten
+
+| Schlüssel | Wert |
+|---|---|
+| Environment | `dev` |
+| Region | `northeurope` |
+| Resource Group | `rg-ordersphere-dev` |
+| Issuer | `https://keycloak.salmoncoast-4abe9a09.northeurope.azurecontainerapps.io/realms/ordersphere` |
+
+## Datenbankschema
+
+Jeder Service ruft beim Start `Database.Migrate()` auf (ungated, nicht auf Development beschränkt —
+siehe z. B. `src/Services/Catalog/.../Program.cs`). In der Cloud migriert damit jeder Container beim
+ersten Start sein eigenes Schema gegen den PostgreSQL Flexible Server. Kein separater
+Migrationsschritt nötig.
+
+## Schritt-für-Schritt
+
+### 1. Anmelden und Environment anlegen
+```powershell
+azd auth login
+azd env new dev --location northeurope --subscription <SUBSCRIPTION_ID>
+azd env set AZURE_RESOURCE_GROUP rg-ordersphere-dev
+```
+
+### 2. Issuer + nicht-geheime Parameter setzen
+```powershell
+azd env set keycloak-realm-authority "https://keycloak.salmoncoast-4abe9a09.northeurope.azurecontainerapps.io/realms/ordersphere"
+azd env set payment-bypass-providers true
+```
+
+### 3. Echte Client-Secrets erzeugen und im Keycloak setzen
+Vier neue Zufalls-Secrets erzeugen (eines je confidential Client):
+```powershell
+foreach ($c in 'web-bff','ordering-worker','notification-worker','payment-worker') {
+  $s = [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Max 256 }))
+  Write-Host "$c = $s"
+}
+```
+Jeden Wert in der **Cloud-Keycloak-Admin-Konsole** setzen
+(*Clients → \<client\> → Credentials → Regenerate/Set*). Die laufende Instanz hat den Realm bereits
+in Postgres importiert; Änderungen an `contracts/keycloak/ordersphere-realm.json` werden **nicht**
+automatisch übernommen.
+
+> Hinweis: `contracts/keycloak/ordersphere-realm.json` behält die `*-dev-secret-change-in-prod`-
+> Platzhalter. Echte Secrets gehören nicht ins Git — nur in Keycloak und in den Key Vault.
+
+### 4. Secrets als azd-Secret-Parameter hinterlegen
+`azd env set-secret` legt eine Key-Vault-Referenz an und ist interaktiv. Reihenfolge: erst
+`azd provision` (legt den Key Vault an), dann je Secret:
+```powershell
+azd env set-secret bff-client-secret
+azd env set-secret ordering-worker-secret
+azd env set-secret notification-worker-secret
+azd env set-secret payment-worker-secret
+```
+(Alternativ vor dem ersten Deploy via `azd env set <name> <value>` als Klartext-Wert — wird beim
+Provisionieren in den Key Vault übernommen.)
+
+### 5. Bereitstellen
+```powershell
+azd up
+```
+Provisioniert die Infrastruktur in `rg-ordersphere-dev` und deployt alle 12 Projekte als Container
+Apps. Nur `ordersphere-bff` erhält ein externes Ingress (`WithExternalHttpEndpoints()` im AppHost).
+
+### 6. Keycloak gegen die BFF-URL abgleichen
+Nach dem Deploy die öffentliche BFF-FQDN ermitteln:
+```powershell
+azd show
+```
+Am Client `web-bff` in der Keycloak-Admin-Konsole ergänzen:
+- Redirect URI: `https://<bff-fqdn>/*`
+- Web Origin: `https://<bff-fqdn>`
+- Post-Logout-Redirect-URI: `https://<bff-fqdn>/*`
+- Backchannel-Logout-URL: `https://<bff-fqdn>/bff/backchannel-logout`
+
+## Verifikation
+
+1. `azd up` läuft fehlerfrei; Ressourcen in `rg-ordersphere-dev` vorhanden.
+2. Service-Logs zeigen erfolgreichen JWKS-Abruf von der Keycloak-FQDN.
+3. `https://<bff-fqdn>` → Login-Redirect zu Keycloak → nach Schritt 6 erfolgreicher Rücksprung.
+4. Authentifizierter API-Call (Audience-Validierung pro Service) liefert 200.
+5. `client_credentials`-Token für `ordering-worker`/`payment-worker` mit dem echten Secret →
+   gültiges Token mit Rolle `svc.*`.
+
+## CI/CD
+
+Empfohlen: `azd pipeline config` nach dem ersten erfolgreichen `azd up`. Der Befehl erzeugt den
+GitHub-Actions-Workflow, richtet OIDC ein und propagiert Environment-Werte sowie Secret-Referenzen
+nach GitHub. Siehe separaten Abschnitt, sobald der manuelle Deploy bestätigt ist.

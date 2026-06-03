@@ -373,3 +373,8 @@ FodyWeavers.xsd
 
 # Claude Code – skills live in ~/.claude/skills (global), not in the repo
 .claude/skills/
+
+# Azure Developer CLI (azd) – per-developer environment state and secrets.
+# azure.yaml IS checked in; the .azure/ folder (env values, local Key Vault
+# references, provisioned outputs) is local and must not be committed.
+.azure/

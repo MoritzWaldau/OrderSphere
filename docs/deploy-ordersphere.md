@@ -104,8 +104,26 @@ Am Client `web-bff` in der Keycloak-Admin-Konsole ergänzen:
 5. `client_credentials`-Token für `ordering-worker`/`payment-worker` mit dem echten Secret →
    gültiges Token mit Rolle `svc.*`.
 
-## CI/CD
+## CI/CD — `azd pipeline config`
 
-Empfohlen: `azd pipeline config` nach dem ersten erfolgreichen `azd up`. Der Befehl erzeugt den
-GitHub-Actions-Workflow, richtet OIDC ein und propagiert Environment-Werte sowie Secret-Referenzen
-nach GitHub. Siehe separaten Abschnitt, sobald der manuelle Deploy bestätigt ist.
+Erst **nach** dem ersten erfolgreichen `azd up` ausführen. Der Befehl richtet OIDC
+(Workload Identity Federation) ein, legt/verwendet den Service Principal, setzt die GitHub-
+Repo-Variablen (`AZURE_ENV_NAME`, `AZURE_LOCATION`, `AZURE_SUBSCRIPTION_ID`) und propagiert die
+Environment-Werte inkl. Secret-Referenzen. Er generiert den Workflow `.github/workflows/azure-dev.yml`.
+
+```powershell
+azd pipeline config
+```
+
+Hinweise für dieses Repo:
+
+- **AppHost nicht im Repo-Root.** Der generierte `azure-dev.yml` nimmt den AppHost im Wurzelverzeichnis
+  an. Hier liegt er unter `src/OrderSphere.AppHost`. In den Schritten **Provision Infrastructure**
+  und **Deploy Application** muss daher `working-directory: ./src/OrderSphere.AppHost` ergänzt werden
+  (siehe [Aspire-Doku zu Multi-Projekt-Workflows](https://learn.microsoft.com/en-us/dotnet/aspire/deployment/azd/aca-deployment-github-actions)).
+- **master ist PR-geschützt.** `azd pipeline config` will den Workflow committen/pushen — auf einem
+  Branch arbeiten und per PR mergen, nicht direkt auf master pushen.
+- **Bestehende SSO-Credentials.** Das SSO-Deployment nutzt bereits eine OIDC-Federated-Credential und
+  die `AZURE_*`-Repo-Secrets. `azd pipeline config` kann eine eigene Identität anlegen; falls die
+  vorhandene wiederverwendet werden soll, die generierten Variablen entsprechend angleichen.
+- Der Workflow läuft `azd provision`/`azd deploy` und erfordert das .NET-10-SDK (Container-Build durch azd).

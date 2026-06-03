@@ -1,0 +1,2 @@
+# Realm is copied here from contracts/keycloak at build time (single source of truth).
+realm/*.json

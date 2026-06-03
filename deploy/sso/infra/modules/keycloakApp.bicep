@@ -1,18 +1,17 @@
 // Keycloak 26 Container App (production mode) with Key Vault-backed secrets,
 // ACR pull via UAMI, external HTTPS ingress, and health probes on port 9000.
 //
-// Custom domain is a TWO-PASS operation, gated by enableCustomDomain:
-//   Pass 1 (false): deploy, read customDomainVerificationId + fqdn outputs.
-//   -> create DNS: "asuid.<sub>" TXT = verification id, "<sub>" CNAME = fqdn.
-//   Pass 2 (true):  the managed certificate validates via CNAME and binds.
+// No custom domain: the issuer is the Container Apps default FQDN
+// "keycloak.<env-default-domain>", deterministic before the app exists.
+// To add a custom domain later, create a managed certificate against the
+// environment and add the domain to ingress.customDomains (separate change).
 @description('Azure region.')
 param location string
 @description('Resource tags.')
 param tags object
 
 param environmentId string
-param environmentName string
-@description('Container Apps Environment default domain (e.g. "<hash>.northeurope.azurecontainerapps.io"). Used to derive the issuer when no custom domain is set.')
+@description('Container Apps Environment default domain (e.g. "<hash>.northeurope.azurecontainerapps.io").')
 param environmentDefaultDomain string
 @description('Full Keycloak image reference (ACR).')
 param image string
@@ -20,15 +19,8 @@ param userAssignedIdentityId string
 param acrLoginServer string
 param keyVaultUri string
 
-@description('Custom issuer hostname, e.g. "sso.dev.example.com". Leave empty to use the Container Apps default FQDN.')
+@description('Optional custom issuer hostname. Empty = use the Container Apps default FQDN.')
 param ssoHostname string = ''
-@description('Bind the custom domain + managed certificate (pass 2). Ignored when ssoHostname is empty.')
-param enableCustomDomain bool = false
-
-// Without a custom domain, the issuer is the app default FQDN "<appname>.<env-default-domain>",
-// which is deterministic before the app is created (app name is fixed to "keycloak").
-var effectiveHostname = empty(ssoHostname) ? 'keycloak.${environmentDefaultDomain}' : ssoHostname
-var bindCustomDomain = enableCustomDomain && !empty(ssoHostname)
 
 param postgresFqdn string
 param postgresDatabase string
@@ -38,28 +30,8 @@ param keycloakAdminUsername string
 param cpu string = '1.0'
 param memory string = '2.0Gi'
 
-resource environment 'Microsoft.App/managedEnvironments@2024-03-01' existing = {
-  name: environmentName
-}
-
-resource managedCert 'Microsoft.App/managedEnvironments/managedCertificates@2024-03-01' = if (bindCustomDomain) {
-  parent: environment
-  name: replace(ssoHostname, '.', '-')
-  location: location
-  tags: tags
-  properties: {
-    subjectName: ssoHostname
-    domainControlValidation: 'CNAME'
-  }
-}
-
-var customDomains = bindCustomDomain ? [
-  {
-    name: ssoHostname
-    certificateId: managedCert.id
-    bindingType: 'SniEnabled'
-  }
-] : []
+// App name is fixed, so the default FQDN is "keycloak.<env-default-domain>".
+var effectiveHostname = empty(ssoHostname) ? 'keycloak.${environmentDefaultDomain}' : ssoHostname
 
 resource app 'Microsoft.App/containerApps@2024-03-01' = {
   name: 'keycloak'
@@ -80,7 +52,6 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
         targetPort: 8080
         transport: 'http'
         allowInsecure: false
-        customDomains: customDomains
         traffic: [
           {
             latestRevision: true

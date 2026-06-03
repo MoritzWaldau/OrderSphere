@@ -40,9 +40,6 @@ param keycloakAdminPassword string
 @description('Keycloak bootstrap admin username (only used on first start).')
 param keycloakAdminUsername string = 'admin'
 
-@description('Bind the custom domain + managed certificate. Enable only AFTER the asuid TXT and CNAME DNS records exist (two-pass deploy).')
-param enableCustomDomain bool = false
-
 // --- Networking -----------------------------------------------------------
 module network 'modules/network.bicep' = {
   name: 'network'
@@ -131,14 +128,12 @@ module keycloak 'modules/keycloakApp.bicep' = {
     location: location
     tags: tags
     environmentId: containerEnv.outputs.environmentId
-    environmentName: containerEnv.outputs.environmentName
     environmentDefaultDomain: containerEnv.outputs.defaultDomain
     image: keycloakImage
     userAssignedIdentityId: identity.outputs.resourceId
     acrLoginServer: acr.outputs.loginServer
     keyVaultUri: keyvault.outputs.vaultUri
     ssoHostname: ssoHostname
-    enableCustomDomain: enableCustomDomain
     postgresFqdn: postgres.outputs.fqdn
     postgresDatabase: postgres.outputs.databaseName
     postgresUsername: postgresAdminUsername

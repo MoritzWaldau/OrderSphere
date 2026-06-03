@@ -28,10 +28,6 @@ param postgresAdminUsername = 'kcadmin'
 // --- Keycloak bootstrap admin ----------------------------------------------
 param keycloakAdminUsername = 'admin'
 
-// --- Custom domain ---------------------------------------------------------
-// Pass 1: false. After the asuid TXT + CNAME records exist, set to true and redeploy.
-param enableCustomDomain = false
-
 // --- Secrets ---------------------------------------------------------------
 // Supplied at deploy time, NOT stored here. The pipeline passes them via
 // `--parameters postgresAdminPassword=$(...) keycloakAdminPassword=$(...)`

@@ -8,11 +8,6 @@ name: Deploy SSO (Keycloak)
 # Only runs when SSO assets change, or on demand.
 on:
   workflow_dispatch:
-    inputs:
-      enableCustomDomain:
-        description: 'Bind custom domain + managed cert (only after DNS asuid TXT + CNAME exist)'
-        type: boolean
-        default: false
   push:
     branches: [master]
     paths:
@@ -83,7 +78,6 @@ jobs:
             -p deploy/sso/infra/params/dev.bicepparam \
             -p keycloakImage="${{ steps.image.outputs.image }}" \
                ssoHostname="$SSO_HOSTNAME" \
-               enableCustomDomain=${{ inputs.enableCustomDomain || false }} \
                postgresAdminPassword="${{ secrets.POSTGRES_ADMIN_PASSWORD }}" \
                keycloakAdminPassword="${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}"
 

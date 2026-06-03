@@ -1,7 +1,7 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 // ── Secret parameters ─────────────────────────────────────────────────────────
-// In development: populate via user-secrets (see commands in docs/auth/secrets-rotation.md).
+// In development: populate via dotnet user-secrets set "Parameters:<name>" "<value>" --project src/OrderSphere.AppHost
 // In production: values are resolved from Azure Key Vault by azd / Aspire provisioning.
 var keycloakAdminPwd = builder.AddParameter("keycloak-admin-password",    secret: true);
 var bffClientSecret = builder.AddParameter("bff-client-secret",          secret: true);
@@ -210,6 +210,7 @@ var apiGateway = builder.AddProject<Projects.OrderSphere_ApiGateway>("orderspher
 if (keycloak is not null) apiGateway.WaitFor(keycloak);
 
 builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")
+    .WithExternalHttpEndpoints()
     .WithReference(apiGateway)
     .WithReference(redis)
     .WithReference(serviceBus)

@@ -59,7 +59,9 @@ jobs:
             --sku Basic --admin-enabled false --location "$LOCATION" --only-show-errors
 
       - name: Stage realm into build context
-        run: cp contracts/keycloak/ordersphere-realm.json deploy/sso/realm/ordersphere-realm.json
+        run: |
+          mkdir -p deploy/sso/realm
+          cp contracts/keycloak/ordersphere-realm.json deploy/sso/realm/ordersphere-realm.json
 
       - name: Build & push Keycloak image
         id: image

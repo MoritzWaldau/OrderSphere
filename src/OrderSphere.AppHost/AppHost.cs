@@ -3,7 +3,6 @@ var builder = DistributedApplication.CreateBuilder(args);
 // ── Secret parameters ─────────────────────────────────────────────────────────
 // In development: populate via dotnet user-secrets set "Parameters:<name>" "<value>" --project src/OrderSphere.AppHost
 // In production: values are resolved from Azure Key Vault by azd / Aspire provisioning.
-var keycloakAdminPwd = builder.AddParameter("keycloak-admin-password",    secret: true);
 var bffClientSecret = builder.AddParameter("bff-client-secret",          secret: true);
 var orderingWorkerSecret = builder.AddParameter("ordering-worker-secret",      secret: true);
 var notificationWorkerSecret = builder.AddParameter("notification-worker-secret", secret: true);
@@ -28,6 +27,12 @@ IResourceBuilder<ContainerResource>? keycloak = null;
 
 if (!builder.ExecutionContext.IsPublishMode)
 {
+    // Declared inside the run-mode guard: the admin password is only consumed by the
+    // local Keycloak container. Declaring it at the top level would make it a required
+    // secure input of the published Azure manifest, where Keycloak is externally hosted
+    // and the value is unused — forcing azd to demand a value it never applies.
+    var keycloakAdminPwd = builder.AddParameter("keycloak-admin-password", secret: true);
+
     keycloak = builder.AddContainer("keycloak", "quay.io/keycloak/keycloak", "26.1")
         .WithHttpEndpoint(port: 8080, targetPort: 8080, name: "http")
         .WithEnvironment("KEYCLOAK_ADMIN", "admin")

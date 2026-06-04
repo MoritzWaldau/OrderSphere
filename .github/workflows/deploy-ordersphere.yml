@@ -1,0 +1,93 @@
+name: Deploy OrderSphere
+
+# Deploys the OrderSphere application (12 Aspire projects) to Azure Container Apps
+# via the Azure Developer CLI (azd). Infrastructure and app are derived from the
+# AppHost manifest; there is no hand-written infra/ folder.
+#
+# Authentication reuses the SAME OIDC workload-identity federation as deploy-sso.yml
+# (environment: dev, AZURE_* repo secrets) — no new identity, no secret overwrite.
+#
+# Keycloak is NOT deployed here (see deploy-sso.yml). The four confidential client
+# secrets are supplied as repo secrets and injected as azd provisioning parameters;
+# they are never committed.
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'src/**'
+      - 'azure.yaml'
+      - 'Directory.Packages.props'
+      - '.github/workflows/deploy-ordersphere.yml'
+
+permissions:
+  id-token: write   # required for azd OIDC federated login
+  contents: read
+
+concurrency:
+  group: deploy-ordersphere-dev
+  cancel-in-progress: false
+
+env:
+  AZURE_ENV_NAME: dev
+  AZURE_LOCATION: northeurope
+  # azd's Aspire path derives the resource group from the env name (rg-dev) and
+  # ignores AZURE_RESOURCE_GROUP during provisioning; it IS honoured by deploy, so
+  # it must point at the provisioned group or the container-app PUT returns 404.
+  AZURE_RESOURCE_GROUP: rg-dev
+  # Public, non-secret. The Keycloak issuer the services validate tokens against.
+  KEYCLOAK_REALM_AUTHORITY: https://keycloak.salmoncoast-4abe9a09.northeurope.azurecontainerapps.io/realms/ordersphere
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install azd
+        uses: Azure/setup-azd@v2
+
+      - name: Log in to Azure (OIDC federated)
+        run: |
+          azd auth login \
+            --client-id "${{ secrets.AZURE_CLIENT_ID }}" \
+            --tenant-id "${{ secrets.AZURE_TENANT_ID }}" \
+            --federated-credential-provider github
+
+      - name: Configure azd environment
+        run: |
+          azd env new "$AZURE_ENV_NAME" \
+            --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+            --location "$AZURE_LOCATION"
+          azd env set AZURE_RESOURCE_GROUP "$AZURE_RESOURCE_GROUP"
+
+      - name: Write provisioning parameters
+        env:
+          BFF_CLIENT_SECRET: ${{ secrets.BFF_CLIENT_SECRET }}
+          ORDERING_WORKER_SECRET: ${{ secrets.ORDERING_WORKER_SECRET }}
+          NOTIFICATION_WORKER_SECRET: ${{ secrets.NOTIFICATION_WORKER_SECRET }}
+          PAYMENT_WORKER_SECRET: ${{ secrets.PAYMENT_WORKER_SECRET }}
+        run: |
+          jq -n \
+            --arg authority "$KEYCLOAK_REALM_AUTHORITY" \
+            --arg bff "$BFF_CLIENT_SECRET" \
+            --arg ordering "$ORDERING_WORKER_SECRET" \
+            --arg notification "$NOTIFICATION_WORKER_SECRET" \
+            --arg payment "$PAYMENT_WORKER_SECRET" \
+            '{infra:{parameters:{
+               keycloak_realm_authority: $authority,
+               payment_bypass_providers: "true",
+               bff_client_secret: $bff,
+               ordering_worker_secret: $ordering,
+               notification_worker_secret: $notification,
+               payment_worker_secret: $payment
+            }}}' > ".azure/${AZURE_ENV_NAME}/config.json"
+
+      - name: Provision and deploy
+        run: azd up --no-prompt

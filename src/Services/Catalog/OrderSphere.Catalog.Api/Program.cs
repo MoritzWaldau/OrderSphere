@@ -12,8 +12,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Aspire defaults (OpenTelemetry, health checks, service discovery)
 builder.AddServiceDefaults();
 
+// Redis distributed cache (Entra ID auth against Azure Managed Redis) — L2 for HybridCache.
+await builder.AddOrderSphereRedisAsync();
+
 // Domain layers
-builder.AddCatalogInfrastructure();          // EF Core, ICatalogDbContext, HybridCache, Redis
+builder.AddCatalogInfrastructure();          // EF Core, ICatalogDbContext, HybridCache
 builder.Services.AddCatalogApplication();    // MediatR + Behaviors + FluentValidation
 
 // Cross-cutting concerns

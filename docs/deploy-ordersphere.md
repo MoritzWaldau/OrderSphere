@@ -24,8 +24,14 @@ SSO-Provider (siehe [`deploy/sso/`](../deploy/sso/README.md)). Die Kopplung erfo
 |---|---|
 | Environment | `dev` |
 | Region | `northeurope` |
-| Resource Group | `rg-ordersphere-dev` |
+| Resource Group | `rg-dev` |
+| BFF-FQDN | `ordersphere-bff.kindtree-ed135723.northeurope.azurecontainerapps.io` |
 | Issuer | `https://keycloak.salmoncoast-4abe9a09.northeurope.azurecontainerapps.io/realms/ordersphere` |
+
+> **Resource Group:** Der Aspire-azd-Pfad leitet die Resource Group aus dem Environment-Namen ab
+> (`rg-<env>` → `rg-dev`) und ignoriert ein nachträglich gesetztes `AZURE_RESOURCE_GROUP`. Die
+> Infrastruktur liegt daher in `rg-dev`. Damit `azd deploy` die Container Apps in dieselbe Gruppe
+> schreibt, muss `AZURE_RESOURCE_GROUP=rg-dev` gesetzt sein (sonst 404 `ResourceGroupNotFound`).
 
 ## Datenbankschema
 
@@ -34,13 +40,28 @@ siehe z. B. `src/Services/Catalog/.../Program.cs`). In der Cloud migriert damit 
 ersten Start sein eigenes Schema gegen den PostgreSQL Flexible Server. Kein separater
 Migrationsschritt nötig.
 
+## Redis-Authentifizierung (Entra ID)
+
+`AddAzureManagedRedis` provisioniert Azure Managed Redis mit Microsoft-Entra-ID-Authentifizierung
+(Access Keys deaktiviert); der Managed Identity wird eine Data-Access-Policy zugewiesen. Der von
+Aspire injizierte Connection-String enthält **kein** Passwort. `Aspire.StackExchange.Redis` bringt
+keine Entra-Token-Logik mit — eine rohe `ConnectionMultiplexer.Connect(connectionString)` scheitert
+deshalb mit `NOAUTH - connection has not yet authenticated`.
+
+Die Services bauen die Redis-Verbindung daher über `AddOrderSphereRedisAsync`
+(`OrderSphere.ServiceDefaults/RedisExtensions.cs`): Bei einem Azure-Redis-Endpoint ohne Passwort holt
+`Microsoft.Azure.StackExchangeRedis` über die User-Assigned Managed Identity (`AZURE_CLIENT_ID`) ein
+Entra-Token und erneuert es automatisch. Der token-authentifizierte `IConnectionMultiplexer` wird von
+DistributedCache (Catalog, Ordering, BFF), DataProtection-Key-Ring und SignalR-Backplane (BFF)
+gemeinsam genutzt. Lokal (Aspire-Dev-Container) verbindet derselbe Code ohne Credentials.
+
 ## Schritt-für-Schritt
 
 ### 1. Anmelden und Environment anlegen
 ```powershell
 azd auth login
 azd env new dev --location northeurope --subscription <SUBSCRIPTION_ID>
-azd env set AZURE_RESOURCE_GROUP rg-ordersphere-dev
+azd env set AZURE_RESOURCE_GROUP rg-dev
 ```
 
 > **Wichtig:** Aspire-Parameter mit Bindestrich (`keycloak-realm-authority`,
@@ -123,3 +144,13 @@ Hinweise für dieses Repo:
   die `AZURE_*`-Repo-Secrets. `azd pipeline config` kann eine eigene Identität anlegen; falls die
   vorhandene wiederverwendet werden soll, die generierten Variablen entsprechend angleichen.
 - Der Workflow läuft `azd provision`/`azd deploy` und erfordert das .NET-10-SDK (Container-Build durch azd).
+
+## Troubleshooting (real aufgetreten beim ersten Deploy)
+
+| Symptom | Ursache | Behebung |
+|---|---|---|
+| `ConflictError: A vault with the same name already exists in deleted state` | Ein früherer, abgebrochener `azd up` hat den Key Vault angelegt und beim Aufräumen gelöscht; Key-Vault-Soft-Delete reserviert den Namen weiter. | `az keyvault purge --name <vault> --location northeurope`, dann `azd up` erneut. |
+| `empty dotnet configuration output` (Vorschlag: `EnableSdkContainerSupport`) | Verschleiert den echten Fehler des `dotnet publish` beim Container-Bau. Zwei beobachtete Auslöser: (a) Docker-Credential-Helper liefert keine ACR-Credentials; (b) bei parallelem Bau scheitert ein Publish. | (a) siehe nächste Zeile; (b) Solution vorab `dotnet build -c Release` (Outputs warm) bzw. Services einzeln `azd deploy <service>`. |
+| `docker-credential-desktop.EXE get … credentials not found in native keychain` | `~/.docker/config.json` hat `credsStore: desktop`, aber der Desktop-Keychain liefert das ACR-Token nicht. | `credsStore`-Zeile aus `~/.docker/config.json` entfernen, dann `az acr login --name <acr>` (legt das Token base64 direkt in `config.json` ab). |
+| Deploy-Schritt: `404 ResourceGroupNotFound: 'rg-ordersphere-dev'` | Infrastruktur liegt in `rg-dev` (azd-Default `rg-<env>`), `AZURE_RESOURCE_GROUP` zeigte auf eine nicht existierende Gruppe. | `azd env set AZURE_RESOURCE_GROUP rg-dev`, dann `azd up`. |
+| `/bff/login` → `500`, Logs: `NOAUTH … connection has not yet authenticated` (Redis) | Azure Managed Redis erzwingt Entra-ID-Auth; rohe Redis-Verbindung sendet kein Token. | Siehe Abschnitt [Redis-Authentifizierung](#redis-authentifizierung-entra-id) — Verbindung über `AddOrderSphereRedisAsync`. |

@@ -30,40 +30,34 @@ var keycloakClientSecret = builder.Configuration["Keycloak:ClientSecret"]
 var isProduction = !builder.Environment.IsDevelopment()
                 && !builder.Environment.IsEnvironment("Testing");
 
-// ── Redis (session ticket store + DataProtection keys) ───────────────────────
-// Connection string injected by Aspire via WithReference(redis).
+// ── Redis (session ticket store + DataProtection keys + SignalR backplane) ───
+// Connection string injected by Aspire via WithReference(redis). A single token-
+// authenticated multiplexer (Entra ID / managed identity against Azure Managed Redis)
+// is shared by the distributed cache, DataProtection key ring and SignalR backplane.
 // In dev without Aspire, set ConnectionStrings__redis in appsettings.Development.json.
-builder.AddRedisDistributedCache("redis");
-
-// Persist DataProtection keys to Redis so all BFF instances share the same key ring.
-// Without persistence, keys are regenerated on every restart, invalidating all active
-// sessions encrypted and stored in Redis by RedisTicketStore.
-// A dedicated IConnectionMultiplexer is created from the Aspire-injected connection
-// string; this avoids the keyed-service DI resolution issue with the Aspire Redis
-// registration while keeping the DataProtection key store fully isolated.
-// In the "Testing" environment the key ring is ephemeral (no Redis needed).
+// In the "Testing" environment Redis is not used (ephemeral key ring, no backplane).
 if (!builder.Environment.IsEnvironment("Testing"))
 {
+    var redis = await builder.AddOrderSphereRedisAsync("redis");
+
+    // Persist DataProtection keys to Redis so all BFF instances share the same key ring.
+    // Without persistence, keys are regenerated on every restart, invalidating all active
+    // sessions encrypted and stored in Redis by RedisTicketStore.
     builder.Services.AddDataProtection()
         .SetApplicationName("OrderSphere.Bff")
-        .PersistKeysToStackExchangeRedis(
-            ConnectionMultiplexer.Connect(
-                builder.Configuration.GetConnectionString("redis")
-                ?? throw new InvalidOperationException(
-                    "Redis connection string not configured. " +
-                    "Ensure the Aspire Redis resource is referenced by the BFF.")),
-            "DataProtection-Keys");
+        .PersistKeysToStackExchangeRedis(redis, "DataProtection-Keys");
+
+    builder.Services.AddSignalR()
+        .AddStackExchangeRedis(options =>
+            options.ConnectionFactory = _ => Task.FromResult(redis));
 }
 else
 {
     // Testing: ephemeral key ring — sessions are valid only within one test run.
     builder.Services.AddDataProtection()
         .SetApplicationName("OrderSphere.Bff");
+    builder.Services.AddSignalR();
 }
-
-// ── SignalR + Redis backplane ─────────────────────────────────────────────
-builder.Services.AddSignalR()
-    .AddStackExchangeRedis(builder.Configuration.GetConnectionString("redis")!);
 
 // ── Azure Service Bus (for realtime notification consumption) ────────────
 builder.AddAzureServiceBusClient("azure-service-bus");

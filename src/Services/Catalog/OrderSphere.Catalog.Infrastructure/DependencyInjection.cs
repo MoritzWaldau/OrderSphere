@@ -17,8 +17,9 @@ public static class DependencyInjection
         builder.Services.AddScoped<ICatalogDbContext>(sp =>
             sp.GetRequiredService<CatalogDbContext>());
 
+        // The Redis L2 (IDistributedCache) is registered by the API host via
+        // AddOrderSphereRedisAsync, which adds Entra ID authentication for Azure Managed Redis.
         builder.Services.AddHybridCache();
-        builder.AddRedisDistributedCache("redis");
 
         return builder;
     }

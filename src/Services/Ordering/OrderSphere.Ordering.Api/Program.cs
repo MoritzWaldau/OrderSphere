@@ -38,7 +38,7 @@ builder.Services.AddAzureServiceBusEventBus();
 
 // Distributed cache (Redis) for checkout idempotency key deduplication (30-min TTL per key).
 // Redis-backed so the guard holds across multiple Ordering.Api instances.
-builder.AddRedisDistributedCache("redis");
+await builder.AddOrderSphereRedisAsync();
 builder.Services.AddScoped<ICheckoutIdempotencyStore, RedisCheckoutIdempotencyStore>();
 
 // MediatR — scan this assembly for handlers + pipeline behaviors

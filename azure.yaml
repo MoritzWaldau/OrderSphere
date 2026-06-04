@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+# Azure Developer CLI (azd) configuration for OrderSphere.
+#
+# OrderSphere is a .NET Aspire application: the AppHost manifest is the single
+# source of truth for the resource topology (Container Apps, PostgreSQL Flexible
+# Server, Service Bus, Azure Managed Redis, Key Vault). azd reads that manifest
+# at `azd provision`/`azd up` time and generates the Bicep — there is no hand-
+# written infra/ folder here. External ingress is decided in the AppHost via
+# `WithExternalHttpEndpoints()` (only ordersphere-bff is public).
+#
+# Keycloak is NOT part of this deployment: it is the independently deployed
+# central SSO provider (see deploy/sso/). Its issuer is supplied to OrderSphere
+# through the `keycloak-realm-authority` parameter (azd env set), and the four
+# confidential client secrets through azd secret parameters (azd env set-secret):
+#   bff-client-secret, ordering-worker-secret,
+#   notification-worker-secret, payment-worker-secret
+name: ordersphere
+services:
+  app:
+    language: dotnet
+    project: ./src/OrderSphere.AppHost/OrderSphere.AppHost.csproj
+    host: containerapp

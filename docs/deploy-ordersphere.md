@@ -43,14 +43,15 @@ azd env new dev --location northeurope --subscription <SUBSCRIPTION_ID>
 azd env set AZURE_RESOURCE_GROUP rg-ordersphere-dev
 ```
 
-### 2. Issuer + nicht-geheime Parameter setzen
-```powershell
-azd env set keycloak-realm-authority "https://keycloak.salmoncoast-4abe9a09.northeurope.azurecontainerapps.io/realms/ordersphere"
-azd env set payment-bypass-providers true
-```
+> **Wichtig:** Aspire-Parameter mit Bindestrich (`keycloak-realm-authority`,
+> `payment-bypass-providers`, die vier `*-secret`) dürfen **nicht** über `azd env set` gesetzt
+> werden — `azd env set` schreibt in die `.env`, und dort sind Bindestriche in Variablennamen
+> ungültig (`unexpected character "-" in variable name`). Diese Parameter fragt `azd up` beim
+> ersten Deploy interaktiv ab und speichert sie korrekt (Nicht-Secrets in `config.json`, Secrets
+> als Key-Vault-Referenz). Nur `AZURE_*`-Werte (Unterstriche) gehören in die `.env`.
 
-### 3. Echte Client-Secrets erzeugen und im Keycloak setzen
-Vier neue Zufalls-Secrets erzeugen (eines je confidential Client):
+### 2. Echte Client-Secrets erzeugen
+Vier neue Zufalls-Secrets erzeugen (eines je confidential Client) und notieren:
 ```powershell
 foreach ($c in 'web-bff','ordering-worker','notification-worker','payment-worker') {
   $s = [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Max 256 }))
@@ -65,24 +66,19 @@ automatisch übernommen.
 > Hinweis: `contracts/keycloak/ordersphere-realm.json` behält die `*-dev-secret-change-in-prod`-
 > Platzhalter. Echte Secrets gehören nicht ins Git — nur in Keycloak und in den Key Vault.
 
-### 4. Secrets als azd-Secret-Parameter hinterlegen
-`azd env set-secret` legt eine Key-Vault-Referenz an und ist interaktiv. Reihenfolge: erst
-`azd provision` (legt den Key Vault an), dann je Secret:
-```powershell
-azd env set-secret bff-client-secret
-azd env set-secret ordering-worker-secret
-azd env set-secret notification-worker-secret
-azd env set-secret payment-worker-secret
-```
-(Alternativ vor dem ersten Deploy via `azd env set <name> <value>` als Klartext-Wert — wird beim
-Provisionieren in den Key Vault übernommen.)
-
-### 5. Bereitstellen
+### 3. Bereitstellen
 ```powershell
 azd up
 ```
-Provisioniert die Infrastruktur in `rg-ordersphere-dev` und deployt alle 12 Projekte als Container
-Apps. Nur `ordersphere-bff` erhält ein externes Ingress (`WithExternalHttpEndpoints()` im AppHost).
+`azd up` fragt nacheinander die Parameterwerte ab:
+- `keycloak-realm-authority` → die Issuer-URL (siehe Eckdaten oben)
+- `payment-bypass-providers` → `true`
+- `bff-client-secret`, `ordering-worker-secret`, `notification-worker-secret`,
+  `payment-worker-secret` → die in Schritt 2 erzeugten Werte (werden als Key-Vault-Secrets abgelegt)
+
+Danach provisioniert es die Infrastruktur in `rg-ordersphere-dev` und deployt alle 12 Projekte als
+Container Apps. Nur `ordersphere-bff` erhält ein externes Ingress (`WithExternalHttpEndpoints()` im
+AppHost). Die Antworten werden gespeichert; spätere `azd up`-Läufe fragen nicht erneut.
 
 ### 6. Keycloak gegen die BFF-URL abgleichen
 Nach dem Deploy die öffentliche BFF-FQDN ermitteln:

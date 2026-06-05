@@ -1,0 +1,128 @@
+name: OrderSphere Power (start/stop DEV)
+
+# Manual cost control for the DEV OrderSphere application environment (rg-dev),
+# the azd/Aspire-provisioned stack — separate from the Keycloak SSO (see
+# sso-power.yml, rg-sso-dev).
+#
+#   stop  -> scale every ordersphere-* container app to 0 replicas,
+#            then stop the PostgreSQL Flexible Server.
+#   start -> start PostgreSQL (wait until Ready),
+#            then scale every container app back to 1 replica.
+#
+# Container apps are enumerated dynamically, so services added/removed by a later
+# `azd up` are picked up automatically. All apps currently run minReplicas=1
+# (always-on); this toggle removes that variable compute when the env is idle.
+#
+# NOT stopped by this workflow (platform cannot pause them — fixed monthly cost):
+#   - Azure Managed Redis (Redis Enterprise, Balanced_B0) — largest residual
+#   - Service Bus (Standard namespace)
+#   - ACR, Log Analytics, Key Vault, Container Apps Environment
+# To eliminate those too, tear the env down with `azd down` (destructive) and
+# recreate with `azd up`.
+#
+# Reuses the same OIDC workload-identity login as deploy-ordersphere.yml; no
+# stored cloud secrets. No schedule by design — manual control only.
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Power action for the DEV OrderSphere environment'
+        type: choice
+        required: true
+        options:
+          - start
+          - stop
+
+permissions:
+  id-token: write   # required for azure/login OIDC
+  contents: read
+
+env:
+  RESOURCE_GROUP: rg-dev
+  POSTGRES_SERVER: postgres-62ap5bsbgcgtk
+
+concurrency:
+  group: ordersphere-power
+  cancel-in-progress: false
+
+jobs:
+  power:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install containerapp CLI extension
+        run: az extension add --name containerapp --upgrade --only-show-errors
+
+      - name: Stop OrderSphere (container apps then Postgres)
+        if: ${{ inputs.action == 'stop' }}
+        run: |
+          set -euo pipefail
+          apps=$(az containerapp list -g "$RESOURCE_GROUP" --query "[].name" -o tsv)
+          echo "::group::Scaling container apps to 0 replicas"
+          for app in $apps; do
+            echo "  $app -> 0"
+            az containerapp update -g "$RESOURCE_GROUP" -n "$app" \
+              --min-replicas 0 --only-show-errors -o none
+          done
+          echo "::endgroup::"
+
+          echo "::group::Stopping PostgreSQL ($POSTGRES_SERVER)"
+          az postgres flexible-server stop \
+            -g "$RESOURCE_GROUP" -n "$POSTGRES_SERVER" --only-show-errors
+          echo "::endgroup::"
+
+          echo "OrderSphere DEV stopped. Variable container + Postgres compute is now ~zero."
+          echo "Reminder: Managed Redis and Service Bus keep billing (cannot be paused)."
+
+      - name: Start OrderSphere (Postgres then container apps)
+        if: ${{ inputs.action == 'start' }}
+        run: |
+          set -euo pipefail
+          echo "::group::Starting PostgreSQL ($POSTGRES_SERVER)"
+          az postgres flexible-server start \
+            -g "$RESOURCE_GROUP" -n "$POSTGRES_SERVER" --only-show-errors
+          # Gate on Ready before bringing the apps up, so first start does not
+          # fail against an unreachable database.
+          for i in $(seq 1 30); do
+            state=$(az postgres flexible-server show \
+              -g "$RESOURCE_GROUP" -n "$POSTGRES_SERVER" --query state -o tsv)
+            echo "attempt $i: Postgres state = $state"
+            [ "$state" = "Ready" ] && break
+            sleep 10
+          done
+          echo "::endgroup::"
+
+          apps=$(az containerapp list -g "$RESOURCE_GROUP" --query "[].name" -o tsv)
+          echo "::group::Scaling container apps to 1 replica"
+          for app in $apps; do
+            echo "  $app -> 1"
+            az containerapp update -g "$RESOURCE_GROUP" -n "$app" \
+              --min-replicas 1 --only-show-errors -o none
+          done
+          echo "::endgroup::"
+
+          echo "::group::BFF readiness (best-effort)"
+          bff_fqdn=$(az containerapp show -g "$RESOURCE_GROUP" -n ordersphere-bff \
+            --query properties.configuration.ingress.fqdn -o tsv 2>/dev/null || true)
+          if [ -n "$bff_fqdn" ]; then
+            for i in $(seq 1 24); do
+              code=$(curl -s -o /dev/null -w '%{http_code}' "https://$bff_fqdn/" || true)
+              echo "attempt $i: GET https://$bff_fqdn/ = HTTP $code"
+              # Any non-5xx/000 means the front door is serving.
+              case "$code" in 000|5*) sleep 10 ;; *) break ;; esac
+            done
+            echo "BFF front door: https://$bff_fqdn/"
+          else
+            echo "Could not resolve ordersphere-bff FQDN (skipping probe)."
+          fi
+          echo "::endgroup::"
+
+          echo "OrderSphere DEV started."

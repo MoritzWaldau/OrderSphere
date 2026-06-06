@@ -16,7 +16,7 @@
 ARG KEYCLOAK_VERSION=26.1
 
 # --- Stage 1: transform realm (inject Azure BFF origin) --------------------
-FROM alpine:3.20 AS realm
+FROM alpine:3.23 AS realm
 RUN apk add --no-cache jq
 ARG BFF_BASE_URL=https://localhost:5001
 COPY realm/ordersphere-realm.json /in/realm.json

@@ -28,6 +28,12 @@ jobs:
         with:
           egress-policy: audit
 
+      # .editorconfig erzwingt end_of_line=crlf. Damit der Checkout auf dem
+      # Linux-Runner CRLF liefert (statt LF), autocrlf vor dem Checkout setzen —
+      # sonst meldet `dotnet format` jede Zeile als Verstoß.
+      - name: CRLF-Checkout erzwingen (.editorconfig)
+        run: git config --global core.autocrlf true
+
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup .NET + NuGet cache

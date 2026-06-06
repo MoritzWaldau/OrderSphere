@@ -6,11 +6,11 @@ on:
   pull_request:
     branches: [master]
 
-# Least-privilege: Analyse braucht nur Lesezugriff auf den Code.
+# Least-privilege: the analysis needs only read access to the code.
 permissions:
   contents: read
 
-# Laufende Analysen desselben Refs abbrechen, sobald ein neuer Push kommt.
+# Cancel running analyses of the same ref as soon as a new push arrives.
 concurrency:
   group: sonar-${{ github.ref }}
   cancel-in-progress: true
@@ -50,7 +50,7 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: Restore .NET tools (dotnet-sonarscanner aus .config/dotnet-tools.json)
+      - name: Restore .NET tools (dotnet-sonarscanner from .config/dotnet-tools.json)
         run: dotnet tool restore
 
       - name: Begin Sonar analysis

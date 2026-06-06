@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Eine neue Funktion oder Verbesserung vorschlagen
+about: Propose a new feature or improvement
 title: "feat: "
 labels: [enhancement]
 assignees: []
@@ -8,21 +8,21 @@ assignees: []
 
 ## Problem / Motivation
 
-<!-- Welches Problem löst diese Funktion? Wer profitiert? -->
+<!-- What problem does this feature solve? Who benefits? -->
 
-## Vorgeschlagene Lösung
+## Proposed solution
 
-<!-- Beschreibung des gewünschten Verhaltens. -->
+<!-- Description of the desired behaviour. -->
 
-## Betroffene Dienste / Bounded Contexts
+## Affected services / bounded contexts
 
-<!-- z. B. Catalog, Ordering, Basket, Payment, ... -->
+<!-- e.g. Catalog, Ordering, Basket, Payment, ... -->
 
-## Alternativen
+## Alternatives
 
-<!-- Erwogene Alternativen und warum verworfen. -->
+<!-- Alternatives considered and why they were rejected. -->
 
-## Akzeptanzkriterien
+## Acceptance criteria
 
 - [ ]
 - [ ]

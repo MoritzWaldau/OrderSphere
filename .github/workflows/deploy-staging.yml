@@ -1,15 +1,15 @@
 name: Deploy OrderSphere (Staging)
 
-# GERÜST — Staging existiert noch nicht. Vor der ersten Nutzung:
-#   1. GitHub-Environment `staging` anlegen (ggf. Required Reviewers).
-#   2. Federated Credential für `staging` einrichten.
-#   3. Werte unten (Location, Resource Group, Keycloak-Issuer) setzen.
-#   4. Staging deployt ausschließlich einen getaggten Stand (kein Rebuild aus master).
+# SCAFFOLD — Staging does not exist yet. Before first use:
+#   1. Create the GitHub environment `staging` (optionally with Required Reviewers).
+#   2. Set up a federated credential for `staging`.
+#   3. Set the values below (location, resource group, Keycloak issuer).
+#   4. Staging deploys only a tagged build (no rebuild from master).
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release-Tag (vX.Y.Z), der nach Staging soll'
+        description: 'Release tag (vX.Y.Z) to deploy to Staging'
         required: true
         type: string
 

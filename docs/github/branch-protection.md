@@ -1,39 +1,39 @@
 # Branch Protection & Required Checks (master)
 
-Diese Regeln setzen die in [branching.md](branching.md) § „Branch Protection" beschriebene Strategie
-durch. Sie sind **Repository-Einstellungen** und nicht über committete Dateien erzwingbar — daher hier
-als versioniertes Ruleset (`branch-protection.json`) plus Anwendungsbefehl dokumentiert.
+These rules enforce the strategy described in [branching.md](branching.md) § "Branch Protection".
+They are **repository settings** and cannot be enforced through committed files — therefore they are
+documented here as a versioned ruleset (`branch-protection.json`) plus the command to apply it.
 
-## Regeln
+## Rules
 
-- Pull Request für jeden Merge erforderlich, ≥ 1 Approval, Code-Owner-Review (siehe `.github/CODEOWNERS`).
-- Lineare Historie (Squash-Merge), keine Force-Pushes, kein Löschen von `master`.
-- Stale Reviews werden bei neuem Push verworfen; offene Review-Threads müssen aufgelöst sein.
-- Required Status Checks (müssen grün sein, Branch muss aktuell sein):
+- Pull request required for every merge, ≥ 1 approval, code-owner review (see `.github/CODEOWNERS`).
+- Linear history (squash merge), no force pushes, no deletion of `master`.
+- Stale reviews are dismissed on a new push; open review threads must be resolved.
+- Required status checks (must be green, branch must be up to date):
 
-  | Check (Context)               | Quelle |
+  | Check (Context)               | Source |
   |-------------------------------|--------|
   | `Format`                      | ci.yml |
   | `Build & Test`                | ci.yml |
   | `Vulnerable Packages`         | ci.yml |
   | `Analyze (csharp)`            | codeql.yml |
   | `Dependency Review`           | dependency-review.yml |
-  | `SonarCloud Code Analysis`    | SonarCloud-App |
+  | `SonarCloud Code Analysis`    | SonarCloud app |
 
-  > Context-Namen sind gegen die real erzeugten Checks des PR-Head-Commits verifiziert.
+  > Context names are verified against the checks actually produced for the PR head commit.
   >
-  > **Nicht als Required aufnehmen:** `Validate PR title` (pr-title-lint.yml) läuft über
-  > `pull_request_target` und erscheint nicht in den Check-Runs des Head-Commits — als Required-Check
-  > bliebe er dauerhaft „pending" und würde den Merge blockieren. Ebenso bewusst nicht merge-blockierend:
-  > `Trivy Filesystem Scan`, `Secret Scan`, `OpenSSF Scorecard` (externe Tool-Downloads können flaky sein;
-  > sie melden weiterhin in den Security-Tab).
+  > **Do not add as required:** `Validate PR title` (pr-title-lint.yml) runs via
+  > `pull_request_target` and does not appear in the head commit's check runs — as a required check it
+  > would stay permanently "pending" and block the merge. Likewise deliberately not merge-blocking:
+  > `Trivy Filesystem Scan`, `Secret Scan`, `OpenSSF Scorecard` (external tool downloads can be flaky;
+  > they still report into the Security tab).
   >
-  > Veralteter Check entfernen: Ein früherer Required-Check `build` (aus der gelöschten build.yml) muss aus
-  > der Branch-Protection entfernt werden, sonst bleibt er dauerhaft „pending".
+  > Remove the stale check: an earlier required check `build` (from the deleted build.yml) must be
+  > removed from branch protection, otherwise it stays permanently "pending".
 
-## Anwenden
+## Applying
 
-Voraussetzung: `gh` authentifiziert, Admin-Rechte auf dem Repo.
+Prerequisite: `gh` authenticated, admin rights on the repo.
 
 ```bash
 gh api \
@@ -43,7 +43,7 @@ gh api \
   --input docs/github/branch-protection.json
 ```
 
-Aktualisieren eines bestehenden Rulesets (ID zuvor via `gh api /repos/MoritzWaldau/OrderSphere/rulesets` ermitteln):
+Updating an existing ruleset (determine the ID beforehand via `gh api /repos/MoritzWaldau/OrderSphere/rulesets`):
 
 ```bash
 gh api --method PUT \
@@ -54,6 +54,6 @@ gh api --method PUT \
 
 ## Environments
 
-- `dev` — kein Approval-Gate (automatischer/manueller Dev-Deploy).
-- `staging`, `production` — beim Aufbau von Track D mit **Required Reviewers** und ggf.
-  Wait-Timer versehen (Settings → Environments). Production-Deploys laufen nur nach manueller Freigabe.
+- `dev` — no approval gate (automatic/manual dev deploy).
+- `staging`, `production` — when building out Track D, add **Required Reviewers** and possibly a
+  wait timer (Settings → Environments). Production deploys run only after manual approval.

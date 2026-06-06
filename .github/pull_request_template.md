@@ -1,34 +1,34 @@
 <!--
-PR-Titel muss Conventional Commits folgen (wird per pr-title-lint geprüft):
+PR title must follow Conventional Commits (enforced by pr-title-lint):
   feat | fix | refactor | docs | style | test | chore | ci | build | perf | revert
-Beispiel: feat(catalog): add product slug uniqueness check
+Example: feat(catalog): add product slug uniqueness check
 -->
 
-## Zusammenfassung
+## Summary
 
-<!-- Was ändert dieser PR und warum? Eine knappe, fachliche Beschreibung. -->
+<!-- What does this PR change and why? A concise, technical description. -->
 
-## Art der Änderung
+## Type of change
 
-- [ ] feat — neues Feature
-- [ ] fix — Fehlerbehebung
-- [ ] refactor — Umbau ohne Verhaltensänderung
+- [ ] feat — new feature
+- [ ] fix — bug fix
+- [ ] refactor — change without behavioural impact
 - [ ] docs / style / test / chore / ci / build / perf
 
-## Checkliste
+## Checklist
 
-- [ ] Build grün (`dotnet build OrderSphere.slnx`)
-- [ ] Tests grün und ggf. ergänzt (`dotnet test`)
-- [ ] Keine neuen Compiler-Warnungen (TreatWarningsAsErrors aktiv)
-- [ ] EF-Migrationen enthalten, falls Schemaänderung (rückwärtskompatibel oder abgestimmt)
-- [ ] Architektur-Konventionen eingehalten (Result<T>, Layer-Abhängigkeiten, keine Cross-Service-Projektrefs)
-- [ ] Doku aktualisiert (docs/, README), falls relevant
-- [ ] Keine Secrets/Connection-Strings committet
+- [ ] Build green (`dotnet build OrderSphere.slnx`)
+- [ ] Tests green and extended where applicable (`dotnet test`)
+- [ ] No new compiler warnings (TreatWarningsAsErrors enabled)
+- [ ] EF migrations included for schema changes (backward-compatible or agreed)
+- [ ] Architecture conventions upheld (Result<T>, layer dependencies, no cross-service project refs)
+- [ ] Documentation updated (docs/, README) where relevant
+- [ ] No secrets/connection strings committed
 
-## Breaking Changes
+## Breaking changes
 
-<!-- Öffentliche Verträge zur UI/zu anderen Diensten betroffen? Wenn ja: welche und wie migrieren. -->
+<!-- Are public contracts to the UI or other services affected? If so: which, and how to migrate. -->
 
-## Verweise
+## References
 
-<!-- Closes #<issue>, verwandte PRs, Kontext -->
+<!-- Closes #<issue>, related PRs, context -->

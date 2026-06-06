@@ -1,7 +1,7 @@
 name: PR Title Lint
 
-# Erzwingt Conventional-Commit-Präfixe im PR-Titel. Beim Squash-Merge wird der
-# PR-Titel zur Commit-Nachricht auf master — daher hier das Gate.
+# Enforces Conventional Commit prefixes in the PR title. On squash merge the
+# PR title becomes the commit message on master — hence the gate here.
 on:
   pull_request_target:
     types: [opened, edited, synchronize, reopened]

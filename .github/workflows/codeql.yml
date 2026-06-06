@@ -1,15 +1,15 @@
 name: CodeQL
 
-# GitHub-native SAST (SARIF → Security-Tab). Komplementär zu SonarCloud:
-# SonarCloud = Qualitäts-/Coverage-Gate, CodeQL = Sicherheits-Findings im
-# GitHub Security-Tab.
+# GitHub-native SAST (SARIF → Security tab). Complementary to SonarCloud:
+# SonarCloud = quality/coverage gate, CodeQL = security findings in the
+# GitHub Security tab.
 on:
   push:
     branches: [master]
   pull_request:
     branches: [master]
   schedule:
-    - cron: '27 4 * * 1'   # wöchentlich, Montag früh
+    - cron: '27 4 * * 1'   # weekly, early Monday
 
 permissions:
   contents: read

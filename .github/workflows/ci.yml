@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [master]
 
-# Least-privilege Default. Einzelne Jobs erhöhen Rechte nur, wo nötig.
+# Least-privilege default. Individual jobs raise permissions only where needed.
 permissions:
   contents: read
 
@@ -15,9 +15,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── Style-Gate (blockierend) ─────────────────────────────────────────────────
-  # EnforceCodeStyleInBuild ist false; daher Format hier explizit prüfen.
-  # Generierte EF-Migrationen sind ausgenommen.
+  # ── Style gate (blocking) ────────────────────────────────────────────────────
+  # EnforceCodeStyleInBuild is false; therefore check formatting explicitly here.
+  # Generated EF migrations are excluded.
   format:
     name: Format
     runs-on: ubuntu-latest
@@ -28,10 +28,10 @@ jobs:
         with:
           egress-policy: audit
 
-      # .editorconfig erzwingt end_of_line=crlf. Damit der Checkout auf dem
-      # Linux-Runner CRLF liefert (statt LF), autocrlf vor dem Checkout setzen —
-      # sonst meldet `dotnet format` jede Zeile als Verstoß.
-      - name: CRLF-Checkout erzwingen (.editorconfig)
+      # .editorconfig enforces end_of_line=crlf. So that the checkout on the
+      # Linux runner produces CRLF (instead of LF), set autocrlf before checkout —
+      # otherwise `dotnet format` reports every line as a violation.
+      - name: Force CRLF checkout (.editorconfig)
         run: git config --global core.autocrlf true
 
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -39,7 +39,7 @@ jobs:
       - name: Setup .NET + NuGet cache
         uses: ./.github/actions/setup-dotnet-cache
 
-      - name: Verify formatting (generierte Migrationen ausgenommen)
+      - name: Verify formatting (generated migrations excluded)
         run: dotnet format OrderSphere.slnx --no-restore --verify-no-changes --severity warn --exclude "**/Migrations/**"
 
   # ── Build + Test + Coverage ──────────────────────────────────────────────────
@@ -49,8 +49,8 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-      checks: write          # dorny/test-reporter erstellt einen Check-Run
-      pull-requests: write   # Coverage-Kommentar/Annotation am PR
+      checks: write          # dorny/test-reporter creates a check run
+      pull-requests: write   # coverage comment/annotation on the PR
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -65,7 +65,7 @@ jobs:
       - name: Build
         run: dotnet build OrderSphere.slnx --no-restore --configuration Release
 
-      - name: Test (mit Coverage; 70%-Branch-Gate aus .runsettings)
+      - name: Test (with coverage; 70% branch gate from .runsettings)
         run: >
           dotnet test OrderSphere.slnx --no-build --configuration Release
           --settings .runsettings
@@ -77,7 +77,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: dotnet tool restore
 
-      - name: Coverage-Report erzeugen
+      - name: Generate coverage report
         if: ${{ !cancelled() }}
         run: >
           dotnet tool run reportgenerator
@@ -85,11 +85,11 @@ jobs:
           -targetdir:"./CoverageReport"
           -reporttypes:"Cobertura;MarkdownSummaryGithub"
 
-      - name: Coverage in Job-Summary schreiben
+      - name: Write coverage into the job summary
         if: ${{ !cancelled() }}
         run: cat ./CoverageReport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Testergebnisse als Check veröffentlichen
+      - name: Publish test results as a check
         uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
         if: ${{ !cancelled() }}
         with:
@@ -97,7 +97,7 @@ jobs:
           path: '**/*.trx'
           reporter: dotnet-trx
 
-      - name: Artefakte hochladen (trx + Coverage)
+      - name: Upload artifacts (trx + coverage)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ !cancelled() }}
         with:
@@ -107,7 +107,7 @@ jobs:
             ./CoverageReport/**
           retention-days: 14
 
-  # ── Vulnerable NuGet-Pakete ──────────────────────────────────────────────────
+  # ── Vulnerable NuGet packages ────────────────────────────────────────────────
   vuln-scan:
     name: Vulnerable Packages
     runs-on: ubuntu-latest
@@ -123,13 +123,13 @@ jobs:
       - name: Setup .NET + NuGet cache
         uses: ./.github/actions/setup-dotnet-cache
 
-      - name: Auf verwundbare Pakete prüfen (inkl. transitiv)
+      - name: Check for vulnerable packages (incl. transitive)
         shell: bash
         run: |
           set -euo pipefail
           report="$(dotnet list OrderSphere.slnx package --vulnerable --include-transitive 2>&1)"
           echo "$report"
           if echo "$report" | grep -q "has the following vulnerable packages"; then
-            echo "::error::Verwundbare NuGet-Pakete gefunden."
+            echo "::error::Vulnerable NuGet packages found."
             exit 1
           fi

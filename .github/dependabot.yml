@@ -1,11 +1,11 @@
 version: 2
 
-# Version-Update-PRs sind deaktiviert (open-pull-requests-limit: 0).
-# Dependabot-Alerts + Security-Updates bleiben aktiv (Repo-Setting) —
-# PRs erscheinen nur noch bei einer echten CVE.
+# Version-update PRs are disabled (open-pull-requests-limit: 0).
+# Dependabot alerts + security updates stay active (repo setting) —
+# PRs only appear for an actual CVE.
 updates:
-  # ── NuGet: deckt Central Package Management (Directory.Packages.props),
-  #    alle *.csproj, global.json UND .config/dotnet-tools.json ab. ───────────────
+  # ── NuGet: covers Central Package Management (Directory.Packages.props),
+  #    all *.csproj, global.json AND .config/dotnet-tools.json. ─────────────────────
   - package-ecosystem: nuget
     directory: "/"
     schedule:
@@ -33,7 +33,7 @@ updates:
     commit-message:
       prefix: chore
 
-  # ── GitHub Actions: hält SHA-Pins in Workflows + Composite-Action aktuell. ──────
+  # ── GitHub Actions: keeps SHA pins in workflows + composite action up to date. ──
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
@@ -46,7 +46,7 @@ updates:
     commit-message:
       prefix: chore
 
-  # ── Docker: Keycloak-Basisimage im SSO-Deploy. ─────────────────────────────────
+  # ── Docker: Keycloak base image in the SSO deploy. ─────────────────────────────
   - package-ecosystem: docker
     directory: "/deploy/sso"
     schedule:

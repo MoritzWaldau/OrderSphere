@@ -1,35 +1,35 @@
-# OrderSphere — Projektbewertungen
+# OrderSphere — Project assessments
 
-Dieser Ordner enthält versionierte, dokumentierte Bewertungen des OrderSphere-Projekts. Jede Bewertung ist eine Momentaufnahme — sie wird **nie überschrieben oder gelöscht**, damit du den Fortschritt über die Zeit nachvollziehen kannst.
+This folder contains versioned, documented assessments of the OrderSphere project. Each assessment is a snapshot — it is **never overwritten or deleted**, so that progress over time can be traced.
 
-## Versionsschema
+## Versioning scheme
 
 ```
 docs/assessments/
-├── README.md                ← diese Datei (Index)
-├── 2026-05-07-v1.md         ← Erst-Bewertung (Baseline)
-└── YYYY-MM-DD-vN.md         ← weitere Bewertungen
+├── README.md                ← this file (index)
+├── 2026-05-07-v1.md         ← initial assessment (baseline)
+└── YYYY-MM-DD-vN.md         ← further assessments
 ```
 
-- **Datums-Präfix** (`YYYY-MM-DD`) — sortiert chronologisch
-- **`vN`** — laufende Nummer pro Tag (selten >1)
-- **Bug-IDs (B1, B2, …) und Issue-IDs (K1, K2, …) bleiben stabil** über alle Versionen. Gefixte Findings werden in der nächsten Version als `RESOLVED in vN` markiert — nie gelöscht.
+- **Date prefix** (`YYYY-MM-DD`) — sorts chronologically
+- **`vN`** — sequential number per day (rarely >1)
+- **Bug IDs (B1, B2, …) and issue IDs (K1, K2, …) stay stable** across all versions. Fixed findings are marked `RESOLVED in vN` in the next version — never deleted.
 
-## Übersichts-Tabelle
+## Overview table
 
-| Datum | Version | Gesamt-Score | Größte Wins | Größte Baustellen | Link |
+| Date | Version | Overall score | Biggest wins | Biggest gaps | Link |
 |---|---|---|---|---|---|
-| 2026-05-07 | v1 (Baseline) | **2.7 / 5** | Clean Architecture, Rich Domain Model, Result-Pattern, Aspire-Setup, MudBlazor-Disziplin | Keine Tests (1/5), kein DevOps/CI (1/5), Klartext-Passwörter im Seeder, hardcoded Customer-GUIDs, kein App Insights | [2026-05-07-v1.md](./2026-05-07-v1.md) |
-| 2026-05-09 | v1 | **2.8 / 5** | B6/B8/K2 resolved (MigrateAsync, Seeder-Idempotenz), .AsTracking()-Fix im CheckoutHandler, UNIT_TEST_PLAN.md | 0 Tests, kein CI/CD, K9/K10 (hardcoded GUIDs) offen, B12 neu (EnableSensitiveDataLogging ohne Env-Guard) | [2026-05-09-v1.md](./2026-05-09-v1.md) |
+| 2026-05-07 | v1 (baseline) | **2.7 / 5** | Clean Architecture, rich domain model, Result pattern, Aspire setup, MudBlazor discipline | No tests (1/5), no DevOps/CI (1/5), plaintext passwords in the seeder, hardcoded customer GUIDs, no App Insights | [2026-05-07-v1.md](./2026-05-07-v1.md) |
+| 2026-05-09 | v1 | **2.8 / 5** | B6/B8/K2 resolved (MigrateAsync, seeder idempotency), `.AsTracking()` fix in the CheckoutHandler, UNIT_TEST_PLAN.md | 0 tests, no CI/CD, K9/K10 (hardcoded GUIDs) open, B12 new (EnableSensitiveDataLogging without an env guard) | [2026-05-09-v1.md](./2026-05-09-v1.md) |
 
-## Wie man eine neue Bewertung erstellt
+## How to create a new assessment
 
-1. Datum prüfen → Datei `YYYY-MM-DD-v1.md` (oder `v2`, `v3` falls am gleichen Tag mehrere) anlegen
-2. Struktur der vorherigen Version übernehmen (10 Sektionen)
-3. **Sektion 9 (Vergleichs-Sektion)** ausfüllen: Score-Differenzen ggü. Vorgänger-Version dokumentieren
-4. Diese `README.md` um eine neue Zeile in der Übersichts-Tabelle ergänzen
-5. Bug-/Issue-IDs aus der Vorgänger-Version übernehmen — gelöste Findings als `RESOLVED in vN` markieren
+1. Check the date → create the file `YYYY-MM-DD-v1.md` (or `v2`, `v3` if several on the same day)
+2. Reuse the structure of the previous version (10 sections)
+3. Fill in **Section 9 (comparison section)**: document the score differences against the previous version
+4. Add a new row to the overview table in this `README.md`
+5. Carry over the bug/issue IDs from the previous version — mark resolved findings as `RESOLVED in vN`
 
-## Ziel
+## Purpose
 
-Diese Bewertungs-Reihe dient als objektive, datierte Dokumentation der technischen Reife des Projekts — sowohl für dich selbst (Selbst-Reflexion) als auch als optionaler Anhang, wenn du das Projekt als Demonstration deiner .NET-Entwicklerfähigkeiten zeigst.
+This assessment series serves as objective, dated documentation of the project's technical maturity — both for self-reflection and as an optional appendix when presenting the project as a demonstration of .NET development skills.

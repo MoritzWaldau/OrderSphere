@@ -1,6 +1,6 @@
 name: Dependency Review
 
-# Blockt PRs, die verwundbare oder inkompatibel lizenzierte Abhängigkeiten einführen.
+# Blocks PRs that introduce vulnerable or incompatibly licensed dependencies.
 on:
   pull_request:
     branches: [master]
@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
-      pull-requests: write   # Zusammenfassung als PR-Kommentar
+      pull-requests: write   # summary as a PR comment
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4

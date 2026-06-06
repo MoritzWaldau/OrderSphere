@@ -1,18 +1,18 @@
 name: _azd-deploy (reusable)
 
-# Wiederverwendbarer azd-Deploy nach Azure Container Apps. Kapselt OIDC-Login,
-# azd-Setup, Environment-Konfiguration, Provisioning-Parameter und `azd up`.
-# Aufgerufen von deploy-staging.yml / deploy-prod.yml (und perspektivisch
-# deploy-ordersphere.yml). Spiegelt die in deploy-ordersphere.yml erprobte Logik.
+# Reusable azd deploy to Azure Container Apps. Encapsulates OIDC login,
+# azd setup, environment configuration, provisioning parameters, and `azd up`.
+# Called by deploy-staging.yml / deploy-prod.yml (and prospectively
+# deploy-ordersphere.yml). Mirrors the logic proven in deploy-ordersphere.yml.
 on:
   workflow_call:
     inputs:
       environment:
-        description: 'GitHub-Environment (dev | staging | production)'
+        description: 'GitHub environment (dev | staging | production)'
         required: true
         type: string
       azd-env-name:
-        description: 'azd-Environmentname'
+        description: 'azd environment name'
         required: true
         type: string
       azure-location:

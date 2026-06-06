@@ -1,4 +1,4 @@
-# Auto-Labels nach geänderten Pfaden (actions/labeler v5-Format).
+# Auto-labels by changed paths (actions/labeler v5 format).
 
 "area: ci-cd":
   - changed-files:

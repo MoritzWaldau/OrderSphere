@@ -12,13 +12,13 @@ name: Deploy OrderSphere
 # they are never committed.
 on:
   workflow_dispatch:
-  push:
-    branches: [master]
-    paths:
-      - 'src/**'
-      - 'azure.yaml'
-      - 'Directory.Packages.props'
-      - '.github/workflows/deploy-ordersphere.yml'
+  #push:
+    #branches: [master]
+    #paths:
+      #- 'src/**'
+      #- 'azure.yaml'
+      #- 'Directory.Packages.props'
+      #- '.github/workflows/deploy-ordersphere.yml'
 
 permissions:
   id-token: write   # required for azd OIDC federated login

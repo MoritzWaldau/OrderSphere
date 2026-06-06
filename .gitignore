@@ -378,3 +378,7 @@ FodyWeavers.xsd
 # azure.yaml IS checked in; the .azure/ folder (env values, local Key Vault
 # references, provisioned outputs) is local and must not be committed.
 .azure/
+
+# graphify – generated knowledge-graph artifacts (cache, HTML, JSON). Regenerated
+# on demand via the graphify skill; not source and must not be committed.
+graphify-out/

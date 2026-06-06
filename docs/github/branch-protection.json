@@ -34,8 +34,7 @@
           { "context": "Vulnerable Packages" },
           { "context": "Analyze (csharp)" },
           { "context": "Dependency Review" },
-          { "context": "Validate PR title" },
-          { "context": "SonarQube Cloud Code Analysis" }
+          { "context": "SonarCloud Code Analysis" }
         ]
       }
     }

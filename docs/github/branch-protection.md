@@ -18,12 +18,18 @@ als versioniertes Ruleset (`branch-protection.json`) plus Anwendungsbefehl dokum
   | `Vulnerable Packages`         | ci.yml |
   | `Analyze (csharp)`            | codeql.yml |
   | `Dependency Review`           | dependency-review.yml |
-  | `Validate PR title`           | pr-title-lint.yml |
-  | `SonarQube Cloud Code Analysis` | SonarCloud-App |
+  | `SonarCloud Code Analysis`    | SonarCloud-App |
 
-  > Die exakten Context-Namen müssen mit den real erzeugten Checks übereinstimmen. Nach dem ersten
-  > Lauf der Workflows in der GitHub-UI (Branch protection → Status checks) verifizieren; der
-  > SonarCloud-Context kann je nach App-Konfiguration abweichen.
+  > Context-Namen sind gegen die real erzeugten Checks des PR-Head-Commits verifiziert.
+  >
+  > **Nicht als Required aufnehmen:** `Validate PR title` (pr-title-lint.yml) läuft über
+  > `pull_request_target` und erscheint nicht in den Check-Runs des Head-Commits — als Required-Check
+  > bliebe er dauerhaft „pending" und würde den Merge blockieren. Ebenso bewusst nicht merge-blockierend:
+  > `Trivy Filesystem Scan`, `Secret Scan`, `OpenSSF Scorecard` (externe Tool-Downloads können flaky sein;
+  > sie melden weiterhin in den Security-Tab).
+  >
+  > Veralteter Check entfernen: Ein früherer Required-Check `build` (aus der gelöschten build.yml) muss aus
+  > der Branch-Protection entfernt werden, sonst bleibt er dauerhaft „pending".
 
 ## Anwenden
 

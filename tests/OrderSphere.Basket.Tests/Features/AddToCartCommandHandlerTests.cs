@@ -6,8 +6,8 @@ public sealed class AddToCartCommandHandlerTests
 {
     // ── Shared test data ────────────────────────────────────────────────────────
 
-    private static readonly CustomerId Customer  = CustomerId.New();
-    private static readonly ProductId  ProductA  = ProductId.New();
+    private static readonly CustomerId Customer = CustomerId.New();
+    private static readonly ProductId ProductA = ProductId.New();
 
     private static AddToCartCommand ValidCommand(int qty = 2) =>
         new(Customer, ProductA, qty);
@@ -21,7 +21,7 @@ public sealed class AddToCartCommandHandlerTests
         ILogger<AddToCartCommandHandler>? logger = null)
     {
         catalogClient ??= Substitute.For<ICatalogClient>();
-        logger        ??= Substitute.For<ILogger<AddToCartCommandHandler>>();
+        logger ??= Substitute.For<ILogger<AddToCartCommandHandler>>();
         return new AddToCartCommandHandler(ctx, catalogClient, logger);
     }
 

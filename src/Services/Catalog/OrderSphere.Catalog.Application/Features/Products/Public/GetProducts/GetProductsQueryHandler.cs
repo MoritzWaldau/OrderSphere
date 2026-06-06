@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using OrderSphere.Catalog.Application.DTOs.Public;
-
 namespace OrderSphere.Catalog.Application.Features.Products.Public.GetProducts;
 
 public sealed class GetProductsQueryHandler(ICatalogDbContext context)

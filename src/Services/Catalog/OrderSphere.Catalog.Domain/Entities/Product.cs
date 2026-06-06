@@ -1,10 +1,10 @@
+using System.Text.RegularExpressions;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Catalog.Domain.DomainEvents;
 using OrderSphere.Catalog.Domain.Errors;
-using System.Text.RegularExpressions;
 
 namespace OrderSphere.Catalog.Domain.Entities;
 

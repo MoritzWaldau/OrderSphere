@@ -1,8 +1,8 @@
 using MediatR;
 using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
-using OrderSphere.Ordering.Application.Features.Checkout;
 using OrderSphere.Ordering.Api.Models;
+using OrderSphere.Ordering.Application.Features.Checkout;
 using OrderSphere.ServiceDefaults;
 
 namespace OrderSphere.Ordering.Api.Endpoints;

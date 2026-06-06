@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using OrderSphere.Catalog.Domain.Errors;
-
 namespace OrderSphere.Catalog.Application.Features.Categories.Admin.UpdateCategory;
 
 public sealed class UpdateCategoryCommandHandler(ICatalogDbContext context)

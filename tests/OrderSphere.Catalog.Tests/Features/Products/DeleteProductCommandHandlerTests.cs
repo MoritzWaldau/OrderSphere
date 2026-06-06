@@ -6,7 +6,7 @@ namespace OrderSphere.Catalog.Tests.Features.Products;
 public sealed class DeleteProductCommandHandlerTests
 {
     private static readonly CategoryId CategoryA = CategoryId.New();
-    private static readonly ProductId  ProductA  = ProductId.New();
+    private static readonly ProductId ProductA = ProductId.New();
 
     private static DeleteProductCommand ValidCommand() => new(ProductA);
 
@@ -62,7 +62,7 @@ public sealed class DeleteProductCommandHandlerTests
     [Fact]
     public async Task Handle_ExistingProduct_CallsSaveChanges()
     {
-        var product  = MakeProduct(ProductA);
+        var product = MakeProduct(ProductA);
         var products = new List<Product> { product }.AsQueryable().BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Products.Returns(products);

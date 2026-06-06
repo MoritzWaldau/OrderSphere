@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OrderSphere.Catalog.Application.Abstractions;
 using OrderSphere.Catalog.Infrastructure.Persistence;
 
 namespace OrderSphere.Catalog.Infrastructure;

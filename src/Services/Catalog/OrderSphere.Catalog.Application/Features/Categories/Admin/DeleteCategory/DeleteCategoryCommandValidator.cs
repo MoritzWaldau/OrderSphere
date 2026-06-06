@@ -1,5 +1,3 @@
-using FluentValidation;
-
 namespace OrderSphere.Catalog.Application.Features.Categories.Admin.DeleteCategory;
 
 public sealed class DeleteCategoryCommandValidator : AbstractValidator<DeleteCategoryCommand>

@@ -29,7 +29,7 @@ public static class DependencyInjection
         // Inbox: idempotency for consumed integration events.
         services.AddScoped<IInboxStore, EfInboxStore<OrderingDbContext>>();
 
-return services;
+        return services;
     }
 
     /// <summary>

@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OrderSphere.Basket.Application.Abstractions;
 using OrderSphere.Basket.Domain.Errors;
-using OrderSphere.Basket.Domain.Entities;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.ValueObjects;

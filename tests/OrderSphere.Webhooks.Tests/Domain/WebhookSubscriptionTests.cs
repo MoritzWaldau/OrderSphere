@@ -1,5 +1,3 @@
-using OrderSphere.BuildingBlocks.StronglyTypedIds;
-
 namespace OrderSphere.Webhooks.Tests.Domain;
 
 public sealed class WebhookSubscriptionTests

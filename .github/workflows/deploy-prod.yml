@@ -1,0 +1,38 @@
+name: Deploy OrderSphere (Production)
+
+# GERÜST — Production existiert noch nicht. Vor der ersten Nutzung:
+#   1. GitHub-Environment `production` mit Required Reviewers (Approval-Gate) anlegen.
+#   2. Federated Credential für `production` einrichten.
+#   3. Werte unten (Location, Resource Group, Keycloak-Issuer) setzen.
+#   4. Production deployt ausschließlich einen getaggten, zuvor in Staging
+#      verifizierten Stand (kein Rebuild). Migrations-Gate vor Rollout ergänzen
+#      (dotnet ef / EF-Bundle; Self-Migrate in den Services dann abschalten).
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release-Tag (vX.Y.Z), der nach Production soll'
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/_azd-deploy.yml
+    with:
+      environment: production   # Approval-Gate über Environment-Protection
+      azd-env-name: production
+      azure-location: northeurope
+      resource-group: rg-prod
+      keycloak-realm-authority: https://CHANGE-ME/realms/ordersphere
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      BFF_CLIENT_SECRET: ${{ secrets.BFF_CLIENT_SECRET }}
+      ORDERING_WORKER_SECRET: ${{ secrets.ORDERING_WORKER_SECRET }}
+      NOTIFICATION_WORKER_SECRET: ${{ secrets.NOTIFICATION_WORKER_SECRET }}
+      PAYMENT_WORKER_SECRET: ${{ secrets.PAYMENT_WORKER_SECRET }}

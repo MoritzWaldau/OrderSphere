@@ -1,6 +1,6 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using OrderSphere.Ordering.Application.Models;
-using System.Security.Claims;
 
 namespace OrderSphere.Ordering.Api.Authorization;
 

@@ -9,7 +9,6 @@ using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Errors;
 using OrderSphere.Ordering.Domain.Events;
 using OrderSphere.Ordering.Domain.ValueObjects;
-using OrderSphere.Ordering.Infrastructure.Outbox;
 using Xunit;
 using TypedCustomerId = OrderSphere.BuildingBlocks.StronglyTypedIds.CustomerId;
 
@@ -39,12 +38,12 @@ public sealed class CheckoutCartCommandHandlerTests
     private static readonly Guid IdempotencyKey = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
 
     private static readonly CheckoutCartCommand Command = new(
-        CustomerId:      TypedCustomerId.From(CustomerId),
-        CustomerEmail:   "max@example.com",
-        CustomerName:    "Max Muster",
+        CustomerId: TypedCustomerId.From(CustomerId),
+        CustomerEmail: "max@example.com",
+        CustomerName: "Max Muster",
         ShippingAddress: ShippingAddress,
-        PaymentMethod:   PaymentMethod.CreditCard,
-        IdempotencyKey:  IdempotencyKey);
+        PaymentMethod: PaymentMethod.CreditCard,
+        IdempotencyKey: IdempotencyKey);
 
     private static BasketCartInfo CartWithItems(params (Guid productId, int qty)[] items) =>
         new(CustomerId, items.Select(i => new BasketCartItemInfo(i.productId, i.qty)).ToList());
@@ -55,7 +54,7 @@ public sealed class CheckoutCartCommandHandlerTests
     // ── SUT factory ──────────────────────────────────────────────────────────
 
     private readonly ICatalogClient _catalog = Substitute.For<ICatalogClient>();
-    private readonly IBasketClient  _basket  = Substitute.For<IBasketClient>();
+    private readonly IBasketClient _basket = Substitute.For<IBasketClient>();
     private readonly IOrderingServiceBusPublisher _bus = Substitute.For<IOrderingServiceBusPublisher>();
     private readonly InMemoryCheckoutIdempotencyStore _idempotency = new();
     private readonly ILogger<CheckoutCartCommandHandler> _logger =

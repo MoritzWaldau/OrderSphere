@@ -1,12 +1,11 @@
-using MediatR;
 using Microsoft.EntityFrameworkCore;
-using OrderSphere.BuildingBlocks.Abstraction;
 using Microsoft.Extensions.Logging;
+using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Errors;
-using OrderSphere.Ordering.Application.Abstractions;
 
 namespace OrderSphere.Ordering.Application.Features.Order.Admin;
 

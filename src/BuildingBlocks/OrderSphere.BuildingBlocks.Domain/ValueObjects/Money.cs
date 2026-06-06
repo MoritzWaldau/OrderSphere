@@ -7,8 +7,8 @@ namespace OrderSphere.BuildingBlocks.ValueObjects;
 /// </summary>
 public sealed class Money : IEquatable<Money>
 {
-    public decimal Amount   { get; private set; }
-    public string  Currency { get; private set; } = null!;
+    public decimal Amount { get; private set; }
+    public string Currency { get; private set; } = null!;
 
     // EF Core ComplexProperty materialisation (sets properties via reflection).
     private Money() { }
@@ -22,7 +22,7 @@ public sealed class Money : IEquatable<Money>
         if (currency.Length != 3)
             throw new ArgumentException("Currency must be a 3-letter ISO 4217 code.", nameof(currency));
 
-        Amount   = amount;
+        Amount = amount;
         Currency = currency.ToUpperInvariant();
     }
 

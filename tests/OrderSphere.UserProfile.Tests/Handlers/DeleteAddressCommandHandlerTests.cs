@@ -123,7 +123,7 @@ public sealed class DeleteAddressCommandHandlerTests
         ctx.CustomerProfiles.Add(profile);
         await ctx.SaveChangesAsync();
 
-        var first  = profile.AddAddress("First",  "L", "D", "St 1", "Berlin",  "10115", "DE");
+        var first = profile.AddAddress("First", "L", "D", "St 1", "Berlin", "10115", "DE");
         var second = profile.AddAddress("Second", "L", "D", "St 2", "Hamburg", "20095", "DE");
         await ctx.SaveChangesAsync();
 

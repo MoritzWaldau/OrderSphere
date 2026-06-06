@@ -1,8 +1,8 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -88,10 +88,10 @@ public sealed class ClientCredentialsTokenHandler(
 
             var json = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: ct);
             var accessToken = json.GetProperty("access_token").GetString()!;
-            var expiresIn   = json.GetProperty("expires_in").GetInt32();
+            var expiresIn = json.GetProperty("expires_in").GetInt32();
 
-            _cachedToken  = accessToken;
-            _tokenExpiry  = DateTimeOffset.UtcNow.AddSeconds(expiresIn - 30);
+            _cachedToken = accessToken;
+            _tokenExpiry = DateTimeOffset.UtcNow.AddSeconds(expiresIn - 30);
 
             logger.LogDebug(
                 "Fetched client_credentials token for {ClientId}; valid for {ExpiresIn}s.",

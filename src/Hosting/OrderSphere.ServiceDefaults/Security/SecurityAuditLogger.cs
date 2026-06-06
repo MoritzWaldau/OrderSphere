@@ -27,10 +27,10 @@ internal sealed class SecurityAuditLogger(ILogger<SecurityAuditLogger> logger)
             level,
             "SECURITY_AUDIT | {EventType} | user={UserId} | sid={SessionId} | ip={IpAddress} | {Details} | ts={OccurredAt:o}",
             evt.Type,
-            evt.UserId    ?? "-",
+            evt.UserId ?? "-",
             evt.SessionId ?? "-",
             evt.IpAddress ?? "-",
-            evt.Details   ?? "-",
+            evt.Details ?? "-",
             evt.OccurredAt);
     }
 }

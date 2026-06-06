@@ -1,15 +1,12 @@
+using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Ordering.Domain.Entities;
 using OrderSphere.Ordering.Domain.Events;
 using OrderSphere.Ordering.Infrastructure.Persistence;
-using System.Text.Json;
 
 namespace OrderSphere.Ordering.Worker.Workers;
 

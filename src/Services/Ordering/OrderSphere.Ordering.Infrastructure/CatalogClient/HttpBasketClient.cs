@@ -1,5 +1,5 @@
-using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
+using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Ordering.Application.Abstractions;
 

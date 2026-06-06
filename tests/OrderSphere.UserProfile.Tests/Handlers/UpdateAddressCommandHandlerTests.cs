@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdateAddress;
 using OrderSphere.UserProfile.Domain.Entities;
 using OrderSphere.UserProfile.Domain.Errors;

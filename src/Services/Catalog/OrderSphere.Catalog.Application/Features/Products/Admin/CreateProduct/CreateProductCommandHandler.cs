@@ -1,7 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Catalog.Domain.Entities;
-using OrderSphere.Catalog.Domain.Errors;
 
 namespace OrderSphere.Catalog.Application.Features.Products.Admin.CreateProduct;
 

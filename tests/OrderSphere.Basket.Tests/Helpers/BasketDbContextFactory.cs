@@ -1,7 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using OrderSphere.Basket.Infrastructure.Persistence;
-using OrderSphere.BuildingBlocks.Abstraction;
-
 namespace OrderSphere.Basket.Tests.Helpers;
 
 /// <summary>

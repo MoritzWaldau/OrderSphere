@@ -75,7 +75,7 @@ public sealed class SetDefaultAddressCommandHandlerTests
         ctx.CustomerProfiles.Add(profile);
         await ctx.SaveChangesAsync();
 
-        var first  = profile.AddAddress("First",  "O", "D", "St 1", "Berlin",  "10115", "DE");
+        var first = profile.AddAddress("First", "O", "D", "St 1", "Berlin", "10115", "DE");
         var second = profile.AddAddress("Second", "O", "D", "St 2", "Hamburg", "20095", "DE");
         await ctx.SaveChangesAsync();
 

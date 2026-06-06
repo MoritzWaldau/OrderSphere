@@ -1,6 +1,3 @@
-using FluentValidation;
-using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using OrderSphere.BuildingBlocks.Behaviors;
 
 namespace OrderSphere.Webhooks.Application;

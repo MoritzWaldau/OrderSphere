@@ -1,5 +1,3 @@
-using FluentValidation;
-
 namespace OrderSphere.Catalog.Application.Features.Products.Admin.DeleteProduct;
 
 public sealed class DeleteProductCommandValidator : AbstractValidator<DeleteProductCommand>

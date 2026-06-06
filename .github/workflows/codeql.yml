@@ -1,0 +1,53 @@
+name: CodeQL
+
+# GitHub-native SAST (SARIF → Security-Tab). Komplementär zu SonarCloud:
+# SonarCloud = Qualitäts-/Coverage-Gate, CodeQL = Sicherheits-Findings im
+# GitHub Security-Tab.
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '27 4 * * 1'   # wöchentlich, Montag früh
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (csharp)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      security-events: write   # SARIF-Upload
+      actions: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup .NET + NuGet cache
+        uses: ./.github/actions/setup-dotnet-cache
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@ce28f5bb42b7a9f2c824e633a3f6ee835bab6858 # v3.29.0
+        with:
+          languages: csharp
+          build-mode: manual
+
+      - name: Build
+        run: dotnet build OrderSphere.slnx --no-restore --configuration Release
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@ce28f5bb42b7a9f2c824e633a3f6ee835bab6858 # v3.29.0
+        with:
+          category: /language:csharp

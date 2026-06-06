@@ -1,0 +1,37 @@
+name: Setup .NET with NuGet cache
+description: >
+  Richtet das per global.json gepinnte .NET SDK ein und cached den globalen
+  NuGet-Paket-Ordner. Cache-Key basiert auf Directory.Packages.props (Central
+  Package Management — einzige Versionsquelle) und global.json. Optionaler
+  Restore der Solution.
+
+inputs:
+  restore:
+    description: 'dotnet restore der Solution ausführen (true/false)'
+    required: false
+    default: 'true'
+  solution:
+    description: 'Solution-/Projektpfad für den Restore'
+    required: false
+    default: 'OrderSphere.slnx'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup .NET SDK (Version aus global.json)
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+      with:
+        global-json-file: global.json
+
+    - name: Cache NuGet packages
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props', 'global.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Restore dependencies
+      if: ${{ inputs.restore == 'true' }}
+      shell: bash
+      run: dotnet restore ${{ inputs.solution }}

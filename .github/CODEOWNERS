@@ -1,0 +1,17 @@
+# Code Owners — automatische Review-Anforderung bei PRs.
+# Reihenfolge: spätere, spezifischere Regeln überschreiben frühere.
+
+# Default-Owner für das gesamte Repository.
+*                       @MoritzWaldau
+
+# Infrastruktur, Deployment und CI/CD — bewusst eng geführt.
+/.github/               @MoritzWaldau
+/deploy/                @MoritzWaldau
+/azure.yaml             @MoritzWaldau
+/Directory.Build.props  @MoritzWaldau
+/Directory.Packages.props @MoritzWaldau
+/global.json            @MoritzWaldau
+/.config/               @MoritzWaldau
+
+# Verträge zwischen Diensten / mit Keycloak.
+/contracts/             @MoritzWaldau

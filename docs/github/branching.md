@@ -59,7 +59,8 @@ Workflow:
 3. Pull Request nach `master`
 4. Code Review und Pflicht-CI (Build + Tests grün)
 5. Squash-Merge nach `master`
-6. Automatisches Deployment auf die Development-Umgebung
+6. Manuelles Deployment auf die Development-Umgebung (Workflow „Deploy OrderSphere" via
+   `workflow_dispatch`) — bewusst manuell zur Kostenkontrolle, nicht automatisch bei Merge
 
 Da `master` der einzige Integrationspunkt ist, entfallen Rückmerge-Kaskaden zwischen mehreren
 dauerhaften Branches vollständig.
@@ -73,7 +74,8 @@ immutable Artefakte. Ein SemVer-Tag (`vX.Y.Z`) ist der Release-Auslöser.
 
 | Auslöser              | Aktion                                                                  |
 | --------------------- | ---------------------------------------------------------------------- |
-| Merge nach `master`   | Build und automatisches Deployment nach Development                     |
+| Merge nach `master`   | Build + Tests (CI). Dev-Deployment erfolgt manuell (s. u.)              |
+| Manueller Dev-Deploy  | Workflow „Deploy OrderSphere" (`workflow_dispatch`) deployt master nach Development |
 | Tag `v*` (SemVer)     | Versioniertes Artefakt erzeugen (Docker `ordersphere/*:vX.Y.Z`, ZIP)    |
 | Promotion Staging     | Getaggtes Artefakt nach Staging deployen                                |
 | Promotion Production   | Getaggtes Artefakt nach Production deployen, hinter einem Approval-Gate |
@@ -102,7 +104,7 @@ Promotion-Kette pro Release-Tag:
 ```text
 Tag vX.Y.Z
   ↓ Artefakt erzeugen
-Development (aus master automatisch)
+Development (aus master, manueller Trigger)
   ↓ Promotion
 Staging
   ↓ Approval-Gate
@@ -259,11 +261,12 @@ Regeln für `master`:
 
 # CI/CD-Regeln
 
-| Auslöser            | Deployment / Aktion              |
-| ------------------- | -------------------------------- |
-| Merge nach `master` | Automatisch nach Development      |
-| Tag `v*`            | Release-Artefakt erzeugen         |
-| Promotion           | Staging, dann Production (Gate)   |
+| Auslöser            | Deployment / Aktion                       |
+| ------------------- | ----------------------------------------- |
+| Merge nach `master` | CI (Build + Tests); kein Auto-Deploy       |
+| Manueller Trigger   | Dev-Deploy via `workflow_dispatch`         |
+| Tag `v*`            | Release-Artefakt erzeugen                  |
+| Promotion           | Staging, dann Production (Gate)            |
 
 ---
 

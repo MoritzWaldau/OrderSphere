@@ -6,7 +6,7 @@ namespace OrderSphere.Catalog.Tests.Features.Products;
 public sealed class UpdateProductCommandHandlerTests
 {
     private static readonly CategoryId CategoryA = CategoryId.New();
-    private static readonly ProductId ProductA   = ProductId.New();
+    private static readonly ProductId ProductA = ProductId.New();
 
     private static UpdateProductCommand ValidCommand(bool isActive = true) =>
         new(ProductA, "Updated Widget", "desc", 12.99m, 20, CategoryA, "SKU-002", isActive, null);

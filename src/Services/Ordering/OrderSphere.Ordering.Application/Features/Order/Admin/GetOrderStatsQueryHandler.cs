@@ -1,13 +1,11 @@
-using MediatR;
 using Microsoft.EntityFrameworkCore;
-using OrderSphere.BuildingBlocks.Abstraction;
 using Microsoft.Extensions.Logging;
+using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
-using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Application.Models;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Errors;
-using OrderSphere.Ordering.Application.Abstractions;
 
 namespace OrderSphere.Ordering.Application.Features.Order.Admin;
 
@@ -73,8 +71,8 @@ public sealed class GetOrderStatsQueryHandler(
                 {
                     o.Id,
                     FirstName = o.ShippingAddress.FirstName,
-                    LastName  = o.ShippingAddress.LastName,
-                    Total     = o.Items.Sum(i => i.Price.Amount * (int)i.Quantity),
+                    LastName = o.ShippingAddress.LastName,
+                    Total = o.Items.Sum(i => i.Price.Amount * (int)i.Quantity),
                     o.Status,
                     o.CreatedAt,
                 })

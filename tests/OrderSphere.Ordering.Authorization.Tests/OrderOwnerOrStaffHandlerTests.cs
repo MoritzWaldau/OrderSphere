@@ -1,10 +1,10 @@
+using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authorization;
 using OrderSphere.Ordering.Api.Authorization;
-using Xunit;
 using OrderSphere.Ordering.Application.Models;
 using OrderSphere.Ordering.Domain.Enums;
-using System.Security.Claims;
+using Xunit;
 
 namespace OrderSphere.Ordering.Authorization.Tests;
 
@@ -30,10 +30,10 @@ public sealed class OrderOwnerOrStaffHandlerTests
     private static readonly Guid OtherCustomerId = Guid.Parse("22222222-2222-2222-2222-222222222222");
 
     private static readonly OrderDto SampleOrder = new(
-        Id:             Guid.NewGuid(),
-        CustomerId:     OrderCustomerId,
-        Status:         OrderStatus.Created,
-        PaymentMethod:  PaymentMethod.CreditCard,
+        Id: Guid.NewGuid(),
+        CustomerId: OrderCustomerId,
+        Status: OrderStatus.Created,
+        PaymentMethod: PaymentMethod.CreditCard,
         TrackingNumber: null,
         ShippingAddress: new OrderShippingAddressDto(
             "Jane", "Doe", "Teststr. 1", "Berlin", "10115", "DE"),
@@ -48,7 +48,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     [Fact]
     public async Task Owner_Succeeds()
     {
-        var user    = BuildUser(sub: OrderCustomerId.ToString());
+        var user = BuildUser(sub: OrderCustomerId.ToString());
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
@@ -59,7 +59,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     [Fact]
     public async Task DifferentCustomer_DoesNotSucceed()
     {
-        var user    = BuildUser(sub: OtherCustomerId.ToString());
+        var user = BuildUser(sub: OtherCustomerId.ToString());
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
@@ -70,7 +70,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     [Fact]
     public async Task NullSub_DoesNotSucceed()
     {
-        var user    = BuildUser(sub: null);
+        var user = BuildUser(sub: null);
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
@@ -81,7 +81,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     [Fact]
     public async Task NonGuidSub_DoesNotSucceed()
     {
-        var user    = BuildUser(sub: "not-a-guid");
+        var user = BuildUser(sub: "not-a-guid");
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
@@ -98,7 +98,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     public async Task StaffRole_Succeeds(string role)
     {
         // Staff members can access any order regardless of ownership.
-        var user    = BuildUser(sub: OtherCustomerId.ToString(), roles: [role]);
+        var user = BuildUser(sub: OtherCustomerId.ToString(), roles: [role]);
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
@@ -110,7 +110,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     public async Task CustomerRoleOnly_DoesNotSucceedOnOtherOrder()
     {
         // A plain customer with no staff role cannot access another customer's order.
-        var user    = BuildUser(sub: OtherCustomerId.ToString(), roles: ["customer"]);
+        var user = BuildUser(sub: OtherCustomerId.ToString(), roles: ["customer"]);
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
@@ -121,7 +121,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     [Fact]
     public async Task AdminRole_SucceedsEvenWithDifferentSub()
     {
-        var user    = BuildUser(sub: OtherCustomerId.ToString(), roles: ["admin"]);
+        var user = BuildUser(sub: OtherCustomerId.ToString(), roles: ["admin"]);
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
@@ -134,7 +134,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     [Fact]
     public async Task OwnerWithStaffRole_Succeeds()
     {
-        var user    = BuildUser(sub: OrderCustomerId.ToString(), roles: ["csr"]);
+        var user = BuildUser(sub: OrderCustomerId.ToString(), roles: ["csr"]);
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
@@ -148,8 +148,8 @@ public sealed class OrderOwnerOrStaffHandlerTests
     public async Task UnauthenticatedUser_DoesNotSucceed()
     {
         var identity = new ClaimsIdentity();  // no authentication type → IsAuthenticated = false
-        var user     = new ClaimsPrincipal(identity);
-        var context  = BuildContext(user, SampleOrder);
+        var user = new ClaimsPrincipal(identity);
+        var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
 
@@ -181,7 +181,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     /// </summary>
     private static AuthorizationHandlerContext BuildContext(
         ClaimsPrincipal user,
-        OrderDto        resource)
+        OrderDto resource)
     {
         var requirement = new OrderOwnerOrStaffRequirement();
         return new AuthorizationHandlerContext([requirement], user, resource);

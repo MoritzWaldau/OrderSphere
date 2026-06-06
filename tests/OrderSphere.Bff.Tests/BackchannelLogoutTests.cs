@@ -1,9 +1,9 @@
+using System.Net;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using System.Net;
 using Xunit;
 
 namespace OrderSphere.Bff.Tests;
@@ -57,7 +57,7 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
     [Fact]
     public async Task Post_WithTamperedToken_Returns400()
     {
-        var client   = factory.CreateClient();
+        var client = factory.CreateClient();
         var validJwt = CreateLogoutToken();
         var tampered = validJwt[..^4] + "XXXX";  // corrupt the signature
 
@@ -70,8 +70,8 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
     public async Task Post_WithWrongSigningKey_Returns400()
     {
         var wrongKey = new SymmetricSecurityKey(new byte[64]);  // all-zero key ≠ TestSigningKey
-        var jwt      = CreateLogoutToken(signingKey: wrongKey);
-        var client   = factory.CreateClient();
+        var jwt = CreateLogoutToken(signingKey: wrongKey);
+        var client = factory.CreateClient();
 
         var response = await PostLogoutTokenAsync(client, jwt);
 
@@ -83,7 +83,7 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
     [Fact]
     public async Task Post_WithNonceClaim_Returns400()
     {
-        var jwt    = CreateLogoutToken(includeNonce: true);
+        var jwt = CreateLogoutToken(includeNonce: true);
         var client = factory.CreateClient();
 
         var response = await PostLogoutTokenAsync(client, jwt);
@@ -94,7 +94,7 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
     [Fact]
     public async Task Post_WithMissingEventsClaim_Returns400()
     {
-        var jwt    = CreateLogoutToken(includeEvents: false);
+        var jwt = CreateLogoutToken(includeEvents: false);
         var client = factory.CreateClient();
 
         var response = await PostLogoutTokenAsync(client, jwt);
@@ -107,7 +107,7 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
     {
         // When sid is absent, the spec says the IdP MUST provide sub or sid.
         // The endpoint returns 200 so Keycloak does not retry, but cannot revoke.
-        var jwt    = CreateLogoutToken(sid: null);
+        var jwt = CreateLogoutToken(sid: null);
         var client = factory.CreateClient();
 
         var response = await PostLogoutTokenAsync(client, jwt);
@@ -122,7 +122,7 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
     {
         // A valid logout_token for a session that is not in the cache (already expired
         // or already logged out) must return 200 — not an error.
-        var jwt    = CreateLogoutToken(sid: "non-existent-session-id");
+        var jwt = CreateLogoutToken(sid: "non-existent-session-id");
         var client = factory.CreateClient();
 
         var response = await PostLogoutTokenAsync(client, jwt);
@@ -133,16 +133,16 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
     [Fact]
     public async Task Post_WithValidToken_MatchingSession_Returns200AndRemovesSession()
     {
-        const string testSid        = "keycloak-session-abc";
-        const string sessionKey     = "bff:session:test-key-for-revocation";
-        const string sidIndexKey    = $"bff:sid:{testSid}";
+        const string testSid = "keycloak-session-abc";
+        const string sessionKey = "bff:session:test-key-for-revocation";
+        const string sidIndexKey = $"bff:sid:{testSid}";
 
         // Pre-populate the in-memory cache to simulate an active session.
         var cache = factory.Services.GetRequiredService<IDistributedCache>();
         await cache.SetStringAsync(sidIndexKey, sessionKey);
         await cache.SetStringAsync(sessionKey, "serialized-ticket-placeholder");
 
-        var jwt    = CreateLogoutToken(sid: testSid);
+        var jwt = CreateLogoutToken(sid: testSid);
         var client = factory.CreateClient();
 
         var response = await PostLogoutTokenAsync(client, jwt);
@@ -171,15 +171,15 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
     /// Parameters allow individual tests to exercise specific validation branches.
     /// </summary>
     private static string CreateLogoutToken(
-        string  issuer         = BffWebApplicationFactory.FakeAuthority,
-        string  audience       = BffWebApplicationFactory.FakeClientId,
-        string? sid            = "test-session-id-001",
-        string? sub            = "user-sub-0000",
-        bool    includeNonce   = false,
-        bool    includeEvents  = true,
+        string issuer = BffWebApplicationFactory.FakeAuthority,
+        string audience = BffWebApplicationFactory.FakeClientId,
+        string? sid = "test-session-id-001",
+        string? sub = "user-sub-0000",
+        bool includeNonce = false,
+        bool includeEvents = true,
         SymmetricSecurityKey? signingKey = null)
     {
-        var key   = signingKey ?? BffWebApplicationFactory.TestSigningKey;
+        var key = signingKey ?? BffWebApplicationFactory.TestSigningKey;
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new Dictionary<string, object>
@@ -203,12 +203,12 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
                 [BackchannelLogoutEvent] = new Dictionary<string, object>(),
             };
 
-        var handler    = new JsonWebTokenHandler();
+        var handler = new JsonWebTokenHandler();
         var descriptor = new SecurityTokenDescriptor
         {
-            Issuer             = issuer,
-            Audience           = audience,
-            Claims             = claims,
+            Issuer = issuer,
+            Audience = audience,
+            Claims = claims,
             SigningCredentials = creds,
         };
 

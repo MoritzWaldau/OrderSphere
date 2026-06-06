@@ -1,8 +1,9 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
@@ -10,8 +11,6 @@ using OrderSphere.Bff.Auth;
 using OrderSphere.Bff.Hubs;
 using OrderSphere.Bff.Workers;
 using OrderSphere.BuildingBlocks.Security;
-using StackExchange.Redis;
-using System.Security.Claims;
 using Yarp.ReverseProxy.Transforms;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -302,9 +301,9 @@ app.MapGet("/bff/user", (HttpContext ctx, IAntiforgery antiforgery) =>
     return Results.Ok(new
     {
         isAuthenticated = true,
-        sub   = user.FindFirst("sub")?.Value
+        sub = user.FindFirst("sub")?.Value
              ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-        name  = user.Identity.Name,
+        name = user.Identity.Name,
         email = user.FindFirst("email")?.Value
              ?? user.FindFirst(ClaimTypes.Email)?.Value,
         roles = user.FindAll("roles").Select(c => c.Value).ToArray(),

@@ -83,14 +83,14 @@ public static class BackchannelLogoutEndpoint
         var handler = new JsonWebTokenHandler { MapInboundClaims = false };
         var validationParams = new TokenValidationParameters
         {
-            ValidIssuer               = authority,
-            ValidAudience             = clientId,
-            ValidateIssuer            = true,
-            ValidateAudience          = true,
-            ValidateLifetime          = false, // logout tokens carry iat but not exp
-            ValidateIssuerSigningKey  = true,
-            IssuerSigningKeys         = oidcConfig.SigningKeys,
-            ClockSkew                 = TimeSpan.FromSeconds(30),
+            ValidIssuer = authority,
+            ValidAudience = clientId,
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = false, // logout tokens carry iat but not exp
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKeys = oidcConfig.SigningKeys,
+            ClockSkew = TimeSpan.FromSeconds(30),
         };
 
         TokenValidationResult validationResult;

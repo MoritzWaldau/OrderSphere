@@ -23,7 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\OrderSphere.Catalog.Application\OrderSphere.Catalog.Application.csproj" />
     <ProjectReference Include="..\OrderSphere.Catalog.Infrastructure\OrderSphere.Catalog.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\..\src\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Hosting\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

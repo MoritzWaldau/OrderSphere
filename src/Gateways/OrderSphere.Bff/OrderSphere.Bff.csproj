@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
-    <ProjectReference Include="..\..\OrderSphere.Web\OrderSphere.Web.csproj" />
+    <ProjectReference Include="..\..\Hosting\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\Frontend\OrderSphere.Web\OrderSphere.Web.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\OrderSphere.BuildingBlocks.Contracts\OrderSphere.BuildingBlocks.Contracts.csproj" />
   </ItemGroup>
 

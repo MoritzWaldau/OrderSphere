@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OrderSphere.Payment.Infrastructure\OrderSphere.Payment.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\..\Hosting\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.EventBus.AzureServiceBus\OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.Contracts\OrderSphere.BuildingBlocks.Contracts.csproj" />
   </ItemGroup>

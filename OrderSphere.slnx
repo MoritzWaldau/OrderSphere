@@ -13,7 +13,8 @@
     <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Contracts/OrderSphere.BuildingBlocks.Contracts.csproj" />
   </Folder>
   <Folder Name="/src/Hosting/">
-    <Project Path="src/OrderSphere.AppHost/OrderSphere.AppHost.csproj" />
+    <Project Path="src/Hosting/OrderSphere.AppHost/OrderSphere.AppHost.csproj" />
+    <Project Path="src/Hosting/OrderSphere.ServiceDefaults/OrderSphere.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/Catalog/">
@@ -58,16 +59,14 @@
     <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Domain/OrderSphere.UserProfile.Domain.csproj" />
     <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Infrastructure/OrderSphere.UserProfile.Infrastructure.csproj" />
   </Folder>
-  <Folder Name="/src/">
-    <Project Path="src/OrderSphere.ServiceDefaults/OrderSphere.ServiceDefaults.csproj" />
-  </Folder>
   <Folder Name="/src/Gateways/">
     <Project Path="src/Gateways/OrderSphere.ApiGateway/OrderSphere.ApiGateway.csproj" />
     <Project Path="src/Gateways/OrderSphere.Bff/OrderSphere.Bff.csproj" />
   </Folder>
   <Folder Name="/src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/" />
+  
   <Folder Name="/src/Frontend/">
-    <Project Path="src/OrderSphere.Web/OrderSphere.Web.csproj" />
+    <Project Path="src/Frontend/OrderSphere.Web/OrderSphere.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/OrderSphere.Bff.Tests/OrderSphere.Bff.Tests.csproj" />

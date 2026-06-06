@@ -21,7 +21,7 @@
     <ProjectReference Include="..\OrderSphere.Webhooks.Application\OrderSphere.Webhooks.Application.csproj" />
     <ProjectReference Include="..\OrderSphere.Webhooks.Domain\OrderSphere.Webhooks.Domain.csproj" />
     <ProjectReference Include="..\OrderSphere.Webhooks.Infrastructure\OrderSphere.Webhooks.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\..\Hosting\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

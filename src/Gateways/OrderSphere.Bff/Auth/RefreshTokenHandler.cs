@@ -1,7 +1,7 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using OrderSphere.BuildingBlocks.Security;
-using System.Text.Json;
 
 namespace OrderSphere.Bff.Auth;
 

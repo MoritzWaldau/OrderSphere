@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
@@ -33,12 +32,12 @@ public static class SwaggerExtensions
                     AuthorizationCode = new OpenApiOAuthFlow
                     {
                         AuthorizationUrl = new Uri($"{authority}/protocol/openid-connect/auth"),
-                        TokenUrl         = new Uri($"{authority}/protocol/openid-connect/token"),
+                        TokenUrl = new Uri($"{authority}/protocol/openid-connect/token"),
                         Scopes = new Dictionary<string, string>
                         {
-                            ["openid"]  = "OpenID Connect identity token",
+                            ["openid"] = "OpenID Connect identity token",
                             ["profile"] = "Basic user profile (name, preferred_username)",
-                            ["roles"]   = "Realm roles claim"
+                            ["roles"] = "Realm roles claim"
                         }
                     }
                 }
@@ -68,7 +67,7 @@ public static class SwaggerExtensions
     /// </summary>
     public static WebApplication UseOrderSphereSwagger(
         this WebApplication app,
-        string docId    = "v1",
+        string docId = "v1",
         string docTitle = "API")
     {
         app.UseSwagger();

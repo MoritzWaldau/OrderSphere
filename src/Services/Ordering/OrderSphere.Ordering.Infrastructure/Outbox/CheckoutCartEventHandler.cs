@@ -1,6 +1,6 @@
+using System.Text.Json;
 using OrderSphere.Ordering.Domain.Events;
 using OrderSphere.Ordering.Infrastructure.ServiceBus;
-using System.Text.Json;
 
 namespace OrderSphere.Ordering.Infrastructure.Outbox;
 

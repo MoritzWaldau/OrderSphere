@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
-using OrderSphere.Basket.Application;
-using OrderSphere.Basket.Application.Abstractions;
 using OrderSphere.Basket.Api.Configuration;
 using OrderSphere.Basket.Api.Endpoints;
 using OrderSphere.Basket.Api.Exceptions;
+using OrderSphere.Basket.Application;
+using OrderSphere.Basket.Application.Abstractions;
 using OrderSphere.Basket.Infrastructure;
 using OrderSphere.Basket.Infrastructure.CatalogClient;
 using OrderSphere.Basket.Infrastructure.Persistence;

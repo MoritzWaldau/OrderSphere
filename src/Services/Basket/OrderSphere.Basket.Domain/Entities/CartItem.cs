@@ -8,20 +8,20 @@ public sealed class CartItem : AuditableEntity<CartItemId>
 {
     public ProductId ProductId { get; private set; }
     public Quantity Quantity { get; private set; }
-    public CartId   CartId   { get; set; }
+    public CartId CartId { get; set; }
 
     // Parameterless constructor for EF Core materialisation.
     private CartItem()
     {
         ProductId = ProductId.Empty;
-        CartId    = CartId.Empty;
+        CartId = CartId.Empty;
     }
 
     public CartItem(ProductId productId, Quantity quantity)
     {
-        Id        = CartItemId.New();
+        Id = CartItemId.New();
         ProductId = productId;
-        Quantity  = quantity;
+        Quantity = quantity;
     }
 
     public void Increase(int amount) => Quantity += amount;

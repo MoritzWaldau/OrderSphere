@@ -34,7 +34,7 @@ public sealed class BffWebApplicationFactory : WebApplicationFactory<Program>
         };
 
     public const string FakeAuthority = "https://fake-keycloak.test/realms/ordersphere";
-    public const string FakeClientId  = "web-bff";
+    public const string FakeClientId = "web-bff";
 
     /// <summary>Static OIDC configuration returned by the mock IConfigurationManager.</summary>
     public static readonly OpenIdConnectConfiguration TestOidcConfig;

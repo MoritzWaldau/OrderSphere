@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Json;
 using OrderSphere.BuildingBlocks.Contracts;
 using OrderSphere.Web.Models;
@@ -35,7 +34,7 @@ public sealed class CatalogClient(HttpClient client) : ICatalogClient
     {
         var result = await _client.GetFromJsonAsync<PagedResult<CategoryDto>>("/api/v1/categories?page=1&pageSize=10", ct);
 
-        if(result is null)
+        if (result is null)
         {
             return new PagedResult<CategoryDto>([], 0, 1, 10);
         }

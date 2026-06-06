@@ -14,7 +14,6 @@ using OrderSphere.Ordering.Application.Features.Checkout;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Events;
 using OrderSphere.Ordering.Domain.ValueObjects;
-using OrderSphere.Ordering.Infrastructure.Outbox;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 using OrderSphere.Ordering.Worker.Workers;
 using Xunit;

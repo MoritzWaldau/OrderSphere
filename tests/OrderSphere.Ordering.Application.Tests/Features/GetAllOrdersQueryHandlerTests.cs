@@ -47,7 +47,7 @@ public sealed class GetAllOrdersQueryHandlerTests
     public async Task Handle_StatusFilter_ReturnsonlyMatchingOrders()
     {
         var created = CreateOrder();
-        var paid    = CreateOrder(OrderStatus.Paid);
+        var paid = CreateOrder(OrderStatus.Paid);
         var orders = new List<Order> { created, paid }.AsQueryable().BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);

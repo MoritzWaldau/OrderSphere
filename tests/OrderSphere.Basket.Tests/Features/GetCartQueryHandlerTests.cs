@@ -5,7 +5,7 @@ namespace OrderSphere.Basket.Tests.Features;
 public sealed class GetCartQueryHandlerTests
 {
     private static readonly CustomerId Customer = CustomerId.New();
-    private static readonly ProductId ProductA  = ProductId.New();
+    private static readonly ProductId ProductA = ProductId.New();
 
     private static GetCartQueryHandler CreateHandler(
         BasketDbContext ctx,

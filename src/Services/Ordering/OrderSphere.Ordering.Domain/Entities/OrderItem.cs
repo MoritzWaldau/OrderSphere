@@ -9,12 +9,12 @@ public sealed class OrderItem : AuditableEntity<OrderItemId>
     public ProductId ProductId { get; private set; }
     public string ProductName { get; private set; }
     public Quantity Quantity { get; private set; }
-    public Money    Price    { get; private set; } = null!;
+    public Money Price { get; private set; } = null!;
 
     // Parameterless constructor for EF Core materialisation.
     private OrderItem()
     {
-        ProductId   = ProductId.Empty;
+        ProductId = ProductId.Empty;
         ProductName = string.Empty;
     }
 

@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using OrderSphere.UserProfile.Domain.Entities;
-
 namespace OrderSphere.UserProfile.Application.Abstractions;
 
 public interface IUserProfileDbContext

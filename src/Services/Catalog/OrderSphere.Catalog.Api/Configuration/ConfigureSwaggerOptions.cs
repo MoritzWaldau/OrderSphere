@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -45,12 +44,12 @@ public sealed class ConfigureSwaggerOptions(IConfiguration configuration)
                 AuthorizationCode = new OpenApiOAuthFlow
                 {
                     AuthorizationUrl = new Uri($"{authority}/protocol/openid-connect/auth"),
-                    TokenUrl         = new Uri($"{authority}/protocol/openid-connect/token"),
+                    TokenUrl = new Uri($"{authority}/protocol/openid-connect/token"),
                     Scopes = new Dictionary<string, string>
                     {
-                        ["openid"]  = "OpenID Connect identity token",
+                        ["openid"] = "OpenID Connect identity token",
                         ["profile"] = "Basic user profile (name, preferred_username)",
-                        ["roles"]   = "Realm roles claim"
+                        ["roles"] = "Realm roles claim"
                     }
                 }
             }

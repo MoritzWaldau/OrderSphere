@@ -1,7 +1,7 @@
+using System.Text.Json;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Events;
 using OrderSphere.Ordering.Infrastructure.Persistence;
-using System.Text.Json;
 
 namespace OrderSphere.Ordering.Infrastructure.Outbox;
 

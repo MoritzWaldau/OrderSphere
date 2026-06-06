@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using OrderSphere.Webhooks.Domain.Entities;
 
 namespace OrderSphere.Webhooks.Application.Abstractions;

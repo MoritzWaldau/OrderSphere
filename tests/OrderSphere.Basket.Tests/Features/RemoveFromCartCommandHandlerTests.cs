@@ -5,8 +5,8 @@ namespace OrderSphere.Basket.Tests.Features;
 public sealed class RemoveFromCartCommandHandlerTests
 {
     private static readonly CustomerId Customer = CustomerId.New();
-    private static readonly ProductId  Product1 = ProductId.New();
-    private static readonly ProductId  Product2 = ProductId.New();
+    private static readonly ProductId Product1 = ProductId.New();
+    private static readonly ProductId Product2 = ProductId.New();
 
     private static RemoveFromCartCommandHandler CreateHandler(BasketDbContext ctx) =>
         new(ctx);

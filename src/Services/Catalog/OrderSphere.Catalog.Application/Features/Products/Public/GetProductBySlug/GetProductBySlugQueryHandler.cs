@@ -1,8 +1,4 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
-using OrderSphere.Catalog.Application.Caching;
-using OrderSphere.Catalog.Application.DTOs.Public;
-using OrderSphere.Catalog.Domain.Errors;
 
 namespace OrderSphere.Catalog.Application.Features.Products.Public.GetProductBySlug;
 

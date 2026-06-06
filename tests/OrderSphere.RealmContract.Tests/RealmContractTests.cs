@@ -1,6 +1,5 @@
-using FluentAssertions;
-using System.Text.Json;
 using System.Text.Json.Nodes;
+using FluentAssertions;
 using Xunit;
 
 namespace OrderSphere.RealmContract.Tests;
@@ -109,7 +108,7 @@ public sealed class RealmContractTests
         // directAccessGrantsEnabled = resource owner password credentials grant.
         // This grant is insecure for production clients and must be disabled.
         var client = GetClient(clientId);
-        var value  = client?["directAccessGrantsEnabled"]?.GetValue<bool>() ?? false;
+        var value = client?["directAccessGrantsEnabled"]?.GetValue<bool>() ?? false;
         value.Should().BeFalse(
             $"client '{clientId}' must not enable the resource owner password grant");
     }
@@ -123,7 +122,7 @@ public sealed class RealmContractTests
     public void ResourceServerClient_StandardFlowEnabled_IsFalse(string clientId)
     {
         var client = GetClient(clientId);
-        var value  = client?["standardFlowEnabled"]?.GetValue<bool>() ?? false;
+        var value = client?["standardFlowEnabled"]?.GetValue<bool>() ?? false;
         value.Should().BeFalse(
             $"resource server '{clientId}' is bearer-only and must not allow the authorization code flow");
     }
@@ -136,7 +135,7 @@ public sealed class RealmContractTests
     public void WorkerClient_ServiceAccountsEnabled_IsTrue(string clientId)
     {
         var client = GetClient(clientId);
-        var value  = client?["serviceAccountsEnabled"]?.GetValue<bool>() ?? false;
+        var value = client?["serviceAccountsEnabled"]?.GetValue<bool>() ?? false;
         value.Should().BeTrue(
             $"worker client '{clientId}' must have service accounts enabled for client_credentials grant");
     }
@@ -204,7 +203,7 @@ public sealed class RealmContractTests
     [Fact]
     public void MfaConditionalFlow_ContainsWebAuthnAlternative()
     {
-        var flow       = GetAuthFlow("browser-conditional-otp-2fa");
+        var flow = GetAuthFlow("browser-conditional-otp-2fa");
         var executions = flow!["authenticationExecutions"]!.AsArray();
 
         var hasWebAuthn = executions.Any(e =>
@@ -217,7 +216,7 @@ public sealed class RealmContractTests
     [Fact]
     public void MfaConditionalFlow_ContainsOtpAlternative()
     {
-        var flow       = GetAuthFlow("browser-conditional-otp-2fa");
+        var flow = GetAuthFlow("browser-conditional-otp-2fa");
         var executions = flow!["authenticationExecutions"]!.AsArray();
 
         var hasOtp = executions.Any(e =>

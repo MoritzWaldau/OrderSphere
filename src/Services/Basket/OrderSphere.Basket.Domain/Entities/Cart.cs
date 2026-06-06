@@ -3,7 +3,6 @@ using OrderSphere.Basket.Domain.Errors;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
-using OrderSphere.BuildingBlocks.ValueObjects;
 
 namespace OrderSphere.Basket.Domain.Entities;
 

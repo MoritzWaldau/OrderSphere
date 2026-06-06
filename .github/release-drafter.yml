@@ -1,0 +1,60 @@
+# Draft-Release-Notes aus gemergten PRs (Conventional-Commit-Kategorien).
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: '🚀 Features'
+    labels: ['feat', 'enhancement']
+  - title: '🐛 Fixes'
+    labels: ['fix', 'bug']
+  - title: '♻️ Refactoring'
+    labels: ['refactor']
+  - title: '⚡ Performance'
+    labels: ['perf']
+  - title: '📝 Dokumentation'
+    labels: ['docs']
+  - title: '🧪 Tests'
+    labels: ['test']
+  - title: '🔧 Wartung & CI'
+    labels: ['chore', 'ci', 'build', 'style']
+
+# Versions-Bump aus Conventional-Commit-Präfix im PR-Titel ableiten.
+version-resolver:
+  major:
+    labels: ['major', 'breaking']
+  minor:
+    labels: ['feat', 'enhancement', 'minor']
+  patch:
+    labels: ['fix', 'bug', 'patch', 'chore', 'refactor', 'perf', 'docs', 'test']
+  default: patch
+
+autolabeler:
+  - label: 'feat'
+    title: ['/^feat(\(.+\))?!?:/']
+  - label: 'fix'
+    title: ['/^fix(\(.+\))?!?:/']
+  - label: 'refactor'
+    title: ['/^refactor(\(.+\))?!?:/']
+  - label: 'perf'
+    title: ['/^perf(\(.+\))?!?:/']
+  - label: 'docs'
+    title: ['/^docs(\(.+\))?!?:/']
+  - label: 'test'
+    title: ['/^test(\(.+\))?!?:/']
+  - label: 'chore'
+    title: ['/^chore(\(.+\))?!?:/']
+  - label: 'ci'
+    title: ['/^ci(\(.+\))?!?:/']
+  - label: 'build'
+    title: ['/^build(\(.+\))?!?:/']
+  - label: 'style'
+    title: ['/^style(\(.+\))?!?:/']
+  - label: 'breaking'
+    title: ['/^\w+(\(.+\))?!:/']
+
+template: |
+  ## Änderungen
+
+  $CHANGES
+
+  **Vollständiges Changelog**: https://github.com/MoritzWaldau/OrderSphere/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION

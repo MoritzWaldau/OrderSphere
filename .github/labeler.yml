@@ -1,0 +1,75 @@
+# Auto-Labels nach geänderten Pfaden (actions/labeler v5-Format).
+
+"area: ci-cd":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+
+"area: infra":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "deploy/**"
+          - "azure.yaml"
+
+"area: docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "**/*.md"
+
+"area: tests":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "tests/**"
+
+"area: catalog":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/Services/Catalog/**"
+
+"area: ordering":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/Services/Ordering/**"
+
+"area: basket":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/Services/Basket/**"
+
+"area: payment":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/Services/Payment/**"
+
+"area: webhooks":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/Services/Webhooks/**"
+
+"area: userprofile":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/Services/UserProfile/**"
+
+"area: notification":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/Services/Notification/**"
+
+"area: frontend":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/Frontend/**"
+          - "src/Gateways/OrderSphere.Bff/**"
+
+"area: gateway":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/Gateways/**"
+
+"area: building-blocks":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/BuildingBlocks/**"
+          - "src/Hosting/**"

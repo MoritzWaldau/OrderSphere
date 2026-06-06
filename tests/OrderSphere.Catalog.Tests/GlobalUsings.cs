@@ -1,10 +1,8 @@
 global using FluentAssertions;
 global using NSubstitute;
-global using Xunit;
-global using Microsoft.EntityFrameworkCore;
-global using OrderSphere.BuildingBlocks.Primitives;
 global using OrderSphere.BuildingBlocks.StronglyTypedIds;
 global using OrderSphere.BuildingBlocks.ValueObjects;
+global using OrderSphere.Catalog.Application.Abstractions;
 global using OrderSphere.Catalog.Domain.Entities;
 global using OrderSphere.Catalog.Domain.Errors;
-global using OrderSphere.Catalog.Application.Abstractions;
+global using Xunit;

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.ServiceDefaults;
 using OrderSphere.UserProfile.Application.Features.Profile.AddAddress;
-using OrderSphere.UserProfile.Application.Models;
 using OrderSphere.UserProfile.Application.Features.Profile.DeleteAddress;
 using OrderSphere.UserProfile.Application.Features.Profile.EnsureProfile;
 using OrderSphere.UserProfile.Application.Features.Profile.GetAddresses;
@@ -11,6 +10,7 @@ using OrderSphere.UserProfile.Application.Features.Profile.SetDefaultAddress;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdateAddress;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdatePreferences;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdateProfile;
+using OrderSphere.UserProfile.Application.Models;
 
 namespace OrderSphere.UserProfile.Api.Endpoints;
 

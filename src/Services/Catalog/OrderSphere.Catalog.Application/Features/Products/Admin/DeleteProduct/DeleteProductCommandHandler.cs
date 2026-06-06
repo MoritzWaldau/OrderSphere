@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using OrderSphere.Catalog.Domain.Errors;
-
 namespace OrderSphere.Catalog.Application.Features.Products.Admin.DeleteProduct;
 
 public sealed class DeleteProductCommandHandler(ICatalogDbContext context)

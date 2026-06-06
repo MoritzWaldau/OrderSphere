@@ -1,8 +1,8 @@
-using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace OrderSphere.Bff.Tests;
@@ -38,7 +38,7 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false,
-            HandleCookies     = true,
+            HandleCookies = true,
         });
 
         var response = await client.PostAsync("/bff/logout", new StringContent(string.Empty));
@@ -52,7 +52,7 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false,
-            HandleCookies     = true,
+            HandleCookies = true,
         });
 
         var response = await client.PostAsync("/bff/logout", new StringContent(string.Empty));
@@ -69,10 +69,10 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false,
-            HandleCookies     = true,   // cookie jar persists XSRF-TOKEN cookie
+            HandleCookies = true,   // cookie jar persists XSRF-TOKEN cookie
         });
 
-        var userBody  = await (await client.GetAsync("/bff/user")).Content.ReadFromJsonAsync<JsonElement>();
+        var userBody = await (await client.GetAsync("/bff/user")).Content.ReadFromJsonAsync<JsonElement>();
         var xsrfToken = userBody.GetProperty("xsrfToken").GetString()!;
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/bff/logout")
@@ -99,7 +99,7 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false,
-            HandleCookies     = true,
+            HandleCookies = true,
         });
 
         var response = await client.GetAsync("/api/orders");
@@ -119,7 +119,7 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false,
-            HandleCookies     = true,
+            HandleCookies = true,
         });
 
         var response = await client.PostAsync("/api/orders",
@@ -146,14 +146,14 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false,
-            HandleCookies     = true,
+            HandleCookies = true,
         });
 
         var response = await client.PostAsync("/bff/logout", new StringContent(string.Empty));
-        var body     = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         // ProblemDetails format: contains "title", NOT the middleware's "error" key.
-        body.TryGetProperty("title",  out _).Should().BeTrue("endpoint filter uses ProblemDetails");
-        body.TryGetProperty("error",  out _).Should().BeFalse("middleware-style 'error' key must not appear here");
+        body.TryGetProperty("title", out _).Should().BeTrue("endpoint filter uses ProblemDetails");
+        body.TryGetProperty("error", out _).Should().BeFalse("middleware-style 'error' key must not appear here");
     }
 }

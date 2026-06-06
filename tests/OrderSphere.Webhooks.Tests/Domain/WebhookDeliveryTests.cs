@@ -1,5 +1,3 @@
-using OrderSphere.Webhooks.Domain.Enums;
-
 namespace OrderSphere.Webhooks.Tests.Domain;
 
 public sealed class WebhookDeliveryTests

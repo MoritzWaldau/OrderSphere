@@ -1,10 +1,10 @@
 using Asp.Versioning;
 using MediatR;
+using OrderSphere.Basket.Api.Configuration;
 using OrderSphere.Basket.Application.Features.Cart.AddToCart;
 using OrderSphere.Basket.Application.Features.Cart.DecreaseCartItem;
 using OrderSphere.Basket.Application.Features.Cart.GetCart;
 using OrderSphere.Basket.Application.Features.Cart.RemoveFromCart;
-using OrderSphere.Basket.Api.Configuration;
 using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.ServiceDefaults;

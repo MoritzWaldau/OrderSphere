@@ -3,10 +3,10 @@ var builder = DistributedApplication.CreateBuilder(args);
 // ── Secret parameters ─────────────────────────────────────────────────────────
 // In development: populate via dotnet user-secrets set "Parameters:<name>" "<value>" --project src/OrderSphere.AppHost
 // In production: values are resolved from Azure Key Vault by azd / Aspire provisioning.
-var bffClientSecret = builder.AddParameter("bff-client-secret",          secret: true);
-var orderingWorkerSecret = builder.AddParameter("ordering-worker-secret",      secret: true);
+var bffClientSecret = builder.AddParameter("bff-client-secret", secret: true);
+var orderingWorkerSecret = builder.AddParameter("ordering-worker-secret", secret: true);
 var notificationWorkerSecret = builder.AddParameter("notification-worker-secret", secret: true);
-var paymentWorkerSecret = builder.AddParameter("payment-worker-secret",      secret: true);
+var paymentWorkerSecret = builder.AddParameter("payment-worker-secret", secret: true);
 
 // Non-secret parameters — defaults provided in appsettings.Development.json.
 // In Azure: supply via azd environment parameter or Key Vault.
@@ -132,10 +132,10 @@ var ordering = builder.AddProject<Projects.OrderSphere_Ordering_Api>("orderspher
     .WaitFor(orderingDb)
     .WaitFor(serviceBus)
     .WaitFor(redis)
-    .WithEnvironment("Keycloak__Authority",   keycloakAuthority)
-    .WithEnvironment("Keycloak__Audience",     "ordering-api")
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__Audience", "ordering-api")
     // Service-account credentials used by HttpCatalogClient (client_credentials grant).
-    .WithEnvironment("Keycloak__ClientId",     "ordering-worker")
+    .WithEnvironment("Keycloak__ClientId", "ordering-worker")
     .WithEnvironment("Keycloak__ClientSecret", orderingWorkerSecret);
 if (keycloak is not null) ordering.WaitFor(keycloak);
 
@@ -145,8 +145,8 @@ builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-w
     .WaitFor(orderingDb)
     .WaitFor(serviceBus)
     // Pre-wired for future M2M calls (e.g. Catalog enrichment).
-    .WithEnvironment("Keycloak__Authority",   keycloakAuthority)
-    .WithEnvironment("Keycloak__ClientId",     "ordering-worker")
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__ClientId", "ordering-worker")
     .WithEnvironment("Keycloak__ClientSecret", orderingWorkerSecret);
 
 builder.AddProject<Projects.OrderSphere_Notification_Worker>("ordersphere-notification-worker")
@@ -155,8 +155,8 @@ builder.AddProject<Projects.OrderSphere_Notification_Worker>("ordersphere-notifi
     .WaitFor(notificationDb)
     .WaitFor(serviceBus)
     // Pre-wired for future M2M calls (e.g. UserProfile enrichment).
-    .WithEnvironment("Keycloak__Authority",   keycloakAuthority)
-    .WithEnvironment("Keycloak__ClientId",     "notification-worker")
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__ClientId", "notification-worker")
     .WithEnvironment("Keycloak__ClientSecret", notificationWorkerSecret);
 
 var payment = builder.AddProject<Projects.OrderSphere_Payment_Api>("ordersphere-payment")
@@ -222,8 +222,8 @@ builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")
     .WaitFor(apiGateway)
     .WaitFor(redis)
     .WaitFor(serviceBus)
-    .WithEnvironment("Keycloak__Authority",   keycloakAuthority)
-    .WithEnvironment("Keycloak__ClientId",     "web-bff")
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__ClientId", "web-bff")
     .WithEnvironment("Keycloak__ClientSecret", bffClientSecret);
 
 builder.Build().Run();

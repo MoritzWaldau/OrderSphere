@@ -1,13 +1,12 @@
-using MediatR;
-using OrderSphere.BuildingBlocks.Abstraction;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.Extensions.Logging;
+using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Errors;
 using OrderSphere.Ordering.Domain.Events;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace OrderSphere.Ordering.Application.Features.Checkout;
 

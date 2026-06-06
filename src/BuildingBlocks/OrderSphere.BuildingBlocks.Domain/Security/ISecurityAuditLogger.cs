@@ -18,10 +18,10 @@ public interface ISecurityAuditLogger
 /// </summary>
 public sealed record SecurityAuditEvent(
     SecurityAuditEventType Type,
-    string? UserId      = null,
-    string? SessionId   = null,
-    string? IpAddress   = null,
-    string? Details     = null)
+    string? UserId = null,
+    string? SessionId = null,
+    string? IpAddress = null,
+    string? Details = null)
 {
     /// <summary>UTC timestamp of the event. Defaults to now if not supplied.</summary>
     public DateTimeOffset OccurredAt { get; init; } = DateTimeOffset.UtcNow;

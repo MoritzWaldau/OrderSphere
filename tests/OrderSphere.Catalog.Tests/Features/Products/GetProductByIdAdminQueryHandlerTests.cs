@@ -6,7 +6,7 @@ namespace OrderSphere.Catalog.Tests.Features.Products;
 public sealed class GetProductByIdAdminQueryHandlerTests
 {
     private static readonly CategoryId CategoryA = CategoryId.New();
-    private static readonly ProductId  ProductA  = ProductId.New();
+    private static readonly ProductId ProductA = ProductId.New();
 
     private static GetProductByIdAdminQueryHandler CreateHandler(ICatalogDbContext ctx) => new(ctx);
 

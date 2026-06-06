@@ -25,7 +25,11 @@ public sealed class AdminOrderingClient : IAdminOrderingClient
             // Map display name to enum int (Created=0, Paid=1, Shipped=2, Delivered=3, Cancelled=4)
             var statusInt = statusFilter switch
             {
-                "Created" => 0, "Paid" => 1, "Shipped" => 2, "Delivered" => 3, "Cancelled" => 4,
+                "Created" => 0,
+                "Paid" => 1,
+                "Shipped" => 2,
+                "Delivered" => 3,
+                "Cancelled" => 4,
                 _ => -1
             };
             if (statusInt >= 0) url += $"?status={statusInt}";

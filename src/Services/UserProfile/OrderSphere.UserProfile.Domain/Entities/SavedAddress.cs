@@ -59,7 +59,7 @@ public sealed class SavedAddress : AuditableEntity<SavedAddressId>
         Country = country;
     }
 
-    internal void SetAsDefault()    => IsDefault = true;
-    internal void ClearDefault()    => IsDefault = false;
-    internal void MarkDeleted()     => IsDeleted = true;
+    internal void SetAsDefault() => IsDefault = true;
+    internal void ClearDefault() => IsDefault = false;
+    internal void MarkDeleted() => IsDeleted = true;
 }

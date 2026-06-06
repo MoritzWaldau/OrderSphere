@@ -1,0 +1,53 @@
+version: 2
+
+updates:
+  # ── NuGet: deckt Central Package Management (Directory.Packages.props),
+  #    alle *.csproj, global.json UND .config/dotnet-tools.json ab. ───────────────
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*", "System.*"]
+      aspire:
+        patterns: ["Aspire.*"]
+      opentelemetry:
+        patterns: ["OpenTelemetry.*"]
+      test:
+        patterns:
+          - "xunit*"
+          - "*.Test.Sdk"
+          - "Microsoft.NET.Test.Sdk"
+          - "NSubstitute*"
+          - "FluentAssertions"
+          - "bunit"
+          - "MockQueryable*"
+          - "coverlet.*"
+          - "ReportGenerator"
+    commit-message:
+      prefix: chore
+
+  # ── GitHub Actions: hält SHA-Pins in Workflows + Composite-Action aktuell. ──────
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: chore
+
+  # ── Docker: Keycloak-Basisimage im SSO-Deploy. ─────────────────────────────────
+  - package-ecosystem: docker
+    directory: "/deploy/sso"
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: chore

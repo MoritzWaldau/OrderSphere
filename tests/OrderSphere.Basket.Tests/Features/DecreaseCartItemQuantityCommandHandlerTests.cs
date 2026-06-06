@@ -5,8 +5,8 @@ namespace OrderSphere.Basket.Tests.Features;
 public sealed class DecreaseCartItemQuantityCommandHandlerTests
 {
     private static readonly CustomerId Customer = CustomerId.New();
-    private static readonly ProductId  Product1 = ProductId.New();
-    private static readonly ProductId  Product2 = ProductId.New();
+    private static readonly ProductId Product1 = ProductId.New();
+    private static readonly ProductId Product2 = ProductId.New();
 
     private static DecreaseCartItemQuantityCommandHandler CreateHandler(BasketDbContext ctx) =>
         new(ctx);

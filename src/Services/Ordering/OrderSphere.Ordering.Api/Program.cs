@@ -5,16 +5,16 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
-using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Api.Authorization;
-using OrderSphere.Ordering.Infrastructure.CatalogClient;
-using HttpBasketClient = OrderSphere.Ordering.Infrastructure.CatalogClient.HttpBasketClient;
 using OrderSphere.Ordering.Api.Configuration;
 using OrderSphere.Ordering.Api.Endpoints;
 using OrderSphere.Ordering.Api.Exceptions;
+using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Infrastructure;
+using OrderSphere.Ordering.Infrastructure.CatalogClient;
 using OrderSphere.Ordering.Infrastructure.Idempotency;
 using OrderSphere.Ordering.Infrastructure.Persistence;
+using HttpBasketClient = OrderSphere.Ordering.Infrastructure.CatalogClient.HttpBasketClient;
 
 var builder = WebApplication.CreateBuilder(args);
 

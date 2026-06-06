@@ -1,4 +1,3 @@
-using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Application.Features.Order.Admin;
 
 namespace OrderSphere.Ordering.Application.Tests.Features;

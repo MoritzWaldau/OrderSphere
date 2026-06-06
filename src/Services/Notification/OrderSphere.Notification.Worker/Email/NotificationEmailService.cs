@@ -1,8 +1,8 @@
+using System.Globalization;
+using System.Text;
 using Azure;
 using Azure.Communication.Email;
 using OrderSphere.BuildingBlocks.Contracts.Events;
-using System.Globalization;
-using System.Text;
 
 namespace OrderSphere.Notification.Worker.Email;
 

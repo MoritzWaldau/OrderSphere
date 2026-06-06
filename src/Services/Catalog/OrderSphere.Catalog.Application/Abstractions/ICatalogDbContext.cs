@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using OrderSphere.Catalog.Domain.Entities;
 
 namespace OrderSphere.Catalog.Application.Abstractions;

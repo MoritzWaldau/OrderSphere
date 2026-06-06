@@ -1,17 +1,13 @@
+using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Payment.Domain.Entities;
-using OrderSphere.Payment.Infrastructure.Outbox;
 using OrderSphere.Payment.Infrastructure.Persistence;
 using OrderSphere.Payment.Infrastructure.Providers;
-using System.Text.Json;
 
 namespace OrderSphere.Payment.Worker.Workers;
 

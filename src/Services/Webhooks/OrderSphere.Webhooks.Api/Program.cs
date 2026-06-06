@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
-using OrderSphere.Webhooks.Application;
 using OrderSphere.Webhooks.Api.Endpoints;
+using OrderSphere.Webhooks.Application;
 using OrderSphere.Webhooks.Infrastructure;
 using OrderSphere.Webhooks.Infrastructure.Persistence;
 

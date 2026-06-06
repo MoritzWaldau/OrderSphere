@@ -1,6 +1,6 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using OrderSphere.BuildingBlocks.Security;
-using System.Security.Claims;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

@@ -1,5 +1,4 @@
 using Azure.Messaging.ServiceBus;
-using Microsoft.Extensions.DependencyInjection;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.Notification.Worker.Email;

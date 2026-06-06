@@ -9,8 +9,8 @@ namespace OrderSphere.Basket.Tests.Domain;
 public sealed class CartRemoveDecreaseTests
 {
     private static readonly CustomerId Customer = CustomerId.New();
-    private static readonly ProductId  Product1 = ProductId.New();
-    private static readonly ProductId  Product2 = ProductId.New();
+    private static readonly ProductId Product1 = ProductId.New();
+    private static readonly ProductId Product2 = ProductId.New();
 
     private static Cart CreateCartWithItems(params (ProductId productId, int qty)[] items)
     {

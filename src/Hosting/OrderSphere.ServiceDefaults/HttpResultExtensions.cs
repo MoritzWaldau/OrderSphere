@@ -48,7 +48,7 @@ public static class HttpResultExtensions
         ErrorType.Conflict => Results.Conflict(new ErrorResponse(error.Code, error.Description)),
         ErrorType.Forbidden => Results.Forbid(),
         ErrorType.Unauthorized => Results.Unauthorized(),
-        ErrorType.Unexpected=> Results.Problem(detail: error.Description, statusCode: StatusCodes.Status500InternalServerError),
+        ErrorType.Unexpected => Results.Problem(detail: error.Description, statusCode: StatusCodes.Status500InternalServerError),
         _ => Results.BadRequest(new ErrorResponse(error.Code, error.Description)),
     };
 }

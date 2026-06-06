@@ -1,7 +1,7 @@
+using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.Ordering.Application.Abstractions;
-using System.Net.Http.Json;
 
 namespace OrderSphere.Ordering.Infrastructure.CatalogClient;
 

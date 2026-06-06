@@ -1,5 +1,8 @@
 version: 2
 
+# Version-Update-PRs sind deaktiviert (open-pull-requests-limit: 0).
+# Dependabot-Alerts + Security-Updates bleiben aktiv (Repo-Setting) —
+# PRs erscheinen nur noch bei einer echten CVE.
 updates:
   # ── NuGet: deckt Central Package Management (Directory.Packages.props),
   #    alle *.csproj, global.json UND .config/dotnet-tools.json ab. ───────────────
@@ -8,7 +11,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0
     groups:
       microsoft:
         patterns: ["Microsoft.*", "System.*"]
@@ -36,7 +39,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0
     groups:
       actions:
         patterns: ["*"]
@@ -49,5 +52,6 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    open-pull-requests-limit: 0
     commit-message:
       prefix: chore

@@ -1,4 +1,4 @@
-# Draft-Release-Notes aus gemergten PRs (Conventional-Commit-Kategorien).
+# Draft release notes from merged PRs (Conventional Commit categories).
 name-template: 'v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
 
@@ -11,14 +11,14 @@ categories:
     labels: ['refactor']
   - title: '⚡ Performance'
     labels: ['perf']
-  - title: '📝 Dokumentation'
+  - title: '📝 Documentation'
     labels: ['docs']
   - title: '🧪 Tests'
     labels: ['test']
-  - title: '🔧 Wartung & CI'
+  - title: '🔧 Maintenance & CI'
     labels: ['chore', 'ci', 'build', 'style']
 
-# Versions-Bump aus Conventional-Commit-Präfix im PR-Titel ableiten.
+# Derive the version bump from the Conventional Commit prefix in the PR title.
 version-resolver:
   major:
     labels: ['major', 'breaking']
@@ -53,8 +53,8 @@ autolabeler:
     title: ['/^\w+(\(.+\))?!:/']
 
 template: |
-  ## Änderungen
+  ## Changes
 
   $CHANGES
 
-  **Vollständiges Changelog**: https://github.com/MoritzWaldau/OrderSphere/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+  **Full changelog**: https://github.com/MoritzWaldau/OrderSphere/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION

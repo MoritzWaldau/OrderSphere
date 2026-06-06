@@ -1,11 +1,11 @@
 name: Release
 
-# Tag-getrieben (vX.Y.Z): erzeugt ein immutables, versioniertes Release.
-# - SBOM des Quellstands als Release-Asset
-# - GitHub Release mit generierten Notes
-# Das Bauen/Pushen versionierter Container-Images läuft über azd/ACR und ist als
-# separater Schritt vorgesehen (siehe build-images-Job, derzeit deaktiviert, da die
-# ACR-Koordinaten umgebungsspezifisch über azd bereitgestellt werden).
+# Tag-driven (vX.Y.Z): produces an immutable, versioned release.
+# - SBOM of the source state as a release asset
+# - GitHub release with generated notes
+# Building/pushing versioned container images runs via azd/ACR and is intended as
+# a separate step (see the build-images job, currently disabled because the
+# ACR coordinates are provided per environment via azd).
 on:
   push:
     tags: ['v*']
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: write   # Release + Assets anlegen
+      contents: write   # create the release + assets
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -34,12 +34,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Version aus Tag ableiten
+      - name: Derive version from tag
         id: version
         shell: bash
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
-      - name: SBOM erzeugen (SPDX)
+      - name: Generate SBOM (SPDX)
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           path: .
@@ -47,7 +47,7 @@ jobs:
           artifact-name: ordersphere-sbom-${{ steps.version.outputs.version }}.spdx.json
           output-file: ordersphere-sbom-${{ steps.version.outputs.version }}.spdx.json
 
-      - name: GitHub Release erstellen
+      - name: Create GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
@@ -57,9 +57,9 @@ jobs:
             --generate-notes \
             "ordersphere-sbom-${{ steps.version.outputs.version }}.spdx.json"
 
-  # ── Versionierte Container-Images (Gerüst, deaktiviert) ───────────────────────
-  # Aktivieren, sobald die ACR-Koordinaten der azd-Umgebung feststehen. Baut die
-  # 12 Aspire-Projekte als immutable Images :vX.Y.Z und pusht in die ACR.
+  # ── Versioned container images (scaffold, disabled) ──────────────────────────
+  # Enable once the ACR coordinates of the azd environment are fixed. Builds the
+  # 12 Aspire projects as immutable images :vX.Y.Z and pushes them to the ACR.
   build-images:
     name: Build & push versioned images
     if: ${{ false }}
@@ -85,5 +85,5 @@ jobs:
       - name: Install azd
         uses: Azure/setup-azd@634ad924cf8baef2257898ba5663be8d19f15aca # v2.3.0
 
-      # TODO: azd auth login (OIDC) + `azd package` mit Image-Tag vX.Y.Z + Push in ACR.
-      #       Trivy-Scan der getaggten Images vor der Freigabe.
+      # TODO: azd auth login (OIDC) + `azd package` with image tag vX.Y.Z + push to ACR.
+      #       Trivy scan of the tagged images before release.

@@ -1,50 +1,50 @@
 # Git Branching & Deployment Strategy
 
-## Ziel
+## Goal
 
-Diese Strategie definiert den Entwicklungs-, Test- und Release-Prozess für OrderSphere. Sie folgt
-dem GitHub-Flow-Modell: ein dauerhafter Branch, kurzlebige Arbeitsbranches, Umgebungen über
-versionierte Artefakte statt über Branches.
+This strategy defines the development, test, and release process for OrderSphere. It follows the
+GitHub Flow model: one permanent branch, short-lived working branches, environments through
+versioned artifacts rather than through branches.
 
-Ziele:
+Objectives:
 
-* Entwicklungsarbeiten sauber isolieren
-* Stabile Testumgebungen bereitstellen
-* Sichere Produktiv-Releases durchführen
-* Schnelle Rollbacks auf vorherige Versionen ermöglichen
+* Isolate development work cleanly
+* Provide stable test environments
+* Perform safe production releases
+* Enable fast rollbacks to previous versions
 
 ---
 
-# Branch-Struktur
+# Branch structure
 
-## Dauerhafter Branch
+## Permanent branch
 
-| Branch   | Beschreibung                                                  |
+| Branch   | Description                                                  |
 | -------- | ------------------------------------------------------------ |
-| `master` | Einziger dauerhafter Branch. Jederzeit deploybar, immer grün. |
+| `master` | The only permanent branch. Deployable at any time, always green. |
 
-`master` ist die einzige Integrationslinie. Es gibt keine `develop`-, `staging`- oder
-`release/*`-Branches. Umgebungen werden über CI/CD aus `master` und SemVer-Tags bedient
-(siehe [Umgebungen](#umgebungen)).
+`master` is the single integration line. There are no `develop`, `staging`, or `release/*`
+branches. Environments are served via CI/CD from `master` and SemVer tags
+(see [Environments](#environments)).
 
-## Kurzlebige Branches
+## Short-lived branches
 
-| Branch-Typ  | Basis    | Zweck                       |
+| Branch type | Base     | Purpose                     |
 | ----------- | -------- | --------------------------- |
-| `feature/*` | `master` | Entwicklung neuer Features  |
-| `bugfix/*`  | `master` | Fehlerbehebungen            |
-| `hotfix/*`  | `master` | Kritische Produktionsfehler |
+| `feature/*` | `master` | Development of new features |
+| `bugfix/*`  | `master` | Bug fixes                   |
+| `hotfix/*`  | `master` | Critical production defects |
 
-Kurzlebige Branches werden von `master` abgezweigt und nach Review per Pull Request wieder nach
-`master` zusammengeführt. Sie leben nur so lange wie die zugehörige Arbeit.
+Short-lived branches are branched off `master` and merged back into `master` via pull request after
+review. They live only as long as the associated work.
 
 ---
 
-# Entwicklungsprozess
+# Development process
 
-## Feature-Entwicklung
+## Feature development
 
-Neues Feature erstellen:
+Create a new feature:
 
 ```bash
 git switch master
@@ -54,34 +54,34 @@ git switch -c feature/user-management
 
 Workflow:
 
-1. Feature-Branch von `master` erstellen
-2. Entwicklung durchführen
-3. Pull Request nach `master`
-4. Code Review und Pflicht-CI (Build + Tests grün)
-5. Squash-Merge nach `master`
-6. Manuelles Deployment auf die Development-Umgebung (Workflow „Deploy OrderSphere" via
-   `workflow_dispatch`) — bewusst manuell zur Kostenkontrolle, nicht automatisch bei Merge
+1. Create a feature branch from `master`
+2. Carry out the development
+3. Pull request into `master`
+4. Code review and mandatory CI (build + tests green)
+5. Squash merge into `master`
+6. Manual deployment to the development environment (workflow "Deploy OrderSphere" via
+   `workflow_dispatch`) — deliberately manual for cost control, not automatic on merge
 
-Da `master` der einzige Integrationspunkt ist, entfallen Rückmerge-Kaskaden zwischen mehreren
-dauerhaften Branches vollständig.
+Because `master` is the only integration point, back-merge cascades between several permanent
+branches are eliminated entirely.
 
 ---
 
-# Umgebungen
+# Environments
 
-Umgebungen werden nicht über Branches abgebildet, sondern über `master` plus versionierte,
-immutable Artefakte. Ein SemVer-Tag (`vX.Y.Z`) ist der Release-Auslöser.
+Environments are not mapped via branches but via `master` plus versioned, immutable artifacts. A
+SemVer tag (`vX.Y.Z`) is the release trigger.
 
-| Auslöser              | Aktion                                                                  |
+| Trigger               | Action                                                                  |
 | --------------------- | ---------------------------------------------------------------------- |
-| Merge nach `master`   | Build + Tests (CI). Dev-Deployment erfolgt manuell (s. u.)              |
-| Manueller Dev-Deploy  | Workflow „Deploy OrderSphere" (`workflow_dispatch`) deployt master nach Development |
-| Tag `v*` (SemVer)     | Versioniertes Artefakt erzeugen (Docker `ordersphere/*:vX.Y.Z`, ZIP)    |
-| Promotion Staging     | Getaggtes Artefakt nach Staging deployen                                |
-| Promotion Production   | Getaggtes Artefakt nach Production deployen, hinter einem Approval-Gate |
+| Merge into `master`   | Build + tests (CI). Dev deployment is manual (see below)               |
+| Manual dev deploy     | Workflow "Deploy OrderSphere" (`workflow_dispatch`) deploys master to Development |
+| Tag `v*` (SemVer)     | Produce versioned artifact (Docker `ordersphere/*:vX.Y.Z`, ZIP)        |
+| Promotion Staging     | Deploy the tagged artifact to Staging                                  |
+| Promotion Production  | Deploy the tagged artifact to Production, behind an approval gate      |
 
-Grundprinzip: Produktivdeployments erfolgen niemals direkt aus einem Branch. Es wird ausschließlich
-ein zuvor erzeugtes, versioniertes Artefakt deployed.
+Core principle: production deployments never come directly from a branch. Only a previously produced,
+versioned artifact is deployed.
 
 ```mermaid
 gitGraph
@@ -99,23 +99,23 @@ gitGraph
     commit id: "v1.5.1" tag: "v1.5.1"
 ```
 
-Promotion-Kette pro Release-Tag:
+Promotion chain per release tag:
 
 ```text
 Tag vX.Y.Z
-  ↓ Artefakt erzeugen
-Development (aus master, manueller Trigger)
-  ↓ Promotion
+  ↓ produce artifact
+Development (from master, manual trigger)
+  ↓ promotion
 Staging
-  ↓ Approval-Gate
+  ↓ approval gate
 Production
 ```
 
 ---
 
-# Release-Prozess
+# Release process
 
-Ein Release ist ein Tag auf `master`, kein eigener Branch.
+A release is a tag on `master`, not a separate branch.
 
 ```bash
 git switch master
@@ -124,87 +124,86 @@ git tag -a v1.5.0 -m "Release 1.5.0"
 git push origin v1.5.0
 ```
 
-Der Tag löst die Artefakt-Erzeugung aus. Das Artefakt wird anschließend nach Staging und – nach
-Abnahme über das Approval-Gate – nach Production promotet. Versionen folgen SemVer
-(`MAJOR.MINOR.PATCH`).
+The tag triggers artifact creation. The artifact is then promoted to Staging and — after sign-off
+via the approval gate — to Production. Versions follow SemVer (`MAJOR.MINOR.PATCH`).
 
 ---
 
-# Deployment-Strategie
+# Deployment strategy
 
-## Grundprinzip
+## Core principle
 
-Produktivdeployments erfolgen niemals direkt aus einem Branch. Für jeden Release wird ein
-versioniertes Artefakt erstellt.
+Production deployments never come directly from a branch. A versioned artifact is created for every
+release.
 
-### ZIP-Artefakte
+### ZIP artifacts
 
 ```text
 ordersphere-1.5.0.zip
 ordersphere-1.5.1.zip
 ```
 
-### Docker Images
+### Docker images
 
 ```text
 ordersphere/<service>:v1.5.0
 ordersphere/<service>:v1.5.1
 ```
 
-Deployment-Prozess:
+Deployment process:
 
 ```text
-Commit auf master
+Commit on master
   ↓
 Build
   ↓
 Tag vX.Y.Z
   ↓
-Artefakt erstellen
+Create artifact
   ↓
-Artefakt archivieren
+Archive artifact
   ↓
 Promotion (Staging → Production)
 ```
 
-Dadurch ist jedes Release jederzeit reproduzierbar.
+This makes every release reproducible at any time.
 
 ---
 
-# Rollback-Strategie
+# Rollback strategy
 
-## Ziel
+## Goal
 
-Bei einem fehlerhaften Deployment muss innerhalb weniger Minuten auf die letzte stabile Version
-zurückgewechselt werden können.
+On a faulty deployment, it must be possible to revert to the last stable version within a few
+minutes.
 
-## Vorgehensweise
+## Procedure
 
-Aktuell laufende Version:
+Currently running version:
 
 ```text
 v1.6.0
 ```
 
-Falls Fehler auftreten:
+If errors occur:
 
 ```text
 Rollback → Redeploy v1.5.0
 ```
 
-Wichtig:
+Important:
 
-* Kein Git Revert
-* Kein neuer Build
-* Keine Codeänderungen
+* No git revert
+* No new build
+* No code changes
 
-Es wird lediglich das letzte erfolgreiche Artefakt erneut deployed.
+Only the last successful artifact is deployed again.
 
 ---
 
 # Last Successful Release
 
-Die CI/CD-Pipeline speichert die zuletzt erfolgreiche Produktivversion.
+The CI/CD pipeline records the last successful production version.
 
 | Version | Commit  | Status  |
 | ------- | ------- | ------- |
@@ -212,7 +211,7 @@ Die CI/CD-Pipeline speichert die zuletzt erfolgreiche Produktivversion.
 | v1.5.0  | 84ab123 | Success |
 | v1.4.2  | 1fa234c | Success |
 
-Im Fehlerfall wird automatisch oder manuell ausgeführt:
+In a failure case the following is executed, automatically or manually:
 
 ```text
 Redeploy Last Successful Release
@@ -220,9 +219,9 @@ Redeploy Last Successful Release
 
 ---
 
-# Hotfix-Prozess
+# Hotfix process
 
-Für kritische Fehler in Produktion:
+For critical defects in production:
 
 ```bash
 git switch master
@@ -237,74 +236,74 @@ master
  └─ hotfix/login-crash
        ↓ Pull Request + Review
 master
-       ↓ Patch-Tag (vX.Y.Z+1)
-Artefakt → Staging → Production
+       ↓ Patch tag (vX.Y.Z+1)
+Artifact → Staging → Production
 ```
 
-Da `master` der einzige dauerhafte Branch ist, wird der Fix mit dem Merge nach `master`
-automatisch Teil der nächsten Development- und Release-Linie. Eine separate Rückmerge-Kaskade in
-weitere Branches ist nicht erforderlich.
+Because `master` is the only permanent branch, the fix automatically becomes part of the next
+development and release line on merge into `master`. A separate back-merge cascade into further
+branches is not required.
 
 ---
 
 # Branch Protection
 
-Regeln für `master`:
+Rules for `master`:
 
-* Pull Request für jeden Merge erforderlich
-* Keine direkten Pushes auf `master`
-* Mindestens 1 Approval
-* Required Status Checks: Build und Tests müssen grün sein
-* Lineare Historie über Squash-Merge
+* Pull request required for every merge
+* No direct pushes to `master`
+* At least 1 approval
+* Required status checks: build and tests must be green
+* Linear history via squash merge
 
 ---
 
-# CI/CD-Regeln
+# CI/CD rules
 
-| Auslöser            | Deployment / Aktion                       |
+| Trigger             | Deployment / action                       |
 | ------------------- | ----------------------------------------- |
-| Merge nach `master` | CI (Build + Tests); kein Auto-Deploy       |
-| Manueller Trigger   | Dev-Deploy via `workflow_dispatch`         |
-| Tag `v*`            | Release-Artefakt erzeugen                  |
-| Promotion           | Staging, dann Production (Gate)            |
+| Merge into `master` | CI (build + tests); no auto-deploy        |
+| Manual trigger      | Dev deploy via `workflow_dispatch`        |
+| Tag `v*`            | Produce release artifact                  |
+| Promotion           | Staging, then Production (gate)           |
 
 ---
 
-# Best Practices
+# Best practices
 
-* Pull Requests für alle Merges verwenden
-* Direkte Commits auf `master` vermeiden
-* Kurzlebige Branches zeitnah mergen und löschen
-* Jede Produktivversion taggen (SemVer)
-* Build-Artefakte versionieren
-* Rollback über Artefakte durchführen, nicht über Git Revert
-* Produktionsdeployments protokollieren
-* Approval-Gate vor Production aktivieren
+* Use pull requests for all merges
+* Avoid direct commits to `master`
+* Merge and delete short-lived branches promptly
+* Tag every production version (SemVer)
+* Version build artifacts
+* Perform rollback via artifacts, not via git revert
+* Log production deployments
+* Enable the approval gate before Production
 
 ---
 
-# Zusammenfassung
+# Summary
 
-GitHub Flow mit einem dauerhaften Branch:
+GitHub Flow with one permanent branch:
 
 ```text
-master   ← einziger Trunk, jederzeit deploybar
+master   ← single trunk, deployable at any time
 
 feature/*
 bugfix/*
 hotfix/*
 ```
 
-Umgebungen über Tags und Artefakte:
+Environments via tags and artifacts:
 
 ```text
-Tag vX.Y.Z → Artefakt → Development → Staging → Production (Approval-Gate)
+Tag vX.Y.Z → artifact → Development → Staging → Production (approval gate)
 ```
 
-Vorteile:
+Benefits:
 
-* Ein klarer Integrationspunkt, keine Rückmerge-Kaskaden
-* Kontrollierter, tag-basierter Release-Prozess
-* Reproduzierbare Deployments über versionierte Artefakte
-* Schnelle Rollbacks über das letzte erfolgreiche Artefakt
-* Geringer Overhead bei kleinem Team und einer Solution
+* One clear integration point, no back-merge cascades
+* Controlled, tag-based release process
+* Reproducible deployments via versioned artifacts
+* Fast rollbacks via the last successful artifact
+* Low overhead for a small team and a single solution

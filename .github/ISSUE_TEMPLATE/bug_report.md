@@ -1,37 +1,37 @@
 ---
 name: Bug Report
-about: Einen reproduzierbaren Fehler melden
+about: Report a reproducible defect
 title: "fix: "
 labels: [bug]
 assignees: []
 ---
 
-## Beschreibung
+## Description
 
-<!-- Klare, knappe Beschreibung des Fehlers. -->
+<!-- Clear, concise description of the defect. -->
 
-## Reproduktion
+## Reproduction
 
-Schritte zur Reproduktion:
+Steps to reproduce:
 
 1.
 2.
 3.
 
-## Erwartetes Verhalten
+## Expected behaviour
 
-<!-- Was sollte passieren? -->
+<!-- What should happen? -->
 
-## Tatsächliches Verhalten
+## Actual behaviour
 
-<!-- Was passiert stattdessen? Fehlermeldungen, Logs, Screenshots. -->
+<!-- What happens instead? Error messages, logs, screenshots. -->
 
-## Umgebung
+## Environment
 
-- Dienst/Komponente:
-- Umgebung (lokal / dev):
-- Commit / Version:
+- Service/component:
+- Environment (local / dev):
+- Commit / version:
 
-## Zusätzlicher Kontext
+## Additional context
 
-<!-- Korrelations-IDs, relevante Konfiguration, Verdacht auf Ursache. -->
+<!-- Correlation IDs, relevant configuration, suspected cause. -->

@@ -1,5 +1,15 @@
 # OrderSphere
 
+[![CI](https://github.com/MoritzWaldau/OrderSphere/actions/workflows/ci.yml/badge.svg)](https://github.com/MoritzWaldau/OrderSphere/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/MoritzWaldau/OrderSphere/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoritzWaldau/OrderSphere/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/MoritzWaldau/OrderSphere/badge)](https://securityscorecards.dev/viewer/?uri=github.com/MoritzWaldau/OrderSphere)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=MoritzWaldau_OrderSphere&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=MoritzWaldau_OrderSphere)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+> **Status:** Technical reference / portfolio implementation demonstrating microservices and
+> Clean Architecture patterns on .NET 10. Not intended for production operation.
+
 OrderSphere is a .NET 10 e-commerce platform built as independently deployable microservices over
 Clean Architecture with CQRS (MediatR), Domain-Driven Design, and an event-driven backbone
 (Outbox/Inbox over Azure Service Bus). Each service owns its domain, persistence, and
@@ -10,6 +20,18 @@ The full system map — per-service project tables, feature inventory, EF migrat
 external-service wiring — is in [docs/architecture.md](docs/architecture.md). Behavioral rules and
 conventions are in [CLAUDE.md](CLAUDE.md). This README is the entry point; those documents are the
 detail.
+
+## Contents
+
+- [Architecture](#architecture)
+- [Technology](#technology)
+- [Getting started](#getting-started)
+- [Common commands](#common-commands)
+- [Deployment](#deployment)
+- [Conventions](#conventions)
+- [Security](#security)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Architecture
 
@@ -124,11 +146,40 @@ Run from the repository root.
 The full EF Core migration matrix (per service) is in
 [docs/architecture.md](docs/architecture.md#ef-migrations).
 
+## Deployment
+
+OrderSphere is a .NET Aspire application: the AppHost manifest (`src/OrderSphere.AppHost`) is the
+single source of truth for the resource topology. The Azure Developer CLI (`azd`, configured via
+[azure.yaml](azure.yaml)) reads that manifest and generates the Bicep for Container Apps,
+PostgreSQL Flexible Server, Service Bus, Azure Managed Redis, and Key Vault — there is no
+hand-written `infra/` folder. Keycloak is deployed independently as the central SSO provider
+(see [deploy/sso/](deploy/sso/README.md)).
+
+The full deployment procedure is in
+[docs/deploy-ordersphere.md](docs/deploy-ordersphere.md). Deployment pipelines live in
+[.github/workflows/](.github/workflows/) (`deploy-staging.yml`, `deploy-prod.yml`, `deploy-sso.yml`).
+
 ## Conventions
 
 Repository conventions — layer rules, the `Result<T>` contract, feature layout, integration-event
 patterns, and commit format — are documented in [CLAUDE.md](CLAUDE.md). UI, theming, and CSS rules
 are in [docs/ui-conventions.md](docs/ui-conventions.md).
+
+## Security
+
+Supply-chain and code security are enforced in CI: CodeQL static analysis, OpenSSF Scorecard,
+GitHub dependency review, Dependabot updates, and a vulnerable-package scan (`dotnet list package
+--vulnerable`). Non-development secrets are held in Azure Key Vault; development uses .NET
+user-secrets. Authentication is delegated to Keycloak (OIDC) via the BFF and gateway, with RBAC
+enforced per service.
+
+To report a vulnerability, follow the disclosure process in [SECURITY.md](SECURITY.md).
+
+## Contributing
+
+Contributions follow the workflow in [CONTRIBUTING.md](CONTRIBUTING.md): branch from `master`,
+keep changes within one layer where possible, and use Conventional Commit messages (enforced on PR
+titles). Released changes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 

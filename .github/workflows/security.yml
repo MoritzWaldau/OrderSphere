@@ -1,7 +1,7 @@
 name: Security
 
-# Secret-Scan (gitleaks) + Filesystem-/Misconfig-Scan (Trivy).
-# Ergänzt CodeQL (SAST) und Dependency-Review (Abhängigkeiten).
+# Secret scan (gitleaks) + filesystem/misconfig scan (Trivy).
+# Complements CodeQL (SAST) and dependency review (dependencies).
 on:
   push:
     branches: [master]
@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── Secret-Scan ───────────────────────────────────────────────────────────────
+  # ── Secret scan ───────────────────────────────────────────────────────────────
   gitleaks:
     name: Secret Scan
     runs-on: ubuntu-latest
@@ -31,24 +31,24 @@ jobs:
 
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          fetch-depth: 0   # vollständige History für Commit-Scan
+          fetch-depth: 0   # full history for the commit scan
 
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
-          # Für PR-Scans zwingend erforderlich.
+          # Mandatory for PR scans.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Nur für Organisationen erforderlich; für persönliche Repos optional.
+          # Required only for organizations; optional for personal repos.
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
-  # ── Filesystem-/Misconfig-Scan ────────────────────────────────────────────────
+  # ── Filesystem/misconfig scan ─────────────────────────────────────────────────
   trivy:
     name: Trivy Filesystem Scan
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: read
-      security-events: write   # SARIF-Upload in den Security-Tab
+      security-events: write   # SARIF upload to the Security tab
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -60,9 +60,9 @@ jobs:
       - name: Trivy (vuln + secret + misconfig)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         env:
-          # Authentifizierte GitHub-Aufrufe beim Binary-/DB-Download → kein Rate-Limit.
+          # Authenticated GitHub calls for the binary/DB download → no rate limit.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # DB aus GHCR (stabiler als der Default), ebenfalls gegen Rate-Limits.
+          # DB from GHCR (more stable than the default), also against rate limits.
           TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db:2
         with:
           scan-type: fs

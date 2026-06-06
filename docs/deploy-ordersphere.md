@@ -1,156 +1,156 @@
-# OrderSphere — Azure-Deployment (azd)
+# OrderSphere — Azure deployment (azd)
 
-Bereitstellung von OrderSphere in eine eigene Azure-DEV-Umgebung über die Azure Developer CLI
-(`azd`). OrderSphere ist eine .NET-Aspire-Anwendung: das AppHost-Manifest
-(`src/OrderSphere.AppHost`) ist die einzige Quelle der Ressourcentopologie. `azd` liest das
-Manifest und generiert daraus die Bicep-Vorlagen (Container Apps, PostgreSQL Flexible Server,
-Service Bus, Azure Managed Redis, Key Vault). Es gibt bewusst **keinen** handgepflegten
-`infra/`-Ordner.
+Deploying OrderSphere into a dedicated Azure DEV environment via the Azure Developer CLI
+(`azd`). OrderSphere is a .NET Aspire application: the AppHost manifest
+(`src/OrderSphere.AppHost`) is the single source of the resource topology. `azd` reads the
+manifest and generates the Bicep templates from it (Container Apps, PostgreSQL Flexible Server,
+Service Bus, Azure Managed Redis, Key Vault). There is deliberately **no** hand-maintained
+`infra/` folder.
 
-Keycloak ist **nicht** Teil dieser Bereitstellung. Es läuft als unabhängiger zentraler
-SSO-Provider (siehe [`deploy/sso/`](../deploy/sso/README.md)). Die Kopplung erfolgt ausschließlich
-über die Issuer-URL und vier Client-Secrets.
+Keycloak is **not** part of this deployment. It runs as an independent central SSO provider
+(see [`deploy/sso/`](../deploy/sso/README.md)). The coupling is solely through the issuer URL and
+four client secrets.
 
-## Voraussetzungen
+## Prerequisites
 
-- `azd` installiert (`azd version`), `dotnet` 10 SDK.
-- Azure-Subscription mit Berechtigung, die Resource Group `rg-ordersphere-dev` anzulegen.
-- Laufendes Cloud-Keycloak (Issuer-URL bekannt).
-- Docker (für den lokalen Container-Build durch `azd`).
+- `azd` installed (`azd version`), `dotnet` 10 SDK.
+- An Azure subscription with permission to create the resource group `rg-ordersphere-dev`.
+- A running cloud Keycloak (issuer URL known).
+- Docker (for the local container build performed by `azd`).
 
-## Eckdaten
+## Key facts
 
-| Schlüssel | Wert |
+| Key | Value |
 |---|---|
 | Environment | `dev` |
 | Region | `northeurope` |
 | Resource Group | `rg-dev` |
-| BFF-FQDN | `ordersphere-bff.kindtree-ed135723.northeurope.azurecontainerapps.io` |
+| BFF FQDN | `ordersphere-bff.kindtree-ed135723.northeurope.azurecontainerapps.io` |
 | Issuer | `https://keycloak.salmoncoast-4abe9a09.northeurope.azurecontainerapps.io/realms/ordersphere` |
 
-> **Resource Group:** Der Aspire-azd-Pfad leitet die Resource Group aus dem Environment-Namen ab
-> (`rg-<env>` → `rg-dev`) und ignoriert ein nachträglich gesetztes `AZURE_RESOURCE_GROUP`. Die
-> Infrastruktur liegt daher in `rg-dev`. Damit `azd deploy` die Container Apps in dieselbe Gruppe
-> schreibt, muss `AZURE_RESOURCE_GROUP=rg-dev` gesetzt sein (sonst 404 `ResourceGroupNotFound`).
+> **Resource Group:** The Aspire azd path derives the resource group from the environment name
+> (`rg-<env>` → `rg-dev`) and ignores an `AZURE_RESOURCE_GROUP` set afterwards. The infrastructure
+> therefore lives in `rg-dev`. For `azd deploy` to write the Container Apps into the same group,
+> `AZURE_RESOURCE_GROUP=rg-dev` must be set (otherwise 404 `ResourceGroupNotFound`).
 
-## Datenbankschema
+## Database schema
 
-Jeder Service ruft beim Start `Database.Migrate()` auf (ungated, nicht auf Development beschränkt —
-siehe z. B. `src/Services/Catalog/.../Program.cs`). In der Cloud migriert damit jeder Container beim
-ersten Start sein eigenes Schema gegen den PostgreSQL Flexible Server. Kein separater
-Migrationsschritt nötig.
+Each service calls `Database.Migrate()` at startup (ungated, not restricted to Development —
+see e.g. `src/Services/Catalog/.../Program.cs`). In the cloud, each container therefore migrates its
+own schema against the PostgreSQL Flexible Server on first start. No separate migration step is
+required.
 
-## Redis-Authentifizierung (Entra ID)
+## Redis authentication (Entra ID)
 
-`AddAzureManagedRedis` provisioniert Azure Managed Redis mit Microsoft-Entra-ID-Authentifizierung
-(Access Keys deaktiviert); der Managed Identity wird eine Data-Access-Policy zugewiesen. Der von
-Aspire injizierte Connection-String enthält **kein** Passwort. `Aspire.StackExchange.Redis` bringt
-keine Entra-Token-Logik mit — eine rohe `ConnectionMultiplexer.Connect(connectionString)` scheitert
-deshalb mit `NOAUTH - connection has not yet authenticated`.
+`AddAzureManagedRedis` provisions Azure Managed Redis with Microsoft Entra ID authentication
+(access keys disabled); the managed identity is assigned a data-access policy. The connection string
+injected by Aspire contains **no** password. `Aspire.StackExchange.Redis` ships no Entra token logic —
+a raw `ConnectionMultiplexer.Connect(connectionString)` therefore fails with
+`NOAUTH - connection has not yet authenticated`.
 
-Die Services bauen die Redis-Verbindung daher über `AddOrderSphereRedisAsync`
-(`OrderSphere.ServiceDefaults/RedisExtensions.cs`): Bei einem Azure-Redis-Endpoint ohne Passwort holt
-`Microsoft.Azure.StackExchangeRedis` über die User-Assigned Managed Identity (`AZURE_CLIENT_ID`) ein
-Entra-Token und erneuert es automatisch. Der token-authentifizierte `IConnectionMultiplexer` wird von
-DistributedCache (Catalog, Ordering, BFF), DataProtection-Key-Ring und SignalR-Backplane (BFF)
-gemeinsam genutzt. Lokal (Aspire-Dev-Container) verbindet derselbe Code ohne Credentials.
+The services consequently build the Redis connection through `AddOrderSphereRedisAsync`
+(`OrderSphere.ServiceDefaults/RedisExtensions.cs`): for an Azure Redis endpoint without a password,
+`Microsoft.Azure.StackExchangeRedis` obtains an Entra token via the user-assigned managed identity
+(`AZURE_CLIENT_ID`) and renews it automatically. The token-authenticated `IConnectionMultiplexer` is
+shared by DistributedCache (Catalog, Ordering, BFF), the DataProtection key ring, and the SignalR
+backplane (BFF). Locally (Aspire dev container) the same code connects without credentials.
 
-## Schritt-für-Schritt
+## Step by step
 
-### 1. Anmelden und Environment anlegen
+### 1. Sign in and create the environment
 ```powershell
 azd auth login
 azd env new dev --location northeurope --subscription <SUBSCRIPTION_ID>
 azd env set AZURE_RESOURCE_GROUP rg-dev
 ```
 
-> **Wichtig:** Aspire-Parameter mit Bindestrich (`keycloak-realm-authority`,
-> `payment-bypass-providers`, die vier `*-secret`) dürfen **nicht** über `azd env set` gesetzt
-> werden — `azd env set` schreibt in die `.env`, und dort sind Bindestriche in Variablennamen
-> ungültig (`unexpected character "-" in variable name`). Diese Parameter fragt `azd up` beim
-> ersten Deploy interaktiv ab und speichert sie korrekt (Nicht-Secrets in `config.json`, Secrets
-> als Key-Vault-Referenz). Nur `AZURE_*`-Werte (Unterstriche) gehören in die `.env`.
+> **Important:** Aspire parameters with a hyphen (`keycloak-realm-authority`,
+> `payment-bypass-providers`, the four `*-secret`) must **not** be set via `azd env set` —
+> `azd env set` writes to the `.env`, where hyphens in variable names are invalid
+> (`unexpected character "-" in variable name`). `azd up` prompts for these parameters
+> interactively on the first deploy and stores them correctly (non-secrets in `config.json`, secrets
+> as a Key Vault reference). Only `AZURE_*` values (underscores) belong in the `.env`.
 
-### 2. Echte Client-Secrets erzeugen
-Vier neue Zufalls-Secrets erzeugen (eines je confidential Client) und notieren:
+### 2. Generate real client secrets
+Generate four new random secrets (one per confidential client) and note them down:
 ```powershell
 foreach ($c in 'web-bff','ordering-worker','notification-worker','payment-worker') {
   $s = [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Max 256 }))
   Write-Host "$c = $s"
 }
 ```
-Jeden Wert in der **Cloud-Keycloak-Admin-Konsole** setzen
-(*Clients → \<client\> → Credentials → Regenerate/Set*). Die laufende Instanz hat den Realm bereits
-in Postgres importiert; Änderungen an `contracts/keycloak/ordersphere-realm.json` werden **nicht**
-automatisch übernommen.
+Set each value in the **cloud Keycloak admin console**
+(*Clients → \<client\> → Credentials → Regenerate/Set*). The running instance has already imported
+the realm into Postgres; changes to `contracts/keycloak/ordersphere-realm.json` are **not** picked up
+automatically.
 
-> Hinweis: `contracts/keycloak/ordersphere-realm.json` behält die `*-dev-secret-change-in-prod`-
-> Platzhalter. Echte Secrets gehören nicht ins Git — nur in Keycloak und in den Key Vault.
+> Note: `contracts/keycloak/ordersphere-realm.json` keeps the `*-dev-secret-change-in-prod`
+> placeholders. Real secrets do not belong in Git — only in Keycloak and the Key Vault.
 
-### 3. Bereitstellen
+### 3. Deploy
 ```powershell
 azd up
 ```
-`azd up` fragt nacheinander die Parameterwerte ab:
-- `keycloak-realm-authority` → die Issuer-URL (siehe Eckdaten oben)
+`azd up` prompts for the parameter values one after another:
+- `keycloak-realm-authority` → the issuer URL (see Key facts above)
 - `payment-bypass-providers` → `true`
 - `bff-client-secret`, `ordering-worker-secret`, `notification-worker-secret`,
-  `payment-worker-secret` → die in Schritt 2 erzeugten Werte (werden als Key-Vault-Secrets abgelegt)
+  `payment-worker-secret` → the values generated in step 2 (stored as Key Vault secrets)
 
-Danach provisioniert es die Infrastruktur in `rg-ordersphere-dev` und deployt alle 12 Projekte als
-Container Apps. Nur `ordersphere-bff` erhält ein externes Ingress (`WithExternalHttpEndpoints()` im
-AppHost). Die Antworten werden gespeichert; spätere `azd up`-Läufe fragen nicht erneut.
+It then provisions the infrastructure in `rg-ordersphere-dev` and deploys all 12 projects as
+Container Apps. Only `ordersphere-bff` receives an external ingress (`WithExternalHttpEndpoints()` in
+the AppHost). The answers are stored; later `azd up` runs do not prompt again.
 
-### 6. Keycloak gegen die BFF-URL abgleichen
-Nach dem Deploy die öffentliche BFF-FQDN ermitteln:
+### 6. Reconcile Keycloak against the BFF URL
+After the deploy, determine the public BFF FQDN:
 ```powershell
 azd show
 ```
-Am Client `web-bff` in der Keycloak-Admin-Konsole ergänzen:
+On the `web-bff` client in the Keycloak admin console, add:
 - Redirect URI: `https://<bff-fqdn>/*`
 - Web Origin: `https://<bff-fqdn>`
-- Post-Logout-Redirect-URI: `https://<bff-fqdn>/*`
-- Backchannel-Logout-URL: `https://<bff-fqdn>/bff/backchannel-logout`
+- Post-logout redirect URI: `https://<bff-fqdn>/*`
+- Backchannel logout URL: `https://<bff-fqdn>/bff/backchannel-logout`
 
-## Verifikation
+## Verification
 
-1. `azd up` läuft fehlerfrei; Ressourcen in `rg-ordersphere-dev` vorhanden.
-2. Service-Logs zeigen erfolgreichen JWKS-Abruf von der Keycloak-FQDN.
-3. `https://<bff-fqdn>` → Login-Redirect zu Keycloak → nach Schritt 6 erfolgreicher Rücksprung.
-4. Authentifizierter API-Call (Audience-Validierung pro Service) liefert 200.
-5. `client_credentials`-Token für `ordering-worker`/`payment-worker` mit dem echten Secret →
-   gültiges Token mit Rolle `svc.*`.
+1. `azd up` runs without errors; resources present in `rg-ordersphere-dev`.
+2. Service logs show a successful JWKS fetch from the Keycloak FQDN.
+3. `https://<bff-fqdn>` → login redirect to Keycloak → successful return after step 6.
+4. An authenticated API call (per-service audience validation) returns 200.
+5. A `client_credentials` token for `ordering-worker`/`payment-worker` with the real secret →
+   a valid token with role `svc.*`.
 
 ## CI/CD — `azd pipeline config`
 
-Erst **nach** dem ersten erfolgreichen `azd up` ausführen. Der Befehl richtet OIDC
-(Workload Identity Federation) ein, legt/verwendet den Service Principal, setzt die GitHub-
-Repo-Variablen (`AZURE_ENV_NAME`, `AZURE_LOCATION`, `AZURE_SUBSCRIPTION_ID`) und propagiert die
-Environment-Werte inkl. Secret-Referenzen. Er generiert den Workflow `.github/workflows/azure-dev.yml`.
+Run only **after** the first successful `azd up`. The command sets up OIDC
+(Workload Identity Federation), creates/uses the service principal, sets the GitHub
+repo variables (`AZURE_ENV_NAME`, `AZURE_LOCATION`, `AZURE_SUBSCRIPTION_ID`) and propagates the
+environment values including secret references. It generates the workflow `.github/workflows/azure-dev.yml`.
 
 ```powershell
 azd pipeline config
 ```
 
-Hinweise für dieses Repo:
+Notes for this repository:
 
-- **AppHost nicht im Repo-Root.** Der generierte `azure-dev.yml` nimmt den AppHost im Wurzelverzeichnis
-  an. Hier liegt er unter `src/OrderSphere.AppHost`. In den Schritten **Provision Infrastructure**
-  und **Deploy Application** muss daher `working-directory: ./src/OrderSphere.AppHost` ergänzt werden
-  (siehe [Aspire-Doku zu Multi-Projekt-Workflows](https://learn.microsoft.com/en-us/dotnet/aspire/deployment/azd/aca-deployment-github-actions)).
-- **master ist PR-geschützt.** `azd pipeline config` will den Workflow committen/pushen — auf einem
-  Branch arbeiten und per PR mergen, nicht direkt auf master pushen.
-- **Bestehende SSO-Credentials.** Das SSO-Deployment nutzt bereits eine OIDC-Federated-Credential und
-  die `AZURE_*`-Repo-Secrets. `azd pipeline config` kann eine eigene Identität anlegen; falls die
-  vorhandene wiederverwendet werden soll, die generierten Variablen entsprechend angleichen.
-- Der Workflow läuft `azd provision`/`azd deploy` und erfordert das .NET-10-SDK (Container-Build durch azd).
+- **AppHost is not at the repo root.** The generated `azure-dev.yml` assumes the AppHost is in the
+  root directory. Here it lives under `src/OrderSphere.AppHost`. In the **Provision Infrastructure**
+  and **Deploy Application** steps, `working-directory: ./src/OrderSphere.AppHost` must therefore be
+  added (see [Aspire docs on multi-project workflows](https://learn.microsoft.com/en-us/dotnet/aspire/deployment/azd/aca-deployment-github-actions)).
+- **master is PR-protected.** `azd pipeline config` wants to commit/push the workflow — work on a
+  branch and merge via PR rather than pushing directly to master.
+- **Existing SSO credentials.** The SSO deployment already uses an OIDC federated credential and the
+  `AZURE_*` repo secrets. `azd pipeline config` may create its own identity; if the existing one is to
+  be reused, align the generated variables accordingly.
+- The workflow runs `azd provision`/`azd deploy` and requires the .NET 10 SDK (container build by azd).
 
-## Troubleshooting (real aufgetreten beim ersten Deploy)
+## Troubleshooting (actually encountered on the first deploy)
 
-| Symptom | Ursache | Behebung |
+| Symptom | Cause | Resolution |
 |---|---|---|
-| `ConflictError: A vault with the same name already exists in deleted state` | Ein früherer, abgebrochener `azd up` hat den Key Vault angelegt und beim Aufräumen gelöscht; Key-Vault-Soft-Delete reserviert den Namen weiter. | `az keyvault purge --name <vault> --location northeurope`, dann `azd up` erneut. |
-| `empty dotnet configuration output` (Vorschlag: `EnableSdkContainerSupport`) | Verschleiert den echten Fehler des `dotnet publish` beim Container-Bau. Zwei beobachtete Auslöser: (a) Docker-Credential-Helper liefert keine ACR-Credentials; (b) bei parallelem Bau scheitert ein Publish. | (a) siehe nächste Zeile; (b) Solution vorab `dotnet build -c Release` (Outputs warm) bzw. Services einzeln `azd deploy <service>`. |
-| `docker-credential-desktop.EXE get … credentials not found in native keychain` | `~/.docker/config.json` hat `credsStore: desktop`, aber der Desktop-Keychain liefert das ACR-Token nicht. | `credsStore`-Zeile aus `~/.docker/config.json` entfernen, dann `az acr login --name <acr>` (legt das Token base64 direkt in `config.json` ab). |
-| Deploy-Schritt: `404 ResourceGroupNotFound: 'rg-ordersphere-dev'` | Infrastruktur liegt in `rg-dev` (azd-Default `rg-<env>`), `AZURE_RESOURCE_GROUP` zeigte auf eine nicht existierende Gruppe. | `azd env set AZURE_RESOURCE_GROUP rg-dev`, dann `azd up`. |
-| `/bff/login` → `500`, Logs: `NOAUTH … connection has not yet authenticated` (Redis) | Azure Managed Redis erzwingt Entra-ID-Auth; rohe Redis-Verbindung sendet kein Token. | Siehe Abschnitt [Redis-Authentifizierung](#redis-authentifizierung-entra-id) — Verbindung über `AddOrderSphereRedisAsync`. |
+| `ConflictError: A vault with the same name already exists in deleted state` | An earlier, aborted `azd up` created the Key Vault and deleted it during cleanup; Key Vault soft-delete keeps the name reserved. | `az keyvault purge --name <vault> --location northeurope`, then `azd up` again. |
+| `empty dotnet configuration output` (suggestion: `EnableSdkContainerSupport`) | Masks the real error of `dotnet publish` during the container build. Two observed triggers: (a) the Docker credential helper returns no ACR credentials; (b) a publish fails during a parallel build. | (a) see next row; (b) build the solution upfront with `dotnet build -c Release` (outputs warm) or deploy services individually with `azd deploy <service>`. |
+| `docker-credential-desktop.EXE get … credentials not found in native keychain` | `~/.docker/config.json` has `credsStore: desktop`, but the Desktop keychain does not return the ACR token. | Remove the `credsStore` line from `~/.docker/config.json`, then `az acr login --name <acr>` (writes the token base64 directly into `config.json`). |
+| Deploy step: `404 ResourceGroupNotFound: 'rg-ordersphere-dev'` | Infrastructure is in `rg-dev` (azd default `rg-<env>`); `AZURE_RESOURCE_GROUP` pointed to a non-existent group. | `azd env set AZURE_RESOURCE_GROUP rg-dev`, then `azd up`. |
+| `/bff/login` → `500`, logs: `NOAUTH … connection has not yet authenticated` (Redis) | Azure Managed Redis enforces Entra ID auth; a raw Redis connection sends no token. | See section [Redis authentication](#redis-authentication-entra-id) — connection via `AddOrderSphereRedisAsync`. |

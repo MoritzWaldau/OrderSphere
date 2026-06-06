@@ -1,8 +1,8 @@
 name: Release Drafter
 
-# Pflegt fortlaufend einen Release-Entwurf aus gemergten PRs.
-# Konfiguration: .github/release-drafter.yml (wird IMMER aus dem Default-Branch
-# gelesen — daher nur auf push:master laufen lassen, nicht auf PRs).
+# Continuously maintains a release draft from merged PRs.
+# Configuration: .github/release-drafter.yml (ALWAYS read from the default branch
+# — therefore run only on push:master, not on PRs).
 on:
   push:
     branches: [master]
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write   # Draft-Release schreiben
+      contents: write   # write the draft release
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4

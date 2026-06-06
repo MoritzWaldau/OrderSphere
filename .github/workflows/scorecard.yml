@@ -1,7 +1,7 @@
 name: OpenSSF Scorecard
 
-# Bewertet die Supply-Chain-Sicherheitspraktiken des Repos und lädt die
-# Ergebnisse in den Security-Tab. Läuft geplant und bei Push auf master.
+# Assesses the repo's supply-chain security practices and uploads the
+# results to the Security tab. Runs on a schedule and on push to master.
 on:
   push:
     branches: [master]
@@ -23,8 +23,8 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
-      security-events: write   # SARIF-Upload
-      id-token: write          # OIDC für veröffentlichte Scorecard-Ergebnisse
+      security-events: write   # SARIF upload
+      id-token: write          # OIDC for published Scorecard results
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4

@@ -8,7 +8,7 @@ public static class CouponEndpoints
 {
     public static void MapCouponEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/v1/coupon/validate",
+        app.MapGet("/api/v1/coupons/validate",
             async (string code, decimal subtotal, IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(new ValidateCouponQuery(code, subtotal), ct);

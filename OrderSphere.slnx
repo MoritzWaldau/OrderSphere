@@ -6,6 +6,7 @@
     <File Path="CLAUDE.md" />
     <File Path="README.md" />
   </Folder>
+  <Folder Name="/src/" />
   <Folder Name="/src/BuildingBlocks/">
     <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/OrderSphere.BuildingBlocks.csproj" />
     <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.EventBus/OrderSphere.BuildingBlocks.EventBus.csproj" />
@@ -29,6 +30,10 @@
     <Project Path="src/Services/Ordering/OrderSphere.Ordering.Domain/OrderSphere.Ordering.Domain.csproj" />
     <Project Path="src/Services/Ordering/OrderSphere.Ordering.Infrastructure/OrderSphere.Ordering.Infrastructure.csproj" />
     <Project Path="src/Services/Ordering/OrderSphere.Ordering.Worker/OrderSphere.Ordering.Worker.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Advisory/">
+    <Project Path="src/Services/Advisory/OrderSphere.Advisory.Api/OrderSphere.Advisory.Api.csproj" />
+    <Project Path="src/Services/Advisory/OrderSphere.Mcp.Server/OrderSphere.Mcp.Server.csproj" />
   </Folder>
   <Folder Name="/src/Services/Basket/">
     <Project Path="src/Services/Basket/OrderSphere.Basket.Api/OrderSphere.Basket.Api.csproj" />
@@ -74,6 +79,7 @@
     <Project Path="tests/OrderSphere.Catalog.Tests/OrderSphere.Catalog.Tests.csproj" />
     <Project Path="tests/OrderSphere.Domain.Tests/OrderSphere.Domain.Tests.csproj" />
     <Project Path="tests/OrderSphere.IntegrationTests/OrderSphere.IntegrationTests.csproj" />
+    <Project Path="tests/OrderSphere.Mcp.Tests/OrderSphere.Mcp.Tests.csproj" />
     <Project Path="tests/OrderSphere.Notification.Tests/OrderSphere.Notification.Tests.csproj" />
     <Project Path="tests/OrderSphere.Ordering.Application.Tests/OrderSphere.Ordering.Application.Tests.csproj" />
     <Project Path="tests/OrderSphere.Ordering.Authorization.Tests/OrderSphere.Ordering.Authorization.Tests.csproj" />

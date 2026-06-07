@@ -12,6 +12,14 @@ var paymentWorkerSecret = builder.AddParameter("payment-worker-secret", secret: 
 // In Azure: supply via azd environment parameter or Key Vault.
 var paymentBypassProviders = builder.AddParameter("payment-bypass-providers");
 
+// Azure Foundry / Azure OpenAI for the advisory agent. Authentication uses
+// managed identity (DefaultAzureCredential) — no API key required. Endpoint and
+// model deployment are optional: when unset the advisory service degrades
+// gracefully (reports unavailable) so local runs work without Azure. Set locally
+// via: dotnet user-secrets set "Foundry:Endpoint" "https://...".
+var foundryEndpoint = builder.Configuration["Foundry:Endpoint"] ?? "";
+var foundryDeployment = builder.Configuration["Foundry:Deployment"] ?? "gpt-4o-mini";
+
 // ── Azure Key Vault ───────────────────────────────────────────────────────────
 // Provisioned by azd in non-dev environments. Parameters above are backed by
 // Key Vault secrets at deployment time; no code change required in service projects.
@@ -214,12 +222,35 @@ var apiGateway = builder.AddProject<Projects.OrderSphere_ApiGateway>("orderspher
     .WithEnvironment("Keycloak__Authority", keycloakAuthority);
 if (keycloak is not null) apiGateway.WaitFor(keycloak);
 
+// MCP server: exposes OrderSphere data as Model Context Protocol tools over Streamable
+// HTTP. Consumed by the internal advisory agent and by external MCP clients. Calls the
+// API Gateway with the caller's forwarded bearer token (user-scoped tools).
+var mcpServer = builder.AddProject<Projects.OrderSphere_Mcp_Server>("ordersphere-mcp")
+    .WithExternalHttpEndpoints()
+    .WithReference(apiGateway)
+    .WaitFor(apiGateway)
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority);
+if (keycloak is not null) mcpServer.WaitFor(keycloak);
+
+// Advisory agent: Azure OpenAI/Foundry-backed chat that reaches OrderSphere data
+// exclusively through the MCP server, forwarding the end-user's bearer token.
+var advisory = builder.AddProject<Projects.OrderSphere_Advisory_Api>("ordersphere-advisory")
+    .WithReference(mcpServer)
+    .WaitFor(mcpServer)
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Foundry__Endpoint", foundryEndpoint)
+    .WithEnvironment("Foundry__Deployment", foundryDeployment)
+    .WithEnvironment("Services__Mcp__BaseUrl", "http://ordersphere-mcp");
+if (keycloak is not null) advisory.WaitFor(keycloak);
+
 builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")
     .WithExternalHttpEndpoints()
     .WithReference(apiGateway)
+    .WithReference(advisory)
     .WithReference(redis)
     .WithReference(serviceBus)
     .WaitFor(apiGateway)
+    .WaitFor(advisory)
     .WaitFor(redis)
     .WaitFor(serviceBus)
     .WithEnvironment("Keycloak__Authority", keycloakAuthority)

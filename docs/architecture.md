@@ -30,6 +30,7 @@ repository-root [CLAUDE.md](../CLAUDE.md); this file is the lookup reference it 
 | Webhooks | `Webhooks.Domain`, `Webhooks.Infrastructure`, `Webhooks.Api`, `Webhooks.Worker` | Webhook dispatch; no Application layer (event ingestion only) |
 | Notification | `Notification.Worker` | Sends order confirmation emails via Azure Communication Services |
 | UserProfile | `UserProfile.Domain`, `UserProfile.Application`, `UserProfile.Infrastructure`, `UserProfile.Api` | Customer profile data |
+| Advisory | `Advisory.Api`, `Mcp.Server` (both under `src/Services/Advisory/`) | Customer-advisory AI agent + MCP tool server. See [AI advisory](#ai-advisory-agent--mcp-server). |
 
 ### Infrastructure & Frontend
 | Project | Responsibility |
@@ -51,6 +52,7 @@ xUnit + FluentAssertions (NSubstitute for mocking, EF Core InMemory where a `DbC
 | `tests/OrderSphere.UserProfile.Tests` | UserProfile service |
 | `tests/OrderSphere.Bff.Tests` | BFF integration tests |
 | `tests/OrderSphere.RealmContract.Tests` | Keycloak realm contract tests |
+| `tests/OrderSphere.Mcp.Tests` | MCP tool methods against a mocked gateway (NSubstitute) |
 
 ## Features
 
@@ -66,6 +68,58 @@ xUnit + FluentAssertions (NSubstitute for mocking, EF Core InMemory where a `DbC
 | Webhooks | Webhooks | Outbound webhook dispatch triggered by integration events |
 | Notification | Notification | Order confirmation email on `OrderPlacedIntegrationEvent` |
 | UserProfile | UserProfile | Customer profile data |
+
+## AI advisory agent + MCP server
+
+A customer-advisory chat agent, deliberately split into two independently deployable
+components under `src/Services/Advisory/`:
+
+- **`OrderSphere.Mcp.Server`** — a Model Context Protocol server (Streamable HTTP, `MapMcp("/mcp")`).
+  Holds **no** LLM logic, only tools. Each tool wraps the public API Gateway surface through a typed
+  `IOrderSphereGateway` (`Gateway/OrderSphereGateway.cs`). Reusable by the internal agent and by
+  external MCP clients (Claude Desktop, IDEs).
+- **`OrderSphere.Advisory.Api`** — the agent service. Connects to Azure OpenAI / Foundry
+  (`DefaultAzureCredential`, no API key) via Microsoft Agent Framework and exposes a streaming chat
+  endpoint (`POST /chat`, SSE). It owns **no** tools of its own: it loads the MCP server's tools per
+  request (`AdvisorChatService`) and is inert without the MCP connection.
+
+The agent is built per request because its tools are bound to the **current user**: the MCP client
+carries the caller's bearer token so user-scoped tools resolve the correct customer.
+
+### Identity forwarding
+
+Data stays customer-scoped through a bearer-token chain:
+`BFF (cookie → access_token) → Advisory.Api → MCP.Server → API Gateway → services`.
+The MCP server attaches the inbound `Authorization` header to downstream calls via
+`Gateway/BearerForwardingHandler.cs`; existing JWT validation on each service enforces scoping.
+Public catalog tools work anonymously; user-scoped tools return no data without a valid token.
+
+### MCP tools
+
+All read-only. Routes are the public `/api/v1` Gateway surface.
+
+| Tool | Route | Scope |
+|---|---|---|
+| `search_products` | `GET /products` | public |
+| `get_product` | `GET /products/{slug}` | public |
+| `list_categories` | `GET /categories` | public |
+| `get_my_orders` | `GET /orders` | user |
+| `get_order_status` | `GET /orders/{id}` | user |
+| `validate_coupon` | `GET /coupons/validate` | user |
+| `get_my_profile` | `GET /profile` | user |
+| `list_my_addresses` | `GET /profile/addresses` | user |
+| `get_my_cart` | `GET /cart` | user |
+| `get_payment_status` | `GET /payments/by-order/{orderId}` | user |
+
+Write actions (add-to-cart, checkout, profile mutations) are intentionally excluded; adding them is a
+new auth/workflow path that requires explicit sign-off.
+
+### Configuration
+
+`Foundry:Endpoint` and `Foundry:Deployment` are read by `Advisory.Api`. When the endpoint is unset the
+agent degrades gracefully (returns a "not configured" message) so local runs work without Azure. Set
+locally via user-secrets on the AppHost; authenticate with `az login`. The Keycloak realm defines a
+public PKCE client `advisory-mcp` for external MCP clients.
 
 ## EF Migrations
 

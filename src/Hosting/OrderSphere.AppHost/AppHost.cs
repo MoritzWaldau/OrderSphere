@@ -68,6 +68,7 @@ var paymentDb = postgresServer.AddDatabase("payment-db");
 var userProfileDb = postgresServer.AddDatabase("userprofile-db");
 var webhooksDb = postgresServer.AddDatabase("webhooks-db");
 var notificationDb = postgresServer.AddDatabase("notification-db");
+var advisoryDb = postgresServer.AddDatabase("advisory-db");
 
 var serviceBus = builder.AddAzureServiceBus("azure-service-bus")
     .RunAsEmulator(e => e.WithLifetime(ContainerLifetime.Persistent));
@@ -236,7 +237,9 @@ if (keycloak is not null) mcpServer.WaitFor(keycloak);
 // exclusively through the MCP server, forwarding the end-user's bearer token.
 var advisory = builder.AddProject<Projects.OrderSphere_Advisory_Api>("ordersphere-advisory")
     .WithReference(mcpServer)
+    .WithReference(advisoryDb)
     .WaitFor(mcpServer)
+    .WaitFor(advisoryDb)
     .WithEnvironment("Keycloak__Authority", keycloakAuthority)
     .WithEnvironment("Foundry__Endpoint", foundryEndpoint)
     .WithEnvironment("Foundry__Deployment", foundryDeployment)

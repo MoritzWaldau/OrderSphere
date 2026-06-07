@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using OrderSphere.Advisory.Api.Agent;
+using OrderSphere.Advisory.Infrastructure;
+using OrderSphere.Advisory.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 builder.Services.AddHttpContextAccessor();
+
+// EF Core persistence for conversation history (advisory-db).
+builder.AddAdvisoryInfrastructure();
 
 // Keycloak JWT validation. The end-user token is forwarded by the BFF; the agent
 // passes it on to the MCP server. Audience is validated downstream, not here.
@@ -24,9 +30,15 @@ if (authEnabled)
     builder.Services.AddAuthorization();
 }
 
-builder.Services.AddSingleton<AdvisorChatService>();
+// Scoped: the chat service depends on the per-request DbContext.
+builder.Services.AddScoped<AdvisorChatService>();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<AdvisoryDbContext>().Database.Migrate();
+}
 
 if (authEnabled)
 {

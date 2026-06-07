@@ -12,10 +12,15 @@
     <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Hosting\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\OrderSphere.Advisory.Infrastructure\OrderSphere.Advisory.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

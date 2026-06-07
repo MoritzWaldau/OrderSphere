@@ -1,11 +1,16 @@
-using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
+using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 using Azure.AI.OpenAI;
 using Azure.Identity;
 using Microsoft.Agents.AI;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using ModelContextProtocol.Client;
 using OpenAI.Chat;
+using OrderSphere.Advisory.Application.Abstractions;
+using OrderSphere.Advisory.Domain.Entities;
 
 namespace OrderSphere.Advisory.Api.Agent;
 
@@ -14,14 +19,18 @@ namespace OrderSphere.Advisory.Api.Agent;
 // Design note: the agent is constructed per request because its tools are the
 // MCP tools of the *current user* — the MCP client carries the caller's bearer
 // token so user-scoped tools (orders, profile) resolve the correct customer.
-// The Azure OpenAI client is a singleton; conversation continuity is kept via an
-// in-memory session cache keyed by conversation id.
+//
+// Conversation continuity is durable: the agent session (chat history) is
+// serialized to advisory-db after each turn and rehydrated on the next request,
+// so context survives process restarts and is shared across instances. A
+// human-readable transcript is stored alongside for display and audit.
 //
 // We use the Azure OpenAI chat client (an IChatClient) rather than a
 // service-managed Foundry agent precisely because tools are bound per request;
 // this is the "Any IChatClient" path of Microsoft Agent Framework.
 public sealed class AdvisorChatService(
     IHttpContextAccessor httpContextAccessor,
+    IAdvisoryDbContext db,
     IConfiguration configuration,
     ILogger<AdvisorChatService> logger)
 {
@@ -39,8 +48,6 @@ public sealed class AdvisorChatService(
         - Gib keine internen IDs oder technischen Fehlermeldungen an den Kunden weiter!
         """;
 
-    private static readonly ConcurrentDictionary<string, AgentSession> Sessions = new();
-
     public async IAsyncEnumerable<string> StreamAsync(
         string conversationId,
         string message,
@@ -56,6 +63,8 @@ public sealed class AdvisorChatService(
             yield break;
         }
 
+        var customerSub = ResolveCustomerSub();
+
         await using var mcpClient = await CreateMcpClientAsync(ct);
         var tools = await mcpClient.ListToolsAsync(cancellationToken: ct);
 
@@ -67,19 +76,126 @@ public sealed class AdvisorChatService(
             name: "OrderSphereAdvisor",
             tools: [.. tools.Cast<AITool>()]);
 
-        if (!Sessions.TryGetValue(conversationId, out var session))
-        {
-            session = await agent.CreateSessionAsync(ct);
-            Sessions.TryAdd(conversationId, session);
-        }
+        // Load (or start) the conversation. Persistence is per customer; without a
+        // resolvable subject the conversation runs ephemerally for this request.
+        Conversation? conversation = customerSub is null
+            ? null
+            : await db.Conversations
+                .Include(c => c.Messages)
+                .FirstOrDefaultAsync(
+                    c => c.CustomerSub == customerSub && c.ConversationKey == conversationId, ct);
 
+        AgentSession session = await RehydrateOrCreateSessionAsync(agent, conversation, ct);
+
+        var assistant = new StringBuilder();
         await foreach (var update in agent.RunStreamingAsync(message, session, cancellationToken: ct))
         {
             if (!string.IsNullOrEmpty(update.Text))
             {
+                assistant.Append(update.Text);
                 yield return update.Text;
             }
         }
+
+        if (customerSub is not null)
+        {
+            await PersistTurnAsync(agent, session, conversation, customerSub, conversationId,
+                message, assistant.ToString(), ct);
+        }
+    }
+
+    private async Task<AgentSession> RehydrateOrCreateSessionAsync(
+        AIAgent agent, Conversation? conversation, CancellationToken ct)
+    {
+        if (conversation?.SerializedSession is { Length: > 0 } serialized)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(serialized);
+                return await agent.DeserializeSessionAsync(
+                    doc.RootElement, jsonSerializerOptions: null, cancellationToken: ct);
+            }
+            catch (Exception ex)
+            {
+                // A stored session that no longer deserializes (e.g. agent shape changed)
+                // must not break the chat — start fresh.
+                logger.LogWarning(ex, "Could not rehydrate stored session; starting a new one.");
+            }
+        }
+
+        return await agent.CreateSessionAsync(ct);
+    }
+
+    private async Task PersistTurnAsync(
+        AIAgent agent,
+        AgentSession session,
+        Conversation? conversation,
+        string customerSub,
+        string conversationId,
+        string userMessage,
+        string assistantMessage,
+        CancellationToken ct)
+    {
+        string serializedSession;
+        try
+        {
+            var state = await agent.SerializeSessionAsync(
+                session, jsonSerializerOptions: null, cancellationToken: ct);
+            serializedSession = state.GetRawText();
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Could not serialize session; transcript will be stored without state.");
+            serializedSession = string.Empty;
+        }
+
+        if (conversation is null)
+        {
+            conversation = new Conversation
+            {
+                ConversationKey = conversationId,
+                CustomerSub = customerSub,
+                SerializedSession = serializedSession.Length > 0 ? serializedSession : null
+            };
+            db.Conversations.Add(conversation);
+        }
+        else if (serializedSession.Length > 0)
+        {
+            conversation.SerializedSession = serializedSession;
+        }
+
+        conversation.Messages.Add(new ConversationMessage
+        {
+            ConversationId = conversation.Id,
+            Role = "user",
+            Text = userMessage
+        });
+
+        if (assistantMessage.Length > 0)
+        {
+            conversation.Messages.Add(new ConversationMessage
+            {
+                ConversationId = conversation.Id,
+                Role = "assistant",
+                Text = assistantMessage
+            });
+        }
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    private string? ResolveCustomerSub()
+    {
+        var user = httpContextAccessor.HttpContext?.User;
+        if (user?.Identity?.IsAuthenticated != true)
+        {
+            return null;
+        }
+
+        // JwtBearer maps "sub" to NameIdentifier by default; accept either.
+        var sub = user.FindFirst("sub")?.Value
+                  ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return string.IsNullOrWhiteSpace(sub) ? null : sub;
     }
 
     private async Task<McpClient> CreateMcpClientAsync(CancellationToken ct)

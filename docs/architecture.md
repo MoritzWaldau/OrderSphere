@@ -78,10 +78,21 @@ components under `src/Services/Advisory/`:
   Holds **no** LLM logic, only tools. Each tool wraps the public API Gateway surface through a typed
   `IOrderSphereGateway` (`Gateway/OrderSphereGateway.cs`). Reusable by the internal agent and by
   external MCP clients (Claude Desktop, IDEs).
-- **`OrderSphere.Advisory.Api`** — the agent service. Connects to Azure OpenAI / Foundry
+- **`OrderSphere.Advisory.Api`** — the agent service (layered: `Advisory.Domain`, `Advisory.Application`,
+  `Advisory.Infrastructure`, `Advisory.Api`). Connects to Azure OpenAI / Foundry
   (`DefaultAzureCredential`, no API key) via Microsoft Agent Framework and exposes a streaming chat
   endpoint (`POST /chat`, SSE). It owns **no** tools of its own: it loads the MCP server's tools per
   request (`AdvisorChatService`) and is inert without the MCP connection.
+
+### Conversation persistence
+
+Conversations are durable, owned per customer (Keycloak `sub`), in `advisory-db` (Postgres, EF Core).
+After each turn `AdvisorChatService` serializes the agent session (chat history) via
+`AIAgent.SerializeSessionAsync` into `Conversation.SerializedSession` and rehydrates it on the next
+request with `DeserializeSessionAsync` — so context survives restarts and is shared across instances.
+A human-readable transcript is stored in `ConversationMessages` (role + text) for display and audit.
+The `(CustomerSub, ConversationKey)` pair is unique. The DbContext is reached through
+`IAdvisoryDbContext` (declared in `Advisory.Application/Abstractions`); the chat service is scoped.
 
 The agent is built per request because its tools are bound to the **current user**: the MCP client
 carries the caller's bearer token so user-scoped tools resolve the correct customer.
@@ -133,6 +144,7 @@ Each service owns its migrations. Pattern: `-p <Infrastructure project> -s <Api 
 | Payment | `dotnet ef migrations add <Name> -p src/Services/Payment/OrderSphere.Payment.Infrastructure -s src/Services/Payment/OrderSphere.Payment.Api` | same with `database update` |
 | Webhooks | `dotnet ef migrations add <Name> -p src/Services/Webhooks/OrderSphere.Webhooks.Infrastructure -s src/Services/Webhooks/OrderSphere.Webhooks.Api` | same with `database update` |
 | UserProfile | `dotnet ef migrations add <Name> -p src/Services/UserProfile/OrderSphere.UserProfile.Infrastructure -s src/Services/UserProfile/OrderSphere.UserProfile.Api` | same with `database update` |
+| Advisory | `dotnet ef migrations add <Name> -p src/Services/Advisory/OrderSphere.Advisory.Infrastructure -s src/Services/Advisory/OrderSphere.Advisory.Api` | same with `database update` |
 
 ## External services
 

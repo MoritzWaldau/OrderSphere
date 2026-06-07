@@ -20,7 +20,7 @@ public sealed class OrderingToolsTests
         var gateway = Substitute.For<IOrderSphereGateway>();
         gateway.GetMyOrdersAsync(Arg.Any<CancellationToken>()).Returns([older, newer]);
 
-        var json = await OrderingTools.GetMyOrdersAsync(gateway);
+        var json = await OrderingTools.GetMyOrdersAsync(FakeCaller.Authenticated, gateway);
 
         using var doc = JsonDocument.Parse(json);
         doc.RootElement.GetProperty("count").GetInt32().Should().Be(2);
@@ -35,8 +35,19 @@ public sealed class OrderingToolsTests
         var gateway = Substitute.For<IOrderSphereGateway>();
         gateway.GetOrderAsync(id, Arg.Any<CancellationToken>()).Returns((OrderDto?)null);
 
-        var result = await OrderingTools.GetOrderStatusAsync(gateway, id);
+        var result = await OrderingTools.GetOrderStatusAsync(FakeCaller.Authenticated, gateway, id);
 
         result.Should().Contain(id.ToString());
+    }
+
+    [Fact]
+    public async Task GetMyOrders_ReturnsAuthRequired_WhenAnonymous_AndDoesNotCallGateway()
+    {
+        var gateway = Substitute.For<IOrderSphereGateway>();
+
+        var result = await OrderingTools.GetMyOrdersAsync(FakeCaller.Anonymous, gateway);
+
+        result.Should().Be(UserToolGuard.AuthRequired);
+        await gateway.DidNotReceive().GetMyOrdersAsync(Arg.Any<CancellationToken>());
     }
 }

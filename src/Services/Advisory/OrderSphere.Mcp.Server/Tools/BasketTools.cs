@@ -16,9 +16,15 @@ public sealed class BasketTools
     [McpServerTool(Name = "get_my_cart")]
     [Description("View the current customer's shopping cart: line items with product name, unit price, quantity, and the cart total. Read-only.")]
     public static async Task<string> GetMyCartAsync(
+        ICallerContext caller,
         IOrderSphereGateway gateway,
         CancellationToken ct = default)
     {
+        if (!caller.HasBearerToken)
+        {
+            return UserToolGuard.AuthRequired;
+        }
+
         var cart = await gateway.GetMyCartAsync(ct);
         if (cart is null)
         {

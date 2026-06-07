@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using Azure.AI.OpenAI;
@@ -185,18 +184,7 @@ public sealed class AdvisorChatService(
     }
 
     private string? ResolveCustomerSub()
-    {
-        var user = httpContextAccessor.HttpContext?.User;
-        if (user?.Identity?.IsAuthenticated != true)
-        {
-            return null;
-        }
-
-        // JwtBearer maps "sub" to NameIdentifier by default; accept either.
-        var sub = user.FindFirst("sub")?.Value
-                  ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return string.IsNullOrWhiteSpace(sub) ? null : sub;
-    }
+        => CustomerContext.ResolveSub(httpContextAccessor.HttpContext?.User);
 
     private async Task<McpClient> CreateMcpClientAsync(CancellationToken ct)
     {

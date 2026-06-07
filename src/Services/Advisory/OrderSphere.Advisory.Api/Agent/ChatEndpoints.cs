@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http.Features;
+using OrderSphere.Advisory.Api.Configuration;
 
 namespace OrderSphere.Advisory.Api.Agent;
 
@@ -41,7 +42,8 @@ public static class ChatEndpoints
 
             await http.Response.WriteAsync("data: [DONE]\n\n", ct);
             await http.Response.Body.FlushAsync(ct);
-        });
+        })
+        .RequireRateLimiting(RateLimitingExtensions.ChatPolicy);
 
         return app;
     }

@@ -11,52 +11,93 @@
     <div style="padding:24px;height:100%;display:flex;flex-direction:column;gap:16px;">
         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
             <MudText Typo="Typo.h6" Style="font-weight:600;">Berater</MudText>
-            <MudIconButton Icon="@Icons.Material.Outlined.Close"
-                           OnClick="Close" Size="Size.Small" />
+            <MudStack Row="true" Spacing="0" AlignItems="AlignItems.Center">
+                <MudIconButton Icon="@Icons.Material.Outlined.Add"
+                               OnClick="NewChat" Size="Size.Small" title="Neue Unterhaltung" />
+                <MudIconButton Icon="@(_showHistory ? Icons.Material.Filled.History : Icons.Material.Outlined.History)"
+                               OnClick="ToggleHistoryAsync" Size="Size.Small" title="Verlauf" />
+                <MudIconButton Icon="@Icons.Material.Outlined.Close"
+                               OnClick="Close" Size="Size.Small" />
+            </MudStack>
         </MudStack>
 
         <MudDivider />
 
-        <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
-            @if (_messages.Count == 0)
-            {
-                <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="flex:1;padding:40px 0;">
-                    <MudIcon Icon="@Icons.Material.Outlined.SupportAgent"
-                             Style="font-size:64px;color:var(--mud-palette-divider);" />
-                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-3" Align="Align.Center">
-                        Frag mich nach Produkten, deinen Bestellungen oder deinem Konto.
-                    </MudText>
-                </MudStack>
-            }
-            else
-            {
-                @foreach (var m in _messages)
+        @if (_showHistory)
+        {
+            <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;">
+                @if (_loadingHistory)
                 {
-                    <MudPaper Elevation="0"
-                              Class="surface-card pa-3"
-                              Style="@(m.IsUser ? "align-self:flex-end;max-width:85%;background:var(--mud-palette-primary);color:#fff;" : "align-self:flex-start;max-width:85%;")">
-                        <MudText Typo="Typo.body2" Style="white-space:pre-wrap;">@m.Text</MudText>
-                    </MudPaper>
+                    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
                 }
-            }
-        </div>
+                else if (_conversations.Count == 0)
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center" Class="mt-4">
+                        Noch keine gespeicherten Unterhaltungen.
+                    </MudText>
+                }
+                else
+                {
+                    @foreach (var c in _conversations)
+                    {
+                        <MudPaper Elevation="0"
+                                  Class="surface-card pa-3"
+                                  Style="@($"cursor:pointer;{(c.ConversationId == _conversationId ? "border:1px solid var(--mud-palette-primary);" : string.Empty)}")"
+                                  @onclick="@(() => SelectConversationAsync(c.ConversationId))">
+                            <MudText Typo="Typo.body2" Style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                @(string.IsNullOrWhiteSpace(c.LastMessage) ? "(leer)" : c.LastMessage)
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @c.UpdatedAt.ToLocalTime().ToString("g") · @c.MessageCount Nachrichten
+                            </MudText>
+                        </MudPaper>
+                    }
+                }
+            </div>
+        }
+        else
+        {
+            <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
+                @if (_messages.Count == 0)
+                {
+                    <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="flex:1;padding:40px 0;">
+                        <MudIcon Icon="@Icons.Material.Outlined.SupportAgent"
+                                 Style="font-size:64px;color:var(--mud-palette-divider);" />
+                        <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-3" Align="Align.Center">
+                            Frag mich nach Produkten, deinen Bestellungen oder deinem Konto.
+                        </MudText>
+                    </MudStack>
+                }
+                else
+                {
+                    @foreach (var m in _messages)
+                    {
+                        <MudPaper Elevation="0"
+                                  Class="surface-card pa-3"
+                                  Style="@(m.IsUser ? "align-self:flex-end;max-width:85%;background:var(--mud-palette-primary);color:#fff;" : "align-self:flex-start;max-width:85%;")">
+                            <MudText Typo="Typo.body2" Style="white-space:pre-wrap;">@m.Text</MudText>
+                        </MudPaper>
+                    }
+                }
+            </div>
 
-        <MudDivider />
+            <MudDivider />
 
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-            <MudTextField @bind-Value="_input"
-                          Placeholder="Nachricht…"
-                          Variant="Variant.Outlined"
-                          Margin="Margin.Dense"
-                          Immediate="true"
-                          OnKeyDown="OnKeyDown"
-                          Disabled="_busy"
-                          Style="flex:1;" />
-            <MudIconButton Icon="@Icons.Material.Filled.Send"
-                           Color="Color.Primary"
-                           OnClick="SendAsync"
-                           Disabled="@(_busy || string.IsNullOrWhiteSpace(_input))" />
-        </MudStack>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                <MudTextField @bind-Value="_input"
+                              Placeholder="Nachricht…"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Immediate="true"
+                              OnKeyDown="OnKeyDown"
+                              Disabled="_busy"
+                              Style="flex:1;" />
+                <MudIconButton Icon="@Icons.Material.Filled.Send"
+                               Color="Color.Primary"
+                               OnClick="SendAsync"
+                               Disabled="@(_busy || string.IsNullOrWhiteSpace(_input))" />
+            </MudStack>
+        }
     </div>
 </MudDrawer>
 
@@ -71,9 +112,12 @@
     }
 
     private readonly List<ChatMessage> _messages = [];
-    private readonly string _conversationId = Guid.NewGuid().ToString("n");
+    private List<AdvisorConversation> _conversations = [];
+    private string _conversationId = Guid.NewGuid().ToString("n");
     private string _input = string.Empty;
     private bool _busy;
+    private bool _showHistory;
+    private bool _loadingHistory;
     private CancellationTokenSource? _cts;
 
     private async Task OnKeyDown(KeyboardEventArgs e)
@@ -118,6 +162,61 @@
             _busy = false;
             StateHasChanged();
         }
+    }
+
+    private async Task ToggleHistoryAsync()
+    {
+        _showHistory = !_showHistory;
+        if (_showHistory)
+        {
+            _loadingHistory = true;
+            StateHasChanged();
+            try
+            {
+                _conversations = [.. await Advisor.GetConversationsAsync()];
+            }
+            catch (Exception)
+            {
+                _conversations = [];
+            }
+            finally
+            {
+                _loadingHistory = false;
+            }
+        }
+    }
+
+    private async Task SelectConversationAsync(string conversationId)
+    {
+        _showHistory = false;
+        _conversationId = conversationId;
+        _messages.Clear();
+        StateHasChanged();
+        try
+        {
+            var history = await Advisor.GetMessagesAsync(conversationId);
+            foreach (var m in history)
+            {
+                _messages.Add(new ChatMessage
+                {
+                    IsUser = string.Equals(m.Role, "user", StringComparison.OrdinalIgnoreCase),
+                    Text = m.Text
+                });
+            }
+        }
+        catch (Exception)
+        {
+            // Leave the conversation empty if it can't be loaded.
+        }
+        StateHasChanged();
+    }
+
+    private void NewChat()
+    {
+        _showHistory = false;
+        _conversationId = Guid.NewGuid().ToString("n");
+        _messages.Clear();
+        _input = string.Empty;
     }
 
     private void Close() => IsOpenChanged.InvokeAsync(false);

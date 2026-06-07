@@ -4,15 +4,34 @@ using Microsoft.AspNetCore.Components.WebAssembly.Http;
 
 namespace OrderSphere.Web.Services;
 
+public sealed record AdvisorConversation(
+    string ConversationId, string? LastMessage, DateTime UpdatedAt, int MessageCount);
+
+public sealed record AdvisorHistoryMessage(string Role, string Text, DateTime CreatedAt);
+
 public interface IAdvisorClient
 {
     // Streams the assistant reply token-by-token. conversationId keeps context
     // across turns; pass the same value back on follow-up messages.
     IAsyncEnumerable<string> StreamAsync(string conversationId, string message, CancellationToken ct = default);
+
+    // Lists the current customer's past conversations, most recently updated first.
+    Task<IReadOnlyList<AdvisorConversation>> GetConversationsAsync(CancellationToken ct = default);
+
+    // Returns the stored transcript of one conversation, oldest message first.
+    Task<IReadOnlyList<AdvisorHistoryMessage>> GetMessagesAsync(string conversationId, CancellationToken ct = default);
 }
 
 public sealed class AdvisorClient(HttpClient client) : IAdvisorClient
 {
+    public async Task<IReadOnlyList<AdvisorConversation>> GetConversationsAsync(CancellationToken ct = default)
+        => await client.GetFromJsonAsync<List<AdvisorConversation>>("/api/advisor/conversations", ct) ?? [];
+
+    public async Task<IReadOnlyList<AdvisorHistoryMessage>> GetMessagesAsync(
+        string conversationId, CancellationToken ct = default)
+        => await client.GetFromJsonAsync<List<AdvisorHistoryMessage>>(
+               $"/api/advisor/conversations/{Uri.EscapeDataString(conversationId)}", ct) ?? [];
+
     public async IAsyncEnumerable<string> StreamAsync(
         string conversationId,
         string message,

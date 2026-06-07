@@ -81,8 +81,10 @@ components under `src/Services/Advisory/`:
 - **`OrderSphere.Advisory.Api`** — the agent service (layered: `Advisory.Domain`, `Advisory.Application`,
   `Advisory.Infrastructure`, `Advisory.Api`). Connects to Azure OpenAI / Foundry
   (`DefaultAzureCredential`, no API key) via Microsoft Agent Framework and exposes a streaming chat
-  endpoint (`POST /chat`, SSE). It owns **no** tools of its own: it loads the MCP server's tools per
-  request (`AdvisorChatService`) and is inert without the MCP connection.
+  endpoint (`POST /chat`, SSE) plus read-only history (`GET /conversations`,
+  `GET /conversations/{id}`). It owns **no** tools of its own: it loads the MCP server's tools per
+  request (`AdvisorChatService`) and is inert without the MCP connection. `/chat` is rate-limited
+  **per user** (partitioned by `sub`) because each request drives an LLM completion.
 
 ### Conversation persistence
 

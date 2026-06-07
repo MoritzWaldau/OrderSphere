@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.Advisory.Api.Agent;
+using OrderSphere.Advisory.Api.Configuration;
 using OrderSphere.Advisory.Infrastructure;
 using OrderSphere.Advisory.Infrastructure.Persistence;
 
@@ -30,6 +31,8 @@ if (authEnabled)
     builder.Services.AddAuthorization();
 }
 
+builder.Services.AddAdvisorRateLimiting();
+
 // Scoped: the chat service depends on the per-request DbContext.
 builder.Services.AddScoped<AdvisorChatService>();
 
@@ -46,7 +49,10 @@ if (authEnabled)
     app.UseAuthorization();
 }
 
+app.UseRateLimiter();
+
 app.MapDefaultEndpoints();
 app.MapAdvisorEndpoints();
+app.MapAdvisorHistoryEndpoints();
 
 app.Run();

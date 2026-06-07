@@ -53,3 +53,6 @@ app.MapDefaultEndpoints();
 app.MapMcp("/mcp");
 
 app.Run();
+
+// Exposed so the integration test project can host the server via WebApplicationFactory.
+public partial class Program;

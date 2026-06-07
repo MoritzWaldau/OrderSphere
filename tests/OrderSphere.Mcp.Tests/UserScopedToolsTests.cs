@@ -21,7 +21,7 @@ public sealed class UserScopedToolsTests
         var gateway = Substitute.For<IOrderSphereGateway>();
         gateway.GetMyCartAsync(Arg.Any<CancellationToken>()).Returns(cart);
 
-        var json = await BasketTools.GetMyCartAsync(gateway);
+        var json = await BasketTools.GetMyCartAsync(FakeCaller.Authenticated, gateway);
 
         using var doc = JsonDocument.Parse(json);
         doc.RootElement.GetProperty("itemCount").GetInt32().Should().Be(2);
@@ -29,14 +29,25 @@ public sealed class UserScopedToolsTests
     }
 
     [Fact]
-    public async Task GetMyCart_ReturnsMessage_WhenUnauthenticated()
+    public async Task GetMyCart_ReturnsMessage_WhenGatewayHasNoCart()
     {
         var gateway = Substitute.For<IOrderSphereGateway>();
         gateway.GetMyCartAsync(Arg.Any<CancellationToken>()).Returns((CartDto?)null);
 
-        var result = await BasketTools.GetMyCartAsync(gateway);
+        var result = await BasketTools.GetMyCartAsync(FakeCaller.Authenticated, gateway);
 
         result.Should().Contain("No cart available");
+    }
+
+    [Fact]
+    public async Task GetMyCart_ReturnsAuthRequired_WhenAnonymous_AndDoesNotCallGateway()
+    {
+        var gateway = Substitute.For<IOrderSphereGateway>();
+
+        var result = await BasketTools.GetMyCartAsync(FakeCaller.Anonymous, gateway);
+
+        result.Should().Be(UserToolGuard.AuthRequired);
+        await gateway.DidNotReceive().GetMyCartAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -46,9 +57,20 @@ public sealed class UserScopedToolsTests
         var gateway = Substitute.For<IOrderSphereGateway>();
         gateway.GetPaymentByOrderAsync(orderId, Arg.Any<CancellationToken>()).Returns((PaymentDto?)null);
 
-        var result = await PaymentTools.GetPaymentStatusAsync(gateway, orderId);
+        var result = await PaymentTools.GetPaymentStatusAsync(FakeCaller.Authenticated, gateway, orderId);
 
         result.Should().Contain(orderId.ToString());
+    }
+
+    [Fact]
+    public async Task GetPaymentStatus_ReturnsAuthRequired_WhenAnonymous()
+    {
+        var gateway = Substitute.For<IOrderSphereGateway>();
+
+        var result = await PaymentTools.GetPaymentStatusAsync(FakeCaller.Anonymous, gateway, Guid.NewGuid());
+
+        result.Should().Be(UserToolGuard.AuthRequired);
+        await gateway.DidNotReceive().GetPaymentByOrderAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -61,7 +83,7 @@ public sealed class UserScopedToolsTests
         var gateway = Substitute.For<IOrderSphereGateway>();
         gateway.GetPaymentByOrderAsync(orderId, Arg.Any<CancellationToken>()).Returns(payment);
 
-        var json = await PaymentTools.GetPaymentStatusAsync(gateway, orderId);
+        var json = await PaymentTools.GetPaymentStatusAsync(FakeCaller.Authenticated, gateway, orderId);
 
         using var doc = JsonDocument.Parse(json);
         doc.RootElement.GetProperty("status").GetString().Should().Be("Succeeded");
@@ -80,7 +102,7 @@ public sealed class UserScopedToolsTests
         var gateway = Substitute.For<IOrderSphereGateway>();
         gateway.GetMyAddressesAsync(Arg.Any<CancellationToken>()).Returns(addresses);
 
-        var json = await ProfileTools.ListMyAddressesAsync(gateway);
+        var json = await ProfileTools.ListMyAddressesAsync(FakeCaller.Authenticated, gateway);
 
         using var doc = JsonDocument.Parse(json);
         doc.RootElement.GetProperty("count").GetInt32().Should().Be(2);
@@ -94,8 +116,19 @@ public sealed class UserScopedToolsTests
         var gateway = Substitute.For<IOrderSphereGateway>();
         gateway.GetMyAddressesAsync(Arg.Any<CancellationToken>()).Returns([]);
 
-        var result = await ProfileTools.ListMyAddressesAsync(gateway);
+        var result = await ProfileTools.ListMyAddressesAsync(FakeCaller.Authenticated, gateway);
 
         result.Should().Contain("No saved addresses");
+    }
+
+    [Fact]
+    public async Task ListMyAddresses_ReturnsAuthRequired_WhenAnonymous()
+    {
+        var gateway = Substitute.For<IOrderSphereGateway>();
+
+        var result = await ProfileTools.ListMyAddressesAsync(FakeCaller.Anonymous, gateway);
+
+        result.Should().Be(UserToolGuard.AuthRequired);
+        await gateway.DidNotReceive().GetMyAddressesAsync(Arg.Any<CancellationToken>());
     }
 }

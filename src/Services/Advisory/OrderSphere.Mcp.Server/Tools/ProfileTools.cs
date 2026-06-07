@@ -15,9 +15,15 @@ public sealed class ProfileTools
     [McpServerTool(Name = "get_my_profile")]
     [Description("Get the current customer's profile: display name, email, preferences, and saved addresses.")]
     public static async Task<string> GetMyProfileAsync(
+        ICallerContext caller,
         IOrderSphereGateway gateway,
         CancellationToken ct = default)
     {
+        if (!caller.HasBearerToken)
+        {
+            return UserToolGuard.AuthRequired;
+        }
+
         var profile = await gateway.GetMyProfileAsync(ct);
         if (profile is null)
         {
@@ -47,9 +53,15 @@ public sealed class ProfileTools
     [McpServerTool(Name = "list_my_addresses")]
     [Description("List the current customer's saved shipping addresses, including which one is the default.")]
     public static async Task<string> ListMyAddressesAsync(
+        ICallerContext caller,
         IOrderSphereGateway gateway,
         CancellationToken ct = default)
     {
+        if (!caller.HasBearerToken)
+        {
+            return UserToolGuard.AuthRequired;
+        }
+
         var addresses = await gateway.GetMyAddressesAsync(ct);
         if (addresses.Count == 0)
         {

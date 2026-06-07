@@ -15,10 +15,16 @@ public sealed class PaymentTools
     [McpServerTool(Name = "get_payment_status")]
     [Description("Get the payment status for one of the current customer's orders: amount, currency, method, status, and failure reason if any.")]
     public static async Task<string> GetPaymentStatusAsync(
+        ICallerContext caller,
         IOrderSphereGateway gateway,
         [Description("The order id (GUID) whose payment should be looked up.")] Guid orderId,
         CancellationToken ct = default)
     {
+        if (!caller.HasBearerToken)
+        {
+            return UserToolGuard.AuthRequired;
+        }
+
         var payment = await gateway.GetPaymentByOrderAsync(orderId, ct);
         if (payment is null)
         {

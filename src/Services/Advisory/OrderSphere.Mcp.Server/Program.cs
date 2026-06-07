@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<ICallerContext, HttpCallerContext>();
 
 // Keycloak JWT validation. Authentication is optional at the transport level:
 // public catalog tools work anonymously; user-scoped tools rely on the forwarded

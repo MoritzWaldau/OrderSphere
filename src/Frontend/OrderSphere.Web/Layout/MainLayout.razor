@@ -22,6 +22,14 @@
 
     <CartDrawer IsOpen="@_cartOpen" IsOpenChanged="val => _cartOpen = val" />
 
+    <AdvisorDrawer IsOpen="@_advisorOpen" IsOpenChanged="val => _advisorOpen = val" />
+
+    <MudFab Color="Color.Primary"
+            StartIcon="@Icons.Material.Filled.SupportAgent"
+            Style="position:fixed;bottom:24px;right:24px;z-index:1300;"
+            OnClick="ToggleAdvisor"
+            aria-label="Berater öffnen" />
+
     <AppFooter />
 </MudLayout>
 
@@ -30,6 +38,7 @@
     [Inject] private CartState CartState { get; set; } = default!;
 
     private bool _cartOpen;
+    private bool _advisorOpen;
     private int _cartItemCount;
 
     protected override void OnInitialized()
@@ -77,6 +86,8 @@
     }
 
     private void ToggleCart() => _cartOpen = !_cartOpen;
+
+    private void ToggleAdvisor() => _advisorOpen = !_advisorOpen;
 
     public void Dispose()
     {

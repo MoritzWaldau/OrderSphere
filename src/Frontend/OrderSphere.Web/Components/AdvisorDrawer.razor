@@ -1,0 +1,126 @@
+@implements IDisposable
+@inject IAdvisorClient Advisor
+
+<MudDrawer @bind-Open="IsOpen"
+           Anchor="Anchor.Right"
+           Elevation="2"
+           Variant="DrawerVariant.Temporary"
+           Width="420px"
+           ClipMode="DrawerClipMode.Never">
+
+    <div style="padding:24px;height:100%;display:flex;flex-direction:column;gap:16px;">
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h6" Style="font-weight:600;">Berater</MudText>
+            <MudIconButton Icon="@Icons.Material.Outlined.Close"
+                           OnClick="Close" Size="Size.Small" />
+        </MudStack>
+
+        <MudDivider />
+
+        <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
+            @if (_messages.Count == 0)
+            {
+                <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="flex:1;padding:40px 0;">
+                    <MudIcon Icon="@Icons.Material.Outlined.SupportAgent"
+                             Style="font-size:64px;color:var(--mud-palette-divider);" />
+                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-3" Align="Align.Center">
+                        Frag mich nach Produkten, deinen Bestellungen oder deinem Konto.
+                    </MudText>
+                </MudStack>
+            }
+            else
+            {
+                @foreach (var m in _messages)
+                {
+                    <MudPaper Elevation="0"
+                              Class="surface-card pa-3"
+                              Style="@(m.IsUser ? "align-self:flex-end;max-width:85%;background:var(--mud-palette-primary);color:#fff;" : "align-self:flex-start;max-width:85%;")">
+                        <MudText Typo="Typo.body2" Style="white-space:pre-wrap;">@m.Text</MudText>
+                    </MudPaper>
+                }
+            }
+        </div>
+
+        <MudDivider />
+
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+            <MudTextField @bind-Value="_input"
+                          Placeholder="Nachricht…"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          OnKeyDown="OnKeyDown"
+                          Disabled="_busy"
+                          Style="flex:1;" />
+            <MudIconButton Icon="@Icons.Material.Filled.Send"
+                           Color="Color.Primary"
+                           OnClick="SendAsync"
+                           Disabled="@(_busy || string.IsNullOrWhiteSpace(_input))" />
+        </MudStack>
+    </div>
+</MudDrawer>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+
+    private sealed class ChatMessage
+    {
+        public bool IsUser { get; init; }
+        public string Text { get; set; } = string.Empty;
+    }
+
+    private readonly List<ChatMessage> _messages = [];
+    private readonly string _conversationId = Guid.NewGuid().ToString("n");
+    private string _input = string.Empty;
+    private bool _busy;
+    private CancellationTokenSource? _cts;
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+        {
+            await SendAsync();
+        }
+    }
+
+    private async Task SendAsync()
+    {
+        var text = _input?.Trim();
+        if (string.IsNullOrEmpty(text) || _busy)
+        {
+            return;
+        }
+
+        _busy = true;
+        _input = string.Empty;
+        _messages.Add(new ChatMessage { IsUser = true, Text = text });
+
+        var reply = new ChatMessage { IsUser = false, Text = string.Empty };
+        _messages.Add(reply);
+        StateHasChanged();
+
+        _cts = new CancellationTokenSource();
+        try
+        {
+            await foreach (var chunk in Advisor.StreamAsync(_conversationId, text, _cts.Token))
+            {
+                reply.Text += chunk;
+                StateHasChanged();
+            }
+        }
+        catch (Exception)
+        {
+            reply.Text = "Entschuldigung, der Berater ist gerade nicht erreichbar.";
+        }
+        finally
+        {
+            _busy = false;
+            StateHasChanged();
+        }
+    }
+
+    private void Close() => IsOpenChanged.InvokeAsync(false);
+
+    public void Dispose() => _cts?.Cancel();
+}

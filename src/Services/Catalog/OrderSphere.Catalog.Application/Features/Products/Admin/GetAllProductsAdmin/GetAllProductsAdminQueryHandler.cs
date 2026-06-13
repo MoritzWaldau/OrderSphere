@@ -9,7 +9,6 @@ public sealed class GetAllProductsAdminQueryHandler(ICatalogDbContext context)
         {
             var products = await context.Products
                 .Include(p => p.Category)
-                .Where(p => !p.IsDeleted)
                 .OrderBy(p => p.Name)
                 .Select(p => new AdminProductDto(
                     p.Id.Value, p.Name, p.Slug, p.Description, p.Price, p.Stock,

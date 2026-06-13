@@ -21,7 +21,7 @@ public sealed class GetAllOrdersQueryHandler(
     {
         try
         {
-            var query = context.Orders.AsNoTracking().Where(o => !o.IsDeleted);
+            var query = context.Orders.AsNoTracking();
             if (request.StatusFilter is not null)
                 query = query.Where(o => o.Status == request.StatusFilter.Value);
 

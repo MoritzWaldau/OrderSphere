@@ -85,7 +85,7 @@ public static class ProductEndpoints
     {
         var product = await context.Products
             .AsTracking()
-            .FirstOrDefaultAsync(p => p.Id == ProductId.From(id) && !p.IsDeleted, ct);
+            .FirstOrDefaultAsync(p => p.Id == ProductId.From(id), ct);
 
         if (product is null) return Results.NotFound();
 
@@ -101,7 +101,7 @@ public static class ProductEndpoints
     {
         var product = await context.Products
             .AsTracking()
-            .FirstOrDefaultAsync(p => p.Id == ProductId.From(id) && !p.IsDeleted, ct);
+            .FirstOrDefaultAsync(p => p.Id == ProductId.From(id), ct);
 
         if (product is null) return Results.NotFound();
 

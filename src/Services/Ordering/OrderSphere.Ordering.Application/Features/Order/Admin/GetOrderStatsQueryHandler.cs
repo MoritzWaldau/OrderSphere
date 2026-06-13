@@ -25,19 +25,18 @@ public sealed class GetOrderStatsQueryHandler(
             // ── Scalar counts ────────────────────────────────────────────────────────
             var totalOrders = await context.Orders
                 .AsNoTracking()
-                .CountAsync(o => !o.IsDeleted, cancellationToken);
+                .CountAsync(cancellationToken);
 
             var ordersToday = await context.Orders
                 .AsNoTracking()
-                .CountAsync(o => !o.IsDeleted && o.CreatedAt >= todayUtc, cancellationToken);
+                .CountAsync(o => o.CreatedAt >= todayUtc, cancellationToken);
 
             var pendingShipments = await context.Orders
                 .AsNoTracking()
-                .CountAsync(o => !o.IsDeleted && o.Status == OrderStatus.Paid, cancellationToken);
+                .CountAsync(o => o.Status == OrderStatus.Paid, cancellationToken);
 
             var totalCustomers = await context.Orders
                 .AsNoTracking()
-                .Where(o => !o.IsDeleted)
                 .Select(o => o.CustomerId)
                 .Distinct()
                 .CountAsync(cancellationToken);
@@ -48,13 +47,13 @@ public sealed class GetOrderStatsQueryHandler(
             // "quantity" column; the Convert node is a no-op over the already-int column.
             var totalRevenue = await context.Orders
                 .AsNoTracking()
-                .Where(o => !o.IsDeleted && o.Status != OrderStatus.Cancelled)
+                .Where(o => o.Status != OrderStatus.Cancelled)
                 .SelectMany(o => o.Items)
                 .SumAsync(i => i.Price.Amount * (int)i.Quantity, cancellationToken);
 
             var revenueToday = await context.Orders
                 .AsNoTracking()
-                .Where(o => !o.IsDeleted && o.Status != OrderStatus.Cancelled && o.CreatedAt >= todayUtc)
+                .Where(o => o.Status != OrderStatus.Cancelled && o.CreatedAt >= todayUtc)
                 .SelectMany(o => o.Items)
                 .SumAsync(i => i.Price.Amount * (int)i.Quantity, cancellationToken);
 
@@ -64,7 +63,6 @@ public sealed class GetOrderStatsQueryHandler(
             // resolved after materialisation.
             var recentRaw = await context.Orders
                 .AsNoTracking()
-                .Where(o => !o.IsDeleted)
                 .OrderByDescending(o => o.CreatedAt)
                 .Take(5)
                 .Select(o => new

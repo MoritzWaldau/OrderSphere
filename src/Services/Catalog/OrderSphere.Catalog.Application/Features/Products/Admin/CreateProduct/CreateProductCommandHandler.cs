@@ -10,14 +10,14 @@ public sealed class CreateProductCommandHandler(ICatalogDbContext context)
     {
         var skuExists = await context.Products
             .AsNoTracking()
-            .AnyAsync(p => p.SKU == request.SKU && !p.IsDeleted, ct);
+            .AnyAsync(p => p.SKU == request.SKU, ct);
 
         if (skuExists)
             return Result<Guid>.Failure(ProductErrors.SkuAlreadyExists);
 
         var categoryExists = await context.Categories
             .AsNoTracking()
-            .AnyAsync(c => c.Id == request.CategoryId && !c.IsDeleted, ct);
+            .AnyAsync(c => c.Id == request.CategoryId, ct);
 
         if (!categoryExists)
             return Result<Guid>.Failure(CategoryErrors.NotFound);

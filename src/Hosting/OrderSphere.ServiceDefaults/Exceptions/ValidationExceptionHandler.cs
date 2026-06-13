@@ -1,9 +1,15 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace OrderSphere.Payment.Api.Exceptions;
+namespace OrderSphere.ServiceDefaults;
 
+/// <summary>
+/// Translates a FluentValidation <see cref="ValidationException"/> into an RFC 9110
+/// problem-details 400 response. Shared by every API service so validation responses
+/// do not diverge per service.
+/// </summary>
 internal sealed class ValidationExceptionHandler : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(

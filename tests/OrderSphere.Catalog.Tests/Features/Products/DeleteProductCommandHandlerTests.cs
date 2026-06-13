@@ -1,5 +1,6 @@
 using MockQueryable.NSubstitute;
 using OrderSphere.Catalog.Application.Features.Products.Admin.DeleteProduct;
+using OrderSphere.Catalog.Tests.Helpers;
 
 namespace OrderSphere.Catalog.Tests.Features.Products;
 
@@ -32,11 +33,15 @@ public sealed class DeleteProductCommandHandlerTests
     [Fact]
     public async Task Handle_ProductAlreadyDeleted_ReturnsNotFoundError()
     {
+        await using var ctx = CatalogDbContextFactory.Create();
+        var category = new Category("Electronics");
+        category.Id = CategoryA;
+        ctx.Categories.Add(category);
         var product = MakeProduct(ProductA);
+        ctx.Products.Add(product);
+        await ctx.SaveChangesAsync();
         product.IsDeleted = true;
-        var products = new List<Product> { product }.AsQueryable().BuildMockDbSet();
-        var ctx = Substitute.For<ICatalogDbContext>();
-        ctx.Products.Returns(products);
+        await ctx.SaveChangesAsync();
 
         var result = await CreateHandler(ctx).Handle(ValidCommand(), default);
 

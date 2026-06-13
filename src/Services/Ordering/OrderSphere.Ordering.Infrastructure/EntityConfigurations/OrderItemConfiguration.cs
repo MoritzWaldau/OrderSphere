@@ -10,6 +10,7 @@ public sealed class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
     {
         builder.ToTable("order_items");
         builder.HasKey(i => i.Id);
+        builder.HasQueryFilter(i => !i.IsDeleted);
 
         builder.Property(i => i.ProductId).IsRequired();
         builder.Property(i => i.ProductName).IsRequired().HasMaxLength(256);

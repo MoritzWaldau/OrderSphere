@@ -6,6 +6,7 @@ public sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
     {
         builder.ToTable("categories");
         builder.HasKey(c => c.Id);
+        builder.HasQueryFilter(c => !c.IsDeleted);
         builder.Property(c => c.Name).IsRequired().HasMaxLength(150);
         builder.HasIndex(c => c.Name).IsUnique().HasDatabaseName("IX_categories_name");
         builder.Property(c => c.Description).HasMaxLength(500);

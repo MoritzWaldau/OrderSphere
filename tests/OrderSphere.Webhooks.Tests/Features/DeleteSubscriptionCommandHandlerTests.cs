@@ -1,4 +1,5 @@
 using OrderSphere.Webhooks.Application.Features.Subscriptions.DeleteSubscription;
+using OrderSphere.Webhooks.Tests.Helpers;
 
 namespace OrderSphere.Webhooks.Tests.Features;
 
@@ -48,11 +49,12 @@ public sealed class DeleteSubscriptionCommandHandlerTests
     [Fact]
     public async Task Handle_AlreadyDeleted_ReturnsNotFound()
     {
+        await using var ctx = WebhooksDbContextFactory.Create();
         var sub = CreateSubscription();
+        ctx.Subscriptions.Add(sub);
+        await ctx.SaveChangesAsync();
         sub.Delete();
-        var subs = new List<WebhookSubscription> { sub }.AsQueryable().BuildMockDbSet();
-        var ctx = Substitute.For<IWebhooksDbContext>();
-        ctx.Subscriptions.Returns(subs);
+        await ctx.SaveChangesAsync();
 
         var result = await new DeleteSubscriptionCommandHandler(ctx)
             .Handle(new DeleteSubscriptionCommand(sub.Id.Value, Owner.Value), default);

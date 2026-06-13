@@ -14,7 +14,7 @@ public sealed class RemoveFromCartCommandHandler(
     {
         var cart = await context.Carts
             .Include(x => x.Items)
-            .FirstOrDefaultAsync(x => x.CustomerId == request.CustomerId && !x.IsDeleted, cancellationToken);
+            .FirstOrDefaultAsync(x => x.CustomerId == request.CustomerId, cancellationToken);
 
         if (cart is null)
             return Result.Failure(CartErrors.CartNotFoundError);

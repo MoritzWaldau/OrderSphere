@@ -7,7 +7,7 @@ public sealed class DeleteProductCommandHandler(ICatalogDbContext context)
     {
         var product = await context.Products
             .AsTracking()
-            .FirstOrDefaultAsync(p => p.Id == request.ProductId && !p.IsDeleted, ct);
+            .FirstOrDefaultAsync(p => p.Id == request.ProductId, ct);
 
         if (product is null)
             return Result.Failure(ProductErrors.NotFound);

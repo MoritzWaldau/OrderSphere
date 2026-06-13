@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.Catalog.Api.Configuration;
 using OrderSphere.Catalog.Api.Endpoints;
-using OrderSphere.Catalog.Api.Exceptions;
 using OrderSphere.Catalog.Application;
 using OrderSphere.Catalog.Infrastructure;
 using OrderSphere.Catalog.Infrastructure.Persistence;
@@ -28,8 +27,7 @@ builder.Services.AddCatalogAuthorization();                          // CatalogA
 builder.Services.AddCurrentUser();
 
 // Exception handling
-builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
-builder.Services.AddProblemDetails();
+builder.AddOrderSphereExceptionHandling();
 
 // Health checks (Postgres)
 var catalogConnectionString = builder.Configuration.GetConnectionString("catalog-db") ?? "";

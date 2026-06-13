@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.UserProfile.Api.Endpoints;
-using OrderSphere.UserProfile.Api.Exceptions;
 using OrderSphere.UserProfile.Application;
 using OrderSphere.UserProfile.Infrastructure;
 using OrderSphere.UserProfile.Infrastructure.Persistence;
@@ -19,8 +18,7 @@ builder.Services.AddUserProfileApplication();  // MediatR + Behaviors + FluentVa
 builder.AddOrderSphereJwtAuth("userprofile-api");
 builder.Services.AddCurrentUser();
 
-builder.Services.AddProblemDetails();
-builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
+builder.AddOrderSphereExceptionHandling();
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));

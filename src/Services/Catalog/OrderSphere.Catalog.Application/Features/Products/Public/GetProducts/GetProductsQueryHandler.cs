@@ -8,7 +8,7 @@ public sealed class GetProductsQueryHandler(ICatalogDbContext context)
         var query = context.Products
             .Include(p => p.Category)
             .AsNoTracking()
-            .Where(p => !p.IsDeleted && p.IsActive);
+            .Where(p => p.IsActive);
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {

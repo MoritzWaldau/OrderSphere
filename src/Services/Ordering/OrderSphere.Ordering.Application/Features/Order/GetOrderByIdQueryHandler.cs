@@ -28,7 +28,7 @@ public sealed class GetOrderByIdQueryHandler(
             var order = await context.Orders
                 .AsNoTracking()
                 .Include(o => o.Items)
-                .FirstOrDefaultAsync(o => o.Id == OrderId.From(request.OrderId) && !o.IsDeleted, cancellationToken);
+                .FirstOrDefaultAsync(o => o.Id == OrderId.From(request.OrderId), cancellationToken);
 
             if (order is null)
                 return Result<OrderDto>.Failure(OrderErrors.OrderNotFoundError);

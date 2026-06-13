@@ -8,7 +8,7 @@ public sealed class GetCategoriesQueryHandler(ICatalogDbContext context)
         try
         {
             var query = context.Categories
-                .Where(c => c.IsActive && !c.IsDeleted);
+                .Where(c => c.IsActive);
 
             var total = await query.CountAsync(ct);
 
@@ -20,7 +20,7 @@ public sealed class GetCategoriesQueryHandler(ICatalogDbContext context)
                     c.Id.Value,
                     c.Name,
                     c.Description,
-                    context.Products.Count(p => p.CategoryId == c.Id && !p.IsDeleted)))
+                    context.Products.Count(p => p.CategoryId == c.Id)))
                 .ToListAsync(ct);
 
             return Result<PagedResult<CategoryDto>>.Success(

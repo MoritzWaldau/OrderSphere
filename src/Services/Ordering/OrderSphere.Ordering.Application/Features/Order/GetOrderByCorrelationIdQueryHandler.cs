@@ -30,7 +30,7 @@ public sealed class GetOrderByCorrelationIdQueryHandler(
             var order = await context.Orders
                 .AsNoTracking()
                 .Include(o => o.Items)
-                .FirstOrDefaultAsync(o => o.CorrelationId == request.CorrelationId && !o.IsDeleted, cancellationToken);
+                .FirstOrDefaultAsync(o => o.CorrelationId == request.CorrelationId, cancellationToken);
 
             if (order is null)
                 return Result<OrderDto?>.Success(null);

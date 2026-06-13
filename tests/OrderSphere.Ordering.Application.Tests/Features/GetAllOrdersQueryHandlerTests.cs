@@ -1,4 +1,5 @@
 using OrderSphere.Ordering.Application.Features.Order.Admin;
+using OrderSphere.Ordering.Application.Tests.Helpers;
 
 namespace OrderSphere.Ordering.Application.Tests.Features;
 
@@ -63,11 +64,12 @@ public sealed class GetAllOrdersQueryHandlerTests
     [Fact]
     public async Task Handle_DeletedOrders_NotReturned()
     {
+        await using var ctx = OrderingDbContextFactory.Create();
         var o = CreateOrder();
+        ctx.Orders.Add(o);
+        await ctx.SaveChangesAsync();
         o.IsDeleted = true;
-        var orders = new List<Order> { o }.AsQueryable().BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
+        await ctx.SaveChangesAsync();
 
         var result = await CreateHandler(ctx).Handle(new(null), default);
 

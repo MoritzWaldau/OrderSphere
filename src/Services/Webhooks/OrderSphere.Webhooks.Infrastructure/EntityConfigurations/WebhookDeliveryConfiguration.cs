@@ -11,6 +11,7 @@ internal sealed class WebhookDeliveryConfiguration : IEntityTypeConfiguration<We
         builder.ToTable("webhook_deliveries");
 
         builder.HasKey(d => d.Id);
+        builder.HasQueryFilter(d => !d.IsDeleted);
 
         builder.HasIndex(d => d.SubscriptionId);
         builder.HasIndex(d => d.EventId);

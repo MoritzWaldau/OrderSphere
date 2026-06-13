@@ -11,6 +11,7 @@ internal sealed class WebhookSubscriptionConfiguration : IEntityTypeConfiguratio
         builder.ToTable("webhook_subscriptions");
 
         builder.HasKey(s => s.Id);
+        builder.HasQueryFilter(s => !s.IsDeleted);
 
         builder.HasIndex(s => s.CustomerId);
         builder.HasIndex(s => new { s.CustomerId, s.IsActive });

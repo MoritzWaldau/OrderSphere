@@ -10,6 +10,7 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
     {
         builder.ToTable("orders");
         builder.HasKey(o => o.Id);
+        builder.HasQueryFilter(o => !o.IsDeleted);
 
         builder.Property(o => o.CustomerId).IsRequired();
         builder.Property(o => o.PaymentMethod).HasConversion<int>().IsRequired();

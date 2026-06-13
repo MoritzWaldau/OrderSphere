@@ -11,6 +11,7 @@ internal sealed class PaymentRecordConfiguration : IEntityTypeConfiguration<Paym
         builder.ToTable("payments");
 
         builder.HasKey(p => p.Id);
+        builder.HasQueryFilter(p => !p.IsDeleted);
 
         builder.HasIndex(p => p.OrderId).IsUnique();
         builder.HasIndex(p => p.CorrelationId);

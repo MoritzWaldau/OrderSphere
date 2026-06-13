@@ -15,6 +15,8 @@
     <PackageReference Include="Aspire.Hosting.Azure.Redis" />
     <PackageReference Include="Aspire.Hosting.Azure.ServiceBus" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <!-- Pins the Aspire-hosting-transitive MessagePack off GHSA-hv8m-jj95-wg3x. -->
+    <PackageReference Include="MessagePack" />
   </ItemGroup>
 
   <ItemGroup>

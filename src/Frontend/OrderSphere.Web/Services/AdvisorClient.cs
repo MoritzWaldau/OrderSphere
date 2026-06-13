@@ -89,7 +89,14 @@ public sealed class AdvisorClient(HttpClient client) : IAdvisorClient
                 continue;
             }
 
-            var data = line[5..].TrimStart();
+            // SSE strips only a single optional space after "data:"; trimming all
+            // whitespace would swallow token-leading spaces and run words together.
+            var data = line[5..];
+            if (data.StartsWith(' '))
+            {
+                data = data[1..];
+            }
+
             if (data == "[DONE]")
             {
                 yield break;

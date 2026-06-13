@@ -22,8 +22,6 @@
             </MudStack>
         </MudStack>
 
-        <MudDivider />
-
         @if (_showHistory)
         {
             <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;">
@@ -58,7 +56,7 @@
         }
         else
         {
-            <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
+            <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;">
                 @if (_messages.Count == 0)
                 {
                     <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="flex:1;padding:40px 0;">
@@ -71,25 +69,25 @@
                 }
                 else
                 {
-                    @foreach (var m in _messages)
-                    {
-                        <MudPaper Elevation="0"
-                                  Class="surface-card pa-3"
-                                  Style="@(m.IsUser ? "align-self:flex-end;max-width:85%;background:var(--mud-palette-primary);color:#fff;" : "align-self:flex-start;max-width:85%;")">
-                            <MudText Typo="Typo.body2" Style="white-space:pre-wrap;">@m.Text</MudText>
-                        </MudPaper>
-                    }
-                }
-                @if (_toolActivity is not null)
-                {
-                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="align-self:flex-start;">
-                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Primary" />
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">@_toolActivity…</MudText>
-                    </MudStack>
+                    <div style="margin-top:auto;display:flex;flex-direction:column;gap:12px;">
+                        @foreach (var m in _messages)
+                        {
+                            <MudPaper Elevation="0"
+                                      Class="surface-card pa-3"
+                                      Style="@(m.IsUser ? "align-self:flex-end;max-width:85%;background:var(--mud-palette-primary);color:#fff;" : "align-self:flex-start;max-width:85%;")">
+                                <MudText Typo="Typo.body2" Style="white-space:pre-wrap;overflow-wrap:anywhere;">@m.Text</MudText>
+                            </MudPaper>
+                        }
+                        @if (_toolActivity is not null)
+                        {
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="align-self:flex-start;">
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Primary" />
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@_toolActivity…</MudText>
+                            </MudStack>
+                        }
+                    </div>
                 }
             </div>
-
-            <MudDivider />
 
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                 <MudTextField @bind-Value="_input"

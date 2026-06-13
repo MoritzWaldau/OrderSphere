@@ -135,10 +135,10 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         result.Error.Should().Be(OrderErrors.InvalidStatusTransition);
     }
 
-    // ── SaveChanges called on success ────────────────────────────────────────────
+    // ── Transaction committed on success ─────────────────────────────────────────
 
     [Fact]
-    public async Task Handle_SuccessfulTransition_SavesChanges()
+    public async Task Handle_SuccessfulTransition_CommitsTransaction()
     {
         var order = CreateOrder();
         var orderId = order.Id;
@@ -150,13 +150,13 @@ public sealed class UpdateOrderStatusCommandHandlerTests
 
         await CreateHandler(ctx).Handle(new(orderId.Value, OrderStatus.Shipped), default);
 
-        await ctx.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await ctx.Received(1).CommitAsync(Arg.Any<CancellationToken>());
     }
 
-    // ── Outer exception → UnknownError ───────────────────────────────────────────
+    // ── Outer exception → RollbackAsync called ───────────────────────────────────
 
     [Fact]
-    public async Task Handle_SaveChangesThrows_ReturnsUnknownError()
+    public async Task Handle_CommitThrows_RollbackCalledAndReturnsUnknownError()
     {
         var order = CreateOrder();
         var orderId = order.Id;
@@ -165,7 +165,7 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
-        ctx.SaveChangesAsync(Arg.Any<CancellationToken>())
+        ctx.CommitAsync(Arg.Any<CancellationToken>())
            .ThrowsAsync(new InvalidOperationException("db error"));
 
         var result = await CreateHandler(ctx).Handle(
@@ -173,5 +173,6 @@ public sealed class UpdateOrderStatusCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(OrderErrors.UnknownError);
+        await ctx.Received(1).RollbackAsync(Arg.Any<CancellationToken>());
     }
 }

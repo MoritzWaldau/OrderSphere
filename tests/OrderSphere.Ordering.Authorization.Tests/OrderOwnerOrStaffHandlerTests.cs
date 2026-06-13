@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authorization;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Api.Authorization;
 using OrderSphere.Ordering.Application.Models;
 using OrderSphere.Ordering.Domain.Enums;
@@ -26,8 +27,13 @@ namespace OrderSphere.Ordering.Authorization.Tests;
 /// </summary>
 public sealed class OrderOwnerOrStaffHandlerTests
 {
-    private static readonly Guid OrderCustomerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-    private static readonly Guid OtherCustomerId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+    // Auth0 sub values — opaque strings, not UUIDs.
+    private const string OwnerSub = "auth0|owner-test-sub";
+    private const string OtherSub = "auth0|other-test-sub";
+
+    // CustomerId is derived from the sub via SHA256 (matching CustomerId.FromSub).
+    private static readonly Guid OrderCustomerId = CustomerId.FromSub(OwnerSub).Value;
+    private static readonly Guid OtherCustomerId = CustomerId.FromSub(OtherSub).Value;
 
     private static readonly OrderDto SampleOrder = new(
         Id: Guid.NewGuid(),
@@ -48,7 +54,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     [Fact]
     public async Task Owner_Succeeds()
     {
-        var user = BuildUser(sub: OrderCustomerId.ToString());
+        var user = BuildUser(sub: OwnerSub);
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
@@ -59,7 +65,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     [Fact]
     public async Task DifferentCustomer_DoesNotSucceed()
     {
-        var user = BuildUser(sub: OtherCustomerId.ToString());
+        var user = BuildUser(sub: OtherSub);
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
@@ -79,9 +85,10 @@ public sealed class OrderOwnerOrStaffHandlerTests
     }
 
     [Fact]
-    public async Task NonGuidSub_DoesNotSucceed()
+    public async Task UnknownSub_DoesNotSucceed()
     {
-        var user = BuildUser(sub: "not-a-guid");
+        // Any sub that doesn't hash to OrderCustomerId must not succeed.
+        var user = BuildUser(sub: "auth0|completely-unknown-sub");
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
@@ -98,7 +105,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     public async Task StaffRole_Succeeds(string role)
     {
         // Staff members can access any order regardless of ownership.
-        var user = BuildUser(sub: OtherCustomerId.ToString(), roles: [role]);
+        var user = BuildUser(sub: OtherSub, roles: [role]);
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
@@ -110,7 +117,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     public async Task CustomerRoleOnly_DoesNotSucceedOnOtherOrder()
     {
         // A plain customer with no staff role cannot access another customer's order.
-        var user = BuildUser(sub: OtherCustomerId.ToString(), roles: ["customer"]);
+        var user = BuildUser(sub: OtherSub, roles: ["customer"]);
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
@@ -121,7 +128,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     [Fact]
     public async Task AdminRole_SucceedsEvenWithDifferentSub()
     {
-        var user = BuildUser(sub: OtherCustomerId.ToString(), roles: ["admin"]);
+        var user = BuildUser(sub: OtherSub, roles: ["admin"]);
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);
@@ -134,7 +141,7 @@ public sealed class OrderOwnerOrStaffHandlerTests
     [Fact]
     public async Task OwnerWithStaffRole_Succeeds()
     {
-        var user = BuildUser(sub: OrderCustomerId.ToString(), roles: ["csr"]);
+        var user = BuildUser(sub: OwnerSub, roles: ["csr"]);
         var context = BuildContext(user, SampleOrder);
 
         await _handler.HandleAsync(context);

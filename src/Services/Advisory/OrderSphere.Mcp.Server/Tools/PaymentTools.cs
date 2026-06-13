@@ -12,7 +12,8 @@ public sealed class PaymentTools
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    [McpServerTool(Name = "get_payment_status")]
+    [McpServerTool(Name = "get_payment_status", Title = "Get payment status",
+        ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false)]
     [Description("Get the payment status for one of the current customer's orders: amount, currency, method, status, and failure reason if any.")]
     public static async Task<string> GetPaymentStatusAsync(
         ICallerContext caller,

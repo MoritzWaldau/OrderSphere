@@ -243,7 +243,9 @@ var advisory = builder.AddProject<Projects.OrderSphere_Advisory_Api>("orderspher
     .WithEnvironment("Keycloak__Authority", keycloakAuthority)
     .WithEnvironment("Foundry__Endpoint", foundryEndpoint)
     .WithEnvironment("Foundry__Deployment", foundryDeployment)
-    .WithEnvironment("Services__Mcp__BaseUrl", "http://ordersphere-mcp");
+    // Concrete endpoint reference, not the logical name: the MCP client transport
+    // uses a plain HttpClient without Aspire service discovery.
+    .WithEnvironment("Services__Mcp__BaseUrl", mcpServer.GetEndpoint("http"));
 if (keycloak is not null) advisory.WaitFor(keycloak);
 
 builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")

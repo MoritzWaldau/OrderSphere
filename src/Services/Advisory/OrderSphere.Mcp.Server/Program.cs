@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using OrderSphere.Mcp.Server.Configuration;
 using OrderSphere.Mcp.Server.Gateway;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,7 +42,11 @@ builder.Services.AddMcpServer()
     .WithHttpTransport()
     .WithToolsFromAssembly();
 
+builder.Services.AddMcpRateLimiting();
+
 var app = builder.Build();
+
+app.UseRateLimiter();
 
 if (authEnabled)
 {
@@ -50,7 +55,7 @@ if (authEnabled)
 }
 
 app.MapDefaultEndpoints();
-app.MapMcp("/mcp");
+app.MapMcp("/mcp").RequireRateLimiting(RateLimitingExtensions.McpPolicy);
 
 app.Run();
 

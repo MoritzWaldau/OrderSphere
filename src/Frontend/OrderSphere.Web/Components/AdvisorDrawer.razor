@@ -1,5 +1,6 @@
 @implements IDisposable
 @inject IAdvisorClient Advisor
+@inject ILogger<AdvisorDrawer> Logger
 
 <MudDrawer @bind-Open="IsOpen"
            Anchor="Anchor.Right"
@@ -79,6 +80,13 @@
                         </MudPaper>
                     }
                 }
+                @if (_toolActivity is not null)
+                {
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="align-self:flex-start;">
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Primary" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@_toolActivity…</MudText>
+                    </MudStack>
+                }
             </div>
 
             <MudDivider />
@@ -115,6 +123,7 @@
     private List<AdvisorConversation> _conversations = [];
     private string _conversationId = Guid.NewGuid().ToString("n");
     private string _input = string.Empty;
+    private string? _toolActivity;
     private bool _busy;
     private bool _showHistory;
     private bool _loadingHistory;
@@ -147,18 +156,28 @@
         _cts = new CancellationTokenSource();
         try
         {
-            await foreach (var chunk in Advisor.StreamAsync(_conversationId, text, _cts.Token))
+            await foreach (var item in Advisor.StreamAsync(_conversationId, text, _cts.Token))
             {
-                reply.Text += chunk;
+                if (item.Kind == AdvisorStreamItemKind.Tool)
+                {
+                    _toolActivity = item.Text;
+                }
+                else
+                {
+                    _toolActivity = null;
+                    reply.Text += item.Text;
+                }
                 StateHasChanged();
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Logger.LogCritical(ex.Message);
             reply.Text = "Entschuldigung, der Berater ist gerade nicht erreichbar.";
         }
         finally
         {
+            _toolActivity = null;
             _busy = false;
             StateHasChanged();
         }

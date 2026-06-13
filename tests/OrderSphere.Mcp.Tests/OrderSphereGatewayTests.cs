@@ -48,6 +48,17 @@ public sealed class OrderSphereGatewayTests
     }
 
     [Fact]
+    public async Task GetProducts_AppendsFilterParameters_OnlyWhenSet()
+    {
+        var (gateway, handler) = Build("""{"items":[],"totalCount":0,"page":1,"pageSize":10}""");
+
+        await gateway.GetProductsAsync(1, 10, "trail shoes", "Shoes", 49.5m, 100m);
+
+        handler.LastPathAndQuery.Should().Be(
+            "/api/v1/products?page=1&pageSize=10&searchTerm=trail%20shoes&categoryName=Shoes&minPrice=49.5&maxPrice=100");
+    }
+
+    [Fact]
     public async Task GetProductBySlug_RequestsSlugPath()
     {
         var (gateway, handler) = Build(

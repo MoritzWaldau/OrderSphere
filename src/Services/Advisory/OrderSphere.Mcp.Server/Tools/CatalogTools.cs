@@ -12,34 +12,37 @@ public sealed class CatalogTools
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    [McpServerTool(Name = "search_products")]
-    [Description("Search the product catalog by free-text query (matches name, description, or category). Returns matching products with price and stock.")]
+    [McpServerTool(Name = "search_products", Title = "Search products",
+        ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false)]
+    [Description("Search the product catalog by free-text query (matches name or description), optionally filtered by category and price range. Returns matching products with price and stock.")]
     public static async Task<string> SearchProductsAsync(
         IOrderSphereGateway gateway,
-        [Description("Search terms, e.g. 'running shoes' or 'red jacket'.")] string query,
+        [Description("Search terms, e.g. 'running shoes' or 'red jacket'. May be empty to list products filtered only by category/price.")] string query,
+        [Description("Optional exact category name to filter by, e.g. 'Shoes'. Use list_categories to discover names.")] string? category = null,
+        [Description("Optional minimum price (inclusive).")] decimal? minPrice = null,
+        [Description("Optional maximum price (inclusive).")] decimal? maxPrice = null,
         [Description("Maximum number of products to return (1-50). Defaults to 10.")] int maxResults = 10,
         CancellationToken ct = default)
     {
         var limit = Math.Clamp(maxResults, 1, 50);
-        var page = await gateway.GetProductsAsync(1, 50, ct);
 
-        var terms = (query ?? string.Empty)
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        // Filtering happens server-side in the Catalog service; this tool only shapes
+        // the result for the model.
+        var page = await gateway.GetProductsAsync(
+            1, limit,
+            string.IsNullOrWhiteSpace(query) ? null : query.Trim(),
+            category, minPrice, maxPrice, ct);
 
         var matches = page.Items
-            .Where(p => p.IsActive)
-            .Where(p => terms.Length == 0 || terms.All(t =>
-                p.Name.Contains(t, StringComparison.OrdinalIgnoreCase) ||
-                p.Description.Contains(t, StringComparison.OrdinalIgnoreCase) ||
-                p.CategoryName.Contains(t, StringComparison.OrdinalIgnoreCase)))
-            .Take(limit)
             .Select(p => new { p.Name, p.Slug, p.Price, p.Stock, Category = p.CategoryName, p.SKU })
             .ToList();
 
-        return JsonSerializer.Serialize(new { count = matches.Count, products = matches }, Json);
+        return JsonSerializer.Serialize(
+            new { count = matches.Count, totalMatches = page.TotalCount, products = matches }, Json);
     }
 
-    [McpServerTool(Name = "get_product")]
+    [McpServerTool(Name = "get_product", Title = "Get product details",
+        ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false)]
     [Description("Get full details for a single product by its slug (URL identifier).")]
     public static async Task<string> GetProductAsync(
         IOrderSphereGateway gateway,
@@ -52,7 +55,8 @@ public sealed class CatalogTools
             : JsonSerializer.Serialize(product, Json);
     }
 
-    [McpServerTool(Name = "list_categories")]
+    [McpServerTool(Name = "list_categories", Title = "List categories",
+        ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false)]
     [Description("List the product categories available in the store, with the number of products in each.")]
     public static async Task<string> ListCategoriesAsync(
         IOrderSphereGateway gateway,

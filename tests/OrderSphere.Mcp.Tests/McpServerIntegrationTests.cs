@@ -31,6 +31,26 @@ public sealed class McpServerIntegrationTests(McpServerFactory factory)
     }
 
     [Fact]
+    public async Task ListTools_AnnotatesEveryToolAsReadOnly()
+    {
+        await using var client = await CreateClientAsync();
+
+        var tools = await client.ListToolsAsync();
+
+        // External clients rely on these hints to decide whether a tool is safe
+        // to call without confirmation — every tool on this server is read-only.
+        tools.Should().AllSatisfy(t =>
+        {
+            var annotations = t.ProtocolTool.Annotations;
+            annotations.Should().NotBeNull($"tool '{t.Name}' must carry annotations");
+            annotations!.ReadOnlyHint.Should().BeTrue($"tool '{t.Name}' must be read-only");
+            annotations.DestructiveHint.Should().BeFalse();
+            annotations.IdempotentHint.Should().BeTrue();
+            annotations.OpenWorldHint.Should().BeFalse();
+        });
+    }
+
+    [Fact]
     public async Task CallSearchProducts_ExecutesToolAndReturnsGatewayData()
     {
         await using var client = await CreateClientAsync();
@@ -73,7 +93,9 @@ public sealed class McpServerFactory : WebApplicationFactory<Program>
     {
         var gateway = Substitute.For<IOrderSphereGateway>();
 
-        gateway.GetProductsAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+        gateway.GetProductsAsync(
+                Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string?>(), Arg.Any<string?>(),
+                Arg.Any<decimal?>(), Arg.Any<decimal?>(), Arg.Any<CancellationToken>())
             .Returns(new PagedResult<ProductDto>(
             [
                 new ProductDto(Guid.NewGuid(), "Trail Runner X1", "trail-runner-x1",

@@ -13,7 +13,8 @@ public sealed class BasketTools
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    [McpServerTool(Name = "get_my_cart")]
+    [McpServerTool(Name = "get_my_cart", Title = "View my cart",
+        ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false)]
     [Description("View the current customer's shopping cart: line items with product name, unit price, quantity, and the cart total. Read-only.")]
     public static async Task<string> GetMyCartAsync(
         ICallerContext caller,

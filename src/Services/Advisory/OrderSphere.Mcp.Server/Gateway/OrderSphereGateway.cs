@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 
@@ -8,7 +9,14 @@ namespace OrderSphere.Mcp.Server.Gateway;
 // User-scoped calls rely on BearerForwardingHandler to attach the caller's token.
 public interface IOrderSphereGateway
 {
-    Task<PagedResult<ProductDto>> GetProductsAsync(int page, int pageSize, CancellationToken ct = default);
+    Task<PagedResult<ProductDto>> GetProductsAsync(
+        int page,
+        int pageSize,
+        string? searchTerm = null,
+        string? categoryName = null,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
+        CancellationToken ct = default);
     Task<ProductDto?> GetProductBySlugAsync(string slug, CancellationToken ct = default);
     Task<PagedResult<CategoryDto>> GetCategoriesAsync(int page, int pageSize, CancellationToken ct = default);
 
@@ -26,10 +34,28 @@ public interface IOrderSphereGateway
 
 public sealed class OrderSphereGateway(HttpClient http) : IOrderSphereGateway
 {
-    public async Task<PagedResult<ProductDto>> GetProductsAsync(int page, int pageSize, CancellationToken ct = default)
-        => await http.GetFromJsonAsync<PagedResult<ProductDto>>(
-               $"/api/v1/products?page={page}&pageSize={pageSize}", ct)
-           ?? new PagedResult<ProductDto>([], 0, page, pageSize);
+    public async Task<PagedResult<ProductDto>> GetProductsAsync(
+        int page,
+        int pageSize,
+        string? searchTerm = null,
+        string? categoryName = null,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
+        CancellationToken ct = default)
+    {
+        var query = $"/api/v1/products?page={page}&pageSize={pageSize}";
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+            query += $"&searchTerm={Uri.EscapeDataString(searchTerm)}";
+        if (!string.IsNullOrWhiteSpace(categoryName))
+            query += $"&categoryName={Uri.EscapeDataString(categoryName)}";
+        if (minPrice is { } min)
+            query += $"&minPrice={min.ToString(CultureInfo.InvariantCulture)}";
+        if (maxPrice is { } max)
+            query += $"&maxPrice={max.ToString(CultureInfo.InvariantCulture)}";
+
+        return await http.GetFromJsonAsync<PagedResult<ProductDto>>(query, ct)
+            ?? new PagedResult<ProductDto>([], 0, page, pageSize);
+    }
 
     public Task<ProductDto?> GetProductBySlugAsync(string slug, CancellationToken ct = default)
         => http.GetFromJsonAsync<ProductDto?>($"/api/v1/products/{Uri.EscapeDataString(slug)}", ct);

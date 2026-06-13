@@ -12,7 +12,8 @@ public sealed class ProfileTools
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    [McpServerTool(Name = "get_my_profile")]
+    [McpServerTool(Name = "get_my_profile", Title = "Get my profile",
+        ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false)]
     [Description("Get the current customer's profile: display name, email, preferences, and saved addresses.")]
     public static async Task<string> GetMyProfileAsync(
         ICallerContext caller,
@@ -50,7 +51,8 @@ public sealed class ProfileTools
         return JsonSerializer.Serialize(result, Json);
     }
 
-    [McpServerTool(Name = "list_my_addresses")]
+    [McpServerTool(Name = "list_my_addresses", Title = "List my addresses",
+        ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false)]
     [Description("List the current customer's saved shipping addresses, including which one is the default.")]
     public static async Task<string> ListMyAddressesAsync(
         ICallerContext caller,

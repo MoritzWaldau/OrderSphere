@@ -52,7 +52,8 @@ xUnit + FluentAssertions (NSubstitute for mocking, EF Core InMemory where a `DbC
 | `tests/OrderSphere.UserProfile.Tests` | UserProfile service |
 | `tests/OrderSphere.Bff.Tests` | BFF integration tests |
 | `tests/OrderSphere.RealmContract.Tests` | Keycloak realm contract tests |
-| `tests/OrderSphere.Mcp.Tests` | MCP tool methods against a mocked gateway (NSubstitute) |
+| `tests/OrderSphere.Mcp.Tests` | MCP tool methods against a mocked gateway (NSubstitute); gateway request-path pinning; in-process MCP server integration tests (transport, tool discovery, annotations) |
+| `tests/OrderSphere.Advisory.Tests` | `AdvisorChatService` against a scripted `IChatClient`: persistence, anonymous/ephemeral turns, corrupt-session recovery, mid-stream failure handling, tool-activity events |
 
 ## Features
 
@@ -84,7 +85,18 @@ components under `src/Services/Advisory/`:
   endpoint (`POST /chat`, SSE) plus read-only history (`GET /conversations`,
   `GET /conversations/{id}`). It owns **no** tools of its own: it loads the MCP server's tools per
   request (`AdvisorChatService`) and is inert without the MCP connection. `/chat` is rate-limited
-  **per user** (partitioned by `sub`) because each request drives an LLM completion.
+  **per user** (partitioned by `sub`, 20/min) because each request drives an LLM completion. The MCP
+  endpoint itself is rate-limited per user at 120/min — deliberately well above the chat limit, since
+  one chat turn produces several MCP requests (initialize, tools/list, one per tool call) attributed
+  to the same end user.
+
+The shared chat-client pipeline (`FoundryChatClientFactory`, singleton) wires, outermost first:
+`UseChatReducer(MessageCountingChatReducer)` (bounds history sent to the model; the full transcript
+stays in `advisory-db`) → `UseFunctionInvocation` (tool-call loop) → `UseOpenTelemetry` (one GenAI
+span per model round-trip, source `OrderSphere.Advisory.Agent`, visible in the Aspire dashboard).
+The reducer must sit outside the function-invocation loop because it drops function call/result
+messages. During streaming, `AdvisorChatService` emits tool-activity notices (named SSE `event: tool`
+frames with a German label) alongside text tokens; the chat drawer shows them as an activity line.
 
 ### Conversation persistence
 
@@ -109,11 +121,12 @@ Public catalog tools work anonymously; user-scoped tools return no data without 
 
 ### MCP tools
 
-All read-only. Routes are the public `/api/v1` Gateway surface.
+All read-only, and annotated as such (`ReadOnly`, `Idempotent`, non-`Destructive`, closed-world) so
+external MCP clients can treat them as safe. Routes are the public `/api/v1` Gateway surface.
 
 | Tool | Route | Scope |
 |---|---|---|
-| `search_products` | `GET /products` | public |
+| `search_products` | `GET /products` (server-side `searchTerm`, `categoryName`, `minPrice`, `maxPrice`) | public |
 | `get_product` | `GET /products/{slug}` | public |
 | `list_categories` | `GET /categories` | public |
 | `get_my_orders` | `GET /orders` | user |

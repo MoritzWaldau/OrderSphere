@@ -9,8 +9,9 @@ public static class ChatEndpoints
 {
     public static IEndpointRouteBuilder MapAdvisorEndpoints(this IEndpointRouteBuilder app)
     {
-        // Streams the assistant reply as Server-Sent Events. Each token delta is one
-        // `data:` frame; a final `data: [DONE]` frame signals completion.
+        // Streams the assistant reply as Server-Sent Events. Each text token delta is
+        // one unnamed `data:` frame; tool activity is a named `event: tool` frame whose
+        // data carries a user-facing label; a final `data: [DONE]` frame signals completion.
         app.MapPost("/chat", async (
             ChatRequest request,
             AdvisorChatService chat,
@@ -33,10 +34,13 @@ public static class ChatEndpoints
                 ? Guid.NewGuid().ToString("n")
                 : request.ConversationId;
 
-            await foreach (var chunk in chat.StreamAsync(conversationId, request.Message, ct))
+            await foreach (var evt in chat.StreamAsync(conversationId, request.Message, ct))
             {
-                var payload = chunk.Replace("\r", string.Empty).Replace("\n", "\ndata: ");
-                await http.Response.WriteAsync($"data: {payload}\n\n", ct);
+                var payload = evt.Text.Replace("\r", string.Empty).Replace("\n", "\ndata: ");
+                var frame = evt.Kind == AdvisorStreamEventKind.Tool
+                    ? $"event: tool\ndata: {payload}\n\n"
+                    : $"data: {payload}\n\n";
+                await http.Response.WriteAsync(frame, ct);
                 await http.Response.Body.FlushAsync(ct);
             }
 

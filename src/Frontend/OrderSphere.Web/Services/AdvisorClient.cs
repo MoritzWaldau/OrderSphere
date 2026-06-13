@@ -9,11 +9,23 @@ public sealed record AdvisorConversation(
 
 public sealed record AdvisorHistoryMessage(string Role, string Text, DateTime CreatedAt);
 
+public enum AdvisorStreamItemKind
+{
+    // A token of assistant text.
+    Text,
+
+    // A status notice that the agent is using a tool; Text is a display label.
+    Tool
+}
+
+public sealed record AdvisorStreamItem(AdvisorStreamItemKind Kind, string Text);
+
 public interface IAdvisorClient
 {
-    // Streams the assistant reply token-by-token. conversationId keeps context
-    // across turns; pass the same value back on follow-up messages.
-    IAsyncEnumerable<string> StreamAsync(string conversationId, string message, CancellationToken ct = default);
+    // Streams the assistant reply token-by-token, interleaved with tool-activity
+    // notices. conversationId keeps context across turns; pass the same value back
+    // on follow-up messages.
+    IAsyncEnumerable<AdvisorStreamItem> StreamAsync(string conversationId, string message, CancellationToken ct = default);
 
     // Lists the current customer's past conversations, most recently updated first.
     Task<IReadOnlyList<AdvisorConversation>> GetConversationsAsync(CancellationToken ct = default);
@@ -32,7 +44,7 @@ public sealed class AdvisorClient(HttpClient client) : IAdvisorClient
         => await client.GetFromJsonAsync<List<AdvisorHistoryMessage>>(
                $"/api/advisor/conversations/{Uri.EscapeDataString(conversationId)}", ct) ?? [];
 
-    public async IAsyncEnumerable<string> StreamAsync(
+    public async IAsyncEnumerable<AdvisorStreamItem> StreamAsync(
         string conversationId,
         string message,
         [EnumeratorCancellation] CancellationToken ct = default)
@@ -51,6 +63,10 @@ public sealed class AdvisorClient(HttpClient client) : IAdvisorClient
         await using var stream = await response.Content.ReadAsStreamAsync(ct);
         using var reader = new StreamReader(stream);
 
+        // SSE: an optional `event: <name>` line precedes the `data:` line(s) of a
+        // frame; a blank line terminates the frame and resets the event name.
+        string? eventName = null;
+
         while (!ct.IsCancellationRequested)
         {
             var line = await reader.ReadLineAsync(ct);
@@ -58,7 +74,17 @@ public sealed class AdvisorClient(HttpClient client) : IAdvisorClient
             {
                 yield break;
             }
-            if (line.Length == 0 || !line.StartsWith("data:", StringComparison.Ordinal))
+            if (line.Length == 0)
+            {
+                eventName = null;
+                continue;
+            }
+            if (line.StartsWith("event:", StringComparison.Ordinal))
+            {
+                eventName = line[6..].Trim();
+                continue;
+            }
+            if (!line.StartsWith("data:", StringComparison.Ordinal))
             {
                 continue;
             }
@@ -69,7 +95,9 @@ public sealed class AdvisorClient(HttpClient client) : IAdvisorClient
                 yield break;
             }
 
-            yield return data;
+            yield return eventName == "tool"
+                ? new AdvisorStreamItem(AdvisorStreamItemKind.Tool, data)
+                : new AdvisorStreamItem(AdvisorStreamItemKind.Text, data);
         }
     }
 }

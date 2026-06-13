@@ -13,7 +13,8 @@ public sealed class OrderingTools
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    [McpServerTool(Name = "get_my_orders")]
+    [McpServerTool(Name = "get_my_orders", Title = "List my orders",
+        ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false)]
     [Description("List the current customer's orders (most recent first) with status, total, and item count.")]
     public static async Task<string> GetMyOrdersAsync(
         ICallerContext caller,
@@ -41,7 +42,8 @@ public sealed class OrderingTools
         return JsonSerializer.Serialize(new { count = orders.Count, orders = summary }, Json);
     }
 
-    [McpServerTool(Name = "get_order_status")]
+    [McpServerTool(Name = "get_order_status", Title = "Get order status",
+        ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false)]
     [Description("Get the detailed status of a single order belonging to the current customer, including line items and shipping address.")]
     public static async Task<string> GetOrderStatusAsync(
         ICallerContext caller,
@@ -60,7 +62,8 @@ public sealed class OrderingTools
             : JsonSerializer.Serialize(order, Json);
     }
 
-    [McpServerTool(Name = "validate_coupon")]
+    [McpServerTool(Name = "validate_coupon", Title = "Validate coupon",
+        ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false)]
     [Description("Check whether a coupon code is valid for a given order subtotal and return the discount amount.")]
     public static async Task<string> ValidateCouponAsync(
         ICallerContext caller,

@@ -151,6 +151,22 @@ builder.Services
         options.MapInboundClaims = false;
         options.Events = new OpenIdConnectEvents
         {
+            // For API/fetch calls, an unauthenticated request must NOT trigger a 302
+            // redirect to Keycloak: the browser follows it cross-origin and the SPA
+            // sees an opaque CORS failure instead of a clear "not signed in" signal.
+            // Return 401 for /api/* so the client can react (re-login); interactive
+            // sign-in still flows through the explicit /bff/login challenge.
+            OnRedirectToIdentityProvider = ctx =>
+            {
+                if (ctx.Request.Path.StartsWithSegments("/api"))
+                {
+                    ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    ctx.HandleResponse();
+                }
+
+                return Task.CompletedTask;
+            },
+
             // Keycloak puts realm roles in realm_access.roles of the ACCESS token,
             // not the ID token. Read the raw access token here and add individual
             // "roles" claims to the identity before the session is persisted.

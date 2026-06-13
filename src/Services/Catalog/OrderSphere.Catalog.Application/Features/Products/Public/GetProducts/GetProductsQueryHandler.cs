@@ -10,6 +10,30 @@ public sealed class GetProductsQueryHandler(ICatalogDbContext context)
             .AsNoTracking()
             .Where(p => !p.IsDeleted && p.IsActive);
 
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            var term = request.SearchTerm.Trim().ToLower();
+            query = query.Where(p =>
+                p.Name.ToLower().Contains(term) ||
+                p.Description.ToLower().Contains(term));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.CategoryName))
+        {
+            var category = request.CategoryName.Trim().ToLower();
+            query = query.Where(p => p.Category!.Name.ToLower() == category);
+        }
+
+        if (request.MinPrice is { } minPrice)
+        {
+            query = query.Where(p => p.Price.Amount >= minPrice);
+        }
+
+        if (request.MaxPrice is { } maxPrice)
+        {
+            query = query.Where(p => p.Price.Amount <= maxPrice);
+        }
+
         var total = await query.CountAsync(ct);
 
         var items = await query

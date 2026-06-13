@@ -13,38 +13,55 @@ public sealed class CatalogToolsTests
         => new(Guid.NewGuid(), name, name.ToLowerInvariant().Replace(' ', '-'),
                $"{name} description", price, stock, Guid.NewGuid(), category, "SKU-1", null, true);
 
-    [Fact]
-    public async Task SearchProducts_FiltersByQuery_AndRespectsMaxResults()
+    private static IOrderSphereGateway GatewayReturning(params ProductDto[] products)
     {
         var gateway = Substitute.For<IOrderSphereGateway>();
-        gateway.GetProductsAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(new PagedResult<ProductDto>(
-            [
-                Product("Trail Runner X1"),
-                Product("Trail Runner X2"),
-                Product("Winter Jacket", category: "Outerwear")
-            ], 3, 1, 50));
+        gateway.GetProductsAsync(
+                Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string?>(), Arg.Any<string?>(),
+                Arg.Any<decimal?>(), Arg.Any<decimal?>(), Arg.Any<CancellationToken>())
+            .Returns(new PagedResult<ProductDto>(products, products.Length, 1, 10));
+        return gateway;
+    }
+
+    [Fact]
+    public async Task SearchProducts_DelegatesFiltersToGateway()
+    {
+        var gateway = GatewayReturning(Product("Trail Runner X1"));
+
+        await CatalogTools.SearchProductsAsync(
+            gateway, "trail", category: "Shoes", minPrice: 50m, maxPrice: 100m, maxResults: 5);
+
+        await gateway.Received(1).GetProductsAsync(
+            1, 5, "trail", "Shoes", 50m, 100m, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchProducts_EmptyQuery_PassesNullSearchTerm()
+    {
+        var gateway = GatewayReturning();
+
+        await CatalogTools.SearchProductsAsync(gateway, "  ", category: "Shoes");
+
+        await gateway.Received(1).GetProductsAsync(
+            1, 10, null, "Shoes", null, null, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchProducts_ShapesResult_WithCountAndTotalMatches()
+    {
+        var gateway = Substitute.For<IOrderSphereGateway>();
+        gateway.GetProductsAsync(
+                Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string?>(), Arg.Any<string?>(),
+                Arg.Any<decimal?>(), Arg.Any<decimal?>(), Arg.Any<CancellationToken>())
+            .Returns(new PagedResult<ProductDto>([Product("Trail Runner X1")], 37, 1, 1));
 
         var json = await CatalogTools.SearchProductsAsync(gateway, "trail", maxResults: 1);
 
         using var doc = JsonDocument.Parse(json);
         doc.RootElement.GetProperty("count").GetInt32().Should().Be(1);
+        doc.RootElement.GetProperty("totalMatches").GetInt32().Should().Be(37);
         doc.RootElement.GetProperty("products")[0].GetProperty("name")
-            .GetString().Should().StartWith("Trail Runner");
-    }
-
-    [Fact]
-    public async Task SearchProducts_ExcludesInactiveProducts()
-    {
-        var inactive = Product("Hidden Item") with { IsActive = false };
-        var gateway = Substitute.For<IOrderSphereGateway>();
-        gateway.GetProductsAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(new PagedResult<ProductDto>([inactive], 1, 1, 50));
-
-        var json = await CatalogTools.SearchProductsAsync(gateway, "hidden");
-
-        using var doc = JsonDocument.Parse(json);
-        doc.RootElement.GetProperty("count").GetInt32().Should().Be(0);
+            .GetString().Should().Be("Trail Runner X1");
     }
 
     [Fact]

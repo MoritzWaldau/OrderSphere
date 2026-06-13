@@ -26,8 +26,6 @@ public sealed class UpdateOrderStatusCommandHandler(
             if (order is null)
                 return Result.Failure(OrderErrors.OrderNotFoundError);
 
-            await context.BeginTransactionAsync(cancellationToken);
-
             try
             {
                 switch (request.NewStatus)
@@ -49,14 +47,13 @@ public sealed class UpdateOrderStatusCommandHandler(
                 return Result.Failure(OrderErrors.InvalidStatusTransition);
             }
 
-            await context.CommitAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Order {OrderId} status updated to {NewStatus}", order.Id, request.NewStatus);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            await context.RollbackAsync(cancellationToken);
             logger.LogError(ex, "Failed to update status for order {OrderId}", request.OrderId);
             return Result.Failure(OrderErrors.UnknownError);
         }

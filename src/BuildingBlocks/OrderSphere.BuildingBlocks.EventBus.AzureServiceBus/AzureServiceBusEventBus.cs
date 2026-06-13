@@ -18,7 +18,8 @@ public sealed class AzureServiceBusEventBus(
             MessageId = @event.Id.ToString(),
             CorrelationId = @event.CorrelationId.ToString(),
             ContentType = "application/json",
-            Subject = typeof(TEvent).Name
+            Subject = typeof(TEvent).Name,
+            ApplicationProperties = { ["EventType"] = typeof(TEvent).Name }
         };
 
         await using var sender = client.CreateSender(destination);

@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.Json.Serialization;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -27,6 +28,9 @@ public static class Extensions
         builder.ConfigureOpenTelemetry();
 
         builder.AddDefaultHealthChecks();
+
+        builder.Services.ConfigureHttpJsonOptions(o =>
+            o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
         builder.Services.AddServiceDiscovery();
 

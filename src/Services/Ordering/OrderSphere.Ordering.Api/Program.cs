@@ -78,6 +78,7 @@ builder.Services.AddHealthChecks()
 
 // Validation exception → HTTP 400
 builder.AddOrderSphereExceptionHandling();
+builder.Services.AddOrderingApiVersioning();
 
 // JWT Bearer — shared Keycloak validation; audience "ordering-api" is a
 // dedicated bearer-only client in the Keycloak realm.
@@ -113,9 +114,7 @@ app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapCheckoutEndpoints();
-app.MapCouponEndpoints();
-app.MapOrderEndpoints();
+app.MapOrderingEndpoints();
 
 app.MapHealthChecks("/health");
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });

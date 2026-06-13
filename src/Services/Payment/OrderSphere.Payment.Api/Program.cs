@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
+using OrderSphere.Payment.Api.Configuration;
 using OrderSphere.Payment.Api.Endpoints;
 using OrderSphere.Payment.Application;
 using OrderSphere.Payment.Infrastructure;
@@ -28,6 +29,7 @@ builder.Services.AddHealthChecks()
     .AddNpgSql(paymentConnectionString, name: "postgres");
 
 builder.AddOrderSphereExceptionHandling();
+builder.Services.AddPaymentApiVersioning();
 
 builder.AddOrderSphereJwtAuth("payment-api");
 

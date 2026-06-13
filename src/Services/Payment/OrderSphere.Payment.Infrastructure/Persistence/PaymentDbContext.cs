@@ -1,12 +1,13 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Outbox;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
+using OrderSphere.BuildingBlocks.EventBus.Outbox;
 using OrderSphere.BuildingBlocks.Extensions;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Payment.Application.Abstractions;
 using OrderSphere.Payment.Domain.Entities;
-using OrderSphere.Payment.Infrastructure.Outbox;
 
 namespace OrderSphere.Payment.Infrastructure.Persistence;
 
@@ -48,6 +49,19 @@ public sealed class PaymentDbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PaymentDbContext).Assembly);
+        modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
+
+        // xmin is a PostgreSQL system column — only configure it when the provider is Npgsql.
+        // SQLite (used in tests) and other providers do not support the xid column type.
+        if (Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL")
+        {
+            modelBuilder.Entity<OutboxMessage>()
+                .Property<uint>("xmin")
+                .HasColumnType("xid")
+                .ValueGeneratedOnAddOrUpdate()
+                .IsConcurrencyToken();
+        }
+
         base.OnModelCreating(modelBuilder);
     }
 }

@@ -16,9 +16,9 @@ namespace OrderSphere.UserProfile.Api.Endpoints;
 
 public static class ProfileEndpoints
 {
-    public static void MapProfileEndpoints(this IEndpointRouteBuilder app)
+    public static void MapProfileEndpoints(this RouteGroupBuilder v1)
     {
-        var group = app.MapGroup("/api/v1/profile").RequireAuthorization();
+        var group = v1.MapGroup("profile").RequireAuthorization();
 
         group.MapGet("/", GetOrCreateProfile);
         group.MapPut("/", UpdateProfile);

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.Webhooks.Api.Configuration;
 using OrderSphere.Webhooks.Api.Endpoints;
 using OrderSphere.Webhooks.Application;
 using OrderSphere.Webhooks.Infrastructure;
@@ -18,6 +19,7 @@ builder.Services.AddHealthChecks()
     .AddNpgSql(webhooksConnectionString, name: "postgres");
 
 builder.AddOrderSphereExceptionHandling();
+builder.Services.AddWebhooksApiVersioning();
 
 builder.AddOrderSphereJwtAuth("webhooks-api");
 

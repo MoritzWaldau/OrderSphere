@@ -1,6 +1,6 @@
-namespace OrderSphere.Payment.Infrastructure.Outbox;
+namespace OrderSphere.BuildingBlocks.EventBus.Outbox;
 
-internal sealed class OutboxMessage
+public sealed class OutboxMessage
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
     public string Type { get; init; } = "";
@@ -10,5 +10,5 @@ internal sealed class OutboxMessage
     public string? Error { get; set; }
     public int RetryCount { get; set; }
 
-    internal const int MaxRetries = 10;
+    public const int MaxRetries = 10;
 }

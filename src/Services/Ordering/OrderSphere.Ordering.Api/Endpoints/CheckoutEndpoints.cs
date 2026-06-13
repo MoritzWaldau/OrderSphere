@@ -9,9 +9,9 @@ namespace OrderSphere.Ordering.Api.Endpoints;
 
 public static class CheckoutEndpoints
 {
-    public static void MapCheckoutEndpoints(this IEndpointRouteBuilder app)
+    public static void MapCheckoutEndpoints(this RouteGroupBuilder v1)
     {
-        app.MapPost("/api/v1/checkout",
+        v1.MapPost("checkout",
             async (CheckoutRequest request, ICurrentUser currentUser, IMediator mediator,
                    HttpContext http, CancellationToken ct) =>
             {

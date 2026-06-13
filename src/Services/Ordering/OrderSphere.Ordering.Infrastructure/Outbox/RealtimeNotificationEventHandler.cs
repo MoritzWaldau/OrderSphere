@@ -1,6 +1,7 @@
 using System.Text.Json;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus;
+using OrderSphere.BuildingBlocks.EventBus.Outbox;
 
 namespace OrderSphere.Ordering.Infrastructure.Outbox;
 

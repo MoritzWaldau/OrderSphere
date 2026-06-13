@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.UserProfile.Api.Configuration;
 using OrderSphere.UserProfile.Api.Endpoints;
 using OrderSphere.UserProfile.Application;
 using OrderSphere.UserProfile.Infrastructure;
@@ -19,6 +20,7 @@ builder.AddOrderSphereJwtAuth("userprofile-api");
 builder.Services.AddCurrentUser();
 
 builder.AddOrderSphereExceptionHandling();
+builder.Services.AddUserProfileApiVersioning();
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
@@ -39,8 +41,7 @@ app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapProfileEndpoints();
-app.MapAdminProfileEndpoints();
+app.MapUserProfileEndpoints();
 
 app.MapDefaultEndpoints();
 

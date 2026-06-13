@@ -23,19 +23,17 @@ public sealed class GetProductBySlugQueryHandler(ICatalogDbContext context, Hybr
             .Include(p => p.Category)
             .AsNoTracking()
             .Where(p => p.Slug == slug && p.IsActive)
-            .Select(p => new ProductDto
-            {
-                Id = p.Id.Value,
-                Name = p.Name,
-                Slug = p.Slug,
-                Description = p.Description,
-                Price = p.Price,
-                Stock = p.Stock,
-                CategoryId = p.CategoryId.Value,
-                CategoryName = p.Category!.Name,
-                SKU = p.SKU,
-                ImageUrl = p.ImageUrl,
-                IsActive = p.IsActive
-            })
+            .Select(p => new ProductDto(
+                p.Id.Value,
+                p.Name,
+                p.Slug,
+                p.Description,
+                p.Price,
+                p.Stock,
+                p.CategoryId.Value,
+                p.Category!.Name,
+                p.SKU,
+                p.ImageUrl,
+                p.IsActive))
             .FirstOrDefaultAsync(ct);
 }

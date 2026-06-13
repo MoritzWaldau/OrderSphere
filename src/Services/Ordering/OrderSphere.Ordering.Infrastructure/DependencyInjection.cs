@@ -1,7 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
+using OrderSphere.BuildingBlocks.EventBus.Outbox;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Infrastructure.Outbox;
 using OrderSphere.Ordering.Infrastructure.Persistence;
@@ -33,13 +35,9 @@ public static class DependencyInjection
     }
 
     /// <summary>
-    /// Registers OutboxDispatcher as a hosted background service.
+    /// Registers OutboxDispatcher and OutboxCleanupService as hosted background services.
     /// Call from both Ordering.Api and Ordering.Worker hosts.
     /// </summary>
     public static IServiceCollection AddOrderingOutboxProcessing(this IServiceCollection services)
-    {
-        services.AddHostedService<OutboxDispatcher>();
-        services.AddHostedService<OutboxCleanupService>();
-        return services;
-    }
+        => services.AddOutboxProcessing<OrderingDbContext>();
 }

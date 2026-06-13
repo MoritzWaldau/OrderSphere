@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OrderSphere.ServiceDefaults;
@@ -18,7 +19,14 @@ public static class WebhookEndpoints
 {
     public static void MapWebhookEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/v1/webhooks")
+        var versionSet = app.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1, 0))
+            .ReportApiVersions()
+            .Build();
+
+        var group = app.MapGroup("api/v{version:apiVersion}/webhooks")
+            .WithApiVersionSet(versionSet)
+            .HasApiVersion(1.0)
             .RequireAuthorization();
 
         group.MapGet("/", GetSubscriptions);
@@ -62,7 +70,7 @@ public static class WebhookEndpoints
             new CreateSubscriptionCommand(customerId.Value, request.Url, request.Secret, request.Events), ct);
 
         return result.ToHttpResult(
-            dto => Results.Created($"/api/v1/webhooks/{dto.Id}", dto));
+            dto => Results.Created($"/api/v1/webhooks/{dto.Id}", dto)); // Location header; v1 is stable
     }
 
     private static async Task<IResult> UpdateSubscription(

@@ -17,7 +17,6 @@ public static class PaymentEndpoints
         var group = app.MapGroup("api/v{version:apiVersion}/payments")
             .WithApiVersionSet(versionSet)
             .HasApiVersion(1.0)
-            .MapToApiVersion(1.0)
             .RequireAuthorization();
 
         group.MapGet("/by-order/{orderId:guid}", async (

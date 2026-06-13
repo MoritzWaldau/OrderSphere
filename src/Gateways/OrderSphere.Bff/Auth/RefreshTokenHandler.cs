@@ -1,8 +1,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using OrderSphere.BuildingBlocks.Security;
 
 namespace OrderSphere.Bff.Auth;
@@ -10,29 +8,26 @@ namespace OrderSphere.Bff.Auth;
 /// <summary>
 /// CookieAuthenticationEvents implementation that performs refresh-token rotation.
 /// When the stored access token is within 60 seconds of expiry, this handler calls
-/// the OIDC token endpoint (resolved via discovery) with the current refresh token
-/// and replaces both tokens in the authentication ticket (which triggers a Redis
-/// store update via ShouldRenew). On refresh failure the principal is rejected,
-/// forcing re-authentication. Security events are emitted via ISecurityAuditLogger.
+/// Keycloak's token endpoint with the current refresh token and replaces both tokens
+/// in the authentication ticket (which triggers a Redis store update via ShouldRenew).
+/// On refresh failure the principal is rejected, forcing re-authentication.
+/// Security events are emitted via ISecurityAuditLogger on rotation and revocation.
 /// </summary>
 public sealed class RefreshTokenHandler : CookieAuthenticationEvents
 {
     private readonly IConfiguration _config;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IConfigurationManager<OpenIdConnectConfiguration> _oidcConfigManager;
     private readonly ISecurityAuditLogger _auditLogger;
     private readonly ILogger<RefreshTokenHandler> _logger;
 
     public RefreshTokenHandler(
         IConfiguration config,
         IHttpClientFactory httpClientFactory,
-        IConfigurationManager<OpenIdConnectConfiguration> oidcConfigManager,
         ISecurityAuditLogger auditLogger,
         ILogger<RefreshTokenHandler> logger)
     {
         _config = config;
         _httpClientFactory = httpClientFactory;
-        _oidcConfigManager = oidcConfigManager;
         _auditLogger = auditLogger;
         _logger = logger;
     }
@@ -49,6 +44,7 @@ public sealed class RefreshTokenHandler : CookieAuthenticationEvents
         if (!DateTimeOffset.TryParse(expiresAt, null, System.Globalization.DateTimeStyles.RoundtripKind, out var expiry))
             return;
 
+        // No-op when token still has more than 60 seconds of validity.
         if (expiry > DateTimeOffset.UtcNow.AddSeconds(60))
             return;
 
@@ -80,6 +76,7 @@ public sealed class RefreshTokenHandler : CookieAuthenticationEvents
             context.Properties.UpdateTokenValue("expires_at",
                 DateTimeOffset.UtcNow.AddSeconds(tokenResponse.ExpiresIn).ToString("o"));
 
+            // ShouldRenew = true writes the updated ticket back to Redis and re-issues the session key.
             context.ShouldRenew = true;
 
             var rotatedSub = context.Principal?.FindFirst("sub")?.Value;
@@ -109,16 +106,15 @@ public sealed class RefreshTokenHandler : CookieAuthenticationEvents
 
     private async Task<TokenResponse?> ExchangeRefreshTokenAsync(string refreshToken)
     {
-        var clientId = _config["Oidc:ClientId"]
-            ?? throw new InvalidOperationException("Oidc:ClientId not configured.");
-        var clientSecret = _config["Oidc:ClientSecret"]
-            ?? throw new InvalidOperationException("Oidc:ClientSecret not configured.");
+        var authority = _config["Keycloak:Authority"]
+            ?? throw new InvalidOperationException("Keycloak:Authority not configured.");
+        var clientId = _config["Keycloak:ClientId"] ?? "web-bff";
+        var clientSecret = _config["Keycloak:ClientSecret"]
+            ?? throw new InvalidOperationException("Keycloak:ClientSecret not configured.");
 
-        var oidcConfig = await _oidcConfigManager.GetConfigurationAsync(CancellationToken.None);
-        var tokenEndpoint = oidcConfig.TokenEndpoint
-            ?? throw new InvalidOperationException("OIDC discovery did not return a token_endpoint.");
+        var tokenEndpoint = $"{authority.TrimEnd('/')}/protocol/openid-connect/token";
 
-        var client = _httpClientFactory.CreateClient("oidc-token");
+        var client = _httpClientFactory.CreateClient("keycloak-token");
         var body = new FormUrlEncodedContent(
         [
             new KeyValuePair<string, string>("grant_type", "refresh_token"),

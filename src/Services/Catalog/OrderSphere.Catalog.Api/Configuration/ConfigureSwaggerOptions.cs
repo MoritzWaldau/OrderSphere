@@ -33,8 +33,8 @@ public sealed class ConfigureSwaggerOptions(IConfiguration configuration)
 
         // OAuth2 Authorization Code + PKCE — enables token acquisition directly
         // from Swagger UI via the swagger-ui public Keycloak client.
-        var authority = configuration["Oidc:Authority"]
-            ?? "https://ordersphere-dev.eu.auth0.com/";
+        var authority = configuration["Keycloak:Authority"]
+            ?? "http://localhost:8080/realms/ordersphere";
 
         options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
         {
@@ -43,12 +43,13 @@ public sealed class ConfigureSwaggerOptions(IConfiguration configuration)
             {
                 AuthorizationCode = new OpenApiOAuthFlow
                 {
-                    AuthorizationUrl = new Uri($"{authority.TrimEnd('/')}/authorize"),
-                    TokenUrl = new Uri($"{authority.TrimEnd('/')}/oauth/token"),
+                    AuthorizationUrl = new Uri($"{authority}/protocol/openid-connect/auth"),
+                    TokenUrl = new Uri($"{authority}/protocol/openid-connect/token"),
                     Scopes = new Dictionary<string, string>
                     {
                         ["openid"] = "OpenID Connect identity token",
-                        ["profile"] = "Basic user profile (name, email)"
+                        ["profile"] = "Basic user profile (name, preferred_username)",
+                        ["roles"] = "Realm roles claim"
                     }
                 }
             }
@@ -58,7 +59,7 @@ public sealed class ConfigureSwaggerOptions(IConfiguration configuration)
         {
             {
                 new OpenApiSecuritySchemeReference("oauth2"),
-                ["openid", "profile"]
+                ["openid", "profile", "roles"]
             }
         });
     }

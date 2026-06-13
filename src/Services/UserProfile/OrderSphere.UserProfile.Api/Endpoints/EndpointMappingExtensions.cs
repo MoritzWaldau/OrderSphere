@@ -13,8 +13,7 @@ public static class EndpointMappingExtensions
 
         var v1 = app.MapGroup("api/v{version:apiVersion}")
             .WithApiVersionSet(versionSet)
-            .HasApiVersion(1.0)
-            .MapToApiVersion(1.0);
+            .HasApiVersion(1.0);
 
         v1.MapProfileEndpoints();
         v1.MapAdminProfileEndpoints();

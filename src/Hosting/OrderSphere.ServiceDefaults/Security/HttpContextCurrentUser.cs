@@ -24,7 +24,6 @@ internal sealed class HttpContextCurrentUser : ICurrentUser
 
     /// <inheritdoc/>
     public string? Name =>
-        _principal.FindFirstValue("name") ??
         _principal.FindFirstValue("preferred_username") ??
         _principal.FindFirstValue(ClaimTypes.Name);
 

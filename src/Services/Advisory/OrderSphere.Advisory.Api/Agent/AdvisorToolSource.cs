@@ -26,7 +26,7 @@ public sealed class McpAdvisorToolSource(
 {
     public async Task<AdvisorToolLease> AcquireAsync(CancellationToken ct)
     {
-        var mcpBaseUrl = configuration["Services:Mcp:BaseUrl"] ?? "https://ordersphere-mcp";
+        var mcpBaseUrl = configuration["Services:Mcp:BaseUrl"] ?? "http://ordersphere-mcp";
         var headers = new Dictionary<string, string>();
 
         var authorization = httpContextAccessor.HttpContext?.Request.Headers.Authorization.ToString();

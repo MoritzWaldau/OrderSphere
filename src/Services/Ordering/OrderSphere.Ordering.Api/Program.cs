@@ -53,13 +53,13 @@ builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEvent
 builder.Services.AddValidatorsFromAssembly(typeof(IOrderingDbContext).Assembly);
 
 // HTTP client for Catalog service (internal stock operations).
-// ClientCredentialsTokenHandler acquires a client_credentials token (configured
-// via Oidc:ClientId / Oidc:ClientSecret) and forwards it as a Bearer token.
+// ClientCredentialsTokenHandler acquires a Keycloak client_credentials token (configured
+// via Keycloak:ClientId / Keycloak:ClientSecret) and forwards it as a Bearer token.
 // Note: AddStandardResilienceHandler is applied globally via AddServiceDefaults().
 builder.Services.AddHttpClient<ICatalogClient, HttpCatalogClient>(client =>
 {
     var catalogUrl = builder.Configuration["Services:Catalog:BaseUrl"]
-        ?? "https://ordersphere-catalog";
+        ?? "http://ordersphere-catalog";
     client.BaseAddress = new Uri(catalogUrl);
 }).AddClientCredentialsHandler();
 
@@ -67,7 +67,7 @@ builder.Services.AddHttpClient<ICatalogClient, HttpCatalogClient>(client =>
 builder.Services.AddHttpClient<IBasketClient, HttpBasketClient>(client =>
 {
     var basketUrl = builder.Configuration["Services:Basket:BaseUrl"]
-        ?? "https://ordersphere-basket";
+        ?? "http://ordersphere-basket";
     client.BaseAddress = new Uri(basketUrl);
 }).AddClientCredentialsHandler();
 

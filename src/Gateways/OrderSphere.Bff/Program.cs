@@ -13,11 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // ── Configuration ────────────────────────────────────────────────────────────
-var keycloakAuthority = builder.Configuration["Oidc:Authority"]
-    ?? throw new InvalidOperationException("Oidc:Authority is not configured.");
-var keycloakClientId = builder.Configuration["Oidc:ClientId"] ?? "web-bff";
-var keycloakClientSecret = builder.Configuration["Oidc:ClientSecret"]
-    ?? throw new InvalidOperationException("Oidc:ClientSecret is not configured.");
+var keycloakAuthority = builder.Configuration["Keycloak:Authority"]
+    ?? throw new InvalidOperationException("Keycloak:Authority is not configured.");
+var keycloakClientId = builder.Configuration["Keycloak:ClientId"] ?? "web-bff";
+var keycloakClientSecret = builder.Configuration["Keycloak:ClientSecret"]
+    ?? throw new InvalidOperationException("Keycloak:ClientSecret is not configured.");
 // "Testing" is treated like Development: no HTTPS enforcement, no HSTS.
 var isProduction = !builder.Environment.IsDevelopment()
                 && !builder.Environment.IsEnvironment("Testing");

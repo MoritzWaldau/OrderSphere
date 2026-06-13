@@ -8,13 +8,12 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// DelegatingHandler that acquires and caches a client-credentials access token from
-/// the configured OIDC provider, then attaches it as a Bearer token to every outgoing request.
+/// Keycloak, then attaches it as a Bearer token to every outgoing request.
 ///
 /// Configuration keys (resolved at runtime):
-///   Oidc:Authority      — OIDC issuer base URL, e.g. https://ordersphere-dev.eu.auth0.com/
-///   Oidc:Audience       — API audience, e.g. https://api.ordersphere.dev
-///   Oidc:ClientId       — the service-account client ID
-///   Oidc:ClientSecret   — the corresponding client secret
+///   Keycloak:Authority      — realm base URL, e.g. http://keycloak:8080/realms/ordersphere
+///   Keycloak:ClientId       — the service-account client ID, e.g. ordering-worker
+///   Keycloak:ClientSecret   — the corresponding client secret
 ///
 /// Token caching:
 ///   The acquired token is cached in-memory for the lifetime of this handler instance.
@@ -48,34 +47,33 @@ public sealed class ClientCredentialsTokenHandler(
 
     private async Task<string?> GetAccessTokenAsync(CancellationToken ct)
     {
+        // Fast path — cached token still valid.
         if (_cachedToken is not null && DateTimeOffset.UtcNow < _tokenExpiry)
             return _cachedToken;
 
         await _semaphore.WaitAsync(ct);
         try
         {
+            // Re-check after acquiring the lock (another thread may have refreshed already).
             if (_cachedToken is not null && DateTimeOffset.UtcNow < _tokenExpiry)
                 return _cachedToken;
 
-            var authority = config["Oidc:Authority"]
-                ?? throw new InvalidOperationException("Oidc:Authority is not configured.");
-            var audience = config["Oidc:Audience"]
-                ?? throw new InvalidOperationException("Oidc:Audience is not configured.");
-            var clientId = config["Oidc:ClientId"]
-                ?? throw new InvalidOperationException("Oidc:ClientId is not configured.");
-            var clientSecret = config["Oidc:ClientSecret"]
-                ?? throw new InvalidOperationException("Oidc:ClientSecret is not configured.");
+            var authority = config["Keycloak:Authority"]
+                ?? throw new InvalidOperationException("Keycloak:Authority is not configured.");
+            var clientId = config["Keycloak:ClientId"]
+                ?? throw new InvalidOperationException("Keycloak:ClientId is not configured.");
+            var clientSecret = config["Keycloak:ClientSecret"]
+                ?? throw new InvalidOperationException("Keycloak:ClientSecret is not configured.");
 
-            // Auth0 token endpoint follows the pattern {authority}oauth/token.
-            var tokenEndpoint = $"{authority.TrimEnd('/')}/oauth/token";
+            var tokenEndpoint = $"{authority.TrimEnd('/')}/protocol/openid-connect/token";
 
-            var client = httpClientFactory.CreateClient("oidc-cc-token");
+            // Use the dedicated bare HTTP client to avoid recursive handler chains.
+            var client = httpClientFactory.CreateClient("keycloak-cc-token");
             using var body = new FormUrlEncodedContent(
             [
                 new KeyValuePair<string, string>("grant_type",    "client_credentials"),
                 new KeyValuePair<string, string>("client_id",     clientId),
                 new KeyValuePair<string, string>("client_secret", clientSecret),
-                new KeyValuePair<string, string>("audience",      audience),
             ]);
 
             var response = await client.PostAsync(tokenEndpoint, body, ct);
@@ -118,14 +116,17 @@ public static class ClientCredentialsExtensions
     /// Registers <see cref="ClientCredentialsTokenHandler"/> as a transient service and
     /// adds it to the named/typed HTTP client's handler pipeline.
     ///
-    /// The service must configure <c>Oidc:Authority</c>, <c>Oidc:Audience</c>,
-    /// <c>Oidc:ClientId</c>, and <c>Oidc:ClientSecret</c> — typically injected by
-    /// Aspire via environment variables.
+    /// The service must configure <c>Keycloak:Authority</c>, <c>Keycloak:ClientId</c>, and
+    /// <c>Keycloak:ClientSecret</c> — typically injected by Aspire via environment variables.
+    ///
+    /// A dedicated bare HTTP client named <c>keycloak-cc-token</c> is registered to avoid
+    /// recursive handler-pipeline resolution when the handler calls the Keycloak token endpoint.
     /// </summary>
     public static IHttpClientBuilder AddClientCredentialsHandler(
         this IHttpClientBuilder builder)
     {
-        builder.Services.AddHttpClient("oidc-cc-token");
+        // Bare client for the token endpoint — must not carry ClientCredentialsTokenHandler itself.
+        builder.Services.AddHttpClient("keycloak-cc-token");
 
         builder.Services.AddTransient<ClientCredentialsTokenHandler>();
         builder.AddHttpMessageHandler<ClientCredentialsTokenHandler>();

@@ -25,11 +25,37 @@ var foundryDeployment = builder.Configuration["Foundry:Deployment"] ?? "gpt-4o-m
 // Key Vault secrets at deployment time; no code change required in service projects.
 builder.AddAzureKeyVault("ordersphere-kv");
 
-// Auth0 authority URL for all services. Local default is in appsettings.Development.json;
-// in Azure the value is provided via Key Vault / azd parameter.
-var oidcAuthority = builder.AddParameter("oidc-authority");
+// ── Keycloak ──────────────────────────────────────────────────────────────────
+// In run mode (local dev): generic container started automatically.
+//   Admin UI: http://localhost:8080  admin / <keycloak-admin-password from user-secrets>
+//   Realm file is mounted and imported once on first start via --import-realm.
+//   After first start, run: contracts/keycloak/seed-dev-passwords.ps1
+// In publish mode (Azure): Keycloak is externally hosted; container is excluded.
+IResourceBuilder<ContainerResource>? keycloak = null;
 
-const string OidcAudience = "https://api.ordersphere.dev";
+if (!builder.ExecutionContext.IsPublishMode)
+{
+    // Declared inside the run-mode guard: the admin password is only consumed by the
+    // local Keycloak container. Declaring it at the top level would make it a required
+    // secure input of the published Azure manifest, where Keycloak is externally hosted
+    // and the value is unused — forcing azd to demand a value it never applies.
+    var keycloakAdminPwd = builder.AddParameter("keycloak-admin-password", secret: true);
+
+    keycloak = builder.AddContainer("keycloak", "quay.io/keycloak/keycloak", "26.1")
+        .WithHttpEndpoint(port: 8080, targetPort: 8080, name: "http")
+        .WithEnvironment("KEYCLOAK_ADMIN", "admin")
+        .WithEnvironment("KEYCLOAK_ADMIN_PASSWORD", keycloakAdminPwd)
+        .WithBindMount("../../../contracts/keycloak/ordersphere-realm.json", "/opt/keycloak/data/import/ordersphere-realm.json", isReadOnly: true)
+        .WithArgs("start-dev", "--import-realm")
+        .WithVolume("keycloak-data", "/opt/keycloak/data")
+        .WithLifetime(ContainerLifetime.Persistent)
+        // Wait until the realm is fully imported before any service starts JWT validation.
+        .WithHttpHealthCheck("/realms/ordersphere/.well-known/openid-configuration", endpointName: "http");
+}
+
+// Authority URL for all services. Local default is in appsettings.Development.json;
+// in Azure the value is provided via Key Vault / azd parameter.
+var keycloakAuthority = builder.AddParameter("keycloak-realm-authority");
 
 var postgresServer = builder.AddAzurePostgresFlexibleServer("postgres")
     .RunAsContainer(c => c.WithPgAdmin().WithLifetime(ContainerLifetime.Persistent));
@@ -92,17 +118,19 @@ var catalog = builder.AddProject<Projects.OrderSphere_Catalog_Api>("ordersphere-
     .WithReference(redis)
     .WaitFor(catalogDb)
     .WaitFor(redis)
-    .WithEnvironment("Oidc__Authority", oidcAuthority)
-    .WithEnvironment("Oidc__Audience", OidcAudience);
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__Audience", "catalog-api");
+if (keycloak is not null) catalog.WaitFor(keycloak);
 
 var basket = builder.AddProject<Projects.OrderSphere_Basket_Api>("ordersphere-basket")
     .WithReference(basketDb)
     .WithReference(catalog)
     .WaitFor(basketDb)
-    .WithEnvironment("Oidc__Authority", oidcAuthority)
-    .WithEnvironment("Oidc__Audience", OidcAudience)
-    .WithEnvironment("Oidc__ClientId", "xY2Mgok7H98OsgFswj8JLC0gcgA6Oegy")
-    .WithEnvironment("Oidc__ClientSecret", orderingWorkerSecret);
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__Audience", "basket-api")
+    .WithEnvironment("Keycloak__ClientId", "ordering-worker")
+    .WithEnvironment("Keycloak__ClientSecret", orderingWorkerSecret);
+if (keycloak is not null) basket.WaitFor(keycloak);
 
 var ordering = builder.AddProject<Projects.OrderSphere_Ordering_Api>("ordersphere-ordering")
     .WithReference(orderingDb)
@@ -113,58 +141,65 @@ var ordering = builder.AddProject<Projects.OrderSphere_Ordering_Api>("orderspher
     .WaitFor(orderingDb)
     .WaitFor(serviceBus)
     .WaitFor(redis)
-    .WithEnvironment("Oidc__Authority", oidcAuthority)
-    .WithEnvironment("Oidc__Audience", OidcAudience)
-    .WithEnvironment("Oidc__ClientId", "xY2Mgok7H98OsgFswj8JLC0gcgA6Oegy")
-    .WithEnvironment("Oidc__ClientSecret", orderingWorkerSecret);
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__Audience", "ordering-api")
+    // Service-account credentials used by HttpCatalogClient (client_credentials grant).
+    .WithEnvironment("Keycloak__ClientId", "ordering-worker")
+    .WithEnvironment("Keycloak__ClientSecret", orderingWorkerSecret);
+if (keycloak is not null) ordering.WaitFor(keycloak);
 
 builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-worker")
     .WithReference(orderingDb)
     .WithReference(serviceBus)
     .WaitFor(orderingDb)
     .WaitFor(serviceBus)
-    .WithEnvironment("Oidc__Authority", oidcAuthority)
-    .WithEnvironment("Oidc__ClientId", "xY2Mgok7H98OsgFswj8JLC0gcgA6Oegy")
-    .WithEnvironment("Oidc__ClientSecret", orderingWorkerSecret);
+    // Pre-wired for future M2M calls (e.g. Catalog enrichment).
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__ClientId", "ordering-worker")
+    .WithEnvironment("Keycloak__ClientSecret", orderingWorkerSecret);
 
 builder.AddProject<Projects.OrderSphere_Notification_Worker>("ordersphere-notification-worker")
     .WithReference(notificationDb)
     .WithReference(serviceBus)
     .WaitFor(notificationDb)
     .WaitFor(serviceBus)
-    .WithEnvironment("Oidc__Authority", oidcAuthority)
-    .WithEnvironment("Oidc__ClientId", "notification-worker")
-    .WithEnvironment("Oidc__ClientSecret", notificationWorkerSecret);
+    // Pre-wired for future M2M calls (e.g. UserProfile enrichment).
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__ClientId", "notification-worker")
+    .WithEnvironment("Keycloak__ClientSecret", notificationWorkerSecret);
 
 var payment = builder.AddProject<Projects.OrderSphere_Payment_Api>("ordersphere-payment")
     .WithReference(paymentDb)
     .WithReference(serviceBus)
     .WaitFor(paymentDb)
     .WaitFor(serviceBus)
-    .WithEnvironment("Oidc__Authority", oidcAuthority)
-    .WithEnvironment("Oidc__Audience", OidcAudience);
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__Audience", "payment-api");
+if (keycloak is not null) payment.WaitFor(keycloak);
 
 builder.AddProject<Projects.OrderSphere_Payment_Worker>("ordersphere-payment-worker")
     .WithReference(paymentDb)
     .WithReference(serviceBus)
     .WaitFor(paymentDb)
     .WaitFor(serviceBus)
-    .WithEnvironment("Oidc__Authority", oidcAuthority)
-    .WithEnvironment("Oidc__ClientId", "payment-worker")
-    .WithEnvironment("Oidc__ClientSecret", paymentWorkerSecret)
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__ClientId", "payment-worker")
+    .WithEnvironment("Keycloak__ClientSecret", paymentWorkerSecret)
     .WithEnvironment("Payment__BypassProviders", paymentBypassProviders);
 
 var userProfile = builder.AddProject<Projects.OrderSphere_UserProfile_Api>("ordersphere-userprofile")
     .WithReference(userProfileDb)
     .WaitFor(userProfileDb)
-    .WithEnvironment("Oidc__Authority", oidcAuthority)
-    .WithEnvironment("Oidc__Audience", OidcAudience);
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__Audience", "userprofile-api");
+if (keycloak is not null) userProfile.WaitFor(keycloak);
 
 var webhooks = builder.AddProject<Projects.OrderSphere_Webhooks_Api>("ordersphere-webhooks")
     .WithReference(webhooksDb)
     .WaitFor(webhooksDb)
-    .WithEnvironment("Oidc__Authority", oidcAuthority)
-    .WithEnvironment("Oidc__Audience", OidcAudience);
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__Audience", "webhooks-api");
+if (keycloak is not null) webhooks.WaitFor(keycloak);
 
 builder.AddProject<Projects.OrderSphere_Webhooks_Worker>("ordersphere-webhooks-worker")
     .WithReference(webhooksDb)
@@ -185,7 +220,8 @@ var apiGateway = builder.AddProject<Projects.OrderSphere_ApiGateway>("orderspher
     .WaitFor(payment)
     .WaitFor(userProfile)
     .WaitFor(webhooks)
-    .WithEnvironment("Oidc__Authority", oidcAuthority);
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority);
+if (keycloak is not null) apiGateway.WaitFor(keycloak);
 
 // MCP server: exposes OrderSphere data as Model Context Protocol tools over Streamable
 // HTTP. Consumed by the internal advisory agent and by external MCP clients. Calls the
@@ -194,7 +230,8 @@ var mcpServer = builder.AddProject<Projects.OrderSphere_Mcp_Server>("ordersphere
     .WithExternalHttpEndpoints()
     .WithReference(apiGateway)
     .WaitFor(apiGateway)
-    .WithEnvironment("Oidc__Authority", oidcAuthority);
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority);
+if (keycloak is not null) mcpServer.WaitFor(keycloak);
 
 // Advisory agent: Azure OpenAI/Foundry-backed chat that reaches OrderSphere data
 // exclusively through the MCP server, forwarding the end-user's bearer token.
@@ -203,12 +240,13 @@ var advisory = builder.AddProject<Projects.OrderSphere_Advisory_Api>("orderspher
     .WithReference(advisoryDb)
     .WaitFor(mcpServer)
     .WaitFor(advisoryDb)
-    .WithEnvironment("Oidc__Authority", oidcAuthority)
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
     .WithEnvironment("Foundry__Endpoint", foundryEndpoint)
     .WithEnvironment("Foundry__Deployment", foundryDeployment)
     // Concrete endpoint reference, not the logical name: the MCP client transport
     // uses a plain HttpClient without Aspire service discovery.
     .WithEnvironment("Services__Mcp__BaseUrl", mcpServer.GetEndpoint("http"));
+if (keycloak is not null) advisory.WaitFor(keycloak);
 
 builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")
     .WithExternalHttpEndpoints()
@@ -220,8 +258,8 @@ builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")
     .WaitFor(advisory)
     .WaitFor(redis)
     .WaitFor(serviceBus)
-    .WithEnvironment("Oidc__Authority", oidcAuthority)
-    .WithEnvironment("Oidc__ClientId", "B70xhPsEf7EBrKbpZiUZHoXmBIATbrDO")
-    .WithEnvironment("Oidc__ClientSecret", bffClientSecret);
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__ClientId", "web-bff")
+    .WithEnvironment("Keycloak__ClientSecret", bffClientSecret);
 
 builder.Build().Run();

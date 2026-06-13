@@ -13,8 +13,6 @@ using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Events;
 using OrderSphere.Ordering.Domain.ValueObjects;
-using ShippingAddressDto = OrderSphere.BuildingBlocks.Contracts.Events.ShippingAddressDto;
-using OrderItemDto = OrderSphere.BuildingBlocks.Contracts.Events.OrderItemDto;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 using OrderSphere.Ordering.Worker.Workers;
 using Xunit;
@@ -65,16 +63,15 @@ public sealed class PaymentResultToOrderFlowTests : IDisposable
 
     private async Task<(Guid OrderId, Guid CorrelationId)> SeedOrderAsync()
     {
-        var checkoutEvent = new CheckoutCartIntegrationEvent
-        {
-            CorrelationId = Guid.NewGuid(),
-            CustomerId = CustomerGuid,
-            CustomerEmail = "customer@example.com",
-            CustomerName = "Max Mustermann",
-            ShippingAddress = new ShippingAddressDto("Max", "Mustermann", "Hauptstr. 1", "Berlin", "10115", "DE"),
-            PaymentMethod = PaymentMethod.CreditCard.ToString(),
-            Items = [new OrderItemDto(ProductGuid, "Widget", 2, 9.99m)]
-        };
+        var checkoutEvent = new CheckoutCartEvent(
+            CorrelationId: Guid.NewGuid(),
+            CheckoutCart: new CheckoutCartDto(
+                CustomerGuid,
+                "customer@example.com",
+                "Max Mustermann",
+                new Address("Max", "Mustermann", "Hauptstr. 1", "Berlin", "10115", "DE"),
+                PaymentMethod.CreditCard),
+            Items: [new OrderItemEventDto(ProductGuid, "Widget", 2, 9.99m)]);
 
         await using var ctx = NewContext();
         var result = await new OrderProcessor(

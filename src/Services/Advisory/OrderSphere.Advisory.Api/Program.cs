@@ -17,7 +17,7 @@ builder.AddAdvisoryInfrastructure();
 
 // Keycloak JWT validation. The end-user token is forwarded by the BFF; the agent
 // passes it on to the MCP server. Audience is validated downstream, not here.
-var authority = builder.Configuration["Keycloak:Authority"];
+var authority = builder.Configuration["Oidc:Authority"];
 var authEnabled = !string.IsNullOrWhiteSpace(authority);
 if (authEnabled)
 {

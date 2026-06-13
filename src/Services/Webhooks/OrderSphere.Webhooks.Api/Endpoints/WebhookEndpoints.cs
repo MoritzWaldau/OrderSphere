@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.ServiceDefaults;
 using OrderSphere.Webhooks.Application.Features.Deliveries.GetDeliveries;
 using OrderSphere.Webhooks.Application.Features.Subscriptions.ActivateSubscription;
@@ -27,6 +28,7 @@ public static class WebhookEndpoints
         var group = app.MapGroup("api/v{version:apiVersion}/webhooks")
             .WithApiVersionSet(versionSet)
             .HasApiVersion(1.0)
+            .MapToApiVersion(1.0)
             .RequireAuthorization();
 
         group.MapGet("/", GetSubscriptions);
@@ -132,7 +134,7 @@ public static class WebhookEndpoints
     private static Guid? GetCustomerId(ClaimsPrincipal user)
     {
         var sub = user.FindFirst("sub")?.Value;
-        return Guid.TryParse(sub, out var id) ? id : null;
+        return sub is null ? null : CustomerId.FromSub(sub).Value;
     }
 }
 

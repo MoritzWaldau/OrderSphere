@@ -14,6 +14,8 @@ using OrderSphere.Ordering.Application.Features.Checkout;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Events;
 using OrderSphere.Ordering.Domain.ValueObjects;
+using ShippingAddressDto = OrderSphere.BuildingBlocks.Contracts.Events.ShippingAddressDto;
+using OrderItemDto = OrderSphere.BuildingBlocks.Contracts.Events.OrderItemDto;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 using OrderSphere.Ordering.Worker.Workers;
 using Xunit;
@@ -110,6 +112,24 @@ public sealed class CheckoutToPaymentFlowTests
             Substitute.For<IServiceScopeFactory>(),
             NullLogger<OrderProcessor>.Instance);
 
+    private static CheckoutCartIntegrationEvent ToIntegrationEvent(CheckoutCartEvent e) =>
+        new()
+        {
+            CorrelationId = e.CorrelationId,
+            CustomerId = e.CheckoutCart.CustomerId,
+            CustomerEmail = e.CheckoutCart.CustomerEmail,
+            CustomerName = e.CheckoutCart.CustomerName,
+            ShippingAddress = new ShippingAddressDto(
+                e.CheckoutCart.ShippingAddress.FirstName,
+                e.CheckoutCart.ShippingAddress.LastName,
+                e.CheckoutCart.ShippingAddress.Street,
+                e.CheckoutCart.ShippingAddress.City,
+                e.CheckoutCart.ShippingAddress.PostalCode,
+                e.CheckoutCart.ShippingAddress.Country),
+            PaymentMethod = e.CheckoutCart.PaymentMethod.ToString(),
+            Items = e.Items.Select(i => new OrderItemDto(i.ProductId, i.ProductName, i.Quantity, i.Price)).ToList()
+        };
+
     // --- Tests -------------------------------------------------------------------------------
 
     [Fact]
@@ -136,7 +156,7 @@ public sealed class CheckoutToPaymentFlowTests
 
         // Stage 2 — the worker consumes the very event the API produced.
         await using var context = NewContext();
-        var processResult = await NewProcessor().ProcessOrderAsync(orderEvent, context, CancellationToken.None);
+        var processResult = await NewProcessor().ProcessOrderAsync(ToIntegrationEvent(orderEvent), context, CancellationToken.None);
         processResult.IsSuccess.Should().BeTrue();
 
         // An Order materialised for the customer with both lines and the shared correlation id.
@@ -252,8 +272,9 @@ public sealed class CheckoutToPaymentFlowTests
         await using var context = NewContext();
         var processor = NewProcessor();
 
-        var first = await processor.ProcessOrderAsync(orderEvent, context, CancellationToken.None);
-        var second = await processor.ProcessOrderAsync(orderEvent, context, CancellationToken.None);
+        var integrationEvent = ToIntegrationEvent(orderEvent);
+        var first = await processor.ProcessOrderAsync(integrationEvent, context, CancellationToken.None);
+        var second = await processor.ProcessOrderAsync(integrationEvent, context, CancellationToken.None);
 
         first.IsSuccess.Should().BeTrue();
         second.IsSuccess.Should().BeTrue();

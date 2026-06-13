@@ -94,7 +94,7 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
     public async Task Get_ToApi_IsNotBlockedByCsrfMiddleware()
     {
         // CSRF middleware only runs for non-safe methods (POST, PUT, DELETE, …).
-        // A GET to /api/** reaches UseAuthorization first (unauthenticated → 302),
+        // A GET to /api/** reaches UseAuthorization first (unauthenticated → 401),
         // but the response must not be 403 due to CSRF.
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
@@ -115,7 +115,9 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
     {
         // UseAuthorization short-circuits the pipeline for unauthenticated requests
         // to /api/** (which require BffUserPolicy) BEFORE the CSRF middleware runs.
-        // The response must be an OIDC redirect (302), not a CSRF 403.
+        // For /api/** the OIDC OnRedirectToIdentityProvider handler converts the
+        // would-be 302 challenge into a 401 so a browser fetch sees a clear
+        // "not signed in" status instead of an opaque cross-origin redirect (CORS).
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false,
@@ -125,12 +127,12 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
         var response = await client.PostAsync("/api/orders",
             new StringContent("{}", System.Text.Encoding.UTF8, "application/json"));
 
-        // Unauthenticated → OIDC challenge → 302 redirect to authorization endpoint.
-        // The key assertion is that it is NOT 403 (which would indicate incorrect
-        // CSRF rejection of a request that never passed authentication).
+        // Unauthenticated → auth challenge surfaced as 401 (not a 302 redirect to
+        // Keycloak). The key assertion is that it is NOT 403 (which would indicate
+        // incorrect CSRF rejection of a request that never passed authentication).
         response.StatusCode.Should().NotBe(HttpStatusCode.Forbidden);
-        response.StatusCode.Should().Be(HttpStatusCode.Redirect,
-            because: "unauthenticated mutations are redirected to the OIDC authorization endpoint");
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized,
+            because: "the BFF returns 401 for unauthenticated /api/** mutations instead of an OIDC redirect");
     }
 
     // ── Smoke: generic CSRF middleware error body is distinguishable ──────────

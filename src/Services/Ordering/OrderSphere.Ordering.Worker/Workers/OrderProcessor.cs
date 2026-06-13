@@ -92,84 +92,72 @@ public sealed class OrderProcessor(
         OrderingDbContext context,
         CancellationToken ct)
     {
-        var strategy = context.Database.CreateExecutionStrategy();
+        // Idempotency check
+        var existingOrderId = await context.Orders
+            .Where(o => o.CorrelationId == evt.CorrelationId)
+            .Select(o => (OrderId?)o.Id)
+            .FirstOrDefaultAsync(ct);
+
+        if (existingOrderId is not null)
+        {
+            logger.LogInformation("Duplicate message for CorrelationId {CorrelationId} ignored. Existing OrderId: {OrderId}",
+                evt.CorrelationId, existingOrderId);
+            return ProcessResult.Ok();
+        }
 
         try
         {
-            return await strategy.ExecuteAsync(async () =>
+            await context.BeginTransactionAsync(ct);
+
+            var orderItems = evt.Items
+                .Select(i => new OrderItem(ProductId.From(i.ProductId), i.ProductName, Quantity.Of(i.Quantity), Money.Of(i.Price)))
+                .ToList();
+
+            var addr = evt.ShippingAddress;
+            var shippingAddress = new Address(addr.FirstName, addr.LastName, addr.Street, addr.City, addr.PostalCode, addr.Country);
+            var paymentMethod = Enum.Parse<PaymentMethod>(evt.PaymentMethod);
+
+            var order = new Order(
+                CustomerId.From(evt.CustomerId),
+                shippingAddress,
+                paymentMethod,
+                orderItems,
+                evt.CorrelationId);
+
+            await context.Orders.AddAsync(order, ct);
+
+            var paymentEvent = new PaymentRequestedIntegrationEvent
             {
-                // Idempotency check — re-evaluated on each retry attempt.
-                var existingOrderId = await context.Orders
-                    .Where(o => o.CorrelationId == evt.CorrelationId)
-                    .Select(o => (OrderId?)o.Id)
-                    .FirstOrDefaultAsync(ct);
+                CorrelationId = evt.CorrelationId,
+                OrderId = order.Id.Value,
+                Amount = evt.Items.Sum(i => i.Price * i.Quantity),
+                Currency = "EUR",
+                PaymentMethod = evt.PaymentMethod,
+                CustomerEmail = evt.CustomerEmail
+            };
 
-                if (existingOrderId is not null)
-                {
-                    logger.LogInformation("Duplicate message for CorrelationId {CorrelationId} ignored. Existing OrderId: {OrderId}",
-                        evt.CorrelationId, existingOrderId);
-                    return ProcessResult.Ok();
-                }
+            context.AddOutboxMessage(
+                nameof(PaymentRequestedIntegrationEvent),
+                JsonSerializer.Serialize(paymentEvent));
 
-                await context.BeginTransactionAsync(ct);
+            await context.CommitAsync(ct);
 
-                try
-                {
-                    var orderItems = evt.Items
-                        .Select(i => new OrderItem(ProductId.From(i.ProductId), i.ProductName, Quantity.Of(i.Quantity), Money.Of(i.Price)))
-                        .ToList();
+            logger.LogInformation(
+                "Order {OrderId} created for customer {CustomerId}. CorrelationId: {CorrelationId}",
+                order.Id, order.CustomerId, evt.CorrelationId);
 
-                    var addr = evt.ShippingAddress;
-                    var shippingAddress = new Address(addr.FirstName, addr.LastName, addr.Street, addr.City, addr.PostalCode, addr.Country);
-                    var paymentMethod = Enum.Parse<PaymentMethod>(evt.PaymentMethod);
-
-                    var order = new Order(
-                        CustomerId.From(evt.CustomerId),
-                        shippingAddress,
-                        paymentMethod,
-                        orderItems,
-                        evt.CorrelationId);
-
-                    await context.Orders.AddAsync(order, ct);
-
-                    var paymentEvent = new PaymentRequestedIntegrationEvent
-                    {
-                        CorrelationId = evt.CorrelationId,
-                        OrderId = order.Id.Value,
-                        Amount = evt.Items.Sum(i => i.Price * i.Quantity),
-                        Currency = "EUR",
-                        PaymentMethod = evt.PaymentMethod,
-                        CustomerEmail = evt.CustomerEmail
-                    };
-
-                    context.AddOutboxMessage(
-                        nameof(PaymentRequestedIntegrationEvent),
-                        JsonSerializer.Serialize(paymentEvent));
-
-                    await context.CommitAsync(ct);
-
-                    logger.LogInformation(
-                        "Order {OrderId} created for customer {CustomerId}. CorrelationId: {CorrelationId}",
-                        order.Id, order.CustomerId, evt.CorrelationId);
-
-                    return ProcessResult.Ok();
-                }
-                catch (DbUpdateException dbEx) when (IsUniqueConstraintViolation(dbEx))
-                {
-                    await context.RollbackAsync(ct);
-                    logger.LogWarning(dbEx, "Concurrent insert detected for CorrelationId {CorrelationId}.",
-                        evt.CorrelationId);
-                    return ProcessResult.Ok(); // idempotent — another instance won the race
-                }
-                catch
-                {
-                    await context.RollbackAsync(ct);
-                    throw; // let the execution strategy retry on transient failures
-                }
-            });
+            return ProcessResult.Ok();
+        }
+        catch (DbUpdateException dbEx) when (IsUniqueConstraintViolation(dbEx))
+        {
+            await context.RollbackAsync(ct);
+            logger.LogWarning(dbEx, "Concurrent insert detected for CorrelationId {CorrelationId}.",
+                evt.CorrelationId);
+            return ProcessResult.Ok(); // idempotent — another instance won the race
         }
         catch (Exception ex)
         {
+            await context.RollbackAsync(ct);
             logger.LogError(ex, "Failed to process order for customer {CustomerId}. CorrelationId: {CorrelationId}",
                 evt.CustomerId, evt.CorrelationId);
             return ProcessResult.Fail(ex.Message);

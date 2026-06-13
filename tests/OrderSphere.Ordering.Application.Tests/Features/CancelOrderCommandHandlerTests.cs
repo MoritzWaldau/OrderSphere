@@ -42,7 +42,6 @@ public sealed class CancelOrderCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(OrderErrors.OrderNotFoundError);
-        await ctx.Received(1).RollbackAsync(Arg.Any<CancellationToken>());
     }
 
     // ── Cancel from invalid state (Delivered) ────────────────────────────────────
@@ -60,7 +59,6 @@ public sealed class CancelOrderCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(OrderErrors.InvalidStatusTransition);
-        await ctx.Received(1).RollbackAsync(Arg.Any<CancellationToken>());
     }
 
     // ── Happy path (Created state) ──────────────────────────────────────────────
@@ -82,7 +80,7 @@ public sealed class CancelOrderCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         order.Status.Should().Be(OrderStatus.Cancelled);
-        await ctx.Received(1).CommitAsync(Arg.Any<CancellationToken>());
+        await ctx.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     // ── Stock restore fails — still completes (logged, not a failure) ────────────
@@ -103,20 +101,20 @@ public sealed class CancelOrderCommandHandlerTests
         var result = await CreateHandler(ctx, catalog).Handle(new(orderId.Value), default);
 
         result.IsSuccess.Should().BeTrue();
-        await ctx.Received(1).CommitAsync(Arg.Any<CancellationToken>());
+        await ctx.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    // ── Outer exception → Rollback + UnknownError ───────────────────────────────
+    // ── Outer exception → UnknownError ─────────────────────────────────────────
 
     [Fact]
-    public async Task Handle_CommitThrows_RollbackCalledAndReturnsUnknownError()
+    public async Task Handle_SaveChangesThrows_ReturnsUnknownError()
     {
         var order = CreateOrder();
         var orderId = order.Id;
         var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
-        ctx.CommitAsync(Arg.Any<CancellationToken>())
+        ctx.SaveChangesAsync(Arg.Any<CancellationToken>())
            .ThrowsAsync(new InvalidOperationException("db error"));
 
         var catalog = Substitute.For<ICatalogClient>();
@@ -127,6 +125,5 @@ public sealed class CancelOrderCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(OrderErrors.UnknownError);
-        await ctx.Received(1).RollbackAsync(Arg.Any<CancellationToken>());
     }
 }

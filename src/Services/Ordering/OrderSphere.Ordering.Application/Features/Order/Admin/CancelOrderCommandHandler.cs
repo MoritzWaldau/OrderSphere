@@ -20,16 +20,22 @@ public sealed class CancelOrderCommandHandler(
     {
         try
         {
+            await context.BeginTransactionAsync(cancellationToken);
+
             var order = await context.Orders
                 .Include(o => o.Items)
                 .FirstOrDefaultAsync(o => o.Id == OrderId.From(request.OrderId), cancellationToken);
 
             if (order is null)
+            {
+                await context.RollbackAsync(cancellationToken);
                 return Result.Failure(OrderErrors.OrderNotFoundError);
+            }
 
             try { order.Cancel(); }
             catch (InvalidOperationException ex)
             {
+                await context.RollbackAsync(cancellationToken);
                 logger.LogWarning(ex, "Cannot cancel order {OrderId} in current status", request.OrderId);
                 return Result.Failure(OrderErrors.InvalidStatusTransition);
             }
@@ -42,7 +48,7 @@ public sealed class CancelOrderCommandHandler(
             }
 
             context.Orders.Update(order);
-            await context.SaveChangesAsync(cancellationToken);
+            await context.CommitAsync(cancellationToken);
 
             logger.LogInformation("Order {OrderId} cancelled. Stock restore attempted for {ItemCount} item(s).",
                 order.Id, order.Items.Count);
@@ -51,6 +57,7 @@ public sealed class CancelOrderCommandHandler(
         }
         catch (Exception ex)
         {
+            await context.RollbackAsync(cancellationToken);
             logger.LogError(ex, "Failed to cancel order {OrderId}", request.OrderId);
             return Result.Failure(OrderErrors.UnknownError);
         }

@@ -21,7 +21,7 @@ public sealed class UpdateOrderStatusCommandHandler(
         try
         {
             var order = await context.Orders
-                .FirstOrDefaultAsync(o => o.Id == OrderId.From(request.OrderId) && !o.IsDeleted, cancellationToken);
+                .FirstOrDefaultAsync(o => o.Id == OrderId.From(request.OrderId), cancellationToken);
 
             if (order is null)
                 return Result.Failure(OrderErrors.OrderNotFoundError);

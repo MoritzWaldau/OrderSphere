@@ -11,8 +11,7 @@ public sealed class DeleteSubscriptionCommandHandler(IWebhooksDbContext context)
         var sub = await context.Subscriptions
             .FirstOrDefaultAsync(
                 s => s.Id == WebhookSubscriptionId.From(request.Id)
-                  && s.CustomerId == CustomerId.From(request.CustomerId)
-                  && !s.IsDeleted,
+                  && s.CustomerId == CustomerId.From(request.CustomerId),
                 cancellationToken);
 
         if (sub is null)

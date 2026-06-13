@@ -10,6 +10,7 @@ internal sealed class CartConfiguration : IEntityTypeConfiguration<Cart>
     {
         builder.ToTable("carts");
         builder.HasKey(x => x.Id);
+        builder.HasQueryFilter(x => !x.IsDeleted);
 
         builder.Property(x => x.CustomerId).IsRequired();
         builder.HasIndex(x => x.CustomerId).IsUnique();

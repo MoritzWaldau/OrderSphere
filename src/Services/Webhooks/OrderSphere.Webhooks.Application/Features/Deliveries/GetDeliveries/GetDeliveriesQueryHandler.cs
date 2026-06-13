@@ -15,8 +15,7 @@ public sealed class GetDeliveriesQueryHandler(IWebhooksDbContext context)
         var owns = await context.Subscriptions
             .AnyAsync(
                 s => s.Id == subscriptionId
-                  && s.CustomerId == customerId
-                  && !s.IsDeleted,
+                  && s.CustomerId == customerId,
                 cancellationToken);
 
         if (!owns)

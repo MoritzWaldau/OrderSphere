@@ -27,8 +27,8 @@ repository-root [CLAUDE.md](../CLAUDE.md); this file is the lookup reference it 
 | Ordering | `Ordering.Domain`, `Ordering.Application`, `Ordering.Infrastructure`, `Ordering.Api`, `Ordering.Worker` | Order lifecycle; checkout publishes to Service Bus; Worker creates orders and triggers payment |
 | Basket | `Basket.Domain`, `Basket.Application`, `Basket.Infrastructure`, `Basket.Api` | Customer cart; validates stock via `ICatalogClient` on add |
 | Payment | `Payment.Domain`, `Payment.Application`, `Payment.Infrastructure`, `Payment.Api`, `Payment.Worker` | Payment records; Worker consumes `payment-requests` queue |
-| Webhooks | `Webhooks.Domain`, `Webhooks.Infrastructure`, `Webhooks.Api`, `Webhooks.Worker` | Webhook dispatch; no Application layer (event ingestion only) |
-| Notification | `Notification.Worker` | Sends order confirmation emails via Azure Communication Services |
+| Webhooks | `Webhooks.Domain`, `Webhooks.Application`, `Webhooks.Infrastructure`, `Webhooks.Api`, `Webhooks.Worker` | Subscription CRUD + outbound webhook dispatch; Worker consumes integration events |
+| Notification | `Notification.Worker` | Sends order confirmation emails via Azure Communication Services. Deliberate exception to the per-service layering: a worker-only service with no Domain/Application/Infrastructure split — its `DbContext` lives in the Worker (inbox idempotency only). |
 | UserProfile | `UserProfile.Domain`, `UserProfile.Application`, `UserProfile.Infrastructure`, `UserProfile.Api` | Customer profile data |
 | Advisory | `Advisory.Api`, `Mcp.Server` (both under `src/Services/Advisory/`) | Customer-advisory AI agent + MCP tool server. See [AI advisory](#ai-advisory-agent--mcp-server). |
 
@@ -42,7 +42,7 @@ repository-root [CLAUDE.md](../CLAUDE.md); this file is the lookup reference it 
 | `src/OrderSphere.Web` | Blazor WASM client — pages, components, typed API clients |
 
 ### Tests
-xUnit + FluentAssertions (NSubstitute for mocking, EF Core InMemory where a `DbContext` is needed).
+xUnit + FluentAssertions (NSubstitute for mocking; EF Core in-memory, or SQLite in-memory where a real `DbContext` must exercise global query filters — required for entities with complex properties such as `Product.Price`).
 
 | Project | Covers |
 |---|---|

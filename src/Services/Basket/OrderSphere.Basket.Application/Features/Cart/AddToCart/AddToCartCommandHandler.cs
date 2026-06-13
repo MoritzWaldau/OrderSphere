@@ -20,7 +20,7 @@ public sealed class AddToCartCommandHandler(
     {
         var cart = await context.Carts
             .Include(x => x.Items)
-            .FirstOrDefaultAsync(x => x.CustomerId == request.CustomerId && !x.IsDeleted, cancellationToken);
+            .FirstOrDefaultAsync(x => x.CustomerId == request.CustomerId, cancellationToken);
 
         var isNewCart = cart is null;
         cart ??= new CartEntity(request.CustomerId);

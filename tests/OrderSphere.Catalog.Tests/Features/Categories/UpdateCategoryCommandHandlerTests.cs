@@ -1,5 +1,6 @@
 using MockQueryable.NSubstitute;
 using OrderSphere.Catalog.Application.Features.Categories.Admin.UpdateCategory;
+using OrderSphere.Catalog.Tests.Helpers;
 
 namespace OrderSphere.Catalog.Tests.Features.Categories;
 
@@ -30,11 +31,12 @@ public sealed class UpdateCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_CategoryIsDeleted_ReturnsNotFoundError()
     {
+        await using var ctx = CatalogDbContextFactory.Create();
         var cat = MakeCategory(CategoryA);
+        ctx.Categories.Add(cat);
+        await ctx.SaveChangesAsync();
         cat.IsDeleted = true;
-        var categories = new List<Category> { cat }.AsQueryable().BuildMockDbSet();
-        var ctx = Substitute.For<ICatalogDbContext>();
-        ctx.Categories.Returns(categories);
+        await ctx.SaveChangesAsync();
 
         var result = await CreateHandler(ctx).Handle(
             new(CategoryA, "Updated", "desc", true), default);

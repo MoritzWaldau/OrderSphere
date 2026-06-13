@@ -1,4 +1,5 @@
 using OrderSphere.Ordering.Application.Features.Order;
+using OrderSphere.Ordering.Application.Tests.Helpers;
 
 namespace OrderSphere.Ordering.Application.Tests.Features;
 
@@ -38,11 +39,12 @@ public sealed class GetOrderByIdQueryHandlerTests
     [Fact]
     public async Task Handle_OrderIsDeleted_ReturnsOrderNotFoundError()
     {
+        await using var ctx = OrderingDbContextFactory.Create();
         var order = CreateOrder();
+        ctx.Orders.Add(order);
+        await ctx.SaveChangesAsync();
         order.IsDeleted = true;
-        var orders = new List<Order> { order }.AsQueryable().BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
+        await ctx.SaveChangesAsync();
 
         var result = await CreateHandler(ctx).Handle(new(order.Id.Value), default);
 

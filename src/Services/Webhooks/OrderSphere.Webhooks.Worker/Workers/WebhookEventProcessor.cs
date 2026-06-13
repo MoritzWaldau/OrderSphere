@@ -107,7 +107,7 @@ public sealed class WebhookEventProcessor(
             // Find all active subscriptions that listen to this event type.
             var eventTypeName = webhookEventType.Value.ToString();
             var subscriptions = await db.Subscriptions
-                .Where(s => s.IsActive && !s.IsDeleted && s.Events.Contains(eventTypeName))
+                .Where(s => s.IsActive && s.Events.Contains(eventTypeName))
                 .ToListAsync(args.CancellationToken);
 
             // Filter precisely (Contains is a substring match; verify exact enum membership).

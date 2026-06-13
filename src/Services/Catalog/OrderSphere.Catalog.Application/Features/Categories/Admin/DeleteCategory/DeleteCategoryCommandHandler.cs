@@ -7,14 +7,14 @@ public sealed class DeleteCategoryCommandHandler(ICatalogDbContext context)
     {
         var category = await context.Categories
             .AsTracking()
-            .FirstOrDefaultAsync(c => c.Id == request.CategoryId && !c.IsDeleted, ct);
+            .FirstOrDefaultAsync(c => c.Id == request.CategoryId, ct);
 
         if (category is null)
             return Result.Failure(CategoryErrors.NotFound);
 
         var hasProducts = await context.Products
             .AsNoTracking()
-            .AnyAsync(p => p.CategoryId == request.CategoryId && !p.IsDeleted, ct);
+            .AnyAsync(p => p.CategoryId == request.CategoryId, ct);
 
         if (hasProducts)
             return Result.Failure(CategoryErrors.HasProducts);

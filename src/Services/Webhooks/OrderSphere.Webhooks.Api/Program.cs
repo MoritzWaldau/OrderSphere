@@ -17,7 +17,7 @@ var webhooksConnectionString = builder.Configuration.GetConnectionString("webhoo
 builder.Services.AddHealthChecks()
     .AddNpgSql(webhooksConnectionString, name: "postgres");
 
-builder.Services.AddProblemDetails();
+builder.AddOrderSphereExceptionHandling();
 
 builder.AddOrderSphereJwtAuth("webhooks-api");
 

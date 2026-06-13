@@ -24,7 +24,7 @@ public sealed class GetOrdersByCustomerQueryHandler(
         {
             var orders = await context.Orders
                 .AsNoTracking()
-                .Where(o => o.CustomerId == CustomerId.From(request.CustomerId) && !o.IsDeleted)
+                .Where(o => o.CustomerId == CustomerId.From(request.CustomerId))
                 .OrderByDescending(o => o.CreatedAt)
                 .Include(o => o.Items)
                 .ToListAsync(cancellationToken);

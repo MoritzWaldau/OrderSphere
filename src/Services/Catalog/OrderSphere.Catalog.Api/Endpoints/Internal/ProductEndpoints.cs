@@ -27,7 +27,7 @@ public static class ProductEndpoints
     {
         var product = await context.Products
             .AsNoTracking()
-            .Where(p => p.Id == ProductId.From(productId) && !p.IsDeleted)
+            .Where(p => p.Id == ProductId.From(productId))
             .Select(p => new InternalProductDto(p.Id.Value, p.Name, p.Price.Amount, p.Stock, p.IsActive))
             .FirstOrDefaultAsync(ct);
 
@@ -45,7 +45,7 @@ public static class ProductEndpoints
         var typedIds = ids.Select(ProductId.From).ToList();
         var names = await context.Products
             .AsNoTracking()
-            .Where(p => typedIds.Contains(p.Id) && !p.IsDeleted)
+            .Where(p => typedIds.Contains(p.Id))
             .Select(p => new { p.Id, p.Name })
             .ToListAsync(ct);
 
@@ -63,7 +63,7 @@ public static class ProductEndpoints
         var typedIds = ids.Select(ProductId.From).ToList();
         var products = await context.Products
             .AsNoTracking()
-            .Where(p => typedIds.Contains(p.Id) && !p.IsDeleted)
+            .Where(p => typedIds.Contains(p.Id))
             .Select(p => new InternalProductDto(p.Id.Value, p.Name, p.Price.Amount, p.Stock, p.IsActive))
             .ToListAsync(ct);
 
@@ -78,7 +78,7 @@ public static class ProductEndpoints
     {
         var product = await context.Products
             .AsTracking()
-            .FirstOrDefaultAsync(p => p.Id == ProductId.From(productId) && !p.IsDeleted, ct);
+            .FirstOrDefaultAsync(p => p.Id == ProductId.From(productId), ct);
 
         if (product is null) return Results.NotFound();
 
@@ -97,7 +97,7 @@ public static class ProductEndpoints
     {
         var product = await context.Products
             .AsTracking()
-            .FirstOrDefaultAsync(p => p.Id == ProductId.From(productId) && !p.IsDeleted, ct);
+            .FirstOrDefaultAsync(p => p.Id == ProductId.From(productId), ct);
 
         if (product is null) return Results.NotFound();
 

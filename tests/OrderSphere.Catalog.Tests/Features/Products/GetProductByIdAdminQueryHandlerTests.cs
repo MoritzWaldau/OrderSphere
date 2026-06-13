@@ -1,5 +1,6 @@
 using MockQueryable.NSubstitute;
 using OrderSphere.Catalog.Application.Features.Products.Admin.GetProductByIdAdmin;
+using OrderSphere.Catalog.Tests.Helpers;
 
 namespace OrderSphere.Catalog.Tests.Features.Products;
 
@@ -30,11 +31,12 @@ public sealed class GetProductByIdAdminQueryHandlerTests
     [Fact]
     public async Task Handle_ProductIsDeleted_ReturnsNotFoundError()
     {
+        await using var ctx = CatalogDbContextFactory.Create();
         var product = MakeProduct(ProductA);
+        ctx.Products.Add(product);
+        await ctx.SaveChangesAsync();
         product.IsDeleted = true;
-        var products = new List<Product> { product }.AsQueryable().BuildMockDbSet();
-        var ctx = Substitute.For<ICatalogDbContext>();
-        ctx.Products.Returns(products);
+        await ctx.SaveChangesAsync();
 
         var result = await CreateHandler(ctx).Handle(new(ProductA), default);
 

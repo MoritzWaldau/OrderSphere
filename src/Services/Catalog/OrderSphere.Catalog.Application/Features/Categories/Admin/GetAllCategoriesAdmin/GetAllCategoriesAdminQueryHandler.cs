@@ -8,11 +8,10 @@ public sealed class GetAllCategoriesAdminQueryHandler(ICatalogDbContext context)
         try
         {
             var categories = await context.Categories
-                .Where(c => !c.IsDeleted)
                 .OrderBy(c => c.Name)
                 .Select(c => new AdminCategoryDto(
                     c.Id.Value, c.Name, c.Description, c.IsActive,
-                    context.Products.Count(p => p.CategoryId == c.Id && !p.IsDeleted),
+                    context.Products.Count(p => p.CategoryId == c.Id),
                     c.CreatedAt, c.UpdatedAt))
                 .ToListAsync(ct);
 

@@ -28,10 +28,10 @@ These are the rules that are not derivable by reading existing code. For everyth
 - Business validation returns a `Result<T>` failure. Exceptions are reserved for genuinely exceptional conditions (I/O failures, programmer errors).
 - Commands and queries return `Result<TDto>`. DTOs are `record` types; entities are `class` types.
 - New entities inherit `AuditableEntity`. Add a matching EF configuration in the service's `Infrastructure/EntityConfigurations/`.
-- Features live in `Features/<Aggregate>/<UseCase>/`, co-locating command/query, handler, and validator. Every service has a `<Service>.Application` project — no exceptions, regardless of size. Use-cases go in `<Service>.Application/Features/`. The DbContext is reached through an `I<Service>DbContext` interface declared in `<Service>.Application/Abstractions/` and implemented by the concrete context in `<Service>.Infrastructure/Persistence/`; handlers depend on the interface, never the concrete context.
+- Features live in `Features/<Aggregate>/<UseCase>/`, co-locating command/query, handler, and validator. Every service has a `<Service>.Application` project, regardless of size. The sole deliberate exception is the worker-only `Notification` service (documented in [docs/architecture.md](docs/architecture.md)); do not introduce new exceptions. Use-cases go in `<Service>.Application/Features/`. The DbContext is reached through an `I<Service>DbContext` interface declared in `<Service>.Application/Abstractions/` and implemented by the concrete context in `<Service>.Infrastructure/Persistence/`; handlers depend on the interface, never the concrete context.
 - Cross-service calls go through typed HTTP client interfaces (e.g. `ICatalogClient`, `IBasketClient`). No direct project references across service boundaries.
 - Integration events are defined in `BuildingBlocks.Contracts`. Publish via `IEventBus`; consume via `IIntegrationEventHandler<T>`.
-- Queries against soft-deletable entities must filter `!x.IsDeleted`.
+- Soft-delete is enforced by a global query filter, not per-query: every `AuditableEntity` gets `builder.HasQueryFilter(x => !x.IsDeleted)` in its EF configuration, so queries inherit the filter automatically — do not repeat `!x.IsDeleted` in handlers. Use `IgnoreQueryFilters()` only where deleted rows must be read deliberately.
 - All I/O is `async`/`await`. No `.Result`, no `.Wait()`, no `.GetAwaiter().GetResult()`.
 - Nullable reference types are enabled. Treat warnings as real.
 

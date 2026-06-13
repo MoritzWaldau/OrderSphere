@@ -8,7 +8,6 @@ using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.Ordering.Api.Authorization;
 using OrderSphere.Ordering.Api.Configuration;
 using OrderSphere.Ordering.Api.Endpoints;
-using OrderSphere.Ordering.Api.Exceptions;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Infrastructure;
 using OrderSphere.Ordering.Infrastructure.CatalogClient;
@@ -78,8 +77,7 @@ builder.Services.AddHealthChecks()
     .AddNpgSql(orderingConnectionString, name: "postgres");
 
 // Validation exception → HTTP 400
-builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
-builder.Services.AddProblemDetails();
+builder.AddOrderSphereExceptionHandling();
 
 // JWT Bearer — shared Keycloak validation; audience "ordering-api" is a
 // dedicated bearer-only client in the Keycloak realm.

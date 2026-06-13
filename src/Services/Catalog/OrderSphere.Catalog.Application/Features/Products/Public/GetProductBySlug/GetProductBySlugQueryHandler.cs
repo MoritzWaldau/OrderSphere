@@ -22,7 +22,7 @@ public sealed class GetProductBySlugQueryHandler(ICatalogDbContext context, Hybr
         await context.Products
             .Include(p => p.Category)
             .AsNoTracking()
-            .Where(p => p.Slug == slug && !p.IsDeleted && p.IsActive)
+            .Where(p => p.Slug == slug && p.IsActive)
             .Select(p => new ProductDto
             {
                 Id = p.Id.Value,

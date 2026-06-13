@@ -6,6 +6,7 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
     {
         builder.ToTable("products");
         builder.HasKey(p => p.Id);
+        builder.HasQueryFilter(p => !p.IsDeleted);
         builder.HasIndex(p => p.Slug).IsUnique();
         builder.Property(p => p.Name).IsRequired().HasMaxLength(200);
         builder.Property(p => p.Slug).IsRequired().HasMaxLength(200);

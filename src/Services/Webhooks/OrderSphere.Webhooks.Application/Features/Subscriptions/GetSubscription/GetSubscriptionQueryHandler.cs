@@ -10,8 +10,7 @@ public sealed class GetSubscriptionQueryHandler(IWebhooksDbContext context)
     {
         var sub = await context.Subscriptions
             .Where(s => s.Id == WebhookSubscriptionId.From(request.Id)
-                     && s.CustomerId == CustomerId.From(request.CustomerId)
-                     && !s.IsDeleted)
+                     && s.CustomerId == CustomerId.From(request.CustomerId))
             .Select(s => new SubscriptionDto(
                 s.Id.Value, s.Url, s.Events, s.IsActive, s.CreatedAt, s.UpdatedAt))
             .FirstOrDefaultAsync(cancellationToken);

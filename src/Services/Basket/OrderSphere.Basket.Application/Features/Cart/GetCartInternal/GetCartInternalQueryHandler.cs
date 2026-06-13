@@ -16,7 +16,7 @@ public sealed class GetCartInternalQueryHandler(
         var cart = await context.Carts
             .AsNoTracking()
             .Include(c => c.Items)
-            .FirstOrDefaultAsync(c => c.CustomerId == request.CustomerId && !c.IsDeleted, cancellationToken);
+            .FirstOrDefaultAsync(c => c.CustomerId == request.CustomerId, cancellationToken);
 
         if (cart is null)
             return Result<CartDto>.Failure(CartErrors.CartNotFoundError);

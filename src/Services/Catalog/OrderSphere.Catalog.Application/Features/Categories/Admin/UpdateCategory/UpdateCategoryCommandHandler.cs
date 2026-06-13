@@ -7,7 +7,7 @@ public sealed class UpdateCategoryCommandHandler(ICatalogDbContext context)
     {
         var category = await context.Categories
             .AsTracking()
-            .FirstOrDefaultAsync(c => c.Id == request.CategoryId && !c.IsDeleted, ct);
+            .FirstOrDefaultAsync(c => c.Id == request.CategoryId, ct);
 
         if (category is null)
             return Result.Failure(CategoryErrors.NotFound);

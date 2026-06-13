@@ -16,7 +16,7 @@ public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogServi
         var p = await context.Products
             .Include(x => x.Category)
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == ProductId.From(id) && !x.IsDeleted, ctx.CancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == ProductId.From(id), ctx.CancellationToken);
 
         return p is null ? new GetProductResponse { Found = false } : MapProduct(p);
     }
@@ -26,7 +26,7 @@ public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogServi
         var p = await context.Products
             .Include(x => x.Category)
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Slug == request.Slug && !x.IsDeleted, ctx.CancellationToken);
+            .FirstOrDefaultAsync(x => x.Slug == request.Slug, ctx.CancellationToken);
 
         return p is null ? new GetProductResponse { Found = false } : MapProduct(p);
     }
@@ -38,7 +38,7 @@ public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogServi
 
         var stock = await context.Products
             .AsNoTracking()
-            .Where(p => p.Id == ProductId.From(id) && !p.IsDeleted)
+            .Where(p => p.Id == ProductId.From(id))
             .Select(p => (int?)p.Stock)
             .FirstOrDefaultAsync(ctx.CancellationToken);
 
@@ -54,7 +54,7 @@ public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogServi
 
         var product = await context.Products
             .AsTracking()
-            .FirstOrDefaultAsync(p => p.Id == ProductId.From(id) && !p.IsDeleted, ctx.CancellationToken);
+            .FirstOrDefaultAsync(p => p.Id == ProductId.From(id), ctx.CancellationToken);
 
         if (product is null) return Fail("PRODUCT_NOT_FOUND", "Product not found.");
         var removeResult = product.RemoveFromStock(request.Quantity);
@@ -70,7 +70,7 @@ public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogServi
 
         var product = await context.Products
             .AsTracking()
-            .FirstOrDefaultAsync(p => p.Id == ProductId.From(id) && !p.IsDeleted, ctx.CancellationToken);
+            .FirstOrDefaultAsync(p => p.Id == ProductId.From(id), ctx.CancellationToken);
 
         if (product is null) return Fail("PRODUCT_NOT_FOUND", "Product not found.");
 
@@ -89,7 +89,7 @@ public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogServi
 
         var names = await context.Products
             .AsNoTracking()
-            .Where(p => typedIds.Contains(p.Id) && !p.IsDeleted)
+            .Where(p => typedIds.Contains(p.Id))
             .Select(p => new { p.Id, p.Name })
             .ToListAsync(ctx.CancellationToken);
 

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.Basket.Api.Configuration;
 using OrderSphere.Basket.Api.Endpoints;
-using OrderSphere.Basket.Api.Exceptions;
 using OrderSphere.Basket.Application;
 using OrderSphere.Basket.Application.Abstractions;
 using OrderSphere.Basket.Infrastructure;
@@ -34,8 +33,7 @@ builder.Services.AddBasketApiVersioning();
 builder.Services.AddBasketRateLimiting();
 
 // Validation exception → HTTP 400
-builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
-builder.Services.AddProblemDetails();
+builder.AddOrderSphereExceptionHandling();
 
 // JWT Bearer
 builder.AddOrderSphereJwtAuth("basket-api");

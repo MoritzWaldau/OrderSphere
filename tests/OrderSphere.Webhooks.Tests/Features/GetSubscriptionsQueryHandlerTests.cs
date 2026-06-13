@@ -1,4 +1,5 @@
 using OrderSphere.Webhooks.Application.Features.Subscriptions.GetSubscriptions;
+using OrderSphere.Webhooks.Tests.Helpers;
 
 namespace OrderSphere.Webhooks.Tests.Features;
 
@@ -35,13 +36,14 @@ public sealed class GetSubscriptionsQueryHandlerTests
     [Fact]
     public async Task Handle_ExcludesSoftDeletedSubscriptions()
     {
+        await using var ctx = WebhooksDbContextFactory.Create();
         var active = CreateSubscription();
         var deleted = CreateSubscription();
+        ctx.Subscriptions.Add(active);
+        ctx.Subscriptions.Add(deleted);
+        await ctx.SaveChangesAsync();
         deleted.Delete();
-
-        var subs = new List<WebhookSubscription> { active, deleted }.AsQueryable().BuildMockDbSet();
-        var ctx = Substitute.For<IWebhooksDbContext>();
-        ctx.Subscriptions.Returns(subs);
+        await ctx.SaveChangesAsync();
 
         var result = await new GetSubscriptionsQueryHandler(ctx)
             .Handle(new GetSubscriptionsQuery(Owner.Value), default);

@@ -15,7 +15,7 @@ public sealed class GetCartQueryHandler(
     {
         var cart = await context.Carts
             .Include(c => c.Items)
-            .FirstOrDefaultAsync(c => c.CustomerId == request.CustomerId && !c.IsDeleted, cancellationToken);
+            .FirstOrDefaultAsync(c => c.CustomerId == request.CustomerId, cancellationToken);
 
         if (cart is null)
             return Result<CartDto>.Success(new CartDto(request.CustomerId.Value, []));

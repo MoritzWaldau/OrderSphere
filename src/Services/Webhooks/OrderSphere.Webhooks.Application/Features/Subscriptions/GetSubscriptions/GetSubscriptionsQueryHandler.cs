@@ -11,7 +11,7 @@ public sealed class GetSubscriptionsQueryHandler(IWebhooksDbContext context)
         var customerId = CustomerId.From(request.CustomerId);
 
         var subs = await context.Subscriptions
-            .Where(s => s.CustomerId == customerId && !s.IsDeleted)
+            .Where(s => s.CustomerId == customerId)
             .OrderByDescending(s => s.CreatedAt)
             .Select(s => new SubscriptionDto(
                 s.Id.Value, s.Url, s.Events, s.IsActive, s.CreatedAt, s.UpdatedAt))

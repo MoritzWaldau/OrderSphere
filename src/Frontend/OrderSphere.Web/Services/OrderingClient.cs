@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using OrderSphere.Web.Models;
 
@@ -69,7 +70,9 @@ public sealed class OrderingClient : IOrderingClient
     public async Task<OrderDto?> GetOrderByCorrelationIdAsync(Guid correlationId, CancellationToken ct = default)
     {
         var response = await _client.GetAsync($"/api/v1/orders/correlation/{correlationId}", ct);
-        if (!response.IsSuccessStatusCode) return null;
+        // 204 = order not persisted yet (worker still processing); any non-success = not available.
+        if (response.StatusCode == HttpStatusCode.NoContent || !response.IsSuccessStatusCode)
+            return null;
         return await response.Content.ReadFromJsonAsync<OrderDto>(ct);
     }
 

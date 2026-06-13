@@ -1,28 +1,27 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Microsoft.Extensions.Hosting;
 
 public static class SwaggerExtensions
 {
-    /// <summary>
-    /// Registers Swashbuckle with an OAuth2 Authorization Code + PKCE security scheme
-    /// pointing at the Keycloak realm configured under <c>Keycloak:Authority</c>.
-    /// Intended for use in non-versioned API services. Catalog.Api uses its own versioned setup.
-    /// </summary>
     public static IHostApplicationBuilder AddOrderSphereSwagger(
         this IHostApplicationBuilder builder,
         string title,
         string docId = "v1")
     {
-        var authority = builder.Configuration["Keycloak:Authority"]
-            ?? "http://localhost:8080/realms/ordersphere";
+        var authority = builder.Configuration["Oidc:Authority"]
+            ?? "https://ordersphere-dev.eu.auth0.com/";
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(options =>
         {
             options.SwaggerDoc(docId, new OpenApiInfo { Title = title, Version = docId });
+
+            options.OperationFilter<RemoveVersionFromParameter>();
+            options.DocumentFilter<ReplaceVersionWithExactValueInPath>();
 
             options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
             {
@@ -31,13 +30,12 @@ public static class SwaggerExtensions
                 {
                     AuthorizationCode = new OpenApiOAuthFlow
                     {
-                        AuthorizationUrl = new Uri($"{authority}/protocol/openid-connect/auth"),
-                        TokenUrl = new Uri($"{authority}/protocol/openid-connect/token"),
+                        AuthorizationUrl = new Uri($"{authority.TrimEnd('/')}/authorize"),
+                        TokenUrl = new Uri($"{authority.TrimEnd('/')}/oauth/token"),
                         Scopes = new Dictionary<string, string>
                         {
                             ["openid"] = "OpenID Connect identity token",
-                            ["profile"] = "Basic user profile (name, preferred_username)",
-                            ["roles"] = "Realm roles claim"
+                            ["profile"] = "Basic user profile (name, email)"
                         }
                     }
                 }
@@ -47,7 +45,7 @@ public static class SwaggerExtensions
             {
                 {
                     new OpenApiSecuritySchemeReference("oauth2"),
-                    ["openid", "profile", "roles"]
+                    ["openid", "profile"]
                 }
             });
 
@@ -72,8 +70,35 @@ public static class SwaggerExtensions
             opt.SwaggerEndpoint($"/swagger/{docId}/swagger.json", docTitle);
             opt.OAuthClientId("swagger-ui");
             opt.OAuthUsePkce();
-            opt.OAuthScopes("openid", "profile", "roles");
+            opt.OAuthScopes("openid", "profile");
+            opt.OAuthAdditionalQueryStringParams(new Dictionary<string, string>
+            {
+                ["audience"] = "https://api.ordersphere.dev"
+            });
         });
         return app;
+    }
+}
+
+file sealed class RemoveVersionFromParameter : IOperationFilter
+{
+    public void Apply(OpenApiOperation operation, OperationFilterContext context)
+    {
+        var versionParam = operation.Parameters?
+            .FirstOrDefault(p => p.Name == "version");
+        if (versionParam is not null)
+            operation.Parameters!.Remove(versionParam);
+    }
+}
+
+file sealed class ReplaceVersionWithExactValueInPath : IDocumentFilter
+{
+    public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
+    {
+        var version = swaggerDoc.Info.Version!.TrimStart('v');
+        var updatedPaths = new OpenApiPaths();
+        foreach (var (path, item) in swaggerDoc.Paths)
+            updatedPaths.Add(path.Replace("{version}", version), item);
+        swaggerDoc.Paths = updatedPaths;
     }
 }

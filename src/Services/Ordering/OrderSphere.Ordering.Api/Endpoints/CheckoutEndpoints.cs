@@ -15,9 +15,10 @@ public static class CheckoutEndpoints
             async (CheckoutRequest request, ICurrentUser currentUser, IMediator mediator,
                    HttpContext http, CancellationToken ct) =>
             {
-                if (!currentUser.IsAuthenticated || currentUser.Sub is null
-                    || !Guid.TryParse(currentUser.Sub, out var customerId))
+                if (!currentUser.IsAuthenticated || currentUser.Sub is null)
                     return Results.Unauthorized();
+
+                var customerId = CustomerId.FromSub(currentUser.Sub);
 
                 // Callers SHOULD send a stable Idempotency-Key (UUID v4/v7) per checkout attempt.
                 // If omitted, a new key is generated — retries without the header are not deduplicated.
@@ -27,7 +28,7 @@ public static class CheckoutEndpoints
                     : Guid.CreateVersion7();
 
                 var command = new CheckoutCartCommand(
-                    CustomerId.From(customerId),
+                    customerId,
                     currentUser.Email ?? string.Empty,
                     currentUser.Name ?? string.Empty,
                     request.ShippingAddress,

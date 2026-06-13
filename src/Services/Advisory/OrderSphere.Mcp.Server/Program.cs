@@ -14,7 +14,7 @@ builder.Services.AddSingleton<ICallerContext, HttpCallerContext>();
 // public catalog tools work anonymously; user-scoped tools rely on the forwarded
 // token to resolve data downstream. Audience is validated by the downstream
 // services, not here, so the caller's existing token can be reused as-is.
-var authority = builder.Configuration["Keycloak:Authority"];
+var authority = builder.Configuration["Oidc:Authority"];
 var authEnabled = !string.IsNullOrWhiteSpace(authority);
 if (authEnabled)
 {
@@ -33,7 +33,7 @@ builder.Services.AddTransient<BearerForwardingHandler>();
 builder.Services.AddHttpClient<IOrderSphereGateway, OrderSphereGateway>(client =>
 {
     var gatewayUrl = builder.Configuration["Services:ApiGateway:BaseUrl"]
-        ?? "http://ordersphere-apigateway";
+        ?? "https://ordersphere-apigateway";
     client.BaseAddress = new Uri(gatewayUrl);
 }).AddHttpMessageHandler<BearerForwardingHandler>();
 

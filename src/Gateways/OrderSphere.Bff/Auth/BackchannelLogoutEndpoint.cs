@@ -64,8 +64,8 @@ public static class BackchannelLogoutEndpoint
         }
 
         // ── 2. Fetch JWKS from Keycloak (cached by IConfigurationManager) ───
-        var authority = config["Keycloak:Authority"]!;
-        var clientId = config["Keycloak:ClientId"] ?? "web-bff";
+        var authority = config["Oidc:Authority"]!;
+        var clientId = config["Oidc:ClientId"] ?? "web-bff";
 
         OpenIdConnectConfiguration oidcConfig;
         try

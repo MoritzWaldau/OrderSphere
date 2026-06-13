@@ -33,7 +33,7 @@ public sealed class BffWebApplicationFactory : WebApplicationFactory<Program>
             KeyId = "bff-test-signing-key-1",
         };
 
-    public const string FakeAuthority = "https://fake-keycloak.test/realms/ordersphere";
+    public const string FakeAuthority = "https://fake-oidc.test/";
     public const string FakeClientId = "web-bff";
 
     /// <summary>Static OIDC configuration returned by the mock IConfigurationManager.</summary>
@@ -46,10 +46,10 @@ public sealed class BffWebApplicationFactory : WebApplicationFactory<Program>
             Issuer = FakeAuthority,
             // Required so the OIDC challenge handler can redirect unauthenticated
             // requests to this URL instead of throwing InvalidOperationException.
-            AuthorizationEndpoint = FakeAuthority + "/protocol/openid-connect/auth",
+            AuthorizationEndpoint = FakeAuthority + "authorize",
             // Required so the OIDC sign-out handler can redirect instead of throwing
             // when POST /bff/logout passes the CSRF filter in integration tests.
-            EndSessionEndpoint = FakeAuthority + "/protocol/openid-connect/logout",
+            EndSessionEndpoint = FakeAuthority + "v2/logout",
         };
         TestOidcConfig.SigningKeys.Add(TestSigningKey);
     }
@@ -86,7 +86,7 @@ public sealed class BffWebApplicationFactory : WebApplicationFactory<Program>
         });
 
         // Override OIDC options to prevent the OpenIdConnect middleware's own
-        // internal document retriever from trying to reach fake-keycloak.test.
+        // internal document retriever from trying to reach fake-oidc.test.
         // Using PostConfigure so it runs after Program.cs registers the options.
         builder.ConfigureServices(services =>
         {

@@ -24,6 +24,7 @@ public static class CartEndpoints
             .MapGroup("api/v{version:apiVersion}/cart")
             .WithApiVersionSet(versionSet)
             .HasApiVersion(1.0)
+            .MapToApiVersion(1.0)
             .RequireAuthorization()
             .RequireRateLimiting(RateLimitingExtensions.CartPolicy);
 
@@ -67,20 +68,13 @@ public static class CartEndpoints
         });
     }
 
-    /// <summary>
-    /// Parses the Keycloak subject claim into a <see cref="CustomerId"/>.
-    /// The sub is a UUID that serves as the customer identifier across services.
-    /// </summary>
     private static bool TryGetCustomerId(ICurrentUser currentUser, out CustomerId customerId)
     {
         customerId = CustomerId.Empty;
         if (!currentUser.IsAuthenticated || currentUser.Sub is null)
             return false;
 
-        if (!Guid.TryParse(currentUser.Sub, out var guid))
-            return false;
-
-        customerId = CustomerId.From(guid);
+        customerId = CustomerId.FromSub(currentUser.Sub);
         return true;
     }
 }

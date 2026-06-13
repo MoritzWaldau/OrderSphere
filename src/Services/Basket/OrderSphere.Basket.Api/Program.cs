@@ -20,7 +20,7 @@ builder.Services.AddBasketApplication();
 builder.Services.AddHttpClient<ICatalogClient, HttpCatalogClient>(client =>
 {
     var catalogUrl = builder.Configuration["Services:Catalog:BaseUrl"]
-        ?? "http://ordersphere-catalog";
+        ?? "https://ordersphere-catalog";
     client.BaseAddress = new Uri(catalogUrl);
 }).AddClientCredentialsHandler();
 

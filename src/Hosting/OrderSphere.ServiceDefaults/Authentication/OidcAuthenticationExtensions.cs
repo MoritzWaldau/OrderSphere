@@ -5,38 +5,47 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-/// <summary>
-/// Shared Keycloak JWT authentication wiring for every API in the solution.
-/// All validation parameters live here so each service does not diverge.
-/// </summary>
-public static class KeycloakAuthenticationExtensions
+public static class OidcAuthenticationExtensions
 {
     /// <summary>
-    /// Registers JWT Bearer authentication against the configured Keycloak realm.
-    /// </summary>
-    /// <param name="builder">The host application builder.</param>
-    /// <param name="audience">
-    ///   The audience value that must appear in the token's <c>aud</c> claim.
-    ///   Each service owns a dedicated bearer-only Keycloak client
-    ///   (e.g. <c>ordering-api</c>, <c>catalog-api</c>, <c>userprofile-api</c>).
-    /// </param>
-    /// <summary>
-    /// Overload for gateway/proxy services that forward tokens to downstream APIs.
-    /// Audience validation is skipped; each downstream service validates its own audience.
+    /// Registers JWT Bearer authentication without audience validation.
+    /// Intended for gateway/proxy services that forward tokens to downstream APIs.
     /// </summary>
     public static TBuilder AddOrderSphereJwtAuth<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder =>
-        AddOrderSphereJwtAuth(builder, audience: null);
+        AddOrderSphereJwtAuthCore(builder, validateAudience: false);
 
+    /// <summary>
+    /// Registers JWT Bearer authentication with audience validation against <c>Oidc:Audience</c>.
+    /// The <paramref name="audience"/> parameter is accepted for call-site readability only and is not used;
+    /// the effective audience is always read from configuration.
+    /// </summary>
     public static TBuilder AddOrderSphereJwtAuth<TBuilder>(
         this TBuilder builder,
         string? audience)
+        where TBuilder : IHostApplicationBuilder =>
+        AddOrderSphereJwtAuthCore(builder, validateAudience: true);
+
+    private static TBuilder AddOrderSphereJwtAuthCore<TBuilder>(
+        this TBuilder builder,
+        bool validateAudience)
         where TBuilder : IHostApplicationBuilder
     {
-        var authority = builder.Configuration["Keycloak:Authority"]
+        var authority = builder.Configuration["Oidc:Authority"]
             ?? throw new InvalidOperationException(
-                "Keycloak:Authority is not configured. " +
+                "Oidc:Authority is not configured. " +
                 "Set it in appsettings.json or as an environment variable.");
+
+        var rolesClaim = builder.Configuration["Oidc:RolesClaim"] ?? "https://ordersphere.dev/roles";
+
+        string? configuredAudience = null;
+        if (validateAudience)
+        {
+            configuredAudience = builder.Configuration["Oidc:Audience"]
+                ?? throw new InvalidOperationException(
+                    "Oidc:Audience is not configured. " +
+                    "Set it in appsettings.json or as an environment variable.");
+        }
 
         builder.Services.AddAuthorization();
 
@@ -50,8 +59,8 @@ public static class KeycloakAuthenticationExtensions
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateAudience = audience is not null,
-                    ValidAudiences = audience is not null ? [audience] : [],
+                    ValidateAudience = validateAudience,
+                    ValidAudiences = configuredAudience is not null ? [configuredAudience] : [],
 
                     ValidateIssuer = true,
                     ValidateLifetime = true,
@@ -59,8 +68,8 @@ public static class KeycloakAuthenticationExtensions
 
                     ClockSkew = TimeSpan.FromSeconds(30),
 
-                    NameClaimType = "preferred_username",
-                    RoleClaimType = "roles",
+                    NameClaimType = "name",
+                    RoleClaimType = rolesClaim,
                 };
 
                 options.MapInboundClaims = false;
@@ -85,8 +94,6 @@ public static class KeycloakAuthenticationExtensions
 
                     OnChallenge = ctx =>
                     {
-                        // OnAuthenticationFailed already covers the invalid-token case.
-                        // This branch fires when no Bearer token was presented at all.
                         if (ctx.AuthenticateFailure is null)
                         {
                             var logger = ctx.HttpContext.RequestServices

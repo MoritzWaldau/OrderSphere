@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Application.Models;
 
 namespace OrderSphere.Ordering.Api.Authorization;
@@ -32,11 +33,10 @@ public sealed class OrderOwnerOrStaffHandler
             return Task.CompletedTask;
         }
 
-        // Owner check: token sub must parse and match the order's CustomerId.
+        // Owner check: derive stable GUID from sub and match against the order's CustomerId.
         var sub = context.User.FindFirstValue("sub");
         if (sub is not null
-            && Guid.TryParse(sub, out var subGuid)
-            && subGuid == resource.CustomerId)
+            && CustomerId.FromSub(sub).Value == resource.CustomerId)
         {
             context.Succeed(requirement);
         }

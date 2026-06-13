@@ -13,15 +13,20 @@ internal static class BffAuthenticationExtensions
 {
     public static void AddBffAuthentication(
         this WebApplicationBuilder builder,
-        string keycloakAuthority,
-        string keycloakClientId,
-        string keycloakClientSecret,
+        string oidcAuthority,
+        string oidcClientId,
+        string oidcClientSecret,
         bool isProduction)
     {
+        var oidcAudience = builder.Configuration["Oidc:Audience"]
+            ?? "https://api.ordersphere.dev";
+        var rolesClaim = builder.Configuration["Oidc:RolesClaim"]
+            ?? "https://ordersphere.dev/roles";
+
         // Shared cached JWKS — used by RefreshTokenHandler and BackchannelLogoutEndpoint.
         builder.Services.AddSingleton<IConfigurationManager<OpenIdConnectConfiguration>>(
             new ConfigurationManager<OpenIdConnectConfiguration>(
-                $"{keycloakAuthority}/.well-known/openid-configuration",
+                $"{oidcAuthority.TrimEnd('/')}/.well-known/openid-configuration",
                 new OpenIdConnectConfigurationRetriever(),
                 new HttpDocumentRetriever { RequireHttps = isProduction }));
 
@@ -31,7 +36,7 @@ internal static class BffAuthenticationExtensions
 
         builder.Services.AddTransient<RefreshTokenHandler>();
         builder.Services.AddSecurityAuditLogger();
-        builder.Services.AddHttpClient("keycloak-token");
+        builder.Services.AddHttpClient("oidc-token");
 
         builder.Services
             .AddAuthentication(options =>
@@ -54,9 +59,9 @@ internal static class BffAuthenticationExtensions
             })
             .AddOpenIdConnect(options =>
             {
-                options.Authority = keycloakAuthority;
-                options.ClientId = keycloakClientId;
-                options.ClientSecret = keycloakClientSecret;
+                options.Authority = oidcAuthority;
+                options.ClientId = oidcClientId;
+                options.ClientSecret = oidcClientSecret;
                 options.ResponseType = OpenIdConnectResponseType.Code;
                 options.UsePkce = true;
                 options.SaveTokens = true;
@@ -66,30 +71,33 @@ internal static class BffAuthenticationExtensions
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");
                 options.Scope.Add("email");
-                options.Scope.Add("roles");
+                options.Scope.Add("offline_access");
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    NameClaimType = "preferred_username",
-                    RoleClaimType = "roles",
+                    NameClaimType = "name",
+                    RoleClaimType = rolesClaim,
                 };
                 options.MapInboundClaims = false;
                 options.Events = new OpenIdConnectEvents
                 {
-                    // For /api/* requests return 401 instead of a 302 redirect to Keycloak
-                    // so the WASM client can handle unauthenticated state gracefully.
+                    // Auth0 requires an explicit audience parameter in the authorization request
+                    // to return a JWT access token (instead of an opaque token).
                     OnRedirectToIdentityProvider = ctx =>
                     {
                         if (ctx.Request.Path.StartsWithSegments("/api"))
                         {
                             ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
                             ctx.HandleResponse();
+                            return Task.CompletedTask;
                         }
 
+                        ctx.ProtocolMessage.SetParameter("audience", oidcAudience);
                         return Task.CompletedTask;
                     },
 
-                    // Keycloak puts realm roles in realm_access.roles of the ACCESS token.
-                    // Copy them to the identity before the session is persisted.
+                    // Roles are injected by the Auth0 post-login Action as a namespaced claim
+                    // on both the access token and the ID token. Copy them to the identity
+                    // as "roles" so authorization policies and /bff/user work uniformly.
                     OnTokenValidated = ctx =>
                     {
                         if (ctx.Principal?.Identity is not ClaimsIdentity identity)
@@ -99,25 +107,12 @@ internal static class BffAuthenticationExtensions
                         if (string.IsNullOrEmpty(accessToken))
                             return Task.CompletedTask;
 
-                        try
+                        var jwt = new Microsoft.IdentityModel.JsonWebTokens.JsonWebToken(accessToken);
+                        foreach (var c in jwt.Claims.Where(c => c.Type == rolesClaim))
                         {
-                            var jwt = new Microsoft.IdentityModel.JsonWebTokens.JsonWebToken(accessToken);
-
-                            if (jwt.TryGetClaim("realm_access", out var realmAccessClaim))
-                            {
-                                using var doc = System.Text.Json.JsonDocument.Parse(realmAccessClaim.Value);
-                                if (doc.RootElement.TryGetProperty("roles", out var rolesEl))
-                                {
-                                    foreach (var role in rolesEl.EnumerateArray())
-                                    {
-                                        var value = role.GetString();
-                                        if (!string.IsNullOrEmpty(value) && !identity.HasClaim("roles", value))
-                                            identity.AddClaim(new Claim("roles", value));
-                                    }
-                                }
-                            }
+                            if (!string.IsNullOrEmpty(c.Value) && !identity.HasClaim("roles", c.Value))
+                                identity.AddClaim(new Claim("roles", c.Value));
                         }
-                        catch { /* malformed access token — skip */ }
 
                         return Task.CompletedTask;
                     },

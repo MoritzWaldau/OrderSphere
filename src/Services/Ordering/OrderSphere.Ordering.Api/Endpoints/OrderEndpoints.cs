@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using OrderSphere.BuildingBlocks.Security;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Api.Configuration;
 using OrderSphere.Ordering.Application.Features.Order;
 using OrderSphere.Ordering.Application.Features.Order.Admin;
@@ -112,10 +113,13 @@ public static class OrderEndpoints
 
     private static bool TryGetCustomerId(ICurrentUser currentUser, out Guid customerId)
     {
-        customerId = Guid.Empty;
-        return currentUser.IsAuthenticated
-            && currentUser.Sub is not null
-            && Guid.TryParse(currentUser.Sub, out customerId);
+        if (!currentUser.IsAuthenticated || currentUser.Sub is null)
+        {
+            customerId = Guid.Empty;
+            return false;
+        }
+        customerId = CustomerId.FromSub(currentUser.Sub).Value;
+        return true;
     }
 }
 

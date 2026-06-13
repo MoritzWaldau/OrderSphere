@@ -5,7 +5,8 @@ using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Ordering.Domain.Entities;
-using OrderSphere.Ordering.Domain.Events;
+using OrderSphere.Ordering.Domain.Enums;
+using OrderSphere.Ordering.Domain.ValueObjects;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 
 namespace OrderSphere.Ordering.Worker.Workers;
@@ -51,7 +52,7 @@ public sealed class OrderProcessor(
 
         try
         {
-            var evt = args.Message.Body.ToObjectFromJson<CheckoutCartEvent>();
+            var evt = args.Message.Body.ToObjectFromJson<CheckoutCartIntegrationEvent>();
             if (evt is null)
             {
                 logger.LogError("Message {MessageId} could not be deserialized. Dead-lettering.", messageId);
@@ -87,12 +88,10 @@ public sealed class OrderProcessor(
     }
 
     internal async Task<ProcessResult> ProcessOrderAsync(
-        CheckoutCartEvent evt,
+        CheckoutCartIntegrationEvent evt,
         OrderingDbContext context,
         CancellationToken ct)
     {
-        var checkout = evt.CheckoutCart;
-
         // Idempotency check
         var existingOrderId = await context.Orders
             .Where(o => o.CorrelationId == evt.CorrelationId)
@@ -114,10 +113,14 @@ public sealed class OrderProcessor(
                 .Select(i => new OrderItem(ProductId.From(i.ProductId), i.ProductName, Quantity.Of(i.Quantity), Money.Of(i.Price)))
                 .ToList();
 
+            var addr = evt.ShippingAddress;
+            var shippingAddress = new Address(addr.FirstName, addr.LastName, addr.Street, addr.City, addr.PostalCode, addr.Country);
+            var paymentMethod = Enum.Parse<PaymentMethod>(evt.PaymentMethod);
+
             var order = new Order(
-                CustomerId.From(checkout.CustomerId),
-                checkout.ShippingAddress,
-                checkout.PaymentMethod,
+                CustomerId.From(evt.CustomerId),
+                shippingAddress,
+                paymentMethod,
                 orderItems,
                 evt.CorrelationId);
 
@@ -129,8 +132,8 @@ public sealed class OrderProcessor(
                 OrderId = order.Id.Value,
                 Amount = evt.Items.Sum(i => i.Price * i.Quantity),
                 Currency = "EUR",
-                PaymentMethod = evt.CheckoutCart.PaymentMethod.ToString(),
-                CustomerEmail = evt.CheckoutCart.CustomerEmail
+                PaymentMethod = evt.PaymentMethod,
+                CustomerEmail = evt.CustomerEmail
             };
 
             context.AddOutboxMessage(
@@ -156,7 +159,7 @@ public sealed class OrderProcessor(
         {
             await context.RollbackAsync(ct);
             logger.LogError(ex, "Failed to process order for customer {CustomerId}. CorrelationId: {CorrelationId}",
-                checkout.CustomerId, evt.CorrelationId);
+                evt.CustomerId, evt.CorrelationId);
             return ProcessResult.Fail(ex.Message);
         }
     }

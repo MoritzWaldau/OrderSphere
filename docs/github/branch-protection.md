@@ -15,18 +15,15 @@ documented here as a versioned ruleset (`branch-protection.json`) plus the comma
   |-------------------------------|--------|
   | `Format`                      | ci.yml |
   | `Build & Test`                | ci.yml |
-  | `Vulnerable Packages`         | ci.yml |
+  | `Vulnerable Packages`         | vuln-scan.yml |
   | `Analyze (csharp)`            | codeql.yml |
   | `Dependency Review`           | dependency-review.yml |
   | `SonarCloud Code Analysis`    | SonarCloud app |
 
   > Context names are verified against the checks actually produced for the PR head commit.
   >
-  > **Do not add as required:** `Validate PR title` (pr-title-lint.yml) runs via
-  > `pull_request_target` and does not appear in the head commit's check runs — as a required check it
-  > would stay permanently "pending" and block the merge. Likewise deliberately not merge-blocking:
-  > `Trivy Filesystem Scan`, `Secret Scan`, `OpenSSF Scorecard` (external tool downloads can be flaky;
-  > they still report into the Security tab).
+  > Deliberately not merge-blocking: `Trivy Filesystem Scan`, `Secret Scan` (external tool downloads
+  > can be flaky; they still report into the Security tab).
   >
   > Remove the stale check: an earlier required check `build` (from the deleted build.yml) must be
   > removed from branch protection, otherwise it stays permanently "pending".

@@ -18,8 +18,7 @@ those before changing code.
    service's projects directly — cross-service communication is HTTP clients or Service Bus events.
 3. Add or update tests for behavioural changes.
 4. Run the local checks below before opening a pull request.
-5. Open a pull request against `master`. The PR title must follow Conventional Commits — it is
-   linted by `.github/workflows/pr-title-lint.yml`.
+5. Open a pull request against `master`. The PR title must follow Conventional Commits.
 
 ## Local checks
 

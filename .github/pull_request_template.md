@@ -1,5 +1,5 @@
 <!--
-PR title must follow Conventional Commits (enforced by pr-title-lint):
+PR title must follow Conventional Commits:
   feat | fix | refactor | docs | style | test | chore | ci | build | perf | revert
 Example: feat(catalog): add product slug uniqueness check
 -->

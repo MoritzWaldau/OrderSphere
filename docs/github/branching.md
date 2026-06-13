@@ -201,24 +201,6 @@ Only the last successful artifact is deployed again.
 
 ---
 
-# Last Successful Release
-
-The CI/CD pipeline records the last successful production version.
-
-| Version | Commit  | Status  |
-| ------- | ------- | ------- |
-| v1.6.0  | 9a1bcde | Failed  |
-| v1.5.0  | 84ab123 | Success |
-| v1.4.2  | 1fa234c | Success |
-
-In a failure case the following is executed, automatically or manually:
-
-```text
-Redeploy Last Successful Release
-```
-
----
-
 # Hotfix process
 
 For critical defects in production:

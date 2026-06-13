@@ -8,10 +8,10 @@
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/BuildingBlocks/">
-    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/OrderSphere.BuildingBlocks.csproj" />
-    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.EventBus/OrderSphere.BuildingBlocks.EventBus.csproj" />
-    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.EventBus.AzureServiceBus/OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.csproj" />
     <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Contracts/OrderSphere.BuildingBlocks.Contracts.csproj" />
+    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/OrderSphere.BuildingBlocks.csproj" />
+    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.EventBus.AzureServiceBus/OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.csproj" />
+    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.EventBus/OrderSphere.BuildingBlocks.EventBus.csproj" />
   </Folder>
   <Folder Name="/src/Hosting/">
     <Project Path="src/Hosting/OrderSphere.AppHost/OrderSphere.AppHost.csproj" />
@@ -71,15 +71,14 @@
     <Project Path="src/Gateways/OrderSphere.ApiGateway/OrderSphere.ApiGateway.csproj" />
     <Project Path="src/Gateways/OrderSphere.Bff/OrderSphere.Bff.csproj" />
   </Folder>
-  <Folder Name="/src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/" />
   
   <Folder Name="/src/Frontend/">
     <Project Path="src/Frontend/OrderSphere.Web/OrderSphere.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/OrderSphere.Advisory.Tests/OrderSphere.Advisory.Tests.csproj" />
-    <Project Path="tests/OrderSphere.Bff.Tests/OrderSphere.Bff.Tests.csproj" />
     <Project Path="tests/OrderSphere.Basket.Tests/OrderSphere.Basket.Tests.csproj" />
+    <Project Path="tests/OrderSphere.Bff.Tests/OrderSphere.Bff.Tests.csproj" />
     <Project Path="tests/OrderSphere.Catalog.Tests/OrderSphere.Catalog.Tests.csproj" />
     <Project Path="tests/OrderSphere.Domain.Tests/OrderSphere.Domain.Tests.csproj" />
     <Project Path="tests/OrderSphere.IntegrationTests/OrderSphere.IntegrationTests.csproj" />

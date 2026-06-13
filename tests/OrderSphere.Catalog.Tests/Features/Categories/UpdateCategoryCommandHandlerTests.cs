@@ -15,7 +15,7 @@ public sealed class UpdateCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_CategoryNotFound_ReturnsNotFoundError()
     {
-        var categories = new List<Category>().AsQueryable().BuildMockDbSet();
+        var categories = new List<Category>().BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Categories.Returns(categories);
 
@@ -50,7 +50,7 @@ public sealed class UpdateCategoryCommandHandlerTests
     public async Task Handle_ExistingCategory_IsActive_ActivatesCategory()
     {
         var cat = MakeCategory(CategoryA, active: false);
-        var categories = new List<Category> { cat }.AsQueryable().BuildMockDbSet();
+        var categories = new List<Category> { cat }.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Categories.Returns(categories);
 
@@ -67,7 +67,7 @@ public sealed class UpdateCategoryCommandHandlerTests
     public async Task Handle_ExistingCategory_IsNotActive_DeactivatesCategory()
     {
         var cat = MakeCategory(CategoryA, active: true);
-        var categories = new List<Category> { cat }.AsQueryable().BuildMockDbSet();
+        var categories = new List<Category> { cat }.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Categories.Returns(categories);
 
@@ -82,7 +82,7 @@ public sealed class UpdateCategoryCommandHandlerTests
     public async Task Handle_ExistingCategory_UpdatesNameAndDescription()
     {
         var cat = MakeCategory(CategoryA);
-        var categories = new List<Category> { cat }.AsQueryable().BuildMockDbSet();
+        var categories = new List<Category> { cat }.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Categories.Returns(categories);
 
@@ -97,7 +97,7 @@ public sealed class UpdateCategoryCommandHandlerTests
     public async Task Handle_ExistingCategory_CallsSaveChanges()
     {
         var cat = MakeCategory(CategoryA);
-        var categories = new List<Category> { cat }.AsQueryable().BuildMockDbSet();
+        var categories = new List<Category> { cat }.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Categories.Returns(categories);
 

@@ -23,7 +23,7 @@ public sealed class GetOrderByCorrelationIdQueryHandlerTests
     [Fact]
     public async Task Handle_OrderNotFound_ReturnsSuccessWithNullValue()
     {
-        var orders = new List<Order>().AsQueryable().BuildMockDbSet();
+        var orders = new List<Order>().BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -40,7 +40,7 @@ public sealed class GetOrderByCorrelationIdQueryHandlerTests
     {
         var correlationId = Guid.NewGuid();
         var order = CreateOrder(correlationId);
-        var orders = new List<Order> { order }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 

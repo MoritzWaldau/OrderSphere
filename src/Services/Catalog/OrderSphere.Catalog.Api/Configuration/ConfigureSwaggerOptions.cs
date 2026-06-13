@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace OrderSphere.Catalog.Api.Configuration;
@@ -55,14 +55,10 @@ public sealed class ConfigureSwaggerOptions(IConfiguration configuration)
             }
         });
 
-        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        options.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
         {
             {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                        { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
-                },
+                new OpenApiSecuritySchemeReference("oauth2"),
                 ["openid", "profile", "roles"]
             }
         });
@@ -73,11 +69,11 @@ file sealed class RemoveVersionFromParameter : IOperationFilter
 {
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        var versionParam = operation.Parameters
+        var versionParam = operation.Parameters?
             .FirstOrDefault(p => p.Name == "version");
 
         if (versionParam is not null)
-            operation.Parameters.Remove(versionParam);
+            operation.Parameters!.Remove(versionParam);
     }
 }
 

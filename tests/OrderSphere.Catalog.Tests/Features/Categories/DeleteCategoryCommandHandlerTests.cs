@@ -15,8 +15,8 @@ public sealed class DeleteCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_CategoryNotFound_ReturnsNotFoundError()
     {
-        var categories = new List<Category>().AsQueryable().BuildMockDbSet();
-        var products = new List<Product>().AsQueryable().BuildMockDbSet();
+        var categories = new List<Category>().BuildMockDbSet();
+        var products = new List<Product>().BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Categories.Returns(categories);
         ctx.Products.Returns(products);
@@ -36,8 +36,8 @@ public sealed class DeleteCategoryCommandHandlerTests
         var product = new Product("Widget", "desc", Money.Of(9.99m), 5, CategoryA, "SKU-001");
         product.Id = ProductA;
 
-        var categories = new List<Category> { cat }.AsQueryable().BuildMockDbSet();
-        var products = new List<Product> { product }.AsQueryable().BuildMockDbSet();
+        var categories = new List<Category> { cat }.BuildMockDbSet();
+        var products = new List<Product> { product }.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Categories.Returns(categories);
         ctx.Products.Returns(products);
@@ -54,8 +54,8 @@ public sealed class DeleteCategoryCommandHandlerTests
     public async Task Handle_CategoryWithNoProducts_SetsIsDeletedTrue()
     {
         var cat = MakeCategory(CategoryA);
-        var categories = new List<Category> { cat }.AsQueryable().BuildMockDbSet();
-        var products = new List<Product>().AsQueryable().BuildMockDbSet();
+        var categories = new List<Category> { cat }.BuildMockDbSet();
+        var products = new List<Product>().BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Categories.Returns(categories);
         ctx.Products.Returns(products);
@@ -70,8 +70,8 @@ public sealed class DeleteCategoryCommandHandlerTests
     public async Task Handle_CategoryWithNoProducts_CallsSaveChanges()
     {
         var cat = MakeCategory(CategoryA);
-        var categories = new List<Category> { cat }.AsQueryable().BuildMockDbSet();
-        var products = new List<Product>().AsQueryable().BuildMockDbSet();
+        var categories = new List<Category> { cat }.BuildMockDbSet();
+        var products = new List<Product>().BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Categories.Returns(categories);
         ctx.Products.Returns(products);

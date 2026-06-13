@@ -18,7 +18,7 @@ public sealed class UpdateProductCommandHandlerTests
     [Fact]
     public async Task Handle_ProductNotFound_ReturnsNotFoundError()
     {
-        var products = new List<Product>().AsQueryable().BuildMockDbSet();
+        var products = new List<Product>().BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Products.Returns(products);
 
@@ -34,7 +34,7 @@ public sealed class UpdateProductCommandHandlerTests
     public async Task Handle_ExistingProduct_IsActive_ActivatesProduct()
     {
         var product = MakeProduct(ProductA, active: false);
-        var products = new List<Product> { product }.AsQueryable().BuildMockDbSet();
+        var products = new List<Product> { product }.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Products.Returns(products);
 
@@ -50,7 +50,7 @@ public sealed class UpdateProductCommandHandlerTests
     public async Task Handle_ExistingProduct_IsNotActive_DeactivatesProduct()
     {
         var product = MakeProduct(ProductA, active: true);
-        var products = new List<Product> { product }.AsQueryable().BuildMockDbSet();
+        var products = new List<Product> { product }.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Products.Returns(products);
 
@@ -64,7 +64,7 @@ public sealed class UpdateProductCommandHandlerTests
     public async Task Handle_ExistingProduct_UpdatesDetails()
     {
         var product = MakeProduct(ProductA);
-        var products = new List<Product> { product }.AsQueryable().BuildMockDbSet();
+        var products = new List<Product> { product }.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Products.Returns(products);
 
@@ -78,7 +78,7 @@ public sealed class UpdateProductCommandHandlerTests
     public async Task Handle_ExistingProduct_CallsSaveChanges()
     {
         var product = MakeProduct(ProductA);
-        var products = new List<Product> { product }.AsQueryable().BuildMockDbSet();
+        var products = new List<Product> { product }.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Products.Returns(products);
 

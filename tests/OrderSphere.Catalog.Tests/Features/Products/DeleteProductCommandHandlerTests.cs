@@ -18,7 +18,7 @@ public sealed class DeleteProductCommandHandlerTests
     [Fact]
     public async Task Handle_ProductNotFound_ReturnsNotFoundError()
     {
-        var products = new List<Product>().AsQueryable().BuildMockDbSet();
+        var products = new List<Product>().BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Products.Returns(products);
 
@@ -54,7 +54,7 @@ public sealed class DeleteProductCommandHandlerTests
     public async Task Handle_ExistingProduct_SetsIsDeletedTrue()
     {
         var product = MakeProduct(ProductA);
-        var products = new List<Product> { product }.AsQueryable().BuildMockDbSet();
+        var products = new List<Product> { product }.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Products.Returns(products);
 
@@ -68,7 +68,7 @@ public sealed class DeleteProductCommandHandlerTests
     public async Task Handle_ExistingProduct_CallsSaveChanges()
     {
         var product = MakeProduct(ProductA);
-        var products = new List<Product> { product }.AsQueryable().BuildMockDbSet();
+        var products = new List<Product> { product }.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Products.Returns(products);
 

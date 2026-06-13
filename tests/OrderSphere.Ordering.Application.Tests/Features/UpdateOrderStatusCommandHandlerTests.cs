@@ -23,7 +23,7 @@ public sealed class UpdateOrderStatusCommandHandlerTests
     [Fact]
     public async Task Handle_OrderNotFound_ReturnsOrderNotFoundError()
     {
-        var orders = new List<Order>().AsQueryable().BuildMockDbSet();
+        var orders = new List<Order>().BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -44,7 +44,7 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         order.Confirm("TRACK-001");
         order.PopDomainEvents();
 
-        var orders = new List<Order> { order }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -66,7 +66,7 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         order.MarkShipped();
         order.PopDomainEvents();
 
-        var orders = new List<Order> { order }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -85,7 +85,7 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         var order = CreateOrder();
         var orderId = order.Id;
 
-        var orders = new List<Order> { order }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -104,7 +104,7 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         var order = CreateOrder();
         var orderId = order.Id;
 
-        var orders = new List<Order> { order }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -124,7 +124,7 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         var order = CreateOrder();
         var orderId = order.Id;
 
-        var orders = new List<Order> { order }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -144,7 +144,7 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         var orderId = order.Id;
         order.Confirm("TRACK-001");
 
-        var orders = new List<Order> { order }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -162,7 +162,7 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         var orderId = order.Id;
         order.Confirm("TRACK-001");
 
-        var orders = new List<Order> { order }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
         ctx.CommitAsync(Arg.Any<CancellationToken>())

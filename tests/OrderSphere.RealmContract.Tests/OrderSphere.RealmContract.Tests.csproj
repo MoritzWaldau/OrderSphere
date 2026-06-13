@@ -12,14 +12,15 @@
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <!-- Copy the authoritative realm definition to the test output directory. -->
   <ItemGroup>
-    <None Include="..\..\contracts\keycloak\ordersphere-realm.json"
-          CopyToOutputDirectory="PreserveNewest"
-          Link="ordersphere-realm.json" />
+    <None Include="..\..\contracts\keycloak\ordersphere-realm.json" CopyToOutputDirectory="PreserveNewest" Link="ordersphere-realm.json" />
   </ItemGroup>
 
 </Project>

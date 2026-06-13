@@ -34,7 +34,7 @@ public sealed class CancelOrderCommandHandlerTests
     [Fact]
     public async Task Handle_OrderNotFound_ReturnsOrderNotFoundError()
     {
-        var orders = new List<Order>().AsQueryable().BuildMockDbSet();
+        var orders = new List<Order>().BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -52,7 +52,7 @@ public sealed class CancelOrderCommandHandlerTests
     {
         var order = CreateOrder(delivered: true);
         var orderId = order.Id;
-        var orders = new List<Order> { order }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -70,7 +70,7 @@ public sealed class CancelOrderCommandHandlerTests
     {
         var order = CreateOrder();
         var orderId = order.Id;
-        var orders = new List<Order> { order }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -92,7 +92,7 @@ public sealed class CancelOrderCommandHandlerTests
     {
         var order = CreateOrder();
         var orderId = order.Id;
-        var orders = new List<Order> { order }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -113,7 +113,7 @@ public sealed class CancelOrderCommandHandlerTests
     {
         var order = CreateOrder();
         var orderId = order.Id;
-        var orders = new List<Order> { order }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
         ctx.CommitAsync(Arg.Any<CancellationToken>())

@@ -12,7 +12,7 @@ public sealed class CreateCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_ValidCommand_ReturnsSuccessWithNonEmptyGuid()
     {
-        var categories = new List<Category>().AsQueryable().BuildMockDbSet();
+        var categories = new List<Category>().BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Categories.Returns(categories);
 
@@ -25,7 +25,7 @@ public sealed class CreateCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_ValidCommand_CallsSaveChanges()
     {
-        var categories = new List<Category>().AsQueryable().BuildMockDbSet();
+        var categories = new List<Category>().BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Categories.Returns(categories);
 
@@ -37,7 +37,7 @@ public sealed class CreateCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_ValidCommand_AddsCategoryToDbSet()
     {
-        var categories = new List<Category>().AsQueryable().BuildMockDbSet();
+        var categories = new List<Category>().BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Categories.Returns(categories);
 

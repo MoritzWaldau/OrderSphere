@@ -14,7 +14,7 @@ public sealed class GetProductsQueryHandlerTests
     {
         // Build the mock DbSet before Returns() — NSubstitute cannot configure a
         // substitute that is itself created inside a Returns() call.
-        var dbSet = products.AsQueryable().BuildMockDbSet();
+        var dbSet = products.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Products.Returns(dbSet);
         return ctx;

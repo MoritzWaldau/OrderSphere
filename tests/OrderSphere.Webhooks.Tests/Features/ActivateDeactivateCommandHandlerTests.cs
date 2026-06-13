@@ -15,7 +15,7 @@ public sealed class ActivateDeactivateCommandHandlerTests
     [Fact]
     public async Task Activate_SubscriptionNotFound_ReturnsNotFound()
     {
-        var subs = new List<WebhookSubscription>().AsQueryable().BuildMockDbSet();
+        var subs = new List<WebhookSubscription>().BuildMockDbSet();
         var ctx = Substitute.For<IWebhooksDbContext>();
         ctx.Subscriptions.Returns(subs);
 
@@ -33,7 +33,7 @@ public sealed class ActivateDeactivateCommandHandlerTests
     {
         var sub = CreateSubscription();
         sub.Deactivate();
-        var subs = new List<WebhookSubscription> { sub }.AsQueryable().BuildMockDbSet();
+        var subs = new List<WebhookSubscription> { sub }.BuildMockDbSet();
         var ctx = Substitute.For<IWebhooksDbContext>();
         ctx.Subscriptions.Returns(subs);
         ctx.SaveChangesAsync(default).ReturnsForAnyArgs(1);
@@ -50,7 +50,7 @@ public sealed class ActivateDeactivateCommandHandlerTests
     [Fact]
     public async Task Deactivate_SubscriptionNotFound_ReturnsNotFound()
     {
-        var subs = new List<WebhookSubscription>().AsQueryable().BuildMockDbSet();
+        var subs = new List<WebhookSubscription>().BuildMockDbSet();
         var ctx = Substitute.For<IWebhooksDbContext>();
         ctx.Subscriptions.Returns(subs);
 
@@ -67,7 +67,7 @@ public sealed class ActivateDeactivateCommandHandlerTests
     public async Task Deactivate_ActiveSubscription_SetsIsActiveFalse()
     {
         var sub = CreateSubscription();
-        var subs = new List<WebhookSubscription> { sub }.AsQueryable().BuildMockDbSet();
+        var subs = new List<WebhookSubscription> { sub }.BuildMockDbSet();
         var ctx = Substitute.For<IWebhooksDbContext>();
         ctx.Subscriptions.Returns(subs);
         ctx.SaveChangesAsync(default).ReturnsForAnyArgs(1);

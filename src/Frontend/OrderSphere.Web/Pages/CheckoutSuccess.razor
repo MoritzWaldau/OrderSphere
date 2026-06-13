@@ -2,7 +2,6 @@
 @attribute [Authorize]
 @inject IOrderingClient Ordering
 @inject NavigationManager Navigation
-@inject ISnackbar Snackbar
 
 <PageTitle>Bestellung bestätigt — OrderSphere</PageTitle>
 
@@ -58,28 +57,21 @@
 
     protected override async Task OnInitializedAsync()
     {
-
-        Snackbar.Add("Step 1");
         if (decimal.TryParse(Total, System.Globalization.NumberStyles.Any,
             System.Globalization.CultureInfo.InvariantCulture, out var parsed))
         {
             _totalAmount = parsed;
         }
-        Snackbar.Add("Step 2");
-        if (CorrelationId is null) return;
 
-        Snackbar.Add("Step 3");
+        if (CorrelationId is null) return;
 
         // Poll for the order (Service Bus processing may take a moment).
         // Ownership is enforced server-side via the JWT token.
         for (var i = 0; i < 6; i++)
         {
-            Snackbar.Add("For nr: " + i);
             _order = await Ordering.GetOrderByCorrelationIdAsync(CorrelationId.Value);
             if (_order is not null) break;
             await Task.Delay(2000);
         }
-
-        Snackbar.Add("Done");
     }
 }

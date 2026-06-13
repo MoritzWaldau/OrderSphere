@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using MediatR;
 using OrderSphere.Payment.Application.Features.Payments;
 using OrderSphere.ServiceDefaults;
@@ -8,7 +9,14 @@ public static class PaymentEndpoints
 {
     public static void MapPaymentEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/v1/payments")
+        var versionSet = app.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1, 0))
+            .ReportApiVersions()
+            .Build();
+
+        var group = app.MapGroup("api/v{version:apiVersion}/payments")
+            .WithApiVersionSet(versionSet)
+            .HasApiVersion(1.0)
             .RequireAuthorization();
 
         group.MapGet("/by-order/{orderId:guid}", async (

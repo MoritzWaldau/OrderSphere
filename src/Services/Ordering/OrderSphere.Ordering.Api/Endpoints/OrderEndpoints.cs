@@ -12,12 +12,11 @@ namespace OrderSphere.Ordering.Api.Endpoints;
 
 public static class OrderEndpoints
 {
-    public static void MapOrderEndpoints(this IEndpointRouteBuilder app)
+    public static void MapOrderEndpoints(this RouteGroupBuilder v1)
     {
         // ── Customer endpoints ────────────────────────────────────────────────
-        var customer = app.MapGroup("/api/v1/orders").RequireAuthorization();
+        var customer = v1.MapGroup("orders").RequireAuthorization();
 
-        // GET /api/v1/orders — all orders for the authenticated customer.
         customer.MapGet("/",
             async (ICurrentUser currentUser, IMediator mediator, CancellationToken ct) =>
             {
@@ -28,7 +27,7 @@ public static class OrderEndpoints
                 return result.ToHttpResult();
             });
 
-        // GET /api/v1/orders/{orderId} — single order; ABAC: owner OR staff.
+        // GET orders/{orderId} — single order; ABAC: owner OR staff.
         customer.MapGet("/{orderId:guid}",
             async (Guid orderId, IMediator mediator, IAuthorizationService authSvc,
                    HttpContext httpContext, CancellationToken ct) =>
@@ -45,7 +44,7 @@ public static class OrderEndpoints
                 return Results.Ok(result.Value);
             });
 
-        // GET /api/v1/orders/correlation/{correlationId} — by Service Bus correlation ID; ABAC: owner OR staff.
+        // GET orders/correlation/{correlationId} — by Service Bus correlation ID; ABAC: owner OR staff.
         customer.MapGet("/correlation/{correlationId:guid}",
             async (Guid correlationId, IMediator mediator, IAuthorizationService authSvc,
                    HttpContext httpContext, CancellationToken ct) =>
@@ -68,7 +67,7 @@ public static class OrderEndpoints
 
         // ── Admin / staff endpoints ───────────────────────────────────────────
         // Read operations: any staff role (csr, order-manager, admin).
-        var staffRead = app.MapGroup("/api/v1/admin/orders")
+        var staffRead = v1.MapGroup("admin/orders")
                            .RequireAuthorization(AuthorizationPolicies.Staff);
 
         staffRead.MapGet("/",
@@ -93,7 +92,7 @@ public static class OrderEndpoints
             });
 
         // Write operations: order-manager or admin.
-        var orderManager = app.MapGroup("/api/v1/admin/orders")
+        var orderManager = v1.MapGroup("admin/orders")
                               .RequireAuthorization(AuthorizationPolicies.OrderManager);
 
         orderManager.MapPut("/{orderId:guid}/status",

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using OrderSphere.BuildingBlocks.EventBus.Outbox;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Events;
 using OrderSphere.Ordering.Infrastructure.Persistence;

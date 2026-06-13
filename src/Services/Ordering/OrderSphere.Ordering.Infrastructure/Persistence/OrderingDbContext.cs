@@ -2,13 +2,14 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Outbox;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
+using OrderSphere.BuildingBlocks.EventBus.Outbox;
 using OrderSphere.BuildingBlocks.Extensions;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Entities;
-using OrderSphere.Ordering.Infrastructure.Outbox;
 
 namespace OrderSphere.Ordering.Infrastructure.Persistence;
 
@@ -102,6 +103,7 @@ public sealed class OrderingDbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(OrderingDbContext).Assembly);
+        modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
 
         // xmin is a PostgreSQL system column — only configure it when the provider is Npgsql.
         // SQLite (used in tests) and other providers do not support the xid column type.

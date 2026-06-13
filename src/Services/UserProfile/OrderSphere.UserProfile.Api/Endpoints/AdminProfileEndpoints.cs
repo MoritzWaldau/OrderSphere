@@ -7,9 +7,9 @@ namespace OrderSphere.UserProfile.Api.Endpoints;
 
 public static class AdminProfileEndpoints
 {
-    public static void MapAdminProfileEndpoints(this IEndpointRouteBuilder app)
+    public static void MapAdminProfileEndpoints(this RouteGroupBuilder v1)
     {
-        var admin = app.MapGroup("/api/v1/admin/users").RequireAuthorization("AdminPolicy");
+        var admin = v1.MapGroup("admin/users").RequireAuthorization("AdminPolicy");
 
         admin.MapGet("/", GetAllUsers);
         admin.MapGet("/{id:guid}", GetUserById);

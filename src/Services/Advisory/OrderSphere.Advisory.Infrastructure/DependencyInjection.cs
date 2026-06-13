@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OrderSphere.Advisory.Application.Abstractions;
+using OrderSphere.Advisory.Infrastructure.Cleanup;
 using OrderSphere.Advisory.Infrastructure.Persistence;
 
 namespace OrderSphere.Advisory.Infrastructure;
@@ -16,6 +17,8 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<IAdvisoryDbContext>(sp =>
             sp.GetRequiredService<AdvisoryDbContext>());
+
+        builder.Services.AddHostedService<ConversationCleanupService>();
 
         return builder;
     }

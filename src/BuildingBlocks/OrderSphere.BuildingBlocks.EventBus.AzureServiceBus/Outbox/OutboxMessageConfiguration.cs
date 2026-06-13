@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using OrderSphere.Payment.Infrastructure.Outbox;
+using OrderSphere.BuildingBlocks.EventBus.Outbox;
 
-namespace OrderSphere.Payment.Infrastructure.EntityConfigurations;
+namespace OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Outbox;
 
-internal sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage>
+public sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage>
 {
     public void Configure(EntityTypeBuilder<OutboxMessage> builder)
     {
@@ -13,13 +13,6 @@ internal sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outb
         builder.Property(x => x.Type).IsRequired().HasMaxLength(256);
         builder.Property(x => x.Content).IsRequired();
         builder.Property(x => x.RetryCount).HasDefaultValue(0);
-        // PostgreSQL xmin system column as a concurrency token — guards against concurrent
-        // dispatcher instances processing the same row twice. No DDL generated; xmin is
-        // always present on every PG row. (UseXminAsConcurrencyToken() was removed in Npgsql 9.)
-        builder.Property<uint>("xmin")
-            .HasColumnType("xid")
-            .ValueGeneratedOnAddOrUpdate()
-            .IsConcurrencyToken();
         // Composite index optimises the dispatcher query: WHERE ProcessedAt IS NULL ORDER BY OccurredAt
         builder.HasIndex(x => new { x.ProcessedAt, x.OccurredAt });
         builder.HasIndex(x => x.RetryCount);

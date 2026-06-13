@@ -6,9 +6,9 @@ namespace OrderSphere.Ordering.Api.Endpoints;
 
 public static class CouponEndpoints
 {
-    public static void MapCouponEndpoints(this IEndpointRouteBuilder app)
+    public static void MapCouponEndpoints(this RouteGroupBuilder v1)
     {
-        app.MapGet("/api/v1/coupons/validate",
+        v1.MapGet("coupons/validate",
             async (string code, decimal subtotal, IMediator mediator, CancellationToken ct) =>
             {
                 var result = await mediator.Send(new ValidateCouponQuery(code, subtotal), ct);

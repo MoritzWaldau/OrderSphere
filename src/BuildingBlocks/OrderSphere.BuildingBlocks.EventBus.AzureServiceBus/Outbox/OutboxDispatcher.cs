@@ -2,13 +2,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using OrderSphere.Ordering.Infrastructure.Persistence;
+using OrderSphere.BuildingBlocks.EventBus.Outbox;
 
-namespace OrderSphere.Ordering.Infrastructure.Outbox;
+namespace OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Outbox;
 
-public sealed class OutboxDispatcher(
+public sealed class OutboxDispatcher<TContext>(
     IServiceScopeFactory scopeFactory,
-    ILogger<OutboxDispatcher> logger) : BackgroundService
+    ILogger<OutboxDispatcher<TContext>> logger) : BackgroundService
+    where TContext : DbContext
 {
     private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(10);
 
@@ -26,21 +27,21 @@ public sealed class OutboxDispatcher(
         try
         {
             await using var scope = scopeFactory.CreateAsyncScope();
-            var context = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
+            var context = scope.ServiceProvider.GetRequiredService<TContext>();
 
             var handlers = scope.ServiceProvider
                 .GetRequiredService<IEnumerable<IOutboxEventHandler>>()
                 .ToDictionary(h => h.EventType);
 
-            var poisonCount = await context.OutboxMessages
+            var poisonCount = await context.Set<OutboxMessage>()
                 .CountAsync(m => m.ProcessedAt == null && m.RetryCount >= OutboxMessage.MaxRetries, ct);
 
             if (poisonCount > 0)
                 logger.LogWarning(
-                    "{Count} outbox message(s) permanently failed (RetryCount >= {Max}). Inspect the Error column in OutboxMessages.",
+                    "{Count} outbox message(s) permanently failed (RetryCount >= {Max}). Inspect the Error column in outbox_messages.",
                     poisonCount, OutboxMessage.MaxRetries);
 
-            var messages = await context.OutboxMessages
+            var messages = await context.Set<OutboxMessage>()
                 .Where(m => m.ProcessedAt == null && m.RetryCount < OutboxMessage.MaxRetries)
                 .OrderBy(m => m.OccurredAt)
                 .Take(20)
@@ -64,7 +65,7 @@ public sealed class OutboxDispatcher(
 
                     if (message.RetryCount >= OutboxMessage.MaxRetries)
                         logger.LogError(ex,
-                            "Outbox message {Id} ({Type}) permanently failed after {MaxRetries} attempts",
+                            "Outbox message {Id} ({Type}) permanently failed after {MaxRetries} attempts.",
                             message.Id, message.Type, OutboxMessage.MaxRetries);
                     else
                         logger.LogWarning(ex,
@@ -85,7 +86,7 @@ public sealed class OutboxDispatcher(
         }
     }
 
-    private async Task DispatchAsync(
+    private static async Task DispatchAsync(
         OutboxMessage message,
         Dictionary<string, IOutboxEventHandler> handlers,
         CancellationToken ct)

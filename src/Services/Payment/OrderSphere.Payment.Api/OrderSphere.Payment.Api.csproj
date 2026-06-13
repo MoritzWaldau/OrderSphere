@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Asp.Versioning.Http" />
     <PackageReference Include="Aspire.Azure.Messaging.ServiceBus" />
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />

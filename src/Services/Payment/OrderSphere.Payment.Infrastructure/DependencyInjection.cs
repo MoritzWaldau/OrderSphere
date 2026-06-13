@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
+using OrderSphere.BuildingBlocks.EventBus.Outbox;
 using OrderSphere.Payment.Application.Abstractions;
 using OrderSphere.Payment.Infrastructure.Outbox;
 using OrderSphere.Payment.Infrastructure.Persistence;
@@ -22,8 +24,7 @@ public static class DependencyInjection
 
         // Outbox
         services.AddScoped<IOutboxEventHandler, PaymentProcessedEventHandler>();
-        services.AddHostedService<OutboxDispatcher>();
-        services.AddHostedService<OutboxCleanupService>();
+        services.AddOutboxProcessing<PaymentDbContext>();
 
         services.AddSingleton<IPaymentProvider, InvoicePaymentProvider>();
         services.AddSingleton<IPaymentProvider, CreditCardPaymentProvider>();

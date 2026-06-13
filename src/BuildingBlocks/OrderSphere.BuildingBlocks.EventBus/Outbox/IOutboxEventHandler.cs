@@ -1,4 +1,4 @@
-namespace OrderSphere.Payment.Infrastructure.Outbox;
+namespace OrderSphere.BuildingBlocks.EventBus.Outbox;
 
 public interface IOutboxEventHandler
 {

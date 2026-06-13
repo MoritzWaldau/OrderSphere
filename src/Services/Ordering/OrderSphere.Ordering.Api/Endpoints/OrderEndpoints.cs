@@ -54,9 +54,10 @@ public static class OrderEndpoints
                 if (result.IsFailure)
                     return result.ToHttpResult();
 
-                // Order may not be persisted yet (Service Bus processing latency) — return null body.
+                // Order may not be persisted yet (Service Bus processing latency).
+                // Signal "not ready" with 204 — an empty 200 body breaks JSON deserialization on the client.
                 if (result.Value is null)
-                    return Results.Ok((OrderDto?)null);
+                    return Results.NoContent();
 
                 var authResult = await authSvc.AuthorizeAsync(
                     httpContext.User, result.Value, AuthorizationPolicies.OrderOwnerOrStaff);

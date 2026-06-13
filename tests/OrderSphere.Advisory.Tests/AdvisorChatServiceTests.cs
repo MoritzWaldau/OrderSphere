@@ -32,8 +32,8 @@ public sealed class AdvisorChatServiceTests
 
     private static IAdvisoryDbContext Db(params Conversation[] existing)
     {
-        var conversations = existing.AsQueryable().BuildMockDbSet();
-        var messages = Array.Empty<ConversationMessage>().AsQueryable().BuildMockDbSet();
+        var conversations = existing.BuildMockDbSet();
+        var messages = Array.Empty<ConversationMessage>().BuildMockDbSet();
         var db = Substitute.For<IAdvisoryDbContext>();
         db.Conversations.Returns(conversations);
         db.ConversationMessages.Returns(messages);

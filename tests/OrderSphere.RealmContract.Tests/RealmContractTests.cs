@@ -66,7 +66,7 @@ public sealed class RealmContractTests
     {
         // failureFactor = failures per interval; combined with maxTemporaryLockouts
         // this produces the effective lockout threshold.
-        Realm["failureFactor"]!.GetValue<int>().Should().BeLessOrEqualTo(10);
+        Realm["failureFactor"]!.GetValue<int>().Should().BeLessThanOrEqualTo(10);
     }
 
     // ── Browser flow ──────────────────────────────────────────────────────────
@@ -233,7 +233,7 @@ public sealed class RealmContractTests
     {
         // Short-lived access tokens (≤ 5 min) limit the blast radius of token leakage.
         var lifespan = Realm["accessTokenLifespan"]!.GetValue<int>();
-        lifespan.Should().BeLessOrEqualTo(300);
+        lifespan.Should().BeLessThanOrEqualTo(300);
     }
 
     [Fact]
@@ -241,7 +241,7 @@ public sealed class RealmContractTests
     {
         // 30-minute idle timeout aligns with the BFF cookie sliding expiration.
         var timeout = Realm["ssoSessionIdleTimeout"]!.GetValue<int>();
-        timeout.Should().BeLessOrEqualTo(1800);
+        timeout.Should().BeLessThanOrEqualTo(1800);
     }
 
     [Fact]

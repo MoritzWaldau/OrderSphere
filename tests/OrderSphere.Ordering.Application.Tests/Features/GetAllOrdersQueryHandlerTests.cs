@@ -32,7 +32,7 @@ public sealed class GetAllOrdersQueryHandlerTests
     {
         var o1 = CreateOrder();
         var o2 = CreateOrder(OrderStatus.Paid);
-        var orders = new List<Order> { o1, o2 }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { o1, o2 }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -49,7 +49,7 @@ public sealed class GetAllOrdersQueryHandlerTests
     {
         var created = CreateOrder();
         var paid = CreateOrder(OrderStatus.Paid);
-        var orders = new List<Order> { created, paid }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { created, paid }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 

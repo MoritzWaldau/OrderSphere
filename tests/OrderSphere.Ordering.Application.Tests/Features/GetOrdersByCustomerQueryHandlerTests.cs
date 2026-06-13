@@ -25,7 +25,7 @@ public sealed class GetOrdersByCustomerQueryHandlerTests
     [Fact]
     public async Task Handle_NoOrders_ReturnsEmptyList()
     {
-        var orders = new List<Order>().AsQueryable().BuildMockDbSet();
+        var orders = new List<Order>().BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -59,7 +59,7 @@ public sealed class GetOrdersByCustomerQueryHandlerTests
     public async Task Handle_OrdersBelongingToOtherCustomer_NotReturned()
     {
         var o1 = CreateOrder(CustomerB);
-        var orders = new List<Order> { o1 }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { o1 }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -76,7 +76,7 @@ public sealed class GetOrdersByCustomerQueryHandlerTests
     {
         var o1 = CreateOrder(CustomerA);
         var o2 = CreateOrder(CustomerA);
-        var orders = new List<Order> { o1, o2 }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { o1, o2 }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 

@@ -18,7 +18,7 @@ public sealed class GetSubscriptionsQueryHandlerTests
     {
         var own = CreateSubscription(Owner);
         var other = CreateSubscription(OtherOwner);
-        var subs = new List<WebhookSubscription> { own, other }.AsQueryable().BuildMockDbSet();
+        var subs = new List<WebhookSubscription> { own, other }.BuildMockDbSet();
 
         var ctx = Substitute.For<IWebhooksDbContext>();
         ctx.Subscriptions.Returns(subs);
@@ -57,7 +57,7 @@ public sealed class GetSubscriptionsQueryHandlerTests
     [Fact]
     public async Task Handle_NoSubscriptions_ReturnsEmptySuccess()
     {
-        var subs = new List<WebhookSubscription>().AsQueryable().BuildMockDbSet();
+        var subs = new List<WebhookSubscription>().BuildMockDbSet();
         var ctx = Substitute.For<IWebhooksDbContext>();
         ctx.Subscriptions.Returns(subs);
 

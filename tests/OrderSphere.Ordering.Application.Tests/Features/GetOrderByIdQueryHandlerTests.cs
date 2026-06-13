@@ -24,7 +24,7 @@ public sealed class GetOrderByIdQueryHandlerTests
     [Fact]
     public async Task Handle_OrderNotFound_ReturnsOrderNotFoundError()
     {
-        var orders = new List<Order>().AsQueryable().BuildMockDbSet();
+        var orders = new List<Order>().BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -58,7 +58,7 @@ public sealed class GetOrderByIdQueryHandlerTests
     public async Task Handle_OrderExists_ReturnsOrderDto()
     {
         var order = CreateOrder();
-        var orders = new List<Order> { order }.AsQueryable().BuildMockDbSet();
+        var orders = new List<Order> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 

@@ -16,7 +16,7 @@ public sealed class DeleteSubscriptionCommandHandlerTests
     [Fact]
     public async Task Handle_SubscriptionNotFound_ReturnsNotFound()
     {
-        var subs = new List<WebhookSubscription>().AsQueryable().BuildMockDbSet();
+        var subs = new List<WebhookSubscription>().BuildMockDbSet();
         var ctx = Substitute.For<IWebhooksDbContext>();
         ctx.Subscriptions.Returns(subs);
 
@@ -33,7 +33,7 @@ public sealed class DeleteSubscriptionCommandHandlerTests
     public async Task Handle_DifferentCustomer_ReturnsNotFound()
     {
         var sub = CreateSubscription(OtherOwner);
-        var subs = new List<WebhookSubscription> { sub }.AsQueryable().BuildMockDbSet();
+        var subs = new List<WebhookSubscription> { sub }.BuildMockDbSet();
         var ctx = Substitute.For<IWebhooksDbContext>();
         ctx.Subscriptions.Returns(subs);
 
@@ -69,7 +69,7 @@ public sealed class DeleteSubscriptionCommandHandlerTests
     public async Task Handle_ValidRequest_SoftDeletesAndReturnsSuccess()
     {
         var sub = CreateSubscription();
-        var subs = new List<WebhookSubscription> { sub }.AsQueryable().BuildMockDbSet();
+        var subs = new List<WebhookSubscription> { sub }.BuildMockDbSet();
         var ctx = Substitute.For<IWebhooksDbContext>();
         ctx.Subscriptions.Returns(subs);
         ctx.SaveChangesAsync(default).ReturnsForAnyArgs(1);

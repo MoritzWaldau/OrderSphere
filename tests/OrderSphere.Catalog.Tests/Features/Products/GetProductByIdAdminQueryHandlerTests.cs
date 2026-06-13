@@ -16,7 +16,7 @@ public sealed class GetProductByIdAdminQueryHandlerTests
     [Fact]
     public async Task Handle_ProductNotFound_ReturnsNotFoundError()
     {
-        var products = new List<Product>().AsQueryable().BuildMockDbSet();
+        var products = new List<Product>().BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Products.Returns(products);
 
@@ -49,7 +49,7 @@ public sealed class GetProductByIdAdminQueryHandlerTests
     public async Task Handle_ExistingProduct_ReturnsAdminProductDto()
     {
         var product = MakeProduct(ProductA);
-        var products = new List<Product> { product }.AsQueryable().BuildMockDbSet();
+        var products = new List<Product> { product }.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
         ctx.Products.Returns(products);
 

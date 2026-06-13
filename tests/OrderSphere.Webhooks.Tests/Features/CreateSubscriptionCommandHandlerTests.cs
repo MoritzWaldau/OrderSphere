@@ -8,7 +8,7 @@ public sealed class CreateSubscriptionCommandHandlerTests
 
     private static IWebhooksDbContext MakeContext()
     {
-        var subs = new List<WebhookSubscription>().AsQueryable().BuildMockDbSet();
+        var subs = new List<WebhookSubscription>().BuildMockDbSet();
         var ctx = Substitute.For<IWebhooksDbContext>();
         ctx.Subscriptions.Returns(subs);
         ctx.SaveChangesAsync(default).ReturnsForAnyArgs(1);

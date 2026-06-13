@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using OpenTelemetry.Trace;
 using OrderSphere.Advisory.Api.Agent;
 using OrderSphere.Advisory.Api.Configuration;
 using OrderSphere.Advisory.Infrastructure;

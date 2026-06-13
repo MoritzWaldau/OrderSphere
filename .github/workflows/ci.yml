@@ -107,11 +107,16 @@ jobs:
             ./CoverageReport/**
           retention-days: 14
 
-  # ── Vulnerable NuGet packages ────────────────────────────────────────────────
-  vuln-scan:
-    name: Vulnerable Packages
+  # ── SonarCloud Analysis ──────────────────────────────────────────────────────
+  # Reuses the coverage artifact from build-test — no second test run.
+  sonar:
+    name: SonarCloud
+    needs: build-test
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -119,17 +124,53 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET + NuGet cache
         uses: ./.github/actions/setup-dotnet-cache
 
-      - name: Check for vulnerable packages (incl. transitive)
-        shell: bash
-        run: |
-          set -euo pipefail
-          report="$(dotnet list OrderSphere.slnx package --vulnerable --include-transitive 2>&1)"
-          echo "$report"
-          if echo "$report" | grep -q "has the following vulnerable packages"; then
-            echo "::error::Vulnerable NuGet packages found."
-            exit 1
-          fi
+      - name: Setup JDK (required by the Sonar scanner)
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache SonarQube scanner
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Restore .NET tools (dotnet-sonarscanner)
+        run: dotnet tool restore
+
+      - name: Download coverage artifact from build-test
+        uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.1
+        with:
+          name: test-and-coverage
+
+      - name: Begin Sonar analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: >
+          dotnet sonarscanner begin
+          /k:"MoritzWaldau_OrderSphere"
+          /o:"moritzwaldau"
+          /d:sonar.token="${SONAR_TOKEN}"
+          /d:sonar.host.url="https://sonarcloud.io"
+          /d:sonar.cs.cobertura.reportsPaths="CoverageReport/Cobertura.xml"
+          /d:sonar.scanner.scanAll=false
+
+      - name: Restore dependencies
+        run: dotnet restore OrderSphere.slnx
+
+      - name: Build
+        run: dotnet build OrderSphere.slnx --no-restore --configuration Release
+
+      - name: End Sonar analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.token="${SONAR_TOKEN}"
+

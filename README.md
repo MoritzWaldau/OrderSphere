@@ -2,7 +2,6 @@
 
 [![CI](https://github.com/MoritzWaldau/OrderSphere/actions/workflows/ci.yml/badge.svg)](https://github.com/MoritzWaldau/OrderSphere/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/MoritzWaldau/OrderSphere/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoritzWaldau/OrderSphere/actions/workflows/codeql.yml)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/MoritzWaldau/OrderSphere/badge)](https://securityscorecards.dev/viewer/?uri=github.com/MoritzWaldau/OrderSphere)
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=MoritzWaldau_OrderSphere&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=MoritzWaldau_OrderSphere)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -156,8 +155,7 @@ hand-written `infra/` folder. Keycloak is deployed independently as the central 
 (see [deploy/sso/](deploy/sso/README.md)).
 
 The full deployment procedure is in
-[docs/deploy-ordersphere.md](docs/deploy-ordersphere.md). Deployment pipelines live in
-[.github/workflows/](.github/workflows/) (`deploy-staging.yml`, `deploy-prod.yml`, `deploy-sso.yml`).
+[docs/deploy-ordersphere.md](docs/deploy-ordersphere.md). The SSO deployment pipeline lives in [.github/workflows/deploy-sso.yml](.github/workflows/deploy-sso.yml); application deploy pipelines are not yet implemented.
 
 ## Conventions
 
@@ -167,19 +165,19 @@ are in [docs/ui-conventions.md](docs/ui-conventions.md).
 
 ## Security
 
-Supply-chain and code security are enforced in CI: CodeQL static analysis, OpenSSF Scorecard,
-GitHub dependency review, Dependabot updates, and a vulnerable-package scan (`dotnet list package
---vulnerable`). Non-development secrets are held in Azure Key Vault; development uses .NET
-user-secrets. Authentication is delegated to Keycloak (OIDC) via the BFF and gateway, with RBAC
-enforced per service.
+Supply-chain and code security are enforced in CI: CodeQL static analysis, GitHub dependency
+review, Dependabot updates, a vulnerable-package scan (`dotnet list package --vulnerable`), secret
+scanning (Gitleaks), and filesystem/misconfiguration scanning (Trivy). Non-development secrets are
+held in Azure Key Vault; development uses .NET user-secrets. Authentication is delegated to
+Keycloak (OIDC) via the BFF and gateway, with RBAC enforced per service.
 
 To report a vulnerability, follow the disclosure process in [SECURITY.md](SECURITY.md).
 
 ## Contributing
 
 Contributions follow the workflow in [CONTRIBUTING.md](CONTRIBUTING.md): branch from `master`,
-keep changes within one layer where possible, and use Conventional Commit messages (enforced on PR
-titles). Released changes are tracked in [CHANGELOG.md](CHANGELOG.md).
+keep changes within one layer where possible, and use Conventional Commit messages. Released
+changes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 

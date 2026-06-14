@@ -16,8 +16,8 @@ public sealed class RedisTicketStore : ITicketStore
     private const string KeyPrefix = "bff:session:";
     /// <summary>
     /// Secondary index: bff:sid:{sessionId} → session key.
-    /// Written on StoreAsync so BackchannelLogoutEndpoint can revoke sessions by Keycloak sid.
-    /// Keycloak sends session_state (= session ID) in ID tokens and sid in logout_tokens.
+    /// Written on StoreAsync so BackchannelLogoutEndpoint can revoke sessions by Auth0 sid.
+    /// Auth0 sends session_state (= session ID) in ID tokens and sid in logout_tokens.
     /// </summary>
     private const string SidPrefix = "bff:sid:";
 
@@ -41,7 +41,7 @@ public sealed class RedisTicketStore : ITicketStore
         await RenewAsync(key, ticket);
 
         // Write secondary index sid → session key so BackchannelLogoutEndpoint can revoke
-        // a session given only the Keycloak session_state / sid claim from the logout_token.
+        // a session given only the Auth0 session_state / sid claim from the logout_token.
         var sid = ticket.Principal.FindFirst("session_state")?.Value
                ?? ticket.Principal.FindFirst("sid")?.Value;
         if (!string.IsNullOrEmpty(sid))
@@ -61,7 +61,7 @@ public sealed class RedisTicketStore : ITicketStore
     }
 
     /// <summary>
-    /// Looks up the session key for the given Keycloak session ID (sid / session_state).
+    /// Looks up the session key for the given Auth0 session ID (sid / session_state).
     /// Returns null when the session is not found or has already expired.
     /// </summary>
     public Task<string?> FindKeyBySessionIdAsync(string sid)

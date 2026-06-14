@@ -8,8 +8,7 @@ those before changing code.
 ## Prerequisites
 
 - .NET 10 SDK (see [global.json](global.json) for the pinned version).
-- A container runtime (Docker or Podman) for PostgreSQL, Redis, the Service Bus emulator, and
-  Keycloak.
+- A container runtime (Docker or Podman) for PostgreSQL, Redis, and the Service Bus emulator.
 
 ## Workflow
 

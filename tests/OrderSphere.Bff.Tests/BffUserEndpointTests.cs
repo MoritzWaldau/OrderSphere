@@ -10,7 +10,7 @@ namespace OrderSphere.Bff.Tests;
 /// <summary>
 /// Integration tests for GET /bff/user.
 /// Verifies the shape of the response and the XSRF cookie lifecycle
-/// without requiring a live Keycloak or Redis instance.
+/// without requiring a live OIDC provider or Redis instance.
 /// </summary>
 public sealed class BffUserEndpointTests(BffWebApplicationFactory factory)
     : IClassFixture<BffWebApplicationFactory>

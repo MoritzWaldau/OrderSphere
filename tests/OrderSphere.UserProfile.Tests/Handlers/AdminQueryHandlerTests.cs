@@ -29,7 +29,7 @@ public sealed class AdminQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(2);
         result.Value[0].DisplayName.Should().Be("Amy", "results are ordered by display name");
-        result.Value.Single(u => u.KeycloakSubject == "sub-zoe").AddressCount.Should().Be(1);
+        result.Value.Single(u => u.Subject == "sub-zoe").AddressCount.Should().Be(1);
     }
 
     // ── GetUserById ───────────────────────────────────────────────────────────
@@ -47,7 +47,7 @@ public sealed class AdminQueryHandlerTests
             .Handle(new GetUserByIdQuery(profile.Id.Value), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.KeycloakSubject.Should().Be("sub-byid");
+        result.Value.Subject.Should().Be("sub-byid");
     }
 
     [Fact]

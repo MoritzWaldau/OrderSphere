@@ -9,15 +9,16 @@
 # written infra/ folder here. External ingress is decided in the AppHost via
 # `WithExternalHttpEndpoints()` (only ordersphere-bff is public).
 #
-# Keycloak is NOT part of this deployment: it is the independently deployed
-# central SSO provider (see deploy/sso/). Its issuer is supplied to OrderSphere
-# through the `keycloak-realm-authority` parameter (azd env set), and the four
-# confidential client secrets through azd secret parameters (azd env set-secret):
+# Auth0 is NOT part of this deployment: it is an external, managed identity
+# provider (tenant ordersphere-dev.eu.auth0.com). Its issuer is supplied to
+# OrderSphere through the `oidc-authority` parameter (prompted interactively by
+# `azd up`), and the four confidential client secrets through azd secret
+# parameters:
 #   bff-client-secret, ordering-worker-secret,
 #   notification-worker-secret, payment-worker-secret
 name: ordersphere
 services:
   app:
     language: dotnet
-    project: ./src/OrderSphere.AppHost/OrderSphere.AppHost.csproj
+    project: ./src/Hosting/OrderSphere.AppHost/OrderSphere.AppHost.csproj
     host: containerapp

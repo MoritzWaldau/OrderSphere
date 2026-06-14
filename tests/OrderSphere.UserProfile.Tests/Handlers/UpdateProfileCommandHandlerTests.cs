@@ -59,7 +59,7 @@ public sealed class UpdateProfileCommandHandlerTests
         await CreateHandler(ctx).Handle(cmd, CancellationToken.None);
 
         ctx.ChangeTracker.Clear();
-        var stored = ctx.CustomerProfiles.Single(p => p.KeycloakSubject == "sub-persist");
+        var stored = ctx.CustomerProfiles.Single(p => p.Subject == "sub-persist");
         stored.DisplayName.Should().Be("After");
         stored.Email.Should().Be("after@example.com");
     }

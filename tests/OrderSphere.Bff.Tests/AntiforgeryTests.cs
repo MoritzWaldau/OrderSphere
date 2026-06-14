@@ -83,7 +83,7 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
 
         var response = await client.SendAsync(request);
 
-        // The endpoint filter passes; the sign-out handler redirects to "/" or Keycloak.
+        // The endpoint filter passes; the sign-out handler redirects to "/" or Auth0.
         // What matters is that the response is NOT a CSRF 403.
         response.StatusCode.Should().NotBe(HttpStatusCode.Forbidden);
     }
@@ -117,7 +117,7 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
         // to /api/** (which require BffUserPolicy) BEFORE the CSRF middleware runs.
         // For /api/** the OIDC OnRedirectToIdentityProvider handler converts the
         // would-be 302 challenge into a 401 so a browser fetch sees a clear
-        // "not signed in" status instead of an opaque cross-origin redirect (CORS).
+        // "not signed in" status instead of an opaque cross-origin redirect (CORS) to Auth0.
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false,
@@ -128,7 +128,7 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
             new StringContent("{}", System.Text.Encoding.UTF8, "application/json"));
 
         // Unauthenticated → auth challenge surfaced as 401 (not a 302 redirect to
-        // Keycloak). The key assertion is that it is NOT 403 (which would indicate
+        // Auth0). The key assertion is that it is NOT 403 (which would indicate
         // incorrect CSRF rejection of a request that never passed authentication).
         response.StatusCode.Should().NotBe(HttpStatusCode.Forbidden);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized,

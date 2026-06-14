@@ -16,7 +16,7 @@ namespace OrderSphere.Bff.Tests;
 
 /// <summary>
 /// WebApplicationFactory for BFF integration tests.
-/// Replaces all external dependencies (Redis, Keycloak) with in-process stubs
+/// Replaces all external dependencies (Redis, Auth0 OIDC) with in-process stubs
 /// so tests run without any running infrastructure.
 /// </summary>
 public sealed class BffWebApplicationFactory : WebApplicationFactory<Program>
@@ -59,7 +59,7 @@ public sealed class BffWebApplicationFactory : WebApplicationFactory<Program>
         // Set environment to "Testing".
         // This causes Program.cs to skip Redis DataProtection (ephemeral key ring)
         // and triggers loading of appsettings.Testing.json from the BFF project,
-        // which provides the fake Keycloak and Redis configuration values.
+        // which provides the fake OIDC and Redis configuration values.
         builder.UseEnvironment("Testing");
 
         builder.ConfigureServices(services =>

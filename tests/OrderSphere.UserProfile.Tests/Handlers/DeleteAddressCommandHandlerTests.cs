@@ -84,7 +84,7 @@ public sealed class DeleteAddressCommandHandlerTests
         ctx.ChangeTracker.Clear();
         var stored = await ctx.CustomerProfiles
             .Include(p => p.Addresses)
-            .SingleAsync(p => p.KeycloakSubject == "sub-del-persist");
+            .SingleAsync(p => p.Subject == "sub-del-persist");
         stored.Addresses.Should().BeEmpty();
     }
 
@@ -135,7 +135,7 @@ public sealed class DeleteAddressCommandHandlerTests
         ctx.ChangeTracker.Clear();
         var stored = await ctx.CustomerProfiles
             .Include(p => p.Addresses)
-            .SingleAsync(p => p.KeycloakSubject == "sub-promote");
+            .SingleAsync(p => p.Subject == "sub-promote");
         stored.Addresses.Should().ContainSingle().Which.IsDefault.Should().BeTrue();
         stored.Addresses.Single().Id.Should().Be(second.Id);
     }

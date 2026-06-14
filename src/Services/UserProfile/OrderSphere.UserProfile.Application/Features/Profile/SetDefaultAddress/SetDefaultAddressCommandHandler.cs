@@ -1,14 +1,14 @@
 namespace OrderSphere.UserProfile.Application.Features.Profile.SetDefaultAddress;
 
 public sealed record SetDefaultAddressCommand(
-    string KeycloakSubject,
+    string Subject,
     Guid AddressId) : ICommand<Result>;
 
 public sealed class SetDefaultAddressCommandValidator : AbstractValidator<SetDefaultAddressCommand>
 {
     public SetDefaultAddressCommandValidator()
     {
-        RuleFor(x => x.KeycloakSubject).NotEmpty();
+        RuleFor(x => x.Subject).NotEmpty();
         RuleFor(x => x.AddressId).NotEmpty();
     }
 }
@@ -20,7 +20,7 @@ public sealed class SetDefaultAddressCommandHandler(IUserProfileDbContext contex
     {
         var profile = await context.CustomerProfiles
             .Include(p => p.Addresses)
-            .FirstOrDefaultAsync(p => p.KeycloakSubject == request.KeycloakSubject, ct);
+            .FirstOrDefaultAsync(p => p.Subject == request.Subject, ct);
 
         if (profile is null)
             return Result.Failure(UserProfileErrors.ProfileNotFound);

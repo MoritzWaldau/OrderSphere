@@ -87,7 +87,7 @@ public sealed class SetDefaultAddressCommandHandlerTests
         ctx.ChangeTracker.Clear();
         var stored = await ctx.CustomerProfiles
             .Include(p => p.Addresses)
-            .SingleAsync(p => p.KeycloakSubject == "sub-switch");
+            .SingleAsync(p => p.Subject == "sub-switch");
 
         stored.Addresses.Single(a => a.Id == second.Id).IsDefault.Should().BeTrue();
         stored.Addresses.Single(a => a.Id == first.Id).IsDefault.Should().BeFalse();

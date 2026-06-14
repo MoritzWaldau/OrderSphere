@@ -32,7 +32,7 @@ public sealed class ConfigureSwaggerOptions(IConfiguration configuration)
         options.CustomSchemaIds(type => type.FullName!.Replace("+", "."));
 
         // OAuth2 Authorization Code + PKCE — enables token acquisition directly
-        // from Swagger UI via the swagger-ui public Keycloak client.
+        // from Swagger UI via the Swagger UI Auth0 application.
         var authority = configuration["Oidc:Authority"]
             ?? "https://ordersphere-dev.eu.auth0.com/";
 

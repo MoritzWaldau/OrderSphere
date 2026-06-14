@@ -2,7 +2,7 @@ using System.Security.Claims;
 
 namespace OrderSphere.Advisory.Api.Agent;
 
-// Resolves the owning customer (Keycloak subject) from the current principal.
+// Resolves the owning customer (Auth0 subject) from the current principal.
 // JwtBearer maps "sub" to NameIdentifier by default; accept either.
 internal static class CustomerContext
 {

@@ -56,7 +56,7 @@ public sealed record RecentOrderDto(
 // UserProfile admin
 public sealed record AdminUserSummaryDto(
     Guid Id,
-    string KeycloakSubject,
+    string Subject,
     string DisplayName,
     string Email,
     bool DarkModeEnabled,
@@ -64,7 +64,7 @@ public sealed record AdminUserSummaryDto(
 
 public sealed record AdminUserDetailDto(
     Guid Id,
-    string KeycloakSubject,
+    string Subject,
     string DisplayName,
     string Email,
     bool DarkModeEnabled,

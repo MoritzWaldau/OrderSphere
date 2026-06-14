@@ -1,6 +1,6 @@
 namespace OrderSphere.UserProfile.Application.Features.Profile.GetAddresses;
 
-public sealed record GetAddressesQuery(string KeycloakSubject) : IQuery<Result<IReadOnlyList<AddressDto>>>;
+public sealed record GetAddressesQuery(string Subject) : IQuery<Result<IReadOnlyList<AddressDto>>>;
 
 public sealed class GetAddressesQueryHandler(IUserProfileDbContext context)
     : IQueryHandler<GetAddressesQuery, Result<IReadOnlyList<AddressDto>>>
@@ -10,7 +10,7 @@ public sealed class GetAddressesQueryHandler(IUserProfileDbContext context)
         var profile = await context.CustomerProfiles
             .AsNoTracking()
             .Include(p => p.Addresses)
-            .FirstOrDefaultAsync(p => p.KeycloakSubject == request.KeycloakSubject, ct);
+            .FirstOrDefaultAsync(p => p.Subject == request.Subject, ct);
 
         if (profile is null)
             return Result<IReadOnlyList<AddressDto>>.Failure(UserProfileErrors.ProfileNotFound);

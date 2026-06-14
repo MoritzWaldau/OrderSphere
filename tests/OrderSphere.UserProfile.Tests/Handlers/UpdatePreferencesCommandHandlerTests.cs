@@ -45,7 +45,7 @@ public sealed class UpdatePreferencesCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
 
         ctx.ChangeTracker.Clear();
-        var stored = await ctx.CustomerProfiles.FirstAsync(p => p.KeycloakSubject == "sub-dark");
+        var stored = await ctx.CustomerProfiles.FirstAsync(p => p.Subject == "sub-dark");
         stored.DarkModeEnabled.Should().BeTrue();
     }
 
@@ -67,7 +67,7 @@ public sealed class UpdatePreferencesCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
 
         ctx.ChangeTracker.Clear();
-        var stored = await ctx.CustomerProfiles.FirstAsync(p => p.KeycloakSubject == "sub-light");
+        var stored = await ctx.CustomerProfiles.FirstAsync(p => p.Subject == "sub-light");
         stored.DarkModeEnabled.Should().BeFalse();
     }
 }

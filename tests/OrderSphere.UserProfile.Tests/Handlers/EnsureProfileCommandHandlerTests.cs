@@ -23,7 +23,7 @@ public sealed class EnsureProfileCommandHandlerTests
         var result = await CreateHandler(ctx).Handle(cmd, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        ctx.CustomerProfiles.Should().ContainSingle(p => p.KeycloakSubject == "sub-new");
+        ctx.CustomerProfiles.Should().ContainSingle(p => p.Subject == "sub-new");
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public sealed class EnsureProfileCommandHandlerTests
 
         var result = await CreateHandler(ctx).Handle(cmd, CancellationToken.None);
 
-        result.Value.KeycloakSubject.Should().Be("sub-new");
+        result.Value.Subject.Should().Be("sub-new");
         result.Value.DisplayName.Should().Be("Alice");
         result.Value.Email.Should().Be("alice@example.com");
         result.Value.Addresses.Should().BeEmpty();
@@ -48,7 +48,7 @@ public sealed class EnsureProfileCommandHandlerTests
 
         await CreateHandler(ctx).Handle(cmd, CancellationToken.None);
 
-        var profile = ctx.CustomerProfiles.Single(p => p.KeycloakSubject == "sub-audit");
+        var profile = ctx.CustomerProfiles.Single(p => p.Subject == "sub-audit");
         profile.CreatedAt.Should().NotBe(default);
     }
 

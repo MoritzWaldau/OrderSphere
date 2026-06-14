@@ -7,7 +7,7 @@ namespace OrderSphere.BuildingBlocks.Security;
 /// </summary>
 public interface ICurrentUser
 {
-    /// <summary>Keycloak subject claim ("sub"). Null when not authenticated.</summary>
+    /// <summary>Auth0 subject claim ("sub"). Null when not authenticated.</summary>
     string? Sub { get; }
 
     /// <summary>Display name from "preferred_username" claim. Null when not authenticated.</summary>
@@ -16,7 +16,7 @@ public interface ICurrentUser
     /// <summary>Email address from the "email" claim. Null when not authenticated.</summary>
     string? Email { get; }
 
-    /// <summary>Realm roles granted to the caller.</summary>
+    /// <summary>Roles granted to the caller.</summary>
     IReadOnlyList<string> Roles { get; }
 
     bool IsAuthenticated { get; }

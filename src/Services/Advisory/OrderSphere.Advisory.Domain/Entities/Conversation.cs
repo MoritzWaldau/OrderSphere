@@ -11,7 +11,7 @@ public sealed class Conversation : AuditableEntity<Guid>
     // Client-supplied conversation identifier (opaque, e.g. a 32-char hex string).
     public required string ConversationKey { get; set; }
 
-    // Keycloak subject of the owning customer. Scopes conversations per user.
+    // Auth0 subject of the owning customer. Scopes conversations per user.
     public required string CustomerSub { get; set; }
 
     // Agent session state (chat history) serialized to JSON. Null until the first turn.

@@ -10,7 +10,7 @@ namespace OrderSphere.Bff.Tests;
 
 /// <summary>
 /// Integration tests for POST /bff/backchannel-logout.
-/// The endpoint validates the Keycloak logout_token JWT, then revokes the matching
+/// The endpoint validates the Auth0 logout_token JWT, then revokes the matching
 /// Redis session.  In tests, both OIDC config and session storage are in-process stubs.
 /// </summary>
 public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
@@ -106,7 +106,7 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
     public async Task Post_WithMissingSidClaim_Returns200()
     {
         // When sid is absent, the spec says the IdP MUST provide sub or sid.
-        // The endpoint returns 200 so Keycloak does not retry, but cannot revoke.
+        // The endpoint returns 200 so Auth0 does not retry, but cannot revoke.
         var jwt = CreateLogoutToken(sid: null);
         var client = factory.CreateClient();
 
@@ -133,7 +133,7 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
     [Fact]
     public async Task Post_WithValidToken_MatchingSession_Returns200AndRemovesSession()
     {
-        const string testSid = "keycloak-session-abc";
+        const string testSid = "auth0-session-abc";
         const string sessionKey = "bff:session:test-key-for-revocation";
         const string sidIndexKey = $"bff:sid:{testSid}";
 

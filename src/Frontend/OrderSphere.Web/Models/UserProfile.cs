@@ -2,7 +2,7 @@ namespace OrderSphere.Web.Models;
 
 public sealed record ProfileDto(
     Guid Id,
-    string KeycloakSubject,
+    string Subject,
     string DisplayName,
     string Email,
     bool DarkModeEnabled,

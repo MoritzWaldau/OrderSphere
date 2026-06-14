@@ -15,7 +15,7 @@ builder.Services.AddHttpContextAccessor();
 // EF Core persistence for conversation history (advisory-db).
 builder.AddAdvisoryInfrastructure();
 
-// Keycloak JWT validation. The end-user token is forwarded by the BFF; the agent
+// Auth0 JWT validation. The end-user token is forwarded by the BFF; the agent
 // passes it on to the MCP server. Audience is validated downstream, not here.
 var authority = builder.Configuration["Oidc:Authority"];
 var authEnabled = !string.IsNullOrWhiteSpace(authority);

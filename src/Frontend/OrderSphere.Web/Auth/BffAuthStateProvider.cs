@@ -7,7 +7,7 @@ namespace OrderSphere.Web.Auth;
 /// <summary>
 /// Retrieves auth state from the BFF's /bff/user endpoint.
 /// The BFF validates the session cookie server-side and returns user claims.
-/// The browser never touches Keycloak directly.
+/// The browser never touches Auth0 directly.
 /// </summary>
 public sealed class BffAuthStateProvider : AuthenticationStateProvider
 {

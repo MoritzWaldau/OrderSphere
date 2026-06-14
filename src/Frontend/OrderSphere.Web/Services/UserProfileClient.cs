@@ -12,6 +12,7 @@ public interface IUserProfileClient
     Task<AddressDto?> AddAddressAsync(CreateAddressRequest request, CancellationToken ct = default);
     Task DeleteAddressAsync(Guid addressId, CancellationToken ct = default);
     Task SetDefaultAddressAsync(Guid addressId, CancellationToken ct = default);
+    Task<ProfileDto?> CompleteOnboardingAsync(CancellationToken ct = default);
 }
 
 public sealed class UserProfileClient : IUserProfileClient
@@ -55,4 +56,11 @@ public sealed class UserProfileClient : IUserProfileClient
 
     public async Task SetDefaultAddressAsync(Guid addressId, CancellationToken ct = default)
         => await _client.PostAsync($"/api/v1/profile/addresses/{addressId}/set-default", null, ct);
+
+    public async Task<ProfileDto?> CompleteOnboardingAsync(CancellationToken ct = default)
+    {
+        var response = await _client.PostAsync("/api/v1/profile/complete-onboarding", null, ct);
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<ProfileDto>(ct);
+    }
 }

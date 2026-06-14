@@ -6,4 +6,5 @@ public sealed record UserInfoDto(
     string? Name,
     string? Email,
     string[]? Roles,
+    bool OnboardingComplete,
     string? XsrfToken);

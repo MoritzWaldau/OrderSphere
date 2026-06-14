@@ -1,13 +1,13 @@
 # OrderSphere — UI & Styling Guide
 
-Binding reference for all visual, theming, MudBlazor, and CSS work in `src/OrderSphere.Web`.
+Binding reference for all visual, theming, MudBlazor, and CSS work in `src/Frontend/OrderSphere.Web`.
 The design direction is **"Flat & Focused"** (indigo). This document is the source of truth;
 where it and older notes disagree, this document wins.
 
 The canonical implementations are:
 
-- Theme (palette, typography, layout): `src/OrderSphere.Web/Services/ThemeState.cs`
-- Design tokens and component classes: `src/OrderSphere.Web/wwwroot/app.css`
+- Theme (palette, typography, layout): `src/Frontend/OrderSphere.Web/Services/ThemeState.cs`
+- Design tokens and component classes: `src/Frontend/OrderSphere.Web/wwwroot/app.css`
 
 Change those two files first; this guide documents what they contain.
 

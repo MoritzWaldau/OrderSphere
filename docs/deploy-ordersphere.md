@@ -11,7 +11,7 @@ Auth0 is **not** part of this deployment. It is an external, managed identity pr
 `ordersphere-dev.eu.auth0.com`). The coupling is solely through the issuer URL (`oidc-authority`
 parameter) and four confidential client secrets. The Auth0-side configuration (applications, API,
 M2M grants, roles action) is described in [auth/role-model.md](auth/role-model.md) and reconciled
-against the deployed BFF URL in step 6 below.
+against the deployed BFF URL in step 4 below.
 
 ## Prerequisites
 
@@ -103,7 +103,7 @@ It then provisions the infrastructure in `rg-dev` and deploys all 12 projects as
 Container Apps. Only `ordersphere-bff` receives an external ingress (`WithExternalHttpEndpoints()` in
 the AppHost). The answers are stored; later `azd up` runs do not prompt again.
 
-### 6. Reconcile Auth0 against the BFF URL
+### 4. Reconcile Auth0 against the BFF URL
 After the deploy, determine the public BFF FQDN:
 ```powershell
 azd show
@@ -118,7 +118,7 @@ On the **BFF application** in the Auth0 dashboard, add:
 
 1. `azd up` runs without errors; resources present in `rg-dev`.
 2. Service logs show a successful JWKS fetch from the Auth0 issuer.
-3. `https://<bff-fqdn>` → login redirect to Auth0 → successful return after step 6.
+3. `https://<bff-fqdn>` → login redirect to Auth0 → successful return after step 4.
 4. An authenticated API call (per-service audience validation against `https://api.ordersphere.dev`)
    returns 200.
 5. A `client_credentials` token for `ordering-worker`/`payment-worker` with the real secret →

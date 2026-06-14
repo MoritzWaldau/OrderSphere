@@ -1,47 +1,82 @@
 # Service Contract Conventions
 
-## Directory layout
+How services expose and consume contracts in OrderSphere. Two contract surfaces exist today:
+**synchronous** typed HTTP clients and **asynchronous** integration events over Azure Service Bus.
+This document is the canonical reference for both; the behavioural rules it depends on live in
+[../CLAUDE.md](../CLAUDE.md) and the system map in [../docs/architecture.md](../docs/architecture.md).
 
-```
-contracts/
-  proto/
-    v1/        ← current stable gRPC contracts
-    v2/        ← next-version contracts (when a breaking change is introduced)
-  openapi/
-    v1/        ← current stable REST contracts
-    v2/        ← next-version REST contracts
-```
+> **Scope note.** gRPC/Protobuf and per-service OpenAPI/NuGet contract packages are **not**
+> implemented. The `contracts/proto/` and `contracts/openapi/` folders are placeholders only; see
+> [Not implemented](#not-implemented--out-of-scope) at the end. Do not treat them as active
+> conventions.
 
-## gRPC / Protobuf versioning
+## Synchronous contracts — typed HTTP clients
 
-- Package declaration: `package ordersphere.<service>.v1;`
-- Option: `option csharp_namespace = "OrderSphere.Contracts.<Service>.V1";`
-- Breaking changes (field removal, type change, rename) require a new package folder (`v2/`).
-- Backward-compatible additions (new fields, new RPCs) stay in the existing version.
-- Old major versions are supported for one major application release cycle.
+Cross-service calls go through a typed client **interface** declared in the consuming service's
+`Application/Abstractions/` and implemented in its `Infrastructure/` against the producer's REST API.
+No service references another service's projects; the only coupling is the HTTP surface.
 
-## REST / OpenAPI versioning
+- Interface naming: `I<Producer>Client` (e.g. `ICatalogClient`, `IBasketClient`).
+  Representative paths:
+  - `src/Services/Ordering/OrderSphere.Ordering.Application/Abstractions/ICatalogClient.cs`
+  - `src/Services/Basket/OrderSphere.Basket.Application/Abstractions/ICatalogClient.cs`
+- Methods return `Result<T>` (or `Result`), never throw for business failures — consistent with the
+  `Result<T>` contract in [../CLAUDE.md](../CLAUDE.md).
+- Request/response payloads are `record` DTOs co-located with the interface
+  (e.g. `CatalogProductInfo`). They are owned by the **consumer** and shaped to its needs; they are
+  not shared types.
+- The Blazor client has its own typed clients under `src/Frontend/OrderSphere.Web/Services/`
+  (`CatalogClient`, `OrderingClient`, …) that call the BFF/Gateway, not the services directly.
 
-- URL prefix: `/api/v1/`, `/api/v2/`
-- One OpenAPI spec file per service per major version: `catalog.v1.yaml`
-- Use `info.version` semantic versioning within the spec.
+### REST / versioning
 
-## NuGet contracts packages
+- Endpoints are versioned by URL segment: `MapGroup("api/v{version:apiVersion}/<resource>")`
+  (`Asp.Versioning`), so the public surface is `/api/v1/...`. `v1` is the current stable major.
+- A breaking change introduces `/api/v2/` alongside `v1`; backward-compatible additions stay in the
+  existing version.
+- Routes are exposed to external callers only through the YARP API Gateway
+  (`src/Gateways/OrderSphere.ApiGateway`); services are not reached directly from the browser.
 
-Each service publishes a contracts package consumed by other services and by the API gateway:
+## Asynchronous contracts — integration events
 
-- `OrderSphere.Contracts.Catalog.V1`
-- `OrderSphere.Contracts.Ordering.V1`
-- `OrderSphere.Contracts.UserProfile.V1`
+Cross-service events are JSON messages on Azure Service Bus queues, defined as shared DTOs so
+producer and consumer agree on the schema.
 
-Packages contain generated gRPC client stubs and shared event DTOs. No domain logic.
+- Event records live in `src/BuildingBlocks/OrderSphere.BuildingBlocks.Contracts/Events/` and derive
+  from `IntegrationEvent` (`BuildingBlocks.EventBus`), which carries `Id`, `CreatedAt`, and
+  `CorrelationId`. Current events: `CheckoutCartIntegrationEvent`, `OrderPlacedIntegrationEvent`,
+  `OrderStatusChangedIntegrationEvent`, `PaymentRequestedIntegrationEvent`,
+  `PaymentProcessedIntegrationEvent`, `RealtimeNotificationEvent`, `StockReservedIntegrationEvent`.
+- Naming: `<Subject><PastTense>IntegrationEvent` (e.g. `OrderPlacedIntegrationEvent`). Records are
+  `sealed`; properties are `required` / `init`-only. Nested payload DTOs use the `…Dto` suffix
+  (e.g. `OrderPlacedItemDto`).
+- Publish via `IEventBus.PublishAsync(@event, destination)` where `destination` is the target queue
+  name; producers publish through the transactional outbox (see the outbox handlers under each
+  service's `Infrastructure/Outbox/`). Consumers are background workers that read one queue each.
+- The queue inventory (producer → consumer per queue) is documented in
+  [../docs/architecture.md](../docs/architecture.md#external-services); queue names are declared in
+  `src/Hosting/OrderSphere.AppHost/AppHost.cs`.
 
-## Event schema
+### Schema-compatibility rules
 
-Service Bus events use JSON. Schema stored alongside the proto definitions:
+- Backward-compatible change (new optional property): keep the same event record.
+- Breaking change (remove/rename/retype a property, change semantics): introduce a new event type
+  rather than mutating the existing one, and migrate consumers before retiring the old event.
+- Because `BuildingBlocks.Contracts` is referenced by every producer and consumer, treat any change
+  to an event record as a public-contract change — covered by the "Ask before … breaking a public
+  contract" rule in [../CLAUDE.md](../CLAUDE.md).
 
-```
-proto/v1/events/CheckoutCartEvent.json
-```
+## Not implemented / out of scope
 
-Include `$schema` and `type` discriminator field in every event payload.
+The following are **not** part of the current system. They are recorded here only so the empty
+placeholder folders are not mistaken for active conventions:
+
+- **gRPC / Protobuf** — no gRPC services or clients exist. `contracts/proto/` (including the stub
+  `proto/catalog/v1/catalog.proto`) is unused. All synchronous calls are REST/HTTP.
+- **Per-service OpenAPI spec files** — `contracts/openapi/` is empty. API descriptions are generated
+  at runtime from the minimal-API endpoints, not maintained as committed spec files.
+- **Published NuGet contract packages** (`OrderSphere.Contracts.<Service>.V1`) — do not exist. Shared
+  event DTOs live in the in-repo `BuildingBlocks.Contracts` project; HTTP DTOs are consumer-owned.
+
+Adopting any of these is an architectural change and requires sign-off per
+[../CLAUDE.md](../CLAUDE.md) ("Ask before … introducing a new architectural pattern").

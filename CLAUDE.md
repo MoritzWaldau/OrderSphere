@@ -46,7 +46,7 @@ Run from the repository root. Full EF migration matrix is in [docs/architecture.
 | Task | Command |
 |---|---|
 | Build | `dotnet build OrderSphere.slnx` |
-| Run via Aspire | `dotnet run --project src/OrderSphere.AppHost` |
+| Run via Aspire | `dotnet run --project src/Hosting/OrderSphere.AppHost` |
 | Run BFF (with WASM) | `dotnet run --project src/Gateways/OrderSphere.Bff` |
 | All tests | `dotnet test` |
 | One test project | `dotnet test tests/OrderSphere.Domain.Tests` |

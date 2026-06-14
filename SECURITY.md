@@ -21,6 +21,23 @@ Please include affected component(s), reproduction steps, and impact assessment.
 an acknowledgement within 5 business days. Once a fix is available, the advisory is published and
 the reporter credited unless anonymity is requested.
 
+## Threat model / trust boundaries
+
+OrderSphere enforces security at well-defined boundaries rather than trusting the network. The trust
+chain and the control at each hop:
+
+| Boundary | Control |
+|---|---|
+| Browser → BFF | No tokens in the browser. The BFF owns the OIDC session in an encrypted HTTP-only cookie; CSRF protection is applied at the BFF. See [ADR 0003](docs/adr/0003-bff-and-api-gateway.md). |
+| BFF → API gateway | Server-side proxied calls; the BFF attaches the access token. The gateway (`OrderSphere.ApiGateway`) is the single external API ingress. |
+| Gateway → services | Each service validates the JWT (issuer/audience) independently and enforces per-service RBAC policies. See [auth/role-model.md](docs/auth/role-model.md). |
+| Advisory → MCP → services | The end-user's bearer token is forwarded down the chain (`BFF → Advisory.Api → MCP.Server → Gateway → services`), so AI tools stay scoped to the caller. User-scoped tools return no data without a valid token. See [architecture.md](docs/architecture.md#identity-forwarding). |
+| Workers → services (M2M) | Background workers authenticate with Auth0 `client_credentials` machine identities (`svc.*` roles), not user tokens. |
+| Application → secrets | No credentials in code. Secrets come from Azure Key Vault (non-dev) or .NET user-secrets (dev); Redis uses Entra ID (no password in the connection string). |
+
+Data is correlated across services by a deterministic identity derivation, never by a shared user
+store or cross-service foreign keys ([ADR 0002](docs/adr/0002-customerid-deterministic-guid-from-sub.md)).
+
 ## Automated controls
 
 The following run in CI on every push and pull request to `master`:

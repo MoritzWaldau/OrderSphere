@@ -19,6 +19,7 @@ public sealed class CustomerProfileConfiguration : IEntityTypeConfiguration<Cust
         builder.Property(p => p.Subject).IsRequired().HasMaxLength(256);
         builder.Property(p => p.DisplayName).IsRequired().HasMaxLength(200);
         builder.Property(p => p.Email).IsRequired().HasMaxLength(320);
+        builder.Property(p => p.IsOnboardingComplete).IsRequired().HasDefaultValue(false);
 
         builder.HasMany(p => p.Addresses)
             .WithOne()

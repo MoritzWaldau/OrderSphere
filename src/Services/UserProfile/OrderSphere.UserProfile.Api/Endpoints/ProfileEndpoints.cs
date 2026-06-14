@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.ServiceDefaults;
 using OrderSphere.UserProfile.Application.Features.Profile.AddAddress;
+using OrderSphere.UserProfile.Application.Features.Profile.CompleteOnboarding;
 using OrderSphere.UserProfile.Application.Features.Profile.DeleteAddress;
 using OrderSphere.UserProfile.Application.Features.Profile.EnsureProfile;
 using OrderSphere.UserProfile.Application.Features.Profile.GetAddresses;
+using OrderSphere.UserProfile.Application.Features.Profile.OnboardingStatus;
 using OrderSphere.UserProfile.Application.Features.Profile.SetDefaultAddress;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdateAddress;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdatePreferences;
@@ -23,6 +25,8 @@ public static class ProfileEndpoints
         group.MapGet("/", GetOrCreateProfile);
         group.MapPut("/", UpdateProfile);
         group.MapPut("/preferences", UpdatePreferences);
+        group.MapGet("/onboarding-status", GetOnboardingStatus);
+        group.MapPost("/complete-onboarding", CompleteOnboarding);
         group.MapGet("/addresses", GetAddresses);
         group.MapPost("/addresses", AddAddress);
         group.MapPut("/addresses/{addressId:guid}", UpdateAddress);
@@ -63,6 +67,28 @@ public static class ProfileEndpoints
         if (currentUser.Sub is not { } sub) return Results.Unauthorized();
 
         var result = await sender.Send(new UpdatePreferencesCommand(sub, request.DarkModeEnabled), ct);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetOnboardingStatus(
+        ICurrentUser currentUser,
+        ISender sender,
+        CancellationToken ct)
+    {
+        if (currentUser.Sub is not { } sub) return Results.Unauthorized();
+
+        var result = await sender.Send(new GetOnboardingStatusQuery(sub), ct);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> CompleteOnboarding(
+        ICurrentUser currentUser,
+        ISender sender,
+        CancellationToken ct)
+    {
+        if (currentUser.Sub is not { } sub) return Results.Unauthorized();
+
+        var result = await sender.Send(new CompleteOnboardingCommand(sub), ct);
         return result.ToHttpResult();
     }
 

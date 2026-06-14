@@ -8,6 +8,7 @@ internal static class ProfileMappers
         p.DisplayName,
         p.Email,
         p.DarkModeEnabled,
+        p.IsOnboardingComplete,
         p.Addresses.Select(ToAddressDto).ToList());
 
     internal static AddressDto ToAddressDto(SavedAddress a) => new(

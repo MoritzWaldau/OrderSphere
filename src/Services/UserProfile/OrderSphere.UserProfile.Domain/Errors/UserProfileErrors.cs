@@ -12,4 +12,7 @@ public static class UserProfileErrors
 
     public static readonly Error AddressLimitExceeded =
         new("UserProfile.Address.LimitExceeded", "Maximum number of saved addresses reached.", ErrorType.Conflict);
+
+    public static readonly Error OnboardingIncomplete =
+        new("UserProfile.OnboardingIncomplete", "A display name and at least one saved address are required to complete onboarding.", ErrorType.Conflict);
 }

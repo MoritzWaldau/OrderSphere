@@ -17,6 +17,7 @@ public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggre
     public string DisplayName { get; private set; }
     public string Email { get; private set; }
     public bool DarkModeEnabled { get; private set; }
+    public bool IsOnboardingComplete { get; private set; }
 
     private readonly List<SavedAddress> _addresses = [];
     public IReadOnlyList<SavedAddress> Addresses => _addresses.AsReadOnly();
@@ -34,6 +35,11 @@ public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggre
         Subject = subject;
         DisplayName = displayName;
         Email = email;
+    }
+
+    public void MarkOnboardingComplete()
+    {
+        IsOnboardingComplete = true;
     }
 
     public void UpdateDetails(string displayName, string email)

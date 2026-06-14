@@ -16,10 +16,9 @@ public sealed class DomainEventLoggingHandler<TDomainEvent>(
 {
     public Task Handle(TDomainEvent notification, CancellationToken cancellationToken)
     {
-        logger.LogDebug(
-            "Domain event raised: {EventType} {@Event}",
-            typeof(TDomainEvent).Name,
-            notification);
+        // Log the event type only — never the full payload, which can carry PII
+        // (customer names, emails, addresses).
+        logger.LogDebug("Domain event raised: {EventType}", typeof(TDomainEvent).Name);
 
         return Task.CompletedTask;
     }

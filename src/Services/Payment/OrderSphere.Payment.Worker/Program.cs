@@ -1,10 +1,11 @@
+using Microsoft.AspNetCore.Builder;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.Payment.Application;
 using OrderSphere.Payment.Infrastructure;
 using OrderSphere.Payment.Infrastructure.Persistence;
 using OrderSphere.Payment.Worker.Workers;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
@@ -17,5 +18,9 @@ builder.Services.AddHostedService<PaymentProcessor>();
 
 builder.Services.AddPaymentApplication();
 
-var host = builder.Build();
-host.Run();
+var app = builder.Build();
+
+// Liveness/readiness endpoints (/health, /alive, /version) for container probes.
+app.MapDefaultEndpoints();
+
+app.Run();

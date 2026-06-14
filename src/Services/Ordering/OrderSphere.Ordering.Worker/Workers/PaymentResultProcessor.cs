@@ -2,6 +2,7 @@ using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Contracts.Events;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Domain.Services;
@@ -45,6 +46,7 @@ public sealed class PaymentResultProcessor(
 
     private async Task OnMessageReceived(ProcessMessageEventArgs args)
     {
+        using var activity = EventBusDiagnostics.StartProcess(args.Message, QueueName);
         var messageId = args.Message.MessageId;
         logger.LogInformation("Received payment result message {MessageId}", messageId);
 
@@ -108,12 +110,14 @@ public sealed class PaymentResultProcessor(
         if (evt.Succeeded)
         {
             order.Confirm(TrackingNumberGenerator.Generate());
+            OrderingMetrics.OrdersConfirmed.Add(1);
             logger.LogInformation("Order {OrderId} confirmed after payment. TrackingNumber: {TrackingNumber}",
                 order.Id, order.TrackingNumber);
         }
         else
         {
             order.Cancel();
+            OrderingMetrics.OrdersCancelled.Add(1);
             logger.LogWarning("Order {OrderId} cancelled due to payment failure: {Reason}",
                 order.Id, evt.FailureReason);
         }

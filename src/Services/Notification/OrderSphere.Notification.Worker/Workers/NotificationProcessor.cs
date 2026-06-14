@@ -1,5 +1,6 @@
 using Azure.Messaging.ServiceBus;
 using OrderSphere.BuildingBlocks.Contracts.Events;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.Notification.Worker.Email;
 
@@ -41,6 +42,7 @@ public sealed class NotificationProcessor(
 
     private async Task OnMessageReceived(ProcessMessageEventArgs args)
     {
+        using var activity = EventBusDiagnostics.StartProcess(args.Message, QueueName);
         var messageId = args.Message.MessageId;
         logger.LogInformation("Received notification message {MessageId}.", messageId);
 

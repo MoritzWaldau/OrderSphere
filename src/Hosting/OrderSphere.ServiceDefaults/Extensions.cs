@@ -10,6 +10,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace Microsoft.Extensions.Hosting;
@@ -22,6 +23,13 @@ public static class Extensions
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
     private const string VersionEndpointPath = "/version";
+
+    // Same version source as the /version endpoint; stamped onto every telemetry signal as service.version.
+    private static readonly string ServiceVersion =
+        Assembly.GetEntryAssembly()?
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion
+        ?? "unknown";
 
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
@@ -60,16 +68,46 @@ public static class Extensions
             logging.IncludeScopes = true;
         });
 
+        // EF Core logs every SQL command at Information by default. Default it to Warning so the
+        // database story comes from traces (DB spans), not log spam — raise the
+        // "Microsoft.EntityFrameworkCore.Database.Command" category where raw SQL is needed.
+        builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
+
         builder.Services.AddOpenTelemetry()
+            // Resource identity: service.name, service.version and deployment.environment make every
+            // signal filterable by service and environment in the Aspire dashboard / App Insights.
+            .ConfigureResource(resource => resource
+                .AddService(
+                    serviceName: builder.Environment.ApplicationName,
+                    serviceVersion: ServiceVersion,
+                    serviceInstanceId: Environment.MachineName)
+                .AddAttributes(
+                [
+                    new KeyValuePair<string, object>("deployment.environment", builder.Environment.EnvironmentName)
+                ]))
             .WithMetrics(metrics =>
             {
                 metrics.AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation();
+                    .AddRuntimeInstrumentation()
+                    // Custom OrderSphere business metrics — single meter name across all services.
+                    .AddMeter("OrderSphere");
             })
             .WithTracing(tracing =>
             {
-                tracing.AddSource(builder.Environment.ApplicationName)
+                // Parent-based ratio sampler; ratio from "OpenTelemetry:TracesSampleRatio"
+                // (default 1.0 = sample everything). Lower it in production to control cost.
+                // Azure Monitor applies its own sampler via APPLICATIONINSIGHTS_SAMPLING_PERCENTAGE.
+                var sampleRatio = double.TryParse(
+                    builder.Configuration["OpenTelemetry:TracesSampleRatio"], out var ratio) ? ratio : 1.0;
+
+                tracing.SetSampler(new ParentBasedSampler(new TraceIdRatioBasedSampler(sampleRatio)))
+                    .AddSource(builder.Environment.ApplicationName)
+                    // Event-bus publish/consume spans (string literal avoids coupling
+                    // ServiceDefaults to the EF-bound EventBus.AzureServiceBus project).
+                    .AddSource("OrderSphere.EventBus")
+                    // Per-request (MediatR/CQRS handler) spans from the LoggingBehavior.
+                    .AddSource("OrderSphere.Application")
                     .AddAspNetCoreInstrumentation(tracing =>
                         // Exclude health check requests from tracing
                         tracing.Filter = context =>
@@ -106,21 +144,14 @@ public static class Extensions
 
     public static TBuilder AddDefaultHealthChecks<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
-        var healthChecks = builder.Services.AddHealthChecks()
-            // Add a default liveness check to ensure app is responsive
+        // Liveness — the app process is running and responsive.
+        builder.Services.AddHealthChecks()
             .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 
-        // Aspire-Integrationen (Aspire.StackExchange.Redis, Aspire.Azure.Messaging.ServiceBus)
-        // registrieren ihre Checks automatisch unter den Aspire-Resource-Namen.
-        // Der DbContext wird klassisch via AddDbContext registriert, daher hier explizit.
-        var dbConnectionString = builder.Configuration.GetConnectionString("ordersphere-db");
-        if (!string.IsNullOrEmpty(dbConnectionString))
-        {
-            healthChecks.AddNpgSql(
-                dbConnectionString,
-                name: "postgres",
-                tags: ["ready", "db"]);
-        }
+        // Readiness dependency checks are registered by the Aspire client integrations:
+        // Aspire.Npgsql.EntityFrameworkCore.PostgreSQL (per-service DB), Aspire.StackExchange.Redis,
+        // and Aspire.Azure.Messaging.ServiceBus each register their own check under the resource
+        // name. There is no shared "ordersphere-db" connection, so no generic DB check is added here.
 
         return builder;
     }

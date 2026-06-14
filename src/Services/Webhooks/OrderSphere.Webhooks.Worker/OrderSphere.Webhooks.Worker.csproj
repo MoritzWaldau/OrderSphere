@@ -11,8 +11,9 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Azure.Messaging.ServiceBus" />
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" />
-    <PackageReference Include="Microsoft.Extensions.Http" />
+    <!-- ASP.NET Core shared framework: enables WebApplication + health endpoints in this worker.
+         Provides Microsoft.Extensions.Hosting and Microsoft.Extensions.Http (HttpClientFactory). -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>

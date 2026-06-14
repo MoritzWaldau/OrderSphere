@@ -57,6 +57,7 @@ public sealed class OutboxDispatcher<TContext>(
                     await DispatchAsync(message, handlers, ct);
                     message.ProcessedAt = DateTime.UtcNow;
                     message.Error = null;
+                    OutboxMetrics.Published.Add(1);
                 }
                 catch (Exception ex)
                 {
@@ -64,9 +65,12 @@ public sealed class OutboxDispatcher<TContext>(
                     message.Error = ex.Message;
 
                     if (message.RetryCount >= OutboxMessage.MaxRetries)
+                    {
+                        OutboxMetrics.Poison.Add(1);
                         logger.LogError(ex,
                             "Outbox message {Id} ({Type}) permanently failed after {MaxRetries} attempts.",
                             message.Id, message.Type, OutboxMessage.MaxRetries);
+                    }
                     else
                         logger.LogWarning(ex,
                             "Outbox message {Id} ({Type}) failed on attempt {Attempt}/{Max}. Will retry.",
@@ -96,6 +100,11 @@ public sealed class OutboxDispatcher<TContext>(
                 $"No handler registered for outbox event type '{message.Type}'. " +
                 $"Registered types: {string.Join(", ", handlers.Keys)}");
 
-        await handler.HandleAsync(message.Content, ct);
+        // Restore the originating trace context so the publish (which happens here, on the
+        // dispatcher's timer) joins the trace that produced the outbox row.
+        using (EventBusDiagnostics.RestorePublishParent(message.TraceParent))
+        {
+            await handler.HandleAsync(message.Content, ct);
+        }
     }
 }

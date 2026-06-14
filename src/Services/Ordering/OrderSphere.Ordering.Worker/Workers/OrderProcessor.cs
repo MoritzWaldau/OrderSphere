@@ -2,6 +2,7 @@ using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Contracts.Events;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Ordering.Domain.Entities;
@@ -47,6 +48,7 @@ public sealed class OrderProcessor(
 
     private async Task OnMessageReceived(ProcessMessageEventArgs args)
     {
+        using var activity = EventBusDiagnostics.StartProcess(args.Message, QueueName);
         var messageId = args.Message.MessageId;
         logger.LogInformation("Received message {MessageId}", messageId);
 
@@ -151,6 +153,8 @@ public sealed class OrderProcessor(
                     logger.LogInformation(
                         "Order {OrderId} created for customer {CustomerId}. CorrelationId: {CorrelationId}",
                         order.Id, order.CustomerId, evt.CorrelationId);
+
+                    OrderingMetrics.OrdersPlaced.Add(1);
 
                     return ProcessResult.Ok();
                 }

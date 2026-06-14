@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
@@ -5,7 +6,7 @@ using OrderSphere.Notification.Worker.Email;
 using OrderSphere.Notification.Worker.Persistence;
 using OrderSphere.Notification.Worker.Workers;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
@@ -36,13 +37,16 @@ else
 
 builder.Services.AddHostedService<NotificationProcessor>();
 
-var host = builder.Build();
+var app = builder.Build();
 
 // Apply EF migrations on startup (dev convenience)
-using (var scope = host.Services.CreateScope())
+using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
     db.Database.Migrate();
 }
 
-host.Run();
+// Liveness/readiness endpoints (/health, /alive, /version) for container probes.
+app.MapDefaultEndpoints();
+
+app.Run();

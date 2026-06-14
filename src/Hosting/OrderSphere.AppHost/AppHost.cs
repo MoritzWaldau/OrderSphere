@@ -119,6 +119,7 @@ var ordering = builder.AddProject<Projects.OrderSphere_Ordering_Api>("orderspher
     .WithEnvironment("Oidc__ClientSecret", orderingWorkerSecret);
 
 builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-worker")
+    .WithHttpEndpoint()
     .WithReference(orderingDb)
     .WithReference(serviceBus)
     .WaitFor(orderingDb)
@@ -128,6 +129,7 @@ builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-w
     .WithEnvironment("Oidc__ClientSecret", orderingWorkerSecret);
 
 builder.AddProject<Projects.OrderSphere_Notification_Worker>("ordersphere-notification-worker")
+    .WithHttpEndpoint()
     .WithReference(notificationDb)
     .WithReference(serviceBus)
     .WaitFor(notificationDb)
@@ -145,6 +147,7 @@ var payment = builder.AddProject<Projects.OrderSphere_Payment_Api>("ordersphere-
     .WithEnvironment("Oidc__Audience", OidcAudience);
 
 builder.AddProject<Projects.OrderSphere_Payment_Worker>("ordersphere-payment-worker")
+    .WithHttpEndpoint()
     .WithReference(paymentDb)
     .WithReference(serviceBus)
     .WaitFor(paymentDb)
@@ -167,6 +170,7 @@ var webhooks = builder.AddProject<Projects.OrderSphere_Webhooks_Api>("orderspher
     .WithEnvironment("Oidc__Audience", OidcAudience);
 
 builder.AddProject<Projects.OrderSphere_Webhooks_Worker>("ordersphere-webhooks-worker")
+    .WithHttpEndpoint()
     .WithReference(webhooksDb)
     .WithReference(serviceBus)
     .WaitFor(webhooksDb)

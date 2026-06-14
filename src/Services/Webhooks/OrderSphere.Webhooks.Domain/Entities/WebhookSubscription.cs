@@ -6,11 +6,11 @@ namespace OrderSphere.Webhooks.Domain.Entities;
 
 /// <summary>
 /// A registered endpoint that receives webhook deliveries for selected event types.
-/// Each subscription belongs to a specific customer (identified by Keycloak sub claim).
+/// Each subscription belongs to a specific customer (identified by Auth0 sub claim).
 /// </summary>
 public class WebhookSubscription : AuditableEntity<WebhookSubscriptionId>, IAggregateRoot
 {
-    /// <summary>Customer who owns this subscription (Keycloak sub).</summary>
+    /// <summary>Customer who owns this subscription (Auth0 sub).</summary>
     public CustomerId CustomerId { get; private set; }
 
     /// <summary>Target URL that receives POST deliveries.</summary>

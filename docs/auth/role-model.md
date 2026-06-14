@@ -1,12 +1,16 @@
 # Role Model
 
-All roles are defined in `contracts/keycloak/ordersphere-realm.json` and are the authoritative source. This document maps realm roles to ASP.NET authorization policies and ABAC handlers.
+Roles are defined in the Auth0 tenant (Authorization Core / RBAC) and assigned to users there. A
+Post-Login Action emits the user's effective roles into the namespaced access-token claim
+`https://ordersphere.dev/roles`; each service maps that claim to the ASP.NET role claim type
+(`Oidc:RolesClaim`, default `https://ordersphere.dev/roles`), so `User.IsInRole(...)` reads it
+directly. This document maps those roles to ASP.NET authorization policies and ABAC handlers.
 
-## Realm Roles
+## Roles
 
 | Role | Type | Assigned to | Effective permissions |
 |---|---|---|---|
-| `customer` | Simple | Every end-user (Keycloak default role) | Own cart, own orders, own profile |
+| `customer` | Simple | Every end-user (assigned on first login) | Own cart, own orders, own profile |
 | `csr` | Composite (`requires-mfa`) | Customer Service staff | Read all orders and customer data; no writes |
 | `order-manager` | Composite (`requires-mfa`) | Operations staff | Update order status, cancel orders |
 | `catalog-admin` | Composite (`requires-mfa`) | Merchandising staff | Full CRUD on catalog products and categories |
@@ -17,6 +21,8 @@ All roles are defined in `contracts/keycloak/ordersphere-realm.json` and are the
 
 ### Composite Role Inheritance
 
+The effective model is hierarchical:
+
 ```
 admin
 ├── csr         ──► requires-mfa
@@ -25,7 +31,10 @@ admin
 └── requires-mfa (direct)
 ```
 
-A user with `admin` role effectively has all four child roles. MFA is triggered for any user who effectively holds `requires-mfa` via the conditional browser authentication flow.
+Auth0 has no native composite-role expansion. The hierarchy is realized in the Post-Login Action:
+when it emits the `https://ordersphere.dev/roles` claim it flattens the tree, so a user holding
+`admin` receives all four child roles (and `requires-mfa`) in the claim. MFA is triggered for any
+user who effectively holds `requires-mfa` (see [MFA](#mfa)).
 
 ---
 
@@ -69,9 +78,9 @@ Resource-based access control is implemented as `IAuthorizationHandler<TRequirem
 **File**: `src/Services/Ordering/OrderSphere.Ordering.Api/Authorization/OrderOwnerOrStaffHandler.cs`
 
 **Logic**:
-1. If `User.FindFirst("sub").Value == order.CustomerId` → **pass** (owner).
-2. If `User.IsInRole("csr") || User.IsInRole("order-manager") || User.IsInRole("admin")` → **pass** (staff).
-3. Otherwise → **fail** (403).
+1. If `User.IsInRole("csr") || User.IsInRole("order-manager") || User.IsInRole("admin")` → **pass** (staff).
+2. Else if `CustomerId.FromSub(User.FindFirst("sub").Value).Value == order.CustomerId` → **pass** (owner).
+3. Otherwise → **does not succeed** → framework denies (403).
 
 **Usage pattern** in endpoint handlers:
 ```csharp
@@ -83,40 +92,58 @@ if (!authResult.Succeeded)
 
 ---
 
-## MFA Conditional Flow
+## MFA
 
-Staff users (those with `requires-mfa` role via composite inheritance) are required to complete a second factor after entering their password. The conditional browser authentication flow is defined in the realm JSON under `authenticationFlows`.
-
-**Flow**: `browser-with-conditional-otp`
+Staff users (those who effectively hold `requires-mfa` via the role hierarchy) must complete a
+second factor. In Auth0 this is enforced by a Post-Login Action that requests MFA conditionally:
 
 ```
-Cookie check           ──► ALTERNATIVE (skip if valid cookie)
-IdP Redirector         ──► ALTERNATIVE
-browser-conditional-otp-forms (sub-flow)
-  Username + Password  ──► REQUIRED
-  browser-conditional-otp-2fa (CONDITIONAL sub-flow)
-    Condition: user has role 'requires-mfa'   ──► REQUIRED (gates sub-flow)
-    WebAuthn Authenticator                    ──► ALTERNATIVE
-    OTP Form (TOTP)                           ──► ALTERNATIVE
+Post-Login Action
+  if user roles include 'requires-mfa'  ──► api.multifactor.enable('any', { allowRememberBrowser: true })
+  else                                  ──► no second factor
 ```
 
-Regular `customer` users complete login after password only (the conditional sub-flow is skipped because they do not hold `requires-mfa`).
+Permitted factors (WebAuthn, TOTP/OTP) are configured under the tenant's Multi-factor Authentication
+settings. Regular `customer` users complete login after the first factor only, because the Action
+does not request MFA for them.
 
 ---
 
 ## Token Claims
 
-The `roles` claim in issued access tokens contains the user's effective realm roles (flattened composite tree). Services configure `RoleClaimType = "roles"` in `AddOrderSphereJwtAuth()` so `User.IsInRole(...)` reads from this claim directly.
+The namespaced claim `https://ordersphere.dev/roles` in issued access tokens contains the user's
+effective roles (flattened hierarchy, emitted by the Post-Login Action). Services configure
+`RoleClaimType` to that claim name (`OidcAuthenticationExtensions`, `Oidc:RolesClaim`), so
+`User.IsInRole(...)` reads from it directly. The BFF additionally re-emits the namespaced claim as
+`roles` on the cookie principal so `/bff/user` and the WASM client read roles uniformly.
 
 Example access token payload:
 ```json
 {
-  "sub": "e5f6a7b8-...",
-  "preferred_username": "moritz.waldau@ordersphere.dev",
+  "sub": "auth0|e5f6a7b8...",
   "email": "moritz.waldau@ordersphere.dev",
-  "roles": ["admin", "customer", "csr", "order-manager", "catalog-admin", "requires-mfa"],
-  "aud": "ordering-api",
-  "iss": "http://localhost:8080/realms/ordersphere",
+  "https://ordersphere.dev/roles": ["admin", "customer", "csr", "order-manager", "catalog-admin", "requires-mfa"],
+  "aud": "https://api.ordersphere.dev",
+  "iss": "https://ordersphere-dev.eu.auth0.com/",
   "exp": 1748000000
 }
 ```
+
+---
+
+## Identity derivation (`sub`)
+
+The Auth0 `sub` claim (format `auth0|<opaque_id>`) is the single source of caller identity. Two
+representations are derived from it, by design, and never joined directly across service
+boundaries:
+
+| Representation | Where | Derivation |
+|---|---|---|
+| `CustomerProfile.Subject` (raw string) | UserProfile service | Stored verbatim from `sub`; unique index. |
+| `CustomerId` (GUID) | Ordering, Basket, Webhooks | `CustomerId.FromSub(sub)` — deterministic RFC 4122 v5 GUID (SHA-256 of `sub`). |
+
+Both originate from the same `sub`, so a given user maps to exactly one `Subject` string and one
+`CustomerId` GUID. The GUID form lets order/cart/subscription aggregates use a strongly-typed,
+fixed-width key without storing the opaque Auth0 identifier, while UserProfile keeps the raw `sub`
+as the lookup key for profile read/write. There is no foreign key between the two; consistency rests
+solely on `FromSub` being deterministic.

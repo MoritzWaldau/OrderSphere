@@ -2,20 +2,22 @@
 
 Deploying OrderSphere into a dedicated Azure DEV environment via the Azure Developer CLI
 (`azd`). OrderSphere is a .NET Aspire application: the AppHost manifest
-(`src/OrderSphere.AppHost`) is the single source of the resource topology. `azd` reads the
+(`src/Hosting/OrderSphere.AppHost`) is the single source of the resource topology. `azd` reads the
 manifest and generates the Bicep templates from it (Container Apps, PostgreSQL Flexible Server,
 Service Bus, Azure Managed Redis, Key Vault). There is deliberately **no** hand-maintained
 `infra/` folder.
 
-Keycloak is **not** part of this deployment. It runs as an independent central SSO provider
-(see [`deploy/sso/`](../deploy/sso/README.md)). The coupling is solely through the issuer URL and
-four client secrets.
+Auth0 is **not** part of this deployment. It is an external, managed identity provider (tenant
+`ordersphere-dev.eu.auth0.com`). The coupling is solely through the issuer URL (`oidc-authority`
+parameter) and four confidential client secrets. The Auth0-side configuration (applications, API,
+M2M grants, roles action) is described in [auth/role-model.md](auth/role-model.md) and reconciled
+against the deployed BFF URL in step 6 below.
 
 ## Prerequisites
 
 - `azd` installed (`azd version`), `dotnet` 10 SDK.
-- An Azure subscription with permission to create the resource group `rg-ordersphere-dev`.
-- A running cloud Keycloak (issuer URL known).
+- An Azure subscription with permission to create the resource group `rg-dev`.
+- An Auth0 tenant with the OrderSphere applications and API configured (issuer URL known).
 - Docker (for the local container build performed by `azd`).
 
 ## Key facts
@@ -26,7 +28,9 @@ four client secrets.
 | Region | `northeurope` |
 | Resource Group | `rg-dev` |
 | BFF FQDN | `ordersphere-bff.kindtree-ed135723.northeurope.azurecontainerapps.io` |
-| Issuer | `https://keycloak.salmoncoast-4abe9a09.northeurope.azurecontainerapps.io/realms/ordersphere` |
+| Issuer (`oidc-authority`) | `https://ordersphere-dev.eu.auth0.com/` |
+| API audience | `https://api.ordersphere.dev` |
+| Roles claim | `https://ordersphere.dev/roles` |
 
 > **Resource Group:** The Aspire azd path derives the resource group from the environment name
 > (`rg-<env>` → `rg-dev`) and ignores an `AZURE_RESOURCE_GROUP` set afterwards. The infrastructure
@@ -64,62 +68,61 @@ azd env new dev --location northeurope --subscription <SUBSCRIPTION_ID>
 azd env set AZURE_RESOURCE_GROUP rg-dev
 ```
 
-> **Important:** Aspire parameters with a hyphen (`keycloak-realm-authority`,
+> **Important:** Aspire parameters with a hyphen (`oidc-authority`,
 > `payment-bypass-providers`, the four `*-secret`) must **not** be set via `azd env set` —
 > `azd env set` writes to the `.env`, where hyphens in variable names are invalid
 > (`unexpected character "-" in variable name`). `azd up` prompts for these parameters
 > interactively on the first deploy and stores them correctly (non-secrets in `config.json`, secrets
 > as a Key Vault reference). Only `AZURE_*` values (underscores) belong in the `.env`.
 
-### 2. Generate real client secrets
-Generate four new random secrets (one per confidential client) and note them down:
-```powershell
-foreach ($c in 'web-bff','ordering-worker','notification-worker','payment-worker') {
-  $s = [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Max 256 }))
-  Write-Host "$c = $s"
-}
-```
-Set each value in the **cloud Keycloak admin console**
-(*Clients → \<client\> → Credentials → Regenerate/Set*). The running instance has already imported
-the realm into Postgres; changes to `contracts/keycloak/ordersphere-realm.json` are **not** picked up
-automatically.
+### 2. Obtain the client secrets from Auth0
+Four confidential clients need their secret. Read each from the **Auth0 dashboard**
+(*Applications → \<application\> → Settings → Client Secret*):
 
-> Note: `contracts/keycloak/ordersphere-realm.json` keeps the `*-dev-secret-change-in-prod`
-> placeholders. Real secrets do not belong in Git — only in Keycloak and the Key Vault.
+- **BFF** (Regular Web Application) — the interactive login client.
+- **ordering-worker**, **notification-worker**, **payment-worker** (Machine-to-Machine
+  applications) — `client_credentials` against the OrderSphere API.
+
+The M2M client IDs must match the values set in `AppHost.cs`; align one side if they differ
+(see [auth/role-model.md](auth/role-model.md)). To rotate a secret, use *Settings → Rotate Secret*
+in the Auth0 dashboard.
+
+> Real secrets do not belong in Git — only in Auth0 and the Azure Key Vault.
 
 ### 3. Deploy
 ```powershell
 azd up
 ```
 `azd up` prompts for the parameter values one after another:
-- `keycloak-realm-authority` → the issuer URL (see Key facts above)
+- `oidc-authority` → the issuer URL (see Key facts above)
 - `payment-bypass-providers` → `true`
 - `bff-client-secret`, `ordering-worker-secret`, `notification-worker-secret`,
-  `payment-worker-secret` → the values generated in step 2 (stored as Key Vault secrets)
+  `payment-worker-secret` → the values from step 2 (stored as Key Vault secrets)
 
-It then provisions the infrastructure in `rg-ordersphere-dev` and deploys all 12 projects as
+It then provisions the infrastructure in `rg-dev` and deploys all 12 projects as
 Container Apps. Only `ordersphere-bff` receives an external ingress (`WithExternalHttpEndpoints()` in
 the AppHost). The answers are stored; later `azd up` runs do not prompt again.
 
-### 6. Reconcile Keycloak against the BFF URL
+### 6. Reconcile Auth0 against the BFF URL
 After the deploy, determine the public BFF FQDN:
 ```powershell
 azd show
 ```
-On the `web-bff` client in the Keycloak admin console, add:
-- Redirect URI: `https://<bff-fqdn>/*`
-- Web Origin: `https://<bff-fqdn>`
-- Post-logout redirect URI: `https://<bff-fqdn>/*`
-- Backchannel logout URL: `https://<bff-fqdn>/bff/backchannel-logout`
+On the **BFF application** in the Auth0 dashboard, add:
+- Allowed Callback URL: `https://<bff-fqdn>/signin-oidc`
+- Allowed Logout URL: `https://<bff-fqdn>/signout-callback-oidc`
+- Allowed Web Origin: `https://<bff-fqdn>`
+- Back-Channel Logout URI: `https://<bff-fqdn>/bff/backchannel-logout`
 
 ## Verification
 
-1. `azd up` runs without errors; resources present in `rg-ordersphere-dev`.
-2. Service logs show a successful JWKS fetch from the Keycloak FQDN.
-3. `https://<bff-fqdn>` → login redirect to Keycloak → successful return after step 6.
-4. An authenticated API call (per-service audience validation) returns 200.
+1. `azd up` runs without errors; resources present in `rg-dev`.
+2. Service logs show a successful JWKS fetch from the Auth0 issuer.
+3. `https://<bff-fqdn>` → login redirect to Auth0 → successful return after step 6.
+4. An authenticated API call (per-service audience validation against `https://api.ordersphere.dev`)
+   returns 200.
 5. A `client_credentials` token for `ordering-worker`/`payment-worker` with the real secret →
-   a valid token with role `svc.*`.
+   a valid token accepted by the target service.
 
 ## CI/CD — `azd pipeline config`
 
@@ -135,14 +138,11 @@ azd pipeline config
 Notes for this repository:
 
 - **AppHost is not at the repo root.** The generated `azure-dev.yml` assumes the AppHost is in the
-  root directory. Here it lives under `src/OrderSphere.AppHost`. In the **Provision Infrastructure**
-  and **Deploy Application** steps, `working-directory: ./src/OrderSphere.AppHost` must therefore be
-  added (see [Aspire docs on multi-project workflows](https://learn.microsoft.com/en-us/dotnet/aspire/deployment/azd/aca-deployment-github-actions)).
+  root directory. Here it lives under `src/Hosting/OrderSphere.AppHost`. In the **Provision
+  Infrastructure** and **Deploy Application** steps, `working-directory: ./src/Hosting/OrderSphere.AppHost`
+  must therefore be added (see [Aspire docs on multi-project workflows](https://learn.microsoft.com/en-us/dotnet/aspire/deployment/azd/aca-deployment-github-actions)).
 - **master is PR-protected.** `azd pipeline config` wants to commit/push the workflow — work on a
   branch and merge via PR rather than pushing directly to master.
-- **Existing SSO credentials.** The SSO deployment already uses an OIDC federated credential and the
-  `AZURE_*` repo secrets. `azd pipeline config` may create its own identity; if the existing one is to
-  be reused, align the generated variables accordingly.
 - The workflow runs `azd provision`/`azd deploy` and requires the .NET 10 SDK (container build by azd).
 
 ## Troubleshooting (actually encountered on the first deploy)

@@ -1,7 +1,7 @@
 namespace OrderSphere.UserProfile.Application.Features.Profile.AddAddress;
 
 public sealed record AddAddressCommand(
-    string KeycloakSubject,
+    string Subject,
     string Label,
     string FirstName,
     string LastName,
@@ -15,7 +15,7 @@ public sealed class AddAddressCommandValidator : AbstractValidator<AddAddressCom
 {
     public AddAddressCommandValidator()
     {
-        RuleFor(x => x.KeycloakSubject).NotEmpty();
+        RuleFor(x => x.Subject).NotEmpty();
         RuleFor(x => x.Label).NotEmpty().MaximumLength(100);
         RuleFor(x => x.FirstName).NotEmpty().MaximumLength(100);
         RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
@@ -33,7 +33,7 @@ public sealed class AddAddressCommandHandler(IUserProfileDbContext context)
     {
         var profile = await context.CustomerProfiles
             .Include(p => p.Addresses)
-            .FirstOrDefaultAsync(p => p.KeycloakSubject == request.KeycloakSubject, ct);
+            .FirstOrDefaultAsync(p => p.Subject == request.Subject, ct);
 
         if (profile is null)
             return Result<AddressDto>.Failure(UserProfileErrors.ProfileNotFound);

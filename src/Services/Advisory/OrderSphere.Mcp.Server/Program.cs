@@ -10,7 +10,7 @@ builder.AddServiceDefaults();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<ICallerContext, HttpCallerContext>();
 
-// Keycloak JWT validation. Authentication is optional at the transport level:
+// Auth0 JWT validation. Authentication is optional at the transport level:
 // public catalog tools work anonymously; user-scoped tools rely on the forwarded
 // token to resolve data downstream. Audience is validated by the downstream
 // services, not here, so the caller's existing token can be reused as-is.

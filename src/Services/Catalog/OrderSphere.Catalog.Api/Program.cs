@@ -22,7 +22,7 @@ builder.Services.AddCatalogApplication();    // MediatR + Behaviors + FluentVali
 builder.Services.AddCatalogApiVersioning();
 builder.Services.AddCatalogSwagger();
 builder.Services.AddCatalogRateLimiting();
-builder.AddCatalogAuthentication();     // Keycloak JWT; audience "catalog-api"
+builder.AddCatalogAuthentication();     // Auth0 JWT; audience "catalog-api"
 builder.Services.AddCatalogAuthorization();                          // CatalogAdminPolicy
 builder.Services.AddCurrentUser();
 

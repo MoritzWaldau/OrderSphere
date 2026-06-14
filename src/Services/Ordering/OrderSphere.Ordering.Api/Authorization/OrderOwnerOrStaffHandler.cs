@@ -9,8 +9,8 @@ namespace OrderSphere.Ordering.Api.Authorization;
 /// Handles <see cref="OrderOwnerOrStaffRequirement"/> against an <see cref="OrderDto"/> resource.
 /// Succeeds when:
 /// <list type="bullet">
-///   <item>The caller's <c>sub</c> claim parses as the same <see cref="Guid"/> as
-///     <see cref="OrderDto.CustomerId"/> (owner), or</item>
+///   <item>The caller's <c>sub</c> claim, hashed via <see cref="CustomerId.FromSub"/>, yields the
+///     same <see cref="Guid"/> as <see cref="OrderDto.CustomerId"/> (owner), or</item>
 ///   <item>The caller holds the <c>csr</c>, <c>order-manager</c>, or <c>admin</c> role.</item>
 /// </list>
 /// Does not fail the requirement — callers without a matching sub and no staff role

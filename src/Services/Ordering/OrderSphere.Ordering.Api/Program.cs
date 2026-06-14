@@ -80,8 +80,8 @@ builder.Services.AddHealthChecks()
 builder.AddOrderSphereExceptionHandling();
 builder.Services.AddOrderingApiVersioning();
 
-// JWT Bearer — shared Keycloak validation; audience "ordering-api" is a
-// dedicated bearer-only client in the Keycloak realm.
+// JWT Bearer — shared Auth0 validation; audience "ordering-api" is a
+// dedicated API registered in the Auth0 tenant.
 builder.AddOrderSphereJwtAuth("ordering-api");
 builder.Services.AddCurrentUser();
 

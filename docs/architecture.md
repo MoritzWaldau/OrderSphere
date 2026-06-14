@@ -51,7 +51,6 @@ xUnit + FluentAssertions (NSubstitute for mocking; EF Core in-memory, or SQLite 
 | `tests/OrderSphere.Ordering.Authorization.Tests` | Ordering authorization policy tests |
 | `tests/OrderSphere.UserProfile.Tests` | UserProfile service |
 | `tests/OrderSphere.Bff.Tests` | BFF integration tests |
-| `tests/OrderSphere.RealmContract.Tests` | Keycloak realm contract tests |
 | `tests/OrderSphere.Mcp.Tests` | MCP tool methods against a mocked gateway (NSubstitute); gateway request-path pinning; in-process MCP server integration tests (transport, tool discovery, annotations) |
 | `tests/OrderSphere.Advisory.Tests` | `AdvisorChatService` against a scripted `IChatClient`: persistence, anonymous/ephemeral turns, corrupt-session recovery, mid-stream failure handling, tool-activity events |
 
@@ -100,7 +99,7 @@ frames with a German label) alongside text tokens; the chat drawer shows them as
 
 ### Conversation persistence
 
-Conversations are durable, owned per customer (Keycloak `sub`), in `advisory-db` (Postgres, EF Core).
+Conversations are durable, owned per customer (Auth0 `sub`), in `advisory-db` (Postgres, EF Core).
 After each turn `AdvisorChatService` serializes the agent session (chat history) via
 `AIAgent.SerializeSessionAsync` into `Conversation.SerializedSession` and rehydrates it on the next
 request with `DeserializeSessionAsync` — so context survives restarts and is shared across instances.
@@ -144,8 +143,8 @@ new auth/workflow path that requires explicit sign-off.
 
 `Foundry:Endpoint` and `Foundry:Deployment` are read by `Advisory.Api`. When the endpoint is unset the
 agent degrades gracefully (returns a "not configured" message) so local runs work without Azure. Set
-locally via user-secrets on the AppHost; authenticate with `az login`. The Keycloak realm defines a
-public PKCE client `advisory-mcp` for external MCP clients.
+locally via user-secrets on the AppHost; authenticate with `az login`. Auth0 defines a public PKCE
+application `advisory-mcp` for external MCP clients.
 
 ## EF Migrations
 

@@ -4,7 +4,7 @@ internal static class ProfileMappers
 {
     internal static ProfileDto ToDto(CustomerProfile p) => new(
         p.Id.Value,
-        p.KeycloakSubject,
+        p.Subject,
         p.DisplayName,
         p.Email,
         p.DarkModeEnabled,

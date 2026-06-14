@@ -14,8 +14,8 @@ builder.AddOrderSphereSwagger("OrderSphere UserProfile API");
 builder.AddUserProfileInfrastructure();        // EF Core, IUserProfileDbContext
 builder.Services.AddUserProfileApplication();  // MediatR + Behaviors + FluentValidation
 
-// JWT Bearer — shared Keycloak validation; audience "userprofile-api" is a
-// dedicated bearer-only client in the Keycloak realm.
+// JWT Bearer — shared Auth0 validation; audience "userprofile-api" is a
+// dedicated API registered in the Auth0 tenant.
 builder.AddOrderSphereJwtAuth("userprofile-api");
 builder.Services.AddCurrentUser();
 

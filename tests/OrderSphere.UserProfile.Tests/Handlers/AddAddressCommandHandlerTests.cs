@@ -112,7 +112,7 @@ public sealed class AddAddressCommandHandlerTests
         ctx.ChangeTracker.Clear();
         var stored = await ctx.CustomerProfiles
             .Include(p => p.Addresses)
-            .SingleAsync(p => p.KeycloakSubject == "sub-set-default");
+            .SingleAsync(p => p.Subject == "sub-set-default");
         stored.Addresses.Count(a => a.IsDefault).Should().Be(1);
     }
 
@@ -130,7 +130,7 @@ public sealed class AddAddressCommandHandlerTests
         ctx.ChangeTracker.Clear();
         var stored = await ctx.CustomerProfiles
             .Include(p => p.Addresses)
-            .SingleAsync(p => p.KeycloakSubject == "sub-persist-addr");
+            .SingleAsync(p => p.Subject == "sub-persist-addr");
         stored.Addresses.Should().HaveCount(1);
     }
 }

@@ -1,7 +1,7 @@
 namespace OrderSphere.UserProfile.Application.Features.Profile.UpdateAddress;
 
 public sealed record UpdateAddressCommand(
-    string KeycloakSubject,
+    string Subject,
     Guid AddressId,
     string Label,
     string FirstName,
@@ -15,7 +15,7 @@ public sealed class UpdateAddressCommandValidator : AbstractValidator<UpdateAddr
 {
     public UpdateAddressCommandValidator()
     {
-        RuleFor(x => x.KeycloakSubject).NotEmpty();
+        RuleFor(x => x.Subject).NotEmpty();
         RuleFor(x => x.AddressId).NotEmpty();
         RuleFor(x => x.Label).NotEmpty().MaximumLength(100);
         RuleFor(x => x.FirstName).NotEmpty().MaximumLength(100);
@@ -34,7 +34,7 @@ public sealed class UpdateAddressCommandHandler(IUserProfileDbContext context)
     {
         var profile = await context.CustomerProfiles
             .Include(p => p.Addresses)
-            .FirstOrDefaultAsync(p => p.KeycloakSubject == request.KeycloakSubject, ct);
+            .FirstOrDefaultAsync(p => p.Subject == request.Subject, ct);
 
         if (profile is null)
             return Result<AddressDto>.Failure(UserProfileErrors.ProfileNotFound);

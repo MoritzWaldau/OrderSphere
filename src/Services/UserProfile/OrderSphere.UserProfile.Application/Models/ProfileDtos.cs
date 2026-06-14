@@ -2,7 +2,7 @@ namespace OrderSphere.UserProfile.Application.Models;
 
 public sealed record ProfileDto(
     Guid Id,
-    string KeycloakSubject,
+    string Subject,
     string DisplayName,
     string Email,
     bool DarkModeEnabled,
@@ -44,7 +44,7 @@ public sealed record UpdateAddressRequest(
 
 public sealed record AdminUserSummaryDto(
     Guid Id,
-    string KeycloakSubject,
+    string Subject,
     string DisplayName,
     string Email,
     bool DarkModeEnabled,

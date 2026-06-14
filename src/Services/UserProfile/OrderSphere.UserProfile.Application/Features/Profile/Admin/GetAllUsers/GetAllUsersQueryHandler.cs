@@ -13,7 +13,7 @@ public sealed class GetAllUsersQueryHandler(IUserProfileDbContext context)
             .OrderBy(p => p.DisplayName)
             .Select(p => new AdminUserSummaryDto(
                 p.Id.Value,
-                p.KeycloakSubject,
+                p.Subject,
                 p.DisplayName,
                 p.Email,
                 p.DarkModeEnabled,

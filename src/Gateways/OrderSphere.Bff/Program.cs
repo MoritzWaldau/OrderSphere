@@ -13,10 +13,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // ── Configuration ────────────────────────────────────────────────────────────
-var keycloakAuthority = builder.Configuration["Oidc:Authority"]
+var oidcAuthority = builder.Configuration["Oidc:Authority"]
     ?? throw new InvalidOperationException("Oidc:Authority is not configured.");
-var keycloakClientId = builder.Configuration["Oidc:ClientId"] ?? "web-bff";
-var keycloakClientSecret = builder.Configuration["Oidc:ClientSecret"]
+var oidcClientId = builder.Configuration["Oidc:ClientId"] ?? "web-bff";
+var oidcClientSecret = builder.Configuration["Oidc:ClientSecret"]
     ?? throw new InvalidOperationException("Oidc:ClientSecret is not configured.");
 // "Testing" is treated like Development: no HTTPS enforcement, no HSTS.
 var isProduction = !builder.Environment.IsDevelopment()
@@ -42,7 +42,7 @@ builder.Services.AddAntiforgery(opts =>
 });
 
 // ── Authentication & Authorization ───────────────────────────────────────────
-builder.AddBffAuthentication(keycloakAuthority, keycloakClientId, keycloakClientSecret, isProduction);
+builder.AddBffAuthentication(oidcAuthority, oidcClientId, oidcClientSecret, isProduction);
 
 // ── Reverse proxy ─────────────────────────────────────────────────────────────
 builder.AddBffProxy();

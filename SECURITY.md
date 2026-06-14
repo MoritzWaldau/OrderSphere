@@ -33,4 +33,4 @@ The following run in CI on every push and pull request to `master`:
 - **Trivy** — filesystem and misconfiguration scanning; SARIF results uploaded to the Security tab.
 
 Secrets are held in Azure Key Vault outside development; development uses .NET user-secrets.
-Authentication is delegated to Keycloak (OIDC); no credentials are stored in the application.
+Authentication is delegated to Auth0 (OIDC); no credentials are stored in the application.

@@ -14,9 +14,9 @@ public sealed class CustomerProfileConfiguration : IEntityTypeConfiguration<Cust
 
         builder.HasQueryFilter(p => !p.IsDeleted);
 
-        builder.HasIndex(p => p.KeycloakSubject).IsUnique();
+        builder.HasIndex(p => p.Subject).IsUnique();
 
-        builder.Property(p => p.KeycloakSubject).IsRequired().HasMaxLength(256);
+        builder.Property(p => p.Subject).IsRequired().HasMaxLength(256);
         builder.Property(p => p.DisplayName).IsRequired().HasMaxLength(200);
         builder.Property(p => p.Email).IsRequired().HasMaxLength(320);
 

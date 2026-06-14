@@ -90,9 +90,9 @@
     private async Task HandleLogout()
     {
         // POST with X-XSRF-TOKEN attached by AntiforgeryDelegatingHandler.
-        // HttpClient follows the redirect chain (BFF → Keycloak end_session → BFF /).
+        // HttpClient follows the redirect chain (BFF → Auth0 end_session → BFF /).
         // After completion the session cookie is gone; force a full reload to /bff/logout
-        // so Keycloak's post-logout redirect lands on a clean state.
+        // so Auth0's post-logout redirect lands on a clean state.
         try { await Http.PostAsync("/bff/logout", content: null); } catch { /* redirect responses may throw */ }
         Navigation.NavigateTo("/", forceLoad: true);
     }

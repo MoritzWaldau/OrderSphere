@@ -9,7 +9,7 @@ public sealed record ConversationSummaryDto(
 public sealed record ConversationMessageDto(string Role, string Text, DateTime CreatedAt);
 
 // Read-only history of the current customer's conversations. Scoped by the caller's
-// Keycloak subject; a caller without a resolvable subject sees nothing.
+// Auth0 subject; a caller without a resolvable subject sees nothing.
 public static class HistoryEndpoints
 {
     public static IEndpointRouteBuilder MapAdvisorHistoryEndpoints(this IEndpointRouteBuilder app)

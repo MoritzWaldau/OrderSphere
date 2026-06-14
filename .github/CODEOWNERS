@@ -13,5 +13,5 @@
 /global.json            @MoritzWaldau
 /.config/               @MoritzWaldau
 
-# Verträge zwischen Diensten / mit Keycloak.
+# Verträge zwischen Diensten (OpenAPI, gRPC proto).
 /contracts/             @MoritzWaldau

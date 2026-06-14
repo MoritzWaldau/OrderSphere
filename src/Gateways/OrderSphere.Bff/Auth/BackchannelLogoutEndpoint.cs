@@ -8,19 +8,18 @@ using OrderSphere.BuildingBlocks.Security;
 namespace OrderSphere.Bff.Auth;
 
 /// <summary>
-/// Handles Keycloak back-channel logout requests (OIDC Front-Channel Logout draft / OIDC CIBA).
+/// Handles Auth0 back-channel logout requests (OIDC Front-Channel Logout draft / OIDC CIBA).
 ///
 /// Flow:
-///   1. Keycloak POSTs application/x-www-form-urlencoded { logout_token: "&lt;JWT&gt;" }.
+///   1. Auth0 POSTs application/x-www-form-urlencoded { logout_token: "&lt;JWT&gt;" }.
 ///   2. This endpoint validates the JWT (iss, aud, sid, events, no nonce, valid signature).
-///   3. Resolves the Keycloak session_id → Redis session key via the secondary index written
+///   3. Resolves the Auth0 session_id → Redis session key via the secondary index written
 ///      by RedisTicketStore.StoreAsync.
 ///   4. Calls ITicketStore.RemoveAsync to revoke the session from Redis.
 ///   5. Emits a SecurityAuditEvent for the audit log.
 ///
-/// Keycloak client configuration required (ordersphere-realm.json, web-bff client):
-///   backchannel.logout.url = https://{bff-host}/bff/backchannel-logout
-///   backchannel.logout.session.required = true
+/// Auth0 application configuration required (BFF application):
+///   Back-Channel Logout URI = https://{bff-host}/bff/backchannel-logout
 ///
 /// Reference: https://openid.net/specs/openid-connect-backchannel-1_0.html
 /// </summary>
@@ -63,7 +62,7 @@ public static class BackchannelLogoutEndpoint
             return Results.BadRequest("Missing logout_token.");
         }
 
-        // ── 2. Fetch JWKS from Keycloak (cached by IConfigurationManager) ───
+        // ── 2. Fetch JWKS from Auth0 (cached by IConfigurationManager) ───
         var authority = config["Oidc:Authority"]!;
         var clientId = config["Oidc:ClientId"] ?? "web-bff";
 
@@ -140,7 +139,7 @@ public static class BackchannelLogoutEndpoint
             || string.IsNullOrEmpty(sid))
         {
             logger.LogWarning("logout_token missing 'sid' claim. Cannot revoke specific session.");
-            // Return 200 so Keycloak does not retry; revocation is not possible without sid.
+            // Return 200 so Auth0 does not retry; revocation is not possible without sid.
             return Results.Ok();
         }
 
@@ -156,7 +155,7 @@ public static class BackchannelLogoutEndpoint
         if (ticketStore is not RedisTicketStore redisStore)
         {
             logger.LogError("ITicketStore is not RedisTicketStore; cannot look up session by sid.");
-            return Results.Ok(); // Do not expose internal errors to Keycloak
+            return Results.Ok(); // Do not expose internal errors to Auth0
         }
 
         var sessionKey = await redisStore.FindKeyBySessionIdAsync(sid);

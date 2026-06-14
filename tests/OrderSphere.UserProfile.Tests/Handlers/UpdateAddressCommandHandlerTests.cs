@@ -65,7 +65,7 @@ public sealed class UpdateAddressCommandHandlerTests
         ctx.ChangeTracker.Clear();
         var stored = await ctx.CustomerProfiles
             .Include(p => p.Addresses)
-            .SingleAsync(p => p.KeycloakSubject == "sub-update-addr");
+            .SingleAsync(p => p.Subject == "sub-update-addr");
         var addressId = stored.Addresses.Single().Id.Value;
 
         var result = await CreateHandler(ctx).Handle(
@@ -92,7 +92,7 @@ public sealed class UpdateAddressCommandHandlerTests
         ctx.ChangeTracker.Clear();
         var stored = await ctx.CustomerProfiles
             .Include(p => p.Addresses)
-            .SingleAsync(p => p.KeycloakSubject == "sub-persist-upd");
+            .SingleAsync(p => p.Subject == "sub-persist-upd");
         var addressId = stored.Addresses.Single().Id.Value;
 
         await CreateHandler(ctx).Handle(ValidCommand("sub-persist-upd", addressId), CancellationToken.None);
@@ -100,7 +100,7 @@ public sealed class UpdateAddressCommandHandlerTests
         ctx.ChangeTracker.Clear();
         var refreshed = await ctx.CustomerProfiles
             .Include(p => p.Addresses)
-            .SingleAsync(p => p.KeycloakSubject == "sub-persist-upd");
+            .SingleAsync(p => p.Subject == "sub-persist-upd");
         refreshed.Addresses.Single().City.Should().Be("Hamburg");
     }
 }

@@ -4,16 +4,16 @@ using OrderSphere.BuildingBlocks.StronglyTypedIds;
 namespace OrderSphere.UserProfile.Domain.Entities;
 
 /// <summary>
-/// Stores user data that doesn't belong in Keycloak:
+/// Stores user data that doesn't belong in the identity provider (Auth0):
 /// saved shipping addresses and UI preferences.
-/// Keycloak subject claim is the external identifier.
+/// The Auth0 subject claim is the external identifier.
 /// </summary>
 public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggregateRoot
 {
     /// <summary>Maximum number of active saved addresses a profile may hold.</summary>
     public const int MaxAddresses = 10;
 
-    public string KeycloakSubject { get; private set; }
+    public string Subject { get; private set; }
     public string DisplayName { get; private set; }
     public string Email { get; private set; }
     public bool DarkModeEnabled { get; private set; }
@@ -23,15 +23,15 @@ public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggre
 
     private CustomerProfile()
     {
-        KeycloakSubject = string.Empty;
+        Subject = string.Empty;
         DisplayName = string.Empty;
         Email = string.Empty;
     }
 
-    public CustomerProfile(string keycloakSubject, string displayName, string email)
+    public CustomerProfile(string subject, string displayName, string email)
     {
         Id = CustomerProfileId.New();
-        KeycloakSubject = keycloakSubject;
+        Subject = subject;
         DisplayName = displayName;
         Email = email;
     }

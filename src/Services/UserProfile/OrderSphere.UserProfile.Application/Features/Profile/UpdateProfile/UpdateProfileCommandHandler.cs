@@ -1,7 +1,7 @@
 namespace OrderSphere.UserProfile.Application.Features.Profile.UpdateProfile;
 
 public sealed record UpdateProfileCommand(
-    string KeycloakSubject,
+    string Subject,
     string DisplayName,
     string Email) : ICommand<Result<ProfileDto>>;
 
@@ -9,7 +9,7 @@ public sealed class UpdateProfileCommandValidator : AbstractValidator<UpdateProf
 {
     public UpdateProfileCommandValidator()
     {
-        RuleFor(x => x.KeycloakSubject).NotEmpty();
+        RuleFor(x => x.Subject).NotEmpty();
         RuleFor(x => x.DisplayName).NotEmpty().MaximumLength(200);
         RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(320);
     }
@@ -22,7 +22,7 @@ public sealed class UpdateProfileCommandHandler(IUserProfileDbContext context)
     {
         var profile = await context.CustomerProfiles
             .Include(p => p.Addresses)
-            .FirstOrDefaultAsync(p => p.KeycloakSubject == request.KeycloakSubject, ct);
+            .FirstOrDefaultAsync(p => p.Subject == request.Subject, ct);
 
         if (profile is null)
             return Result<ProfileDto>.Failure(UserProfileErrors.ProfileNotFound);

@@ -52,6 +52,8 @@ public sealed class BffAuthStateProvider : AuthenticationStateProvider
             foreach (var role in userInfo.Roles ?? [])
                 claims.Add(new Claim("roles", role));
 
+            claims.Add(new Claim("onboardingComplete", userInfo.OnboardingComplete ? "true" : "false"));
+
             var identity = new ClaimsIdentity(claims, authenticationType: "BffCookie",
                 nameType: ClaimTypes.Name, roleType: "roles");
             return new AuthenticationState(new ClaimsPrincipal(identity));

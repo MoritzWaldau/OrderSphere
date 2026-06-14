@@ -3,6 +3,7 @@
 @inject ThemeState ThemeState
 @inject ISnackbar Snackbar
 @inject NotificationHubClient NotificationHub
+@inject NavigationManager Nav
 
 <MudThemeProvider Theme="ThemeState.Theme" IsDarkMode="ThemeState.IsDarkMode" />
 <MudPopoverProvider />
@@ -54,6 +55,19 @@
         var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
         if (state.User.Identity?.IsAuthenticated == true)
         {
+            // Redirect to onboarding if the BFF reports it is not yet complete.
+            // The actual enforcement is server-side (Gateway middleware); this is purely UX.
+            var userInfo = state.User.Identity as System.Security.Claims.ClaimsIdentity;
+            var onboardingClaim = userInfo?.FindFirst("onboardingComplete");
+            var onboardingComplete = onboardingClaim?.Value == "true";
+
+            var currentPath = Nav.ToBaseRelativePath(Nav.Uri);
+            if (!onboardingComplete && !currentPath.StartsWith("onboarding", StringComparison.OrdinalIgnoreCase))
+            {
+                Nav.NavigateTo("/onboarding");
+                return;
+            }
+
             await CartState.InitializeAsync();
             _cartItemCount = CartState.ItemCount;
 

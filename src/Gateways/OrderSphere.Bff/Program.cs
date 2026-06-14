@@ -44,6 +44,11 @@ builder.Services.AddAntiforgery(opts =>
 // ── Authentication & Authorization ───────────────────────────────────────────
 builder.AddBffAuthentication(oidcAuthority, oidcClientId, oidcClientSecret, isProduction);
 
+// ── UserProfile status client (onboarding check for /bff/user) ───────────────
+builder.Services.AddHttpClient("userprofile-status", c =>
+    c.BaseAddress = new Uri("http://ordersphere-userprofile"))
+    .AddServiceDiscovery();
+
 // ── Reverse proxy ─────────────────────────────────────────────────────────────
 builder.AddBffProxy();
 
@@ -101,7 +106,7 @@ app.MapPost("/bff/logout", (HttpContext _) =>
 
 // Issues/refreshes the antiforgery token pair on every call.
 // Unauthenticated callers receive isAuthenticated:false rather than a redirect.
-app.MapGet("/bff/user", (HttpContext ctx, IAntiforgery antiforgery) =>
+app.MapGet("/bff/user", async (HttpContext ctx, IAntiforgery antiforgery) =>
 {
     var tokens = antiforgery.GetAndStoreTokens(ctx);
     var user = ctx.User;
@@ -114,18 +119,46 @@ app.MapGet("/bff/user", (HttpContext ctx, IAntiforgery antiforgery) =>
             name = (string?)null,
             email = (string?)null,
             roles = Array.Empty<string>(),
+            onboardingComplete = false,
             xsrfToken = tokens.RequestToken,
         });
+
+    var sub = user.FindFirst("sub")?.Value
+           ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    var onboardingComplete = false;
+    try
+    {
+        var accessToken = await ctx.GetTokenAsync("access_token");
+        if (!string.IsNullOrEmpty(accessToken))
+        {
+            var factory = ctx.RequestServices.GetRequiredService<IHttpClientFactory>();
+            using var client = factory.CreateClient("userprofile-status");
+            using var req = new HttpRequestMessage(
+                HttpMethod.Get, "/api/v1/profile/onboarding-status");
+            req.Headers.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+            var resp = await client.SendAsync(req, ctx.RequestAborted);
+            if (resp.IsSuccessStatusCode)
+                onboardingComplete = await resp.Content
+                    .ReadFromJsonAsync<bool>(ctx.RequestAborted);
+        }
+    }
+    catch
+    {
+        // UserProfile unreachable or no profile yet — treat as incomplete.
+    }
 
     return Results.Ok(new
     {
         isAuthenticated = true,
-        sub = user.FindFirst("sub")?.Value
-             ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+        sub,
         name = user.Identity.Name,
         email = user.FindFirst("email")?.Value
              ?? user.FindFirst(ClaimTypes.Email)?.Value,
         roles = user.FindAll("roles").Select(c => c.Value).ToArray(),
+        onboardingComplete,
         xsrfToken = tokens.RequestToken,
     });
 });

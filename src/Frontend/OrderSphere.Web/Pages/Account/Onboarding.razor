@@ -1,0 +1,171 @@
+@page "/onboarding"
+@attribute [Authorize]
+@inject IUserProfileClient UserProfile
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<PageTitle>Konto einrichten — OrderSphere</PageTitle>
+
+<PageHero Title="Konto einrichten"
+          Subtitle="Bitte ergänze einen Anzeigenamen und deine erste Lieferadresse, bevor du den Shop nutzen kannst." />
+
+<section style="padding:48px 0 80px;">
+    <MudContainer MaxWidth="MaxWidth.Small">
+        @if (_loading)
+        {
+            <MudStack AlignItems="AlignItems.Center" Class="py-12">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+            </MudStack>
+        }
+        else
+        {
+            <MudStack Spacing="4">
+                <!-- Display name -->
+                <MudPaper Elevation="0" Class="surface-card-lg pa-6">
+                    <MudText Typo="Typo.h6" Style="font-weight:600;" Class="mb-4">Anzeigename</MudText>
+                    <MudTextField T="string"
+                                  Label="Wie sollen wir dich nennen?"
+                                  Variant="Variant.Outlined"
+                                  FullWidth="true"
+                                  @bind-Value="_displayName" />
+                </MudPaper>
+
+                <!-- Shipping address -->
+                <MudPaper Elevation="0" Class="surface-card-lg pa-6">
+                    <MudText Typo="Typo.h6" Style="font-weight:600;" Class="mb-4">Erste Lieferadresse</MudText>
+                    <MudGrid Spacing="3">
+                        <MudItem xs="12" md="6">
+                            <MudTextField T="string" Label="Vorname" Variant="Variant.Outlined"
+                                          FullWidth="true" @bind-Value="_address.FirstName" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudTextField T="string" Label="Nachname" Variant="Variant.Outlined"
+                                          FullWidth="true" @bind-Value="_address.LastName" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField T="string" Label="Straße und Hausnummer" Variant="Variant.Outlined"
+                                          FullWidth="true" @bind-Value="_address.Street" />
+                        </MudItem>
+                        <MudItem xs="4">
+                            <MudTextField T="string" Label="PLZ" Variant="Variant.Outlined"
+                                          FullWidth="true" @bind-Value="_address.PostalCode" />
+                        </MudItem>
+                        <MudItem xs="5">
+                            <MudTextField T="string" Label="Stadt" Variant="Variant.Outlined"
+                                          FullWidth="true" @bind-Value="_address.City" />
+                        </MudItem>
+                        <MudItem xs="3">
+                            <MudTextField T="string" Label="Land" Variant="Variant.Outlined"
+                                          FullWidth="true" @bind-Value="_address.Country" />
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Size="Size.Large"
+                           FullWidth="true"
+                           Class="btn-pill"
+                           Disabled="_saving"
+                           OnClick="SubmitAsync">
+                    @if (_saving)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    }
+                    Konto einrichten und loslegen
+                </MudButton>
+            </MudStack>
+        }
+    </MudContainer>
+</section>
+
+@code {
+    private bool _loading = true;
+    private bool _saving;
+    private string _displayName = string.Empty;
+
+    private readonly AddressModel _address = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var profile = await UserProfile.GetOrCreateProfileAsync();
+            if (profile is not null)
+            {
+                _displayName = profile.DisplayName;
+
+                // Already onboarded — redirect away.
+                if (profile.IsOnboardingComplete)
+                {
+                    Nav.NavigateTo("/");
+                    return;
+                }
+            }
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_displayName))
+        {
+            Snackbar.Add("Bitte gib einen Anzeigenamen ein.", Severity.Warning);
+            return;
+        }
+        if (!_address.IsValid())
+        {
+            Snackbar.Add("Bitte fülle alle Adressfelder aus.", Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            await UserProfile.UpdateProfileAsync(new UpdateProfileRequest(_displayName, string.Empty));
+
+            await UserProfile.AddAddressAsync(new CreateAddressRequest(
+                "Standard", _address.FirstName, _address.LastName,
+                _address.Street, _address.City, _address.PostalCode, _address.Country,
+                SetAsDefault: true));
+
+            var result = await UserProfile.CompleteOnboardingAsync();
+            if (result is null)
+            {
+                Snackbar.Add("Onboarding konnte nicht abgeschlossen werden. Bitte überprüfe deine Angaben.", Severity.Error);
+                return;
+            }
+
+            Nav.NavigateTo("/");
+        }
+        catch
+        {
+            Snackbar.Add("Ein Fehler ist aufgetreten. Bitte versuche es erneut.", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private sealed class AddressModel
+    {
+        public string FirstName  { get; set; } = string.Empty;
+        public string LastName   { get; set; } = string.Empty;
+        public string Street     { get; set; } = string.Empty;
+        public string PostalCode { get; set; } = string.Empty;
+        public string City       { get; set; } = string.Empty;
+        public string Country    { get; set; } = "Deutschland";
+
+        public bool IsValid() =>
+            !string.IsNullOrWhiteSpace(FirstName) &&
+            !string.IsNullOrWhiteSpace(LastName) &&
+            !string.IsNullOrWhiteSpace(Street) &&
+            !string.IsNullOrWhiteSpace(PostalCode) &&
+            !string.IsNullOrWhiteSpace(City) &&
+            !string.IsNullOrWhiteSpace(Country);
+    }
+}

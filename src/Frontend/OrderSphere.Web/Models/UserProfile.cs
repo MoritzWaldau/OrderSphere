@@ -6,6 +6,7 @@ public sealed record ProfileDto(
     string DisplayName,
     string Email,
     bool DarkModeEnabled,
+    bool IsOnboardingComplete,
     List<AddressDto> Addresses);
 
 public sealed record AddressDto(

@@ -105,6 +105,16 @@ public sealed class BffUserEndpointTests(BffWebApplicationFactory factory)
         token1.Should().NotBe(token2);
     }
 
+    [Fact]
+    public async Task Get_WhenUnauthenticated_ReturnsOnboardingCompleteFalse()
+    {
+        var client = factory.CreateClient(NoRedirects());
+
+        var body = await GetUserBodyAsync(client);
+
+        body.GetProperty("onboardingComplete").GetBoolean().Should().BeFalse();
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private static WebApplicationFactoryClientOptions NoRedirects() =>

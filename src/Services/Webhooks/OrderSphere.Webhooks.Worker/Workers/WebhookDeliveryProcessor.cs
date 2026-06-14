@@ -126,6 +126,7 @@ public sealed class WebhookDeliveryProcessor(
             if (response.IsSuccessStatusCode)
             {
                 delivery.RecordSuccess(statusCode);
+                WebhookMetrics.Dispatched.Add(1, new KeyValuePair<string, object?>("status", statusCode));
                 logger.LogInformation(
                     "Webhook delivery {DeliveryId} to {Url} succeeded with {StatusCode}.",
                     delivery.Id, subscription.Url, statusCode);
@@ -135,6 +136,7 @@ public sealed class WebhookDeliveryProcessor(
                 var body = await response.Content.ReadAsStringAsync(ct);
                 var error = $"HTTP {statusCode}: {body}";
                 delivery.RecordFailure(statusCode, error);
+                WebhookMetrics.Failed.Add(1, new KeyValuePair<string, object?>("status", statusCode));
                 logger.LogWarning(
                     "Webhook delivery {DeliveryId} to {Url} failed with {StatusCode}. Attempt {Attempt}/{Max}.",
                     delivery.Id, subscription.Url, statusCode,
@@ -144,6 +146,7 @@ public sealed class WebhookDeliveryProcessor(
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             delivery.RecordFailure(null, ex.Message);
+            WebhookMetrics.Failed.Add(1, new KeyValuePair<string, object?>("status", "exception"));
             logger.LogWarning(ex,
                 "Webhook delivery {DeliveryId} to {Url} threw exception. Attempt {Attempt}/{Max}.",
                 delivery.Id, subscription.Url,

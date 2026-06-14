@@ -2,6 +2,7 @@ using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Contracts.Events;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.Webhooks.Domain.Entities;
 using OrderSphere.Webhooks.Domain.Enums;
@@ -43,6 +44,7 @@ public sealed class WebhookEventProcessor(
 
     private async Task ProcessMessageAsync(ProcessMessageEventArgs args)
     {
+        using var activity = EventBusDiagnostics.StartProcess(args.Message, QueueName);
         var messageId = args.Message.MessageId;
         logger.LogInformation("Received webhook event message {MessageId}.", messageId);
 

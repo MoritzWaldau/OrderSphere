@@ -1,8 +1,9 @@
+using Microsoft.AspNetCore.Builder;
 using OrderSphere.Webhooks.Application;
 using OrderSphere.Webhooks.Infrastructure;
 using OrderSphere.Webhooks.Worker.Workers;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
@@ -20,5 +21,9 @@ builder.Services.AddHttpClient("WebhookDelivery", client =>
 builder.Services.AddHostedService<WebhookEventProcessor>();
 builder.Services.AddHostedService<WebhookDeliveryProcessor>();
 
-var host = builder.Build();
-host.Run();
+var app = builder.Build();
+
+// Liveness/readiness endpoints (/health, /alive, /version) for container probes.
+app.MapDefaultEndpoints();
+
+app.Run();

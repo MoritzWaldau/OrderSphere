@@ -1,8 +1,10 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using OrderSphere.BuildingBlocks.Contracts.Events;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Payment.Domain.Entities;
@@ -48,6 +50,7 @@ public sealed class PaymentProcessor(
 
     private async Task OnMessageReceived(ProcessMessageEventArgs args)
     {
+        using var activity = EventBusDiagnostics.StartProcess(args.Message, QueueName);
         var messageId = args.Message.MessageId;
         logger.LogInformation("Received payment request message {MessageId}", messageId);
 
@@ -75,7 +78,15 @@ public sealed class PaymentProcessor(
                 return;
             }
 
+            var sw = Stopwatch.StartNew();
             var succeeded = await ProcessPaymentAsync(evt, context, providerFactory, args.CancellationToken);
+            sw.Stop();
+
+            PaymentMetrics.Duration.Record(sw.Elapsed.TotalMilliseconds,
+                new KeyValuePair<string, object?>("provider", evt.PaymentMethod));
+            PaymentMetrics.Processed.Add(1,
+                new KeyValuePair<string, object?>("provider", evt.PaymentMethod),
+                new KeyValuePair<string, object?>("succeeded", succeeded));
 
             // Payment record, outbox message, and inbox entry are all written in one
             // SaveChangesAsync below — a single PostgreSQL transaction guarantees atomicity.

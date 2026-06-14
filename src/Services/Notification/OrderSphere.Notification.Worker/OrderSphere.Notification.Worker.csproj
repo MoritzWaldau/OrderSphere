@@ -13,7 +13,9 @@
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="Azure.Communication.Email" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <!-- ASP.NET Core shared framework: enables WebApplication + health endpoints in this worker.
+         Replaces the Microsoft.Extensions.Hosting package, which the framework now provides. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

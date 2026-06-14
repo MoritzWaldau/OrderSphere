@@ -2,6 +2,7 @@ using Azure.Messaging.ServiceBus;
 using Microsoft.AspNetCore.SignalR;
 using OrderSphere.Bff.Hubs;
 using OrderSphere.BuildingBlocks.Contracts.Events;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 
 namespace OrderSphere.Bff.Workers;
 
@@ -41,6 +42,7 @@ public sealed class RealtimeNotificationProcessor(
 
     private async Task OnMessageReceived(ProcessMessageEventArgs args)
     {
+        using var activity = EventBusDiagnostics.StartProcess(args.Message, QueueName);
         var messageId = args.Message.MessageId;
 
         try

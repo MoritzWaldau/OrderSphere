@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Abstraction;
@@ -20,7 +21,13 @@ public sealed class PaymentDbContext(
     internal DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     public void AddOutboxMessage(string type, string content)
-        => OutboxMessages.Add(new OutboxMessage { Type = type, Content = content });
+        => OutboxMessages.Add(new OutboxMessage
+        {
+            Type = type,
+            Content = content,
+            // Capture the current trace context so the asynchronous dispatch joins this trace.
+            TraceParent = Activity.Current?.Id
+        });
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

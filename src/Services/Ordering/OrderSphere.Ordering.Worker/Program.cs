@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
@@ -6,7 +7,7 @@ using OrderSphere.Ordering.Infrastructure;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 using OrderSphere.Ordering.Worker.Workers;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
@@ -33,11 +34,14 @@ builder.Services.AddHostedService<PaymentResultProcessor>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
 
-var host = builder.Build();
+var app = builder.Build();
 
-using (var scope = host.Services.CreateScope())
+using (var scope = app.Services.CreateScope())
 {
     scope.ServiceProvider.GetRequiredService<OrderingDbContext>().Database.Migrate();
 }
 
-host.Run();
+// Liveness/readiness endpoints (/health, /alive, /version) for container probes.
+app.MapDefaultEndpoints();
+
+app.Run();

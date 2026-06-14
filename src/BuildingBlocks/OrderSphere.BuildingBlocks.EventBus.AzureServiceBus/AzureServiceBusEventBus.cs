@@ -22,6 +22,9 @@ public sealed class AzureServiceBusEventBus(
             ApplicationProperties = { ["EventType"] = typeof(TEvent).Name }
         };
 
+        using var activity = EventBusDiagnostics.StartPublish(destination, message.MessageId);
+        EventBusDiagnostics.Inject(message);
+
         await using var sender = client.CreateSender(destination);
         await sender.SendMessageAsync(message, ct);
 

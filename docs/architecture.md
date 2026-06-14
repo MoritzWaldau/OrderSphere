@@ -3,10 +3,23 @@
 Detailed system map for OrderSphere. Behavioral rules and conventions live in the
 repository-root [CLAUDE.md](../CLAUDE.md); this file is the lookup reference it points to.
 
+## System diagram
+
+A rendered request-flow diagram is in the repository-root [README.md](../README.md#architecture)
+(Mermaid). Editable source diagrams are kept in this folder:
+
+- `architecture.excalidraw` — service/component topology.
+- `enterprise-architecture.excalidraw` — enterprise context view (external systems, boundaries).
+
+> **TODO (manual export):** export both `.excalidraw` files to `docs/assets/architecture.svg` and
+> `docs/assets/enterprise-architecture.svg` (Excalidraw → Export image → SVG) and embed them here:
+> `![Service topology](assets/architecture.svg)`. The export step requires the Excalidraw app and is
+> not committed yet.
+
 ## Shared primitives (BuildingBlocks)
 
 - `BuildingBlocks.Domain` — `ICommand`, `IQuery`, `Result<T>`, `AuditableEntity`, `Error`, MediatR pipeline behaviors
-- `BuildingBlocks.Contracts` — Integration event DTOs shared across service boundaries
+- `BuildingBlocks.Contracts` — Integration event DTOs shared across service boundaries (naming and versioning rules: [../contracts/CONVENTIONS.md](../contracts/CONVENTIONS.md))
 - `BuildingBlocks.EventBus` — `IEventBus` abstraction
 - `BuildingBlocks.EventBus.AzureServiceBus` — Azure Service Bus implementation
 
@@ -35,11 +48,11 @@ repository-root [CLAUDE.md](../CLAUDE.md); this file is the lookup reference it 
 ### Infrastructure & Frontend
 | Project | Responsibility |
 |---|---|
-| `src/OrderSphere.ServiceDefaults` | Shared startup: OpenTelemetry, health checks, service discovery, resilience |
-| `src/OrderSphere.AppHost` | .NET Aspire orchestration (Postgres, Redis, Service Bus, all services) |
+| `src/Hosting/OrderSphere.ServiceDefaults` | Shared startup: OpenTelemetry, health checks, service discovery, resilience |
+| `src/Hosting/OrderSphere.AppHost` | .NET Aspire orchestration (Postgres, Redis, Service Bus, all services) |
 | `src/Gateways/OrderSphere.ApiGateway` | YARP reverse proxy — routes external traffic to services |
 | `src/Gateways/OrderSphere.Bff` | BFF — hosts Blazor WASM, handles OIDC session |
-| `src/OrderSphere.Web` | Blazor WASM client — pages, components, typed API clients |
+| `src/Frontend/OrderSphere.Web` | Blazor WASM client — pages, components, typed API clients |
 
 ### Tests
 xUnit + FluentAssertions (NSubstitute for mocking; EF Core in-memory, or SQLite in-memory where a real `DbContext` must exercise global query filters — required for entities with complex properties such as `Product.Price`).
@@ -165,7 +178,16 @@ Each service owns its migrations. Pattern: `-p <Infrastructure project> -s <Api 
 - **Database**: PostgreSQL via EF Core. Each service has its own `DbContext` under `<Service>.Infrastructure/Persistence/`. Configurations applied via `ApplyConfigurationsFromAssembly`. Migrations are per-service (see above).
 - **Cache**: Redis via .NET Hybrid Cache. Used by Catalog service for product/category reads.
 - **Email**: Azure Communication Services. Implemented in `Notification.Worker/Email/NotificationEmailService.cs`. Triggered by `OrderPlacedIntegrationEvent`. Connection string and sender address read from configuration.
-- **Service Bus**: Azure Service Bus via `BuildingBlocks.EventBus.AzureServiceBus`. Key queues/topics: `orders` (checkout → ordering), `payment-requests` (ordering → payment), `order-placed` (ordering → notification/webhooks).
+- **Service Bus**: Azure Service Bus via `BuildingBlocks.EventBus.AzureServiceBus`. Queues are declared in `src/Hosting/OrderSphere.AppHost/AppHost.cs`; each is published by an Ordering/Payment outbox handler and consumed by exactly one worker:
+
+  | Queue | Published by | Consumed by |
+  |---|---|---|
+  | `orders` | Ordering checkout (`RealServiceBusPublisher`) | `Ordering.Worker` (`OrderProcessor`) |
+  | `notification-orders` | Ordering (`OrderPlacedEventHandler`) | `Notification.Worker` (`NotificationProcessor`) |
+  | `payment-requests` | Ordering (`PaymentRequestedEventHandler`) | `Payment.Worker` (`PaymentProcessor`) |
+  | `payment-results` | Payment (`PaymentProcessedEventHandler`) | `Ordering.Worker` (`PaymentResultProcessor`) |
+  | `realtime-notifications` | Ordering (`RealtimeNotificationEventHandler`) | `BFF` (`RealtimeNotificationProcessor`, SignalR fan-out) |
+  | `webhook-events` | Ordering (`OrderStatusChangedEventHandler`) | `Webhooks.Worker` (`WebhookEventProcessor`) |
 
 ## Payment provider integration
 

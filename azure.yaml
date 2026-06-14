@@ -5,17 +5,11 @@
 # OrderSphere is a .NET Aspire application: the AppHost manifest is the single
 # source of truth for the resource topology (Container Apps, PostgreSQL Flexible
 # Server, Service Bus, Azure Managed Redis, Key Vault). azd reads that manifest
-# at `azd provision`/`azd up` time and generates the Bicep — there is no hand-
-# written infra/ folder here. External ingress is decided in the AppHost via
-# `WithExternalHttpEndpoints()` (only ordersphere-bff is public).
+# at provision/deploy time and generates Bicep — there is no hand-written infra/
+# folder. External ingress is limited to ordersphere-bff (WithExternalHttpEndpoints).
 #
-# Auth0 is NOT part of this deployment: it is an external, managed identity
-# provider (tenant ordersphere-dev.eu.auth0.com). Its issuer is supplied to
-# OrderSphere through the `oidc-authority` parameter (prompted interactively by
-# `azd up`), and the four confidential client secrets through azd secret
-# parameters:
-#   bff-client-secret, ordering-worker-secret,
-#   notification-worker-secret, payment-worker-secret
+# Identity provider: Auth0 (tenant ordersphere-dev.eu.auth0.com). Not provisioned
+# by azd — supplied via the oidc-authority parameter and four client secrets.
 name: ordersphere
 services:
   app:

@@ -23,12 +23,17 @@ detail.
 ## Contents
 
 - [Architecture](#architecture)
+- [Repository layout](#repository-layout)
+- [Screenshots](#screenshots)
 - [Technology](#technology)
 - [Getting started](#getting-started)
+- [Configuration](#configuration)
 - [Common commands](#common-commands)
+- [Testing and quality](#testing-and-quality)
 - [Deployment](#deployment)
 - [Conventions](#conventions)
 - [Security](#security)
+- [Roadmap and status](#roadmap-and-status)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -47,6 +52,8 @@ flowchart TD
     BFF["BFF — OrderSphere.Bff<br/>OIDC session, cookie, CSRF, static hosting"]
     GW["API Gateway — OrderSphere.ApiGateway<br/>YARP reverse proxy"]
     KC["Auth0<br/>OIDC (external tenant)"]
+    Advisory["Advisory.Api<br/>AI advisory agent (Azure OpenAI / Foundry)"]
+    MCP["Mcp.Server<br/>Model Context Protocol tool server"]
 
     subgraph Services
         Catalog["Catalog.Api"]
@@ -65,8 +72,12 @@ flowchart TD
     Browser -->|"HTTPS"| BFF
     BFF -->|"OIDC code flow"| KC
     BFF -->|"proxied API calls"| GW
+    BFF -->|"chat (forwarded token)"| Advisory
+    Advisory -->|"MCP tools"| MCP
+    MCP -->|"user-scoped API calls"| GW
     GW --> Catalog & Basket & Ordering & Payment & UserProfile & Webhooks
     Services -.->|"validate JWT"| KC
+    MCP -.->|"validate JWT"| KC
     Ordering -->|"integration events"| SB
     SB --> Payment & Notification & Webhooks
     Services --> PG
@@ -85,8 +96,42 @@ flowchart TD
 | UserProfile | Customer profile data |
 | Webhooks | Outbound webhook dispatch driven by integration events |
 | Notification | Order-confirmation email on `OrderPlacedIntegrationEvent` |
+| Advisory | Customer-advisory AI agent (`Advisory.Api`) over Azure OpenAI / Foundry; owns no tools of its own and is inert without the MCP server |
+| Mcp.Server | Model Context Protocol tool server (Streamable HTTP) exposing the `/api/v1` Gateway surface as user-scoped tools to the agent and external MCP clients |
 
-See [docs/architecture.md](docs/architecture.md) for the per-project breakdown.
+See [docs/architecture.md](docs/architecture.md) for the per-project breakdown, and
+[docs/architecture.md#ai-advisory-agent--mcp-server](docs/architecture.md#ai-advisory-agent--mcp-server)
+for the agent/MCP design.
+
+## Repository layout
+
+Top-level orientation only; the per-project breakdown is in
+[docs/architecture.md](docs/architecture.md).
+
+```text
+src/
+  Hosting/        .NET Aspire AppHost (resource topology) + ServiceDefaults
+  Gateways/       OrderSphere.Bff (BFF, WASM host) and OrderSphere.ApiGateway (YARP)
+  Frontend/       OrderSphere.Web — Blazor WebAssembly client
+  Services/       One folder per service (Catalog, Basket, Ordering, Payment,
+                  UserProfile, Webhooks, Notification, Advisory) — each with its
+                  own Domain / Application / Infrastructure / Api (+ Worker) projects
+  BuildingBlocks/ Shared primitives: Domain, Contracts, EventBus, EventBus.AzureServiceBus
+tests/            Per-layer and per-service test projects
+docs/             Architecture, deployment, auth, UI conventions, assessments
+```
+
+## Screenshots
+
+> The image files below are not yet committed. Generate them by running the system
+> ([Getting started](#getting-started)), opening the BFF endpoint, and capturing the
+> home, catalog, and checkout pages into `docs/assets/`.
+
+| View | Image |
+|---|---|
+| Home | `docs/assets/home.png` _(to be added)_ |
+| Catalog | `docs/assets/catalog.png` _(to be added)_ |
+| Checkout | `docs/assets/checkout.png` _(to be added)_ |
 
 ## Technology
 
@@ -108,26 +153,72 @@ See [docs/architecture.md](docs/architecture.md) for the per-project breakdown.
 
 ### Prerequisites
 
-- .NET 10 SDK
+- .NET 10 SDK (pinned in [global.json](global.json))
 - A container runtime (Docker or Podman) for PostgreSQL, Redis, and the Service Bus emulator
+
+### Configure local secrets
+
+Authentication is delegated to an external Auth0 tenant. The AppHost declares four confidential
+client secrets as parameters; without them the BFF login and the worker `client_credentials` flows
+fail locally. Set them once as user-secrets on the AppHost project (values come from the Auth0
+dashboard — see [docs/deploy-ordersphere.md](docs/deploy-ordersphere.md) step 2 and
+[docs/auth/role-model.md](docs/auth/role-model.md)):
+
+```powershell
+dotnet user-secrets set "Parameters:bff-client-secret" "<value>"          --project src/Hosting/OrderSphere.AppHost
+dotnet user-secrets set "Parameters:ordering-worker-secret" "<value>"     --project src/Hosting/OrderSphere.AppHost
+dotnet user-secrets set "Parameters:notification-worker-secret" "<value>" --project src/Hosting/OrderSphere.AppHost
+dotnet user-secrets set "Parameters:payment-worker-secret" "<value>"      --project src/Hosting/OrderSphere.AppHost
+```
+
+The non-secret parameters `oidc-authority` and `payment-bypass-providers` have local defaults in
+`src/Hosting/OrderSphere.AppHost/appsettings.Development.json` and need no setup. The AI advisory
+agent is optional: leave `Foundry:Endpoint` unset and the agent degrades gracefully (reports
+unavailable) — the rest of the system runs without Azure OpenAI. See [Configuration](#configuration)
+for the full key reference.
 
 ### Run the full system (Aspire)
 
 ```bash
-dotnet run --project src/OrderSphere.AppHost
+dotnet run --project src/Hosting/OrderSphere.AppHost
 ```
 
 Aspire provisions PostgreSQL, Redis, and the Azure Service Bus emulator, then starts all
-services, the gateway, and the BFF. The Aspire dashboard lists the resolved endpoints.
-Authentication is delegated to an external Auth0 tenant; the local `oidc-authority` defaults to
-`https://ordersphere-dev.eu.auth0.com/` (`src/Hosting/OrderSphere.AppHost/appsettings.Development.json`),
-so no identity provider runs as a local container.
+services, the gateway, and the BFF. Authentication is delegated to the external Auth0 tenant; the
+local `oidc-authority` defaults to `https://ordersphere-dev.eu.auth0.com/`
+(`src/Hosting/OrderSphere.AppHost/appsettings.Development.json`), so no identity provider runs as a
+local container.
+
+### After startup
+
+The Aspire dashboard (its URL is printed on startup) is the entry point: it lists every resource,
+its health, logs, and resolved endpoints. The application itself is reached through the BFF
+resource (`ordersphere-bff`), which is the only public ingress besides the MCP server
+(`WithExternalHttpEndpoints()` in the AppHost). Open the BFF endpoint from the dashboard; an
+unauthenticated request redirects to the Auth0 login.
 
 ### Run the frontend alone (BFF + WASM)
 
 ```bash
 dotnet run --project src/Gateways/OrderSphere.Bff
 ```
+
+## Configuration
+
+Central configuration keys and where each value comes from. Locally, secrets are user-secrets on the
+AppHost; in Azure they are Key Vault secrets resolved by `azd` / Aspire provisioning.
+
+| Key | Purpose | Source |
+|---|---|---|
+| `Oidc:Authority` | Auth0 issuer URL | Dev default in `appsettings.Development.json` (`oidc-authority`); Key Vault / azd parameter in Azure |
+| `Oidc:Audience` | API audience (`https://api.ordersphere.dev`) | Constant in the AppHost |
+| `Oidc:ClientId` / `Oidc:ClientSecret` | BFF and worker client credentials | Client IDs in the AppHost; secrets via user-secrets (dev) / Key Vault (Azure) |
+| `Parameters:bff-client-secret` | BFF interactive login client secret | user-secrets (dev) / Key Vault (Azure) |
+| `Parameters:ordering-worker-secret` | Ordering M2M worker secret | user-secrets (dev) / Key Vault (Azure) |
+| `Parameters:notification-worker-secret` | Notification M2M worker secret | user-secrets (dev) / Key Vault (Azure) |
+| `Parameters:payment-worker-secret` | Payment M2M worker secret | user-secrets (dev) / Key Vault (Azure) |
+| `payment-bypass-providers` | Skip the external payment provider call | Dev default `true` in `appsettings.Development.json`; azd parameter in Azure |
+| `Foundry:Endpoint` / `Foundry:Deployment` | Azure OpenAI / Foundry for the advisory agent (optional) | user-secrets (dev) / managed identity in Azure; unset → agent degrades gracefully |
 
 ## Common commands
 
@@ -136,7 +227,7 @@ Run from the repository root.
 | Task | Command |
 |---|---|
 | Build | `dotnet build OrderSphere.slnx` |
-| Run via Aspire | `dotnet run --project src/OrderSphere.AppHost` |
+| Run via Aspire | `dotnet run --project src/Hosting/OrderSphere.AppHost` |
 | Run BFF (with WASM) | `dotnet run --project src/Gateways/OrderSphere.Bff` |
 | All tests | `dotnet test` |
 | One test project | `dotnet test tests/OrderSphere.Domain.Tests` |
@@ -144,6 +235,15 @@ Run from the repository root.
 
 The full EF Core migration matrix (per service) is in
 [docs/architecture.md](docs/architecture.md#ef-migrations).
+
+## Testing and quality
+
+Tests are organised per layer and per service under `tests/` (domain, application, and
+service-specific projects including `OrderSphere.Mcp.Tests` and `OrderSphere.Advisory.Tests`). CI
+enforces a 70% branch-coverage gate, formatting (`dotnet format --verify-no-changes`), CodeQL static
+analysis, dependency review, and a vulnerable-package scan; a pull request must pass these before
+merge. The per-project test inventory is in [docs/architecture.md](docs/architecture.md). Local
+checks are listed in [CONTRIBUTING.md](CONTRIBUTING.md#local-checks).
 
 ## Deployment
 
@@ -162,7 +262,11 @@ implemented (generated by `azd pipeline config` after the first manual deploy).
 
 Repository conventions — layer rules, the `Result<T>` contract, feature layout, integration-event
 patterns, and commit format — are documented in [CLAUDE.md](CLAUDE.md). UI, theming, and CSS rules
-are in [docs/ui-conventions.md](docs/ui-conventions.md).
+are in [docs/ui-conventions.md](docs/ui-conventions.md); service contract conventions (HTTP clients
+and integration events) are in [contracts/CONVENTIONS.md](contracts/CONVENTIONS.md). The full
+documentation set is indexed in [docs/README.md](docs/README.md), including architecture decision
+records ([docs/adr/](docs/adr/README.md)), the domain [glossary](docs/glossary.md), and the
+[operations runbook](docs/operations.md).
 
 ## Security
 
@@ -173,6 +277,16 @@ held in Azure Key Vault; development uses .NET user-secrets. Authentication is d
 Auth0 (OIDC) via the BFF and gateway, with RBAC enforced per service.
 
 To report a vulnerability, follow the disclosure process in [SECURITY.md](SECURITY.md).
+
+## Roadmap and status
+
+OrderSphere is a technical reference / portfolio implementation, not a production system (see the
+status note at the top). Known open items already reflected in the docs:
+
+- **Application deploy pipelines are not yet implemented.** Infrastructure provisioning via `azd` is
+  in place; the per-application CI/CD workflow is generated by `azd pipeline config` after the first
+  manual deploy (see [docs/deploy-ordersphere.md](docs/deploy-ordersphere.md#cicd--azd-pipeline-config)).
+- **Screenshots are not yet committed** (see [Screenshots](#screenshots)).
 
 ## Contributing
 

@@ -124,26 +124,28 @@ On the **BFF application** in the Auth0 dashboard, add:
 5. A `client_credentials` token for `ordering-worker`/`payment-worker` with the real secret →
    a valid token accepted by the target service.
 
-## CI/CD — `azd pipeline config`
+## CI/CD — `Deploy OrderSphere` workflow
 
-Run only **after** the first successful `azd up`. The command sets up OIDC
-(Workload Identity Federation), creates/uses the service principal, sets the GitHub
-repo variables (`AZURE_ENV_NAME`, `AZURE_LOCATION`, `AZURE_SUBSCRIPTION_ID`) and propagates the
-environment values including secret references. It generates the workflow `.github/workflows/azure-dev.yml`.
+Releases and DEV deployments run through the manual GitHub Actions workflow
+`.github/workflows/release-deploy.yml` (`workflow_dispatch`, input `version`). One run bumps
+`<VersionPrefix>` in `Directory.Build.props`, commits it to `master`, creates the tag `vX.Y.Z`,
+then provisions and deploys the tagged revision to DEV via `azd`. It is deliberately manual
+(cost control) — there is no auto-deploy on merge.
 
-```powershell
-azd pipeline config
-```
+One-time setup (Azure-side OIDC and the four Auth0 secrets already exist from the first deploy):
 
-Notes for this repository:
+| Item | Where | Value / note |
+|---|---|---|
+| GitHub Environment `dev` | Settings → Environments | Name must be exactly `dev` — the federated credential on the `ordersphere-sso-deploy` service principal trusts `repo:MoritzWaldau/OrderSphere:environment:dev`. |
+| Repo secret `RELEASE_PAT` | Settings → Secrets | Fine-grained PAT (Contents: RW). `master` is PR-protected, so the bump commit needs a token whose owner is on the *bypass required pull requests* list. |
+| Repo variable `AZURE_ENV_NAME` | Settings → Variables | `ordersphere-dev` |
+| Repo variable `AZURE_LOCATION` | Settings → Variables | `germanywestcentral` |
 
-- **AppHost is not at the repo root.** The generated `azure-dev.yml` assumes the AppHost is in the
-  root directory. Here it lives under `src/Hosting/OrderSphere.AppHost`. In the **Provision
-  Infrastructure** and **Deploy Application** steps, `working-directory: ./src/Hosting/OrderSphere.AppHost`
-  must therefore be added (see [Aspire docs on multi-project workflows](https://learn.microsoft.com/en-us/dotnet/aspire/deployment/azd/aca-deployment-github-actions)).
-- **master is PR-protected.** `azd pipeline config` wants to commit/push the workflow — work on a
-  branch and merge via PR rather than pushing directly to master.
-- The workflow runs `azd provision`/`azd deploy` and requires the .NET 10 SDK (container build by azd).
+The workflow logs in with `azd auth login --federated-credential-provider github`, reconstructs the
+azd environment in the runner (the local `.azure/` is gitignored and there is no remote state),
+seeds the six infra parameters (`oidc_authority`, `payment_bypass_providers`, the four
+`*_secret` from GitHub secrets), then runs `azd provision` followed by `azd deploy`. The .NET 10
+SDK is required for the container build performed by azd.
 
 ## Troubleshooting (actually encountered on the first deploy)
 

@@ -249,6 +249,15 @@ Rules for `master`:
 | Tag `v*`            | Produce release artifact                  |
 | Promotion           | Staging, then Production (gate)           |
 
+The manual DEV path is implemented by the workflow **`Deploy OrderSphere`**
+(`.github/workflows/release-deploy.yml`, `workflow_dispatch` with a `version` input). A single run
+performs all three release steps together: it writes the SemVer into `<VersionPrefix>`
+(`Directory.Build.props`), commits the bump to `master` and creates the tag `vX.Y.Z`, then
+provisions and deploys the tagged revision to DEV via `azd`. Staging/Production promotion is not
+yet wired (those environments do not exist). Setup prerequisites (GitHub Environment `dev`,
+`RELEASE_PAT`, repo variables) are documented in
+[../deploy-ordersphere.md](../deploy-ordersphere.md#cicd--deploy-ordersphere-workflow).
+
 ---
 
 # Best practices

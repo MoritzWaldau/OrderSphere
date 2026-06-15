@@ -31,8 +31,13 @@ var oidcAuthority = builder.AddParameter("oidc-authority");
 
 const string OidcAudience = "https://api.ordersphere.dev";
 
-var postgresServer = builder.AddAzurePostgresFlexibleServer("postgres")
-    .RunAsContainer(c => c.WithPgAdmin().WithLifetime(ContainerLifetime.Persistent));
+// Deploy as container in all environments — avoids Azure PostgreSQL Flexible Server
+// offer restrictions on VS Enterprise subscriptions. pgAdmin is only added locally.
+var postgresServer = builder.AddPostgres("postgres")
+    .WithLifetime(ContainerLifetime.Persistent);
+
+if (!builder.ExecutionContext.IsPublishMode)
+    postgresServer.WithPgAdmin();
 
 var postgres = postgresServer.AddDatabase("ordersphere-db");
 var catalogDb = postgresServer.AddDatabase("catalog-db");
@@ -135,7 +140,7 @@ builder.AddProject<Projects.OrderSphere_Notification_Worker>("ordersphere-notifi
     .WaitFor(notificationDb)
     .WaitFor(serviceBus)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
-    .WithEnvironment("Oidc__ClientId", "notification-worker")
+    .WithEnvironment("Oidc__ClientId", "xAGJ3VxnOenpai2dGgkTId3dWBhOXMqz")
     .WithEnvironment("Oidc__ClientSecret", notificationWorkerSecret);
 
 var payment = builder.AddProject<Projects.OrderSphere_Payment_Api>("ordersphere-payment")
@@ -153,7 +158,7 @@ builder.AddProject<Projects.OrderSphere_Payment_Worker>("ordersphere-payment-wor
     .WaitFor(paymentDb)
     .WaitFor(serviceBus)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
-    .WithEnvironment("Oidc__ClientId", "payment-worker")
+    .WithEnvironment("Oidc__ClientId", "ub8w9SMhhUZddhRGxG2xcNU96Wx87csW")
     .WithEnvironment("Oidc__ClientSecret", paymentWorkerSecret)
     .WithEnvironment("Payment__BypassProviders", paymentBypassProviders);
 

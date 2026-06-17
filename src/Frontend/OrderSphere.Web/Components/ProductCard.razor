@@ -1,3 +1,5 @@
+@inject IStringLocalizer<AppStrings> L
+
 <MudPaper Elevation="0"
           Class="product-card"
           @onclick="HandleOpen"
@@ -20,7 +22,7 @@
             <div style="position:absolute;top:12px;left:12px;">
                 <MudChip T="string" Size="Size.Small" Color="Color.Error"
                          Style="font-size:0.6875rem;font-weight:600;">
-                    Ausverkauft
+                    @L["Common.SoldOut"]
                 </MudChip>
             </div>
         }
@@ -43,11 +45,11 @@
 
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
             <span class="os-mono" style="font-size:1rem;font-weight:600;">
-                @Product.Price.ToString("C")
+                @Formatting.Currency(Product.Price)
             </span>
             <span @onclick:stopPropagation="true">
                 <MudIconButton Icon="@Icons.Material.Outlined.Add"
-                               aria-label="In den Warenkorb"
+                               aria-label="@L["Common.AddToCart"]"
                                Disabled="@(Product.Stock == 0)"
                                OnClick="HandleAdd"
                                Size="Size.Small"

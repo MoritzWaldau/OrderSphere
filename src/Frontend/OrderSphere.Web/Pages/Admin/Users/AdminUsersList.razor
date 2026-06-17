@@ -1,13 +1,14 @@
 @page "/admin/users"
 @inject IAdminUserClient AdminUsers
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>Kunden — Admin</PageTitle>
+<PageTitle>@L["Admin.Users.PageTitle"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
     <MudStack Spacing="0" Class="mb-6">
-        <MudText Typo="Typo.h4" Style="font-weight: 700;">Kunden</MudText>
-        <MudText Typo="Typo.body2" Color="Color.Secondary">Registrierte Kundenprofile</MudText>
+        <MudText Typo="Typo.h4" Style="font-weight: 700;">@L["Admin.Users.Title"]</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Users.Subtitle"]</MudText>
     </MudStack>
 
     @if (_loading)
@@ -20,7 +21,7 @@
     {
         <MudPaper Elevation="0" Class="pa-12 text-center" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
             <MudIcon Icon="@Icons.Material.Outlined.Group" Color="Color.Secondary" Style="font-size:64px;" Class="mb-3" />
-            <MudText Typo="Typo.h6">Noch keine registrierten Kunden</MudText>
+            <MudText Typo="Typo.h6">@L["Admin.Users.None"]</MudText>
         </MudPaper>
     }
     else
@@ -28,25 +29,25 @@
         <MudPaper Elevation="0" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);overflow:hidden;">
             <MudTable Items="_users" Hover="true" Dense="false">
                 <HeaderContent>
-                    <MudTh>Name</MudTh>
-                    <MudTh>E-Mail</MudTh>
-                    <MudTh Style="text-align:center;">Adressen</MudTh>
-                    <MudTh>Dark Mode</MudTh>
+                    <MudTh>@L["Admin.Users.ColName"]</MudTh>
+                    <MudTh>@L["Admin.Users.ColEmail"]</MudTh>
+                    <MudTh Style="text-align:center;">@L["Admin.Users.ColAddresses"]</MudTh>
+                    <MudTh>@L["Admin.Users.ColDarkMode"]</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Name">
+                    <MudTd DataLabel="@L["Admin.Users.ColName"]">
                         <MudText Typo="Typo.body2" Style="font-weight:500;">@context.DisplayName</MudText>
                         <MudText Typo="Typo.caption" Color="Color.Secondary" Class="os-mono">
                             @context.Subject[..8]…
                         </MudText>
                     </MudTd>
-                    <MudTd DataLabel="E-Mail">
+                    <MudTd DataLabel="@L["Admin.Users.ColEmail"]">
                         <MudText Typo="Typo.body2">@context.Email</MudText>
                     </MudTd>
-                    <MudTd DataLabel="Adressen" Style="text-align:center;">
+                    <MudTd DataLabel="@L["Admin.Users.ColAddresses"]" Style="text-align:center;">
                         <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@context.AddressCount</MudChip>
                     </MudTd>
-                    <MudTd DataLabel="Dark Mode">
+                    <MudTd DataLabel="@L["Admin.Users.ColDarkMode"]">
                         <MudIcon Icon="@(context.DarkModeEnabled ? Icons.Material.Outlined.DarkMode : Icons.Material.Outlined.LightMode)"
                                  Size="Size.Small"
                                  Color="@(context.DarkModeEnabled ? Color.Primary : Color.Default)" />
@@ -64,7 +65,7 @@
     protected override async Task OnInitializedAsync()
     {
         try { var r = await AdminUsers.GetUsersAsync(); if (r.IsSuccess) _users = r.Value!; else Snackbar.Add(r.Error!.Message, Severity.Error); }
-        catch (Exception ex) { Snackbar.Add($"Fehler: {ex.Message}", Severity.Error); }
+        catch (Exception ex) { Snackbar.Add(L["Common.Error", ex.Message], Severity.Error); }
         finally { _loading = false; }
     }
 }

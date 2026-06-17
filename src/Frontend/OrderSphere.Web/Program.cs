@@ -1,17 +1,19 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
+using Microsoft.JSInterop;
 using MudBlazor.Services;
 using OrderSphere.Web.Auth;
 using OrderSphere.Web.Services;
 using Polly;
 
-CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("de-DE");
-CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("de-DE");
-
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<OrderSphere.Web.App>("#app");
+
+// Localization — IStringLocalizer<AppStrings> resolves against Resources/AppStrings*.resx.
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 // CSRF protection service.
 builder.Services.AddScoped<CsrfTokenService>();
@@ -72,7 +74,17 @@ builder.Services.AddMudServices(config =>
     config.SnackbarConfiguration.SnackbarVariant = MudBlazor.Variant.Outlined;
 });
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+
+// Apply the user's stored language before the first render. Reading localStorage requires
+// the built host's JS runtime; an unknown/absent value falls back to the default culture.
+var js = host.Services.GetRequiredService<IJSRuntime>();
+var stored = await js.InvokeAsync<string?>("localStorage.getItem", SupportedCultures.StorageKey);
+var culture = new CultureInfo(SupportedCultures.Normalize(stored));
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+await host.RunAsync();
 
 // Resilience pipeline for the "api" client: retry idempotent GETs on server errors,
 // trip a circuit breaker on sustained failures, and cap each attempt at 30s.

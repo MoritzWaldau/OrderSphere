@@ -5,8 +5,9 @@
 @inject CartState CartState
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>@(_product?.Name ?? "Produkt") – OrderSphere</PageTitle>
+<PageTitle>@(_product?.Name ?? L["ProductDetails.PageFallback"]) – OrderSphere</PageTitle>
 
 @if (_loading)
 {
@@ -17,9 +18,9 @@
 else if (_product is null)
 {
     <MudContainer MaxWidth="MaxWidth.Small" Class="text-center" Style="padding:80px 0;">
-        <MudText Typo="Typo.h5">Produkt nicht gefunden.</MudText>
+        <MudText Typo="Typo.h5">@L["ProductDetails.NotFound"]</MudText>
         <MudButton Href="/shop" Variant="Variant.Filled" Color="Color.Primary" Class="btn-pill mt-4">
-            Zurück zum Shop
+            @L["ProductDetails.BackToShop"]
         </MudButton>
     </MudContainer>
 }
@@ -52,7 +53,7 @@ else
                             <span class="os-eyebrow">@_product.CategoryName</span>
                             <MudText Typo="Typo.h3" Style="margin-top:8px;font-weight:700;">@_product.Name</MudText>
                             <span class="os-mono" style="font-size:1.75rem;font-weight:700;display:block;margin-top:16px;">
-                                @_product.Price.ToString("C")
+                                @Formatting.Currency(_product.Price)
                             </span>
                         </div>
 
@@ -63,18 +64,18 @@ else
                         @if (_product.Stock > 0)
                         {
                             <MudText Typo="Typo.caption" Color="Color.Success">
-                                ✓ Auf Lager (@_product.Stock verfügbar)
+                                ✓ @L["Stock.InStockCount", _product.Stock]
                             </MudText>
                         }
                         else
                         {
-                            <MudText Typo="Typo.caption" Color="Color.Error">✕ Ausverkauft</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Error">✕ @L["Common.SoldOut"]</MudText>
                         }
 
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
                             <MudNumericField T="int" @bind-Value="_quantity"
                                              Min="1" Max="@_product.Stock"
-                                             Label="Menge" Variant="Variant.Outlined"
+                                             Label="@L["Common.Quantity"]" Variant="Variant.Outlined"
                                              Style="max-width:120px;" />
                             <MudButton Variant="Variant.Filled"
                                        Color="Color.Primary"
@@ -86,7 +87,7 @@ else
                                 {
                                     <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
                                 }
-                                In den Warenkorb
+                                @L["Common.AddToCart"]
                             </MudButton>
                         </MudStack>
 
@@ -122,7 +123,7 @@ else
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Fehler: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["ProductDetails.Error", ex.Message], Severity.Error);
         }
         finally
         {
@@ -139,7 +140,7 @@ else
             var result = await Ordering.AddToCartAsync(_product.Id, _quantity);
             if (result.IsSuccess)
             {
-                Snackbar.Add($"{_quantity}× {_product.Name} wurde hinzugefügt.", Severity.Success);
+                Snackbar.Add(L["Common.AddedToCart", _quantity, _product.Name], Severity.Success);
                 await CartState.RefreshAsync();
             }
             else

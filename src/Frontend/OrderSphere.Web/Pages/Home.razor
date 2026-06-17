@@ -1,26 +1,27 @@
 @page "/"
+@inject IStringLocalizer<AppStrings> L
 
 <PageTitle>OrderSphere</PageTitle>
 
 <PageHero Variant="PageHero.HeroVariant.TwoColumn"
-          Eyebrow="Frühjahr 2026 · Neu"
-          Title="Die beste Tech. Sorgfältig ausgewählt."
-          Subtitle="Laptops, Tablets und Zubehör – von Experten kuratiert, schnell geliefert.">
+          Eyebrow="@L["Home.HeroEyebrow"]"
+          Title="@L["Home.HeroTitle"]"
+          Subtitle="@L["Home.HeroSubtitle"]">
     <LeadingContent>
         <MudStack Row="true" Spacing="2" Wrap="Wrap.Wrap" Class="mt-6">
             <MudButton Variant="Variant.Filled" Size="Size.Large"
                        Href="/shop" Class="btn-pill-white">
-                Zum Shop
+                @L["Cart.ToShop"]
             </MudButton>
             <MudButton Variant="Variant.Outlined" Size="Size.Large"
                        Href="/categories" Class="btn-pill-outline-white">
-                Kategorien
+                @L["Nav.Categories"]
             </MudButton>
         </MudStack>
         <MudStack Row="true" Spacing="4" Class="mt-6">
-            <span class="os-mono text-on-dark-muted" style="font-size:0.75rem;">✓ Kostenloser Versand</span>
-            <span class="os-mono text-on-dark-muted" style="font-size:0.75rem;">✓ 30 Tage Rückgabe</span>
-            <span class="os-mono text-on-dark-muted" style="font-size:0.75rem;">✓ 2 Jahre Garantie</span>
+            <span class="os-mono text-on-dark-muted" style="font-size:0.75rem;">✓ @L["Home.FreeShipping"]</span>
+            <span class="os-mono text-on-dark-muted" style="font-size:0.75rem;">✓ @L["Home.Returns"]</span>
+            <span class="os-mono text-on-dark-muted" style="font-size:0.75rem;">✓ @L["Home.Warranty"]</span>
         </MudStack>
     </LeadingContent>
     <ChildContent>
@@ -37,14 +38,14 @@
     <MudContainer MaxWidth="MaxWidth.Large">
         <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:40px;">
             <div>
-                <span class="os-eyebrow">01 / Kategorien</span>
+                <span class="os-eyebrow">@L["Home.CategoriesEyebrow"]</span>
                 <MudText Typo="Typo.h3" Style="margin-top:8px;letter-spacing:-0.015em;">
-                    Was suchst du?
+                    @L["Home.WhatLookingFor"]
                 </MudText>
             </div>
             <MudButton Variant="Variant.Text" Href="/shop" Color="Color.Primary"
                        EndIcon="@Icons.Material.Outlined.ArrowForward">
-                Alle Produkte
+                @L["Common.AllProducts"]
             </MudButton>
         </div>
 
@@ -67,19 +68,19 @@
     <MudContainer MaxWidth="MaxWidth.Large">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;">
             <div>
-                <span class="os-eyebrow">02 / Unser Versprechen</span>
+                <span class="os-eyebrow">@L["Home.PromiseEyebrow"]</span>
                 <MudText Typo="Typo.h2" Style="margin-top:16px;letter-spacing:-0.025em;line-height:1.1;">
-                    Qualität, <em>nicht</em> Quantität.
+                    @((MarkupString)L["Home.PromiseTitle"].Value)
                 </MudText>
                 <MudText Typo="Typo.body1" Class="text-muted" Style="margin-top:20px;line-height:1.7;">
-                    Wir listen keine tausend Produkte. Wir wählen sorgfältig aus — damit du schnell das Richtige findest.
+                    @L["Home.PromiseBody"]
                 </MudText>
             </div>
             <div>
                 <MudPaper Elevation="0"
                           Style="border-radius:16px;padding:32px;background:var(--mud-palette-surface);border:1px solid var(--mud-palette-divider);box-shadow:var(--os-shadow-card);">
                     <MudText Typo="Typo.h5" Style="font-style:italic;line-height:1.5;font-weight:400;">
-                        "Wir kaufen selbst, was wir verkaufen. Das ist unser einziger Filter."
+                        @L["Home.Quote"]
                     </MudText>
                     <MudDivider Class="my-4" />
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
@@ -88,7 +89,7 @@
                         </div>
                         <div>
                             <MudText Typo="Typo.body2" Style="font-weight:600;">OrderSphere Team</MudText>
-                            <MudText Typo="Typo.caption" Class="text-muted">Kuratierung & Einkauf</MudText>
+                            <MudText Typo="Typo.caption" Class="text-muted">@L["Home.TeamRole"]</MudText>
                         </div>
                     </MudStack>
                 </MudPaper>
@@ -98,11 +99,14 @@
 </section>
 
 @code {
-    private readonly List<(string Icon, string Name)> _categories =
-    [
-        (Icons.Material.Outlined.Laptop, "Laptops"),
-        (Icons.Material.Outlined.PhoneIphone, "Smartphones"),
-        (Icons.Material.Outlined.Tablet, "Tablets"),
-        (Icons.Material.Outlined.Headphones, "Zubehör"),
-    ];
+    private List<(string Icon, string Name)> _categories = [];
+
+    protected override void OnInitialized() =>
+        _categories =
+        [
+            (Icons.Material.Outlined.Laptop, L["Home.CatLaptops"]),
+            (Icons.Material.Outlined.PhoneIphone, L["Home.CatSmartphones"]),
+            (Icons.Material.Outlined.Tablet, L["Home.CatTablets"]),
+            (Icons.Material.Outlined.Headphones, L["Home.CatAccessories"]),
+        ];
 }

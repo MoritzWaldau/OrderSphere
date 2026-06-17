@@ -1,35 +1,36 @@
 @* Shipping-address section of the checkout page. Binds directly to the shared CheckoutFormModel. *@
+@inject IStringLocalizer<AppStrings> L
 
 <MudPaper Elevation="0" Class="surface-card-lg pa-6">
-    <MudText Typo="Typo.h5" Class="mb-4">Lieferadresse</MudText>
+    <MudText Typo="Typo.h5" Class="mb-4">@L["Address.Title"]</MudText>
     <MudGrid Spacing="3">
         <MudItem xs="12" md="6">
-            <MudTextField T="string" Label="Vorname" Variant="Variant.Outlined"
+            <MudTextField T="string" Label="@L["Address.FirstName"]" Variant="Variant.Outlined"
                           FullWidth="true" Required="true"
                           @bind-Value="Model.FirstName" />
         </MudItem>
         <MudItem xs="12" md="6">
-            <MudTextField T="string" Label="Nachname" Variant="Variant.Outlined"
+            <MudTextField T="string" Label="@L["Address.LastName"]" Variant="Variant.Outlined"
                           FullWidth="true" Required="true"
                           @bind-Value="Model.LastName" />
         </MudItem>
         <MudItem xs="12">
-            <MudTextField T="string" Label="Straße und Hausnummer" Variant="Variant.Outlined"
+            <MudTextField T="string" Label="@L["Address.Street"]" Variant="Variant.Outlined"
                           FullWidth="true" Required="true"
                           @bind-Value="Model.Street" />
         </MudItem>
         <MudItem xs="12" md="4">
-            <MudTextField T="string" Label="PLZ" Variant="Variant.Outlined"
+            <MudTextField T="string" Label="@L["Address.PostalCode"]" Variant="Variant.Outlined"
                           FullWidth="true" Required="true"
                           @bind-Value="Model.PostalCode" />
         </MudItem>
         <MudItem xs="12" md="5">
-            <MudTextField T="string" Label="Stadt" Variant="Variant.Outlined"
+            <MudTextField T="string" Label="@L["Address.City"]" Variant="Variant.Outlined"
                           FullWidth="true" Required="true"
                           @bind-Value="Model.City" />
         </MudItem>
         <MudItem xs="12" md="3">
-            <MudSelect T="string" Label="Land" Variant="Variant.Outlined"
+            <MudSelect T="string" Label="@L["Address.Country"]" Variant="Variant.Outlined"
                        FullWidth="true" @bind-Value="Model.Country">
                 <MudSelectItem T="string" Value="@("Deutschland")">Deutschland</MudSelectItem>
                 <MudSelectItem T="string" Value="@("Österreich")">Österreich</MudSelectItem>
@@ -37,7 +38,7 @@
             </MudSelect>
         </MudItem>
         <MudItem xs="12" md="6">
-            <MudTextField T="string" Label="E-Mail" Variant="Variant.Outlined"
+            <MudTextField T="string" Label="@L["Address.Email"]" Variant="Variant.Outlined"
                           FullWidth="true" Required="true" InputType="InputType.Email"
                           @bind-Value="Model.Email" />
         </MudItem>

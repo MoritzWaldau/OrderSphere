@@ -4,12 +4,13 @@
 @inject CartState CartState
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>Checkout — OrderSphere</PageTitle>
+<PageTitle>@L["Checkout.PageTitle"]</PageTitle>
 
-<PageHero Eyebrow="Warenkorb → Checkout → Bestätigung"
-          Title="Checkout"
-          Subtitle="Prüfe deine Angaben, wähle Versand und Zahlung." />
+<PageHero Eyebrow="@L["Checkout.Eyebrow"]"
+          Title="@L["Checkout.Title"]"
+          Subtitle="@L["Checkout.Subtitle"]" />
 
 <section style="padding:48px 0 80px;">
     <MudContainer>
@@ -24,7 +25,7 @@
 
             <!-- Right: order summary -->
             <MudItem xs="12" lg="4">
-                <OrderSummary Title="Bestellübersicht"
+                <OrderSummary Title="@L["Checkout.Summary"]"
                               ShowLineItems="true"
                               Items="_cartItems"
                               Subtotal="Subtotal"
@@ -38,11 +39,11 @@
                             {
                                 <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
                             }
-                            Bestellung abschließen
+                            @L["Checkout.Submit"]
                         </MudButton>
 
                         <MudText Typo="Typo.caption" Class="text-muted">
-                            Mit dem Abschluss stimmst du unseren AGB zu.
+                            @L["Checkout.TermsNote"]
                         </MudText>
                     </Actions>
                 </OrderSummary>
@@ -85,7 +86,7 @@
             string.IsNullOrWhiteSpace(_model.Street) || string.IsNullOrWhiteSpace(_model.City) ||
             string.IsNullOrWhiteSpace(_model.PostalCode) || string.IsNullOrWhiteSpace(_model.Email))
         {
-            Snackbar.Add("Bitte alle Pflichtfelder ausfüllen.", Severity.Warning);
+            Snackbar.Add(L["Checkout.RequiredFields"], Severity.Warning);
             return;
         }
 

@@ -3,11 +3,12 @@
 @inject IOrderingClient Ordering
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>Meine Bestellungen — OrderSphere</PageTitle>
+<PageTitle>@L["Orders.PageTitle"]</PageTitle>
 
-<PageHero Title="Meine Bestellungen"
-          Subtitle="Übersicht aller deiner Bestellungen bei OrderSphere." />
+<PageHero Title="@L["Account.MyOrders"]"
+          Subtitle="@L["Orders.HeroSubtitle"]" />
 
 <section class="page-section" style="padding:48px 0 80px;">
     <MudContainer MaxWidth="MaxWidth.Medium">
@@ -17,7 +18,7 @@
             <MudStack AlignItems="AlignItems.Center" Class="py-12">
                 <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
                 <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-4">
-                    Bestellungen werden geladen...
+                    @L["Orders.Loading"]
                 </MudText>
             </MudStack>
         }
@@ -26,14 +27,14 @@
             <MudPaper Elevation="0" Class="surface-card-lg pa-12 text-center">
                 <MudIcon Icon="@Icons.Material.Outlined.ShoppingBag" Color="Color.Primary"
                          Style="font-size:80px;" Class="mb-4" />
-                <MudText Typo="Typo.h5" Class="mb-2" Style="font-weight:600;">Noch keine Bestellungen</MudText>
+                <MudText Typo="Typo.h5" Class="mb-2" Style="font-weight:600;">@L["Orders.EmptyHeading"]</MudText>
                 <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
-                    Sobald du etwas bestellst, findest du hier deine Bestellhistorie.
+                    @L["Orders.EmptyBody"]
                 </MudText>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary"
                            Size="Size.Large" Href="/shop"
                            StartIcon="@Icons.Material.Outlined.Storefront" Class="btn-pill">
-                    Jetzt entdecken
+                    @L["Orders.Discover"]
                 </MudButton>
             </MudPaper>
         }
@@ -47,13 +48,12 @@
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start"
                                   Wrap="Wrap.Wrap" Class="mb-4">
                             <MudStack Spacing="1">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Bestellnummer</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Orders.OrderNumber"]</MudText>
                                 <MudText Typo="Typo.subtitle1" Class="text-monospace" Style="font-weight:600;">
                                     #@order.Id.ToString("N")[..8].ToUpperInvariant()
                                 </MudText>
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    @order.CreatedAt.ToLocalTime().ToString("dd. MMMM yyyy, HH:mm",
-                                        System.Globalization.CultureInfo.GetCultureInfo("de-DE"))
+                                    @Formatting.DateTime(order.CreatedAt.ToLocalTime())
                                 </MudText>
                             </MudStack>
                             <MudChip T="string"
@@ -72,8 +72,7 @@
                                 <MudStack Row="true" Justify="Justify.SpaceBetween">
                                     <MudText Typo="Typo.body2">@line.Quantity × @line.ProductName</MudText>
                                     <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                        @((line.Price * line.Quantity).ToString("0.00",
-                                            System.Globalization.CultureInfo.GetCultureInfo("de-DE"))) €
+                                        @Formatting.Currency(line.Price * line.Quantity)
                                     </MudText>
                                 </MudStack>
                             }
@@ -87,8 +86,7 @@
                                 @order.ShippingAddress.City
                             </MudText>
                             <MudText Typo="Typo.h6" Style="font-weight:700;">
-                                @order.Total.ToString("0.00",
-                                    System.Globalization.CultureInfo.GetCultureInfo("de-DE")) €
+                                @Formatting.Currency(order.Total)
                             </MudText>
                         </MudStack>
                     </MudPaper>
@@ -128,13 +126,13 @@
         _            => Color.Default,
     };
 
-    private static string GetStatusLabel(string status) => status switch
+    private string GetStatusLabel(string status) => status switch
     {
-        "Pending"    => "Ausstehend",
-        "Processing" => "In Bearbeitung",
-        "Shipped"    => "Versendet",
-        "Delivered"  => "Geliefert",
-        "Cancelled"  => "Storniert",
+        "Pending"    => L["OrderStatus.Pending"],
+        "Processing" => L["OrderStatus.Processing"],
+        "Shipped"    => L["OrderStatus.Shipped"],
+        "Delivered"  => L["OrderStatus.Delivered"],
+        "Cancelled"  => L["OrderStatus.Cancelled"],
         _            => status,
     };
 }

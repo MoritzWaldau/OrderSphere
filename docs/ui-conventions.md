@@ -62,6 +62,37 @@ chosen primary (the hero text helpers are fixed white).
 
 ---
 
+## 1b. Internationalization (i18n)
+
+User-facing text is localized, not hardcoded. The supported UI languages are German (`de-DE`, the
+**neutral** resource and default) and English (`en-US`), declared in
+`Services/SupportedCultures.cs`. The active culture is resolved once at startup in `Program.cs` from
+`localStorage["os-culture"]` (falling back to the default) and surfaced via the `CultureSwitcher`
+component in the header; changing it persists the choice and force-reloads so every string re-resolves.
+
+Mechanics:
+
+- Strings live in `Resources/AppStrings.resx` (German, neutral) and `Resources/AppStrings.en.resx`
+  (English), keyed by dotted names (`Cart.Title`, `Checkout.Submit`). The marker type is
+  `AppStrings` at the root namespace.
+- Inject `IStringLocalizer<AppStrings>` (conventionally as `L`) and read `@L["Key"]`; pass arguments
+  for composite strings (`@L["Cart.AriaLabel", count]`) — never concatenate translated fragments.
+- Culture-dependent values use `Services/Formatting.cs`: `Formatting.Currency(value)` (EUR, current
+  culture's number layout), `Formatting.DateTime`/`Formatting.Date`. Do not call `ToString("C")` or
+  hardcode `"dd.MM.yyyy"` / `de-DE` in components.
+
+**Adding a string:** add the key to both `.resx` files (every key must exist in the neutral resource),
+then reference it through the localizer. A missing English entry falls back to the German neutral value.
+
+> Status: all customer-facing and admin pages are localized — header/navigation, footer, home, shop,
+> categories, search, product details, product card, stock badge, order summary, cart, cart drawer,
+> checkout (incl. address/payment forms), checkout success, all account pages (orders, order detail,
+> profile, onboarding), and all admin pages (dashboard, orders, order detail, categories, category
+> form, products, product form, users). Date and currency call-sites use `Formatting.DateTime/Date/Currency`
+> throughout. A test (`LocalizationTests`) enforces that every neutral key has an English entry.
+
+---
+
 ## 2. Palette (`ThemeState.cs`, `PaletteLight`)
 
 Values below are the **Indigo** (default) brand. `Primary`, `PrimaryDarken` and `PrimaryLighten` vary

@@ -3,17 +3,18 @@
 @inject IAdminCatalogClient AdminCatalog
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>@(IsEdit ? "Kategorie bearbeiten" : "Neue Kategorie") — Admin</PageTitle>
+<PageTitle>@(IsEdit ? L["Admin.CategoryForm.PageTitleEdit"] : L["Admin.CategoryForm.PageTitleCreate"])</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-8">
     <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ArrowBack"
                Href="/admin/categories" Class="mb-4">
-        Zurück zur Liste
+        @L["Admin.CategoryForm.BackToList"]
     </MudButton>
 
     <MudText Typo="Typo.h4" Class="mb-6" Style="font-weight: 700;">
-        @(IsEdit ? "Kategorie bearbeiten" : "Neue Kategorie")
+        @(IsEdit ? L["Admin.CategoryForm.TitleEdit"] : L["Admin.CategoryForm.TitleCreate"])
     </MudText>
 
     @if (_loading)
@@ -26,25 +27,25 @@
     {
         <MudPaper Elevation="0" Class="pa-6" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
             <MudStack Spacing="4">
-                <MudTextField @bind-Value="_name" Label="Name"
+                <MudTextField @bind-Value="_name" Label="@L["Admin.CategoryForm.Name"]"
                               Variant="Variant.Outlined" Required="true"
-                              RequiredError="Name ist erforderlich" />
+                              RequiredError="@L["Admin.CategoryForm.NameRequired"]" />
 
-                <MudTextField @bind-Value="_description" Label="Beschreibung"
+                <MudTextField @bind-Value="_description" Label="@L["Admin.CategoryForm.Description"]"
                               Variant="Variant.Outlined" Lines="3" />
 
                 @if (IsEdit)
                 {
                     <MudSwitch T="bool" @bind-Value="_isActive"
-                               Label="Aktiv" Color="Color.Primary" />
+                               Label="@L["Admin.CategoryForm.ActiveLabel"]" Color="Color.Primary" />
                 }
 
                 <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-2">
-                    <MudButton Variant="Variant.Outlined" Href="/admin/categories">Abbrechen</MudButton>
+                    <MudButton Variant="Variant.Outlined" Href="/admin/categories">@L["Common.Cancel"]</MudButton>
                     <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                StartIcon="@Icons.Material.Outlined.Save"
                                Disabled="_saving" OnClick="SaveAsync">
-                        @(IsEdit ? "Speichern" : "Anlegen")
+                        @(IsEdit ? L["Common.Save"] : L["Common.Create"])
                     </MudButton>
                 </MudStack>
             </MudStack>
@@ -73,7 +74,7 @@
                 var cat = cats.Value?.FirstOrDefault(c => c.Id == CategoryId!.Value);
                 if (cat is not null) { _name = cat.Name; _description = cat.Description; _isActive = cat.IsActive; }
             }
-            catch (Exception ex) { Snackbar.Add($"Fehler: {ex.Message}", Severity.Error); }
+            catch (Exception ex) { Snackbar.Add(L["Common.Error", ex.Message], Severity.Error); }
         }
         _loading = false;
     }
@@ -87,13 +88,13 @@
             if (IsEdit)
             {
                 var result = await AdminCatalog.UpdateCategoryAsync(CategoryId!.Value, input);
-                if (result.IsSuccess) { Snackbar.Add("Gespeichert.", Severity.Success); Navigation.NavigateTo("/admin/categories"); }
+                if (result.IsSuccess) { Snackbar.Add(L["Admin.CategoryForm.Saved"], Severity.Success); Navigation.NavigateTo("/admin/categories"); }
                 else Snackbar.Add(result.Error!.Message, Severity.Error);
             }
             else
             {
                 var result = await AdminCatalog.CreateCategoryAsync(input);
-                if (result.IsSuccess) { Snackbar.Add("Kategorie angelegt.", Severity.Success); Navigation.NavigateTo("/admin/categories"); }
+                if (result.IsSuccess) { Snackbar.Add(L["Admin.CategoryForm.Created"], Severity.Success); Navigation.NavigateTo("/admin/categories"); }
                 else Snackbar.Add(result.Error!.Message, Severity.Error);
             }
         }

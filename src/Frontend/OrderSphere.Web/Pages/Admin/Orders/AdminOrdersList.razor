@@ -1,24 +1,25 @@
 @page "/admin/orders"
 @inject IAdminOrderingClient AdminOrdering
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>Bestellungen — Admin</PageTitle>
+<PageTitle>@L["Admin.Orders.PageTitle"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-6">
         <MudStack Spacing="0">
-            <MudText Typo="Typo.h4" Style="font-weight: 700;">Bestellungen</MudText>
-            <MudText Typo="Typo.body2" Color="Color.Secondary">Übersicht aller Bestellungen im System</MudText>
+            <MudText Typo="Typo.h4" Style="font-weight: 700;">@L["Admin.Orders.Title"]</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Orders.Subtitle"]</MudText>
         </MudStack>
 
         <MudSelect T="string?" Value="_statusFilter" ValueChanged="OnStatusFilterChanged"
                    Variant="Variant.Outlined" Style="min-width: 220px;"
-                   Clearable="true" Placeholder="Alle Status">
-            <MudSelectItem Value="@((string?)"Created")">Eingegangen</MudSelectItem>
-            <MudSelectItem Value="@((string?)"Paid")">Bezahlt</MudSelectItem>
-            <MudSelectItem Value="@((string?)"Shipped")">Versendet</MudSelectItem>
-            <MudSelectItem Value="@((string?)"Delivered")">Zugestellt</MudSelectItem>
-            <MudSelectItem Value="@((string?)"Cancelled")">Storniert</MudSelectItem>
+                   Clearable="true" Placeholder="@L["Admin.Orders.StatusFilter"]">
+            <MudSelectItem Value="@((string?)"Created")">@L["Admin.Orders.StatusCreated"]</MudSelectItem>
+            <MudSelectItem Value="@((string?)"Paid")">@L["Admin.Orders.StatusPaid"]</MudSelectItem>
+            <MudSelectItem Value="@((string?)"Shipped")">@L["Admin.Orders.StatusShipped"]</MudSelectItem>
+            <MudSelectItem Value="@((string?)"Delivered")">@L["Admin.Orders.StatusDelivered"]</MudSelectItem>
+            <MudSelectItem Value="@((string?)"Cancelled")">@L["Admin.Orders.StatusCancelled"]</MudSelectItem>
         </MudSelect>
     </MudStack>
 
@@ -32,7 +33,7 @@
     {
         <MudPaper Elevation="0" Class="pa-12 text-center" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
             <MudIcon Icon="@Icons.Material.Outlined.Inbox" Color="Color.Secondary" Style="font-size:64px;" Class="mb-3" />
-            <MudText Typo="Typo.h6">Keine Bestellungen gefunden</MudText>
+            <MudText Typo="Typo.h6">@L["Admin.Orders.None"]</MudText>
         </MudPaper>
     }
     else
@@ -40,50 +41,50 @@
         <MudPaper Elevation="0" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);overflow:hidden;">
             <MudTable Items="_orders" Hover="true" Bordered="false" Dense="false">
                 <HeaderContent>
-                    <MudTh>Bestellung</MudTh>
-                    <MudTh>Kunde</MudTh>
-                    <MudTh>Datum</MudTh>
-                    <MudTh>Tracking</MudTh>
-                    <MudTh>Status</MudTh>
-                    <MudTh Style="text-align:right;">Gesamt</MudTh>
-                    <MudTh Style="text-align:right;">Aktion</MudTh>
+                    <MudTh>@L["Admin.Orders.ColOrder"]</MudTh>
+                    <MudTh>@L["Admin.Orders.ColCustomer"]</MudTh>
+                    <MudTh>@L["Admin.Orders.ColDate"]</MudTh>
+                    <MudTh>@L["Admin.Orders.ColTracking"]</MudTh>
+                    <MudTh>@L["Admin.Orders.ColStatus"]</MudTh>
+                    <MudTh Style="text-align:right;">@L["Admin.Orders.ColTotal"]</MudTh>
+                    <MudTh Style="text-align:right;">@L["Admin.Orders.ColAction"]</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Bestellung">
+                    <MudTd DataLabel="@L["Admin.Orders.ColOrder"]">
                         <MudText Typo="Typo.body2" Class="os-mono">
                             #@context.Id.ToString("N")[..8].ToUpperInvariant()
                         </MudText>
                     </MudTd>
-                    <MudTd DataLabel="Kunde">
+                    <MudTd DataLabel="@L["Admin.Orders.ColCustomer"]">
                         <MudText Typo="Typo.body2">
                             @context.ShippingAddress.FirstName @context.ShippingAddress.LastName
                         </MudText>
                         <MudText Typo="Typo.caption" Color="Color.Secondary">@context.ShippingAddress.City</MudText>
                     </MudTd>
-                    <MudTd DataLabel="Datum">
+                    <MudTd DataLabel="@L["Admin.Orders.ColDate"]">
                         <MudText Typo="Typo.body2">
-                            @context.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                            @Formatting.DateTime(context.CreatedAt.ToLocalTime())
                         </MudText>
                     </MudTd>
-                    <MudTd DataLabel="Tracking">
+                    <MudTd DataLabel="@L["Admin.Orders.ColTracking"]">
                         <MudText Typo="Typo.body2" Class="os-mono">@(context.TrackingNumber ?? "—")</MudText>
                     </MudTd>
-                    <MudTd DataLabel="Status">
+                    <MudTd DataLabel="@L["Admin.Orders.ColStatus"]">
                         <MudChip T="string" Color="@StatusColor(context.Status)" Size="Size.Small"
                                  Variant="Variant.Filled" Style="border-radius:100px;font-weight:600;">
                             @StatusLabel(context.Status)
                         </MudChip>
                     </MudTd>
-                    <MudTd DataLabel="Gesamt" Style="text-align:right;">
+                    <MudTd DataLabel="@L["Admin.Orders.ColTotal"]" Style="text-align:right;">
                         <MudText Typo="Typo.body2" Style="font-weight:600;">
-                            @context.Total.ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) €
+                            @Formatting.Currency(context.Total)
                         </MudText>
                     </MudTd>
-                    <MudTd DataLabel="Aktion" Style="text-align:right;">
+                    <MudTd DataLabel="@L["Admin.Orders.ColAction"]" Style="text-align:right;">
                         <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
                                    Href="@($"/admin/orders/{context.Id}")"
                                    Style="border-radius:100px;">
-                            Details
+                            @L["Common.Details"]
                         </MudButton>
                     </MudTd>
                 </RowTemplate>
@@ -118,7 +119,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Fehler beim Laden: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["Common.LoadError", ex.Message], Severity.Error);
         }
         finally
         {
@@ -133,9 +134,13 @@
         _ => Color.Default
     };
 
-    private static string StatusLabel(string s) => s switch
+    private string StatusLabel(string s) => s switch
     {
-        "Created" => "Eingegangen", "Paid" => "Bezahlt", "Shipped" => "Versendet",
-        "Delivered" => "Zugestellt", "Cancelled" => "Storniert", _ => s
+        "Created"   => L["Admin.Orders.StatusCreated"],
+        "Paid"      => L["Admin.Orders.StatusPaid"],
+        "Shipped"   => L["Admin.Orders.StatusShipped"],
+        "Delivered" => L["Admin.Orders.StatusDelivered"],
+        "Cancelled" => L["Admin.Orders.StatusCancelled"],
+        _ => s
     };
 }

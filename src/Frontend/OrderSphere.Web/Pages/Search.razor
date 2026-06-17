@@ -124,8 +124,14 @@
         try
         {
             var res = await Catalog.GetProductsAsync();
+            if (!res.IsSuccess)
+            {
+                Snackbar.Add(res.Error!.Message, Severity.Error);
+                _results = [];
+                return;
+            }
 
-            var all = res.Items;
+            var all = res.Value!.Items;
             var term = Query.Trim();
             _results = all.Where(p =>
                 (p.Name?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||

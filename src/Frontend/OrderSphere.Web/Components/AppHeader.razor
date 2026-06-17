@@ -21,6 +21,8 @@
 
     <MudSpacer />
 
+    <BrandSwitcher />
+
     <MudBadge Content="@CartItemCount" Color="Color.Primary" Overlap="true" Visible="@(CartItemCount > 0)">
         <MudIconButton Icon="@Icons.Material.Outlined.ShoppingCart"
                        OnClick="OnCartToggle"

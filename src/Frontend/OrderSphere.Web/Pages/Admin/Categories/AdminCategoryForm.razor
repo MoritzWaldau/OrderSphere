@@ -69,7 +69,8 @@
             try
             {
                 var cats = await AdminCatalog.GetCategoriesAsync();
-                var cat = cats.FirstOrDefault(c => c.Id == CategoryId!.Value);
+                if (!cats.IsSuccess) Snackbar.Add(cats.Error!.Message, Severity.Error);
+                var cat = cats.Value?.FirstOrDefault(c => c.Id == CategoryId!.Value);
                 if (cat is not null) { _name = cat.Name; _description = cat.Description; _isActive = cat.IsActive; }
             }
             catch (Exception ex) { Snackbar.Add($"Fehler: {ex.Message}", Severity.Error); }
@@ -85,15 +86,15 @@
             var input = new AdminCategoryInput(_name, _description, _isActive);
             if (IsEdit)
             {
-                var ok = await AdminCatalog.UpdateCategoryAsync(CategoryId!.Value, input);
-                if (ok) { Snackbar.Add("Gespeichert.", Severity.Success); Navigation.NavigateTo("/admin/categories"); }
-                else Snackbar.Add("Fehler beim Speichern.", Severity.Error);
+                var result = await AdminCatalog.UpdateCategoryAsync(CategoryId!.Value, input);
+                if (result.IsSuccess) { Snackbar.Add("Gespeichert.", Severity.Success); Navigation.NavigateTo("/admin/categories"); }
+                else Snackbar.Add(result.Error!.Message, Severity.Error);
             }
             else
             {
-                var id = await AdminCatalog.CreateCategoryAsync(input);
-                if (id.HasValue) { Snackbar.Add("Kategorie angelegt.", Severity.Success); Navigation.NavigateTo("/admin/categories"); }
-                else Snackbar.Add("Fehler beim Anlegen.", Severity.Error);
+                var result = await AdminCatalog.CreateCategoryAsync(input);
+                if (result.IsSuccess) { Snackbar.Add("Kategorie angelegt.", Severity.Success); Navigation.NavigateTo("/admin/categories"); }
+                else Snackbar.Add(result.Error!.Message, Severity.Error);
             }
         }
         finally { _saving = false; }

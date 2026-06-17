@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @inject IOrderingClient Ordering
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 <PageTitle>Bestellung – OrderSphere</PageTitle>
 
@@ -125,7 +126,10 @@ else
     {
         try
         {
-            _order = await Ordering.GetOrderByIdAsync(OrderId);
+            var result = await Ordering.GetOrderByIdAsync(OrderId);
+            _order = result.Value;
+            if (!result.IsSuccess)
+                Snackbar.Add(result.Error!.Message, Severity.Error);
         }
         finally
         {

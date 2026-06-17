@@ -5,62 +5,45 @@ namespace OrderSphere.Web.Services;
 
 public interface IUserProfileClient
 {
-    Task<ProfileDto?> GetOrCreateProfileAsync(CancellationToken ct = default);
-    Task<ProfileDto?> UpdateProfileAsync(UpdateProfileRequest request, CancellationToken ct = default);
-    Task UpdatePreferencesAsync(UpdatePreferencesRequest request, CancellationToken ct = default);
-    Task<List<AddressDto>> GetAddressesAsync(CancellationToken ct = default);
-    Task<AddressDto?> AddAddressAsync(CreateAddressRequest request, CancellationToken ct = default);
-    Task DeleteAddressAsync(Guid addressId, CancellationToken ct = default);
-    Task SetDefaultAddressAsync(Guid addressId, CancellationToken ct = default);
-    Task<ProfileDto?> CompleteOnboardingAsync(CancellationToken ct = default);
+    Task<ApiResult<ProfileDto>> GetOrCreateProfileAsync(CancellationToken ct = default);
+    Task<ApiResult<ProfileDto>> UpdateProfileAsync(UpdateProfileRequest request, CancellationToken ct = default);
+    Task<ApiResult> UpdatePreferencesAsync(UpdatePreferencesRequest request, CancellationToken ct = default);
+    Task<ApiResult<List<AddressDto>>> GetAddressesAsync(CancellationToken ct = default);
+    Task<ApiResult<AddressDto>> AddAddressAsync(CreateAddressRequest request, CancellationToken ct = default);
+    Task<ApiResult> DeleteAddressAsync(Guid addressId, CancellationToken ct = default);
+    Task<ApiResult> SetDefaultAddressAsync(Guid addressId, CancellationToken ct = default);
+    Task<ApiResult<ProfileDto>> CompleteOnboardingAsync(CancellationToken ct = default);
 }
 
-public sealed class UserProfileClient : IUserProfileClient
+public sealed class UserProfileClient(HttpClient client) : IUserProfileClient
 {
-    private readonly HttpClient _client;
+    public Task<ApiResult<ProfileDto>> GetOrCreateProfileAsync(CancellationToken ct = default)
+        => client.GetApiAsync<ProfileDto>("/api/v1/profile", ct);
 
-    public UserProfileClient(HttpClient client) => _client = client;
+    public Task<ApiResult<ProfileDto>> UpdateProfileAsync(UpdateProfileRequest request, CancellationToken ct = default)
+        => client.SendApiAsync<ProfileDto>(
+            new HttpRequestMessage(HttpMethod.Put, "/api/v1/profile") { Content = JsonContent.Create(request) }, ct);
 
-    public async Task<ProfileDto?> GetOrCreateProfileAsync(CancellationToken ct = default)
-    {
-        var response = await _client.GetAsync("/api/v1/profile", ct);
-        if (!response.IsSuccessStatusCode) return null;
-        return await response.Content.ReadFromJsonAsync<ProfileDto>(ct);
-    }
+    public Task<ApiResult> UpdatePreferencesAsync(UpdatePreferencesRequest request, CancellationToken ct = default)
+        => client.SendApiAsync(
+            new HttpRequestMessage(HttpMethod.Put, "/api/v1/profile/preferences") { Content = JsonContent.Create(request) }, ct);
 
-    public async Task<ProfileDto?> UpdateProfileAsync(UpdateProfileRequest request, CancellationToken ct = default)
-    {
-        var response = await _client.PutAsJsonAsync("/api/v1/profile", request, ct);
-        if (!response.IsSuccessStatusCode) return null;
-        return await response.Content.ReadFromJsonAsync<ProfileDto>(ct);
-    }
+    public Task<ApiResult<List<AddressDto>>> GetAddressesAsync(CancellationToken ct = default)
+        => client.GetApiAsync<List<AddressDto>>("/api/v1/profile/addresses", ct);
 
-    public async Task UpdatePreferencesAsync(UpdatePreferencesRequest request, CancellationToken ct = default)
-        => await _client.PutAsJsonAsync("/api/v1/profile/preferences", request, ct);
+    public Task<ApiResult<AddressDto>> AddAddressAsync(CreateAddressRequest request, CancellationToken ct = default)
+        => client.SendApiAsync<AddressDto>(
+            new HttpRequestMessage(HttpMethod.Post, "/api/v1/profile/addresses") { Content = JsonContent.Create(request) }, ct);
 
-    public async Task<List<AddressDto>> GetAddressesAsync(CancellationToken ct = default)
-    {
-        var result = await _client.GetFromJsonAsync<List<AddressDto>>("/api/v1/profile/addresses", ct);
-        return result ?? [];
-    }
+    public Task<ApiResult> DeleteAddressAsync(Guid addressId, CancellationToken ct = default)
+        => client.SendApiAsync(
+            new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/profile/addresses/{addressId}"), ct);
 
-    public async Task<AddressDto?> AddAddressAsync(CreateAddressRequest request, CancellationToken ct = default)
-    {
-        var response = await _client.PostAsJsonAsync("/api/v1/profile/addresses", request, ct);
-        if (!response.IsSuccessStatusCode) return null;
-        return await response.Content.ReadFromJsonAsync<AddressDto>(ct);
-    }
+    public Task<ApiResult> SetDefaultAddressAsync(Guid addressId, CancellationToken ct = default)
+        => client.SendApiAsync(
+            new HttpRequestMessage(HttpMethod.Post, $"/api/v1/profile/addresses/{addressId}/set-default"), ct);
 
-    public async Task DeleteAddressAsync(Guid addressId, CancellationToken ct = default)
-        => await _client.DeleteAsync($"/api/v1/profile/addresses/{addressId}", ct);
-
-    public async Task SetDefaultAddressAsync(Guid addressId, CancellationToken ct = default)
-        => await _client.PostAsync($"/api/v1/profile/addresses/{addressId}/set-default", null, ct);
-
-    public async Task<ProfileDto?> CompleteOnboardingAsync(CancellationToken ct = default)
-    {
-        var response = await _client.PostAsync("/api/v1/profile/complete-onboarding", null, ct);
-        if (!response.IsSuccessStatusCode) return null;
-        return await response.Content.ReadFromJsonAsync<ProfileDto>(ct);
-    }
+    public Task<ApiResult<ProfileDto>> CompleteOnboardingAsync(CancellationToken ct = default)
+        => client.SendApiAsync<ProfileDto>(
+            new HttpRequestMessage(HttpMethod.Post, "/api/v1/profile/complete-onboarding"), ct);
 }

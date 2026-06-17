@@ -146,16 +146,14 @@
         _busy = true;
         try
         {
-            bool ok;
-            if (newValue > item.Quantity)
-                ok = await Ordering.AddToCartAsync(item.ProductId, 1);
-            else
-                ok = await Ordering.DecreaseCartItemAsync(item.ProductId);
+            var result = newValue > item.Quantity
+                ? await Ordering.AddToCartAsync(item.ProductId, 1)
+                : await Ordering.DecreaseCartItemAsync(item.ProductId);
 
-            if (ok)
+            if (result.IsSuccess)
                 await CartState.RefreshAsync();
             else
-                Snackbar.Add("Menge konnte nicht geändert werden.", Severity.Error);
+                Snackbar.Add(result.Error!.Message, Severity.Error);
         }
         finally
         {
@@ -169,15 +167,15 @@
         _busy = true;
         try
         {
-            var ok = await Ordering.RemoveFromCartAsync(item.ProductId);
-            if (ok)
+            var result = await Ordering.RemoveFromCartAsync(item.ProductId);
+            if (result.IsSuccess)
             {
                 await CartState.RefreshAsync();
                 Snackbar.Add($"{item.ProductName} wurde entfernt.", Severity.Info);
             }
             else
             {
-                Snackbar.Add("Artikel konnte nicht entfernt werden.", Severity.Error);
+                Snackbar.Add(result.Error!.Message, Severity.Error);
             }
         }
         finally

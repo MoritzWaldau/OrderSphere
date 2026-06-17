@@ -74,7 +74,8 @@
         if (!_cartItems.Any())
         {
             var cart = await Ordering.GetCartAsync();
-            _cartItems = cart?.Items ?? [];
+            if (cart.IsSuccess)
+                _cartItems = cart.Value!.Items;
         }
     }
 
@@ -98,16 +99,16 @@
                     _model.City, _model.PostalCode, _model.Country),
                 _model.PaymentMethod);
 
-            var correlationId = await Ordering.CheckoutAsync(request, _idempotencyKey);
-            if (correlationId is null)
+            var result = await Ordering.CheckoutAsync(request, _idempotencyKey);
+            if (!result.IsSuccess)
             {
-                Snackbar.Add("Bestellung konnte nicht abgeschlossen werden.", Severity.Error);
+                Snackbar.Add(result.Error!.Message, Severity.Error);
                 return;
             }
 
             await CartState.RefreshAsync();
             Navigation.NavigateTo(
-                $"/checkout/success?correlationId={correlationId}&total={Subtotal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}");
+                $"/checkout/success?correlationId={result.Value}&total={Subtotal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}");
         }
         finally
         {

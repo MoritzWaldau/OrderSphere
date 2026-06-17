@@ -91,5 +91,6 @@
     <Project Path="tests/OrderSphere.Payment.Tests/OrderSphere.Payment.Tests.csproj" />
     <Project Path="tests/OrderSphere.UserProfile.Tests/OrderSphere.UserProfile.Tests.csproj" />
     <Project Path="tests/OrderSphere.Webhooks.Tests/OrderSphere.Webhooks.Tests.csproj" />
+    <Project Path="tests/OrderSphere.Web.Tests/OrderSphere.Web.Tests.csproj" />
   </Folder>
 </Solution>

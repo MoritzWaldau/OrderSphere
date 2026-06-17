@@ -110,7 +110,11 @@
         _loading = true;
         try
         {
-            _orders = await AdminOrdering.GetOrdersAsync(_statusFilter);
+            var result = await AdminOrdering.GetOrdersAsync(_statusFilter);
+            if (result.IsSuccess)
+                _orders = result.Value!;
+            else
+                Snackbar.Add(result.Error!.Message, Severity.Error);
         }
         catch (Exception ex)
         {

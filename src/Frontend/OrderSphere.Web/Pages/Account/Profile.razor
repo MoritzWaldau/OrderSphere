@@ -167,7 +167,10 @@
     {
         try
         {
-            _profile = await UserProfile.GetOrCreateProfileAsync();
+            var result = await UserProfile.GetOrCreateProfileAsync();
+            _profile = result.Value;
+            if (!result.IsSuccess)
+                Snackbar.Add(result.Error!.Message, Severity.Error);
             if (_profile is not null)
             {
                 _displayName = _profile.DisplayName;
@@ -185,8 +188,16 @@
         _saving = true;
         try
         {
-            _profile = await UserProfile.UpdateProfileAsync(new UpdateProfileRequest(_displayName, _email));
-            Snackbar.Add("Profil gespeichert.", Severity.Success);
+            var result = await UserProfile.UpdateProfileAsync(new UpdateProfileRequest(_displayName, _email));
+            if (result.IsSuccess)
+            {
+                _profile = result.Value;
+                Snackbar.Add("Profil gespeichert.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(result.Error!.Message, Severity.Error);
+            }
         }
         finally
         {
@@ -201,23 +212,38 @@
             _newAddress.Street, _newAddress.City, _newAddress.PostalCode,
             _newAddress.Country, false);
 
-        await UserProfile.AddAddressAsync(req);
+        var result = await UserProfile.AddAddressAsync(req);
+        if (!result.IsSuccess)
+        {
+            Snackbar.Add(result.Error!.Message, Severity.Error);
+            return;
+        }
         _showAddAddress = false;
-        _profile = await UserProfile.GetOrCreateProfileAsync();
+        _profile = (await UserProfile.GetOrCreateProfileAsync()).Value;
         Snackbar.Add("Adresse hinzugefügt.", Severity.Success);
     }
 
     private async Task DeleteAddressAsync(Guid id)
     {
-        await UserProfile.DeleteAddressAsync(id);
-        _profile = await UserProfile.GetOrCreateProfileAsync();
+        var result = await UserProfile.DeleteAddressAsync(id);
+        if (!result.IsSuccess)
+        {
+            Snackbar.Add(result.Error!.Message, Severity.Error);
+            return;
+        }
+        _profile = (await UserProfile.GetOrCreateProfileAsync()).Value;
         Snackbar.Add("Adresse gelöscht.", Severity.Info);
     }
 
     private async Task SetDefaultAsync(Guid id)
     {
-        await UserProfile.SetDefaultAddressAsync(id);
-        _profile = await UserProfile.GetOrCreateProfileAsync();
+        var result = await UserProfile.SetDefaultAddressAsync(id);
+        if (!result.IsSuccess)
+        {
+            Snackbar.Add(result.Error!.Message, Severity.Error);
+            return;
+        }
+        _profile = (await UserProfile.GetOrCreateProfileAsync()).Value;
     }
 
     private sealed class AddressFormModel

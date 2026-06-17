@@ -90,7 +90,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        try { _categories = await AdminCatalog.GetCategoriesAsync(); }
+        try { var r = await AdminCatalog.GetCategoriesAsync(); if (r.IsSuccess) _categories = r.Value!; else Snackbar.Add(r.Error!.Message, Severity.Error); }
         catch (Exception ex) { Snackbar.Add($"Fehler: {ex.Message}", Severity.Error); }
         finally { _loading = false; }
     }
@@ -101,8 +101,8 @@
         var confirmed = await _msgBox!.ShowAsync();
         if (confirmed != true) return;
 
-        var ok = await AdminCatalog.DeleteCategoryAsync(id);
-        if (ok) { _categories.RemoveAll(c => c.Id == id); Snackbar.Add("Kategorie gelöscht.", Severity.Success); }
-        else Snackbar.Add("Löschen fehlgeschlagen.", Severity.Error);
+        var result = await AdminCatalog.DeleteCategoryAsync(id);
+        if (result.IsSuccess) { _categories.RemoveAll(c => c.Id == id); Snackbar.Add("Kategorie gelöscht.", Severity.Success); }
+        else Snackbar.Add(result.Error!.Message, Severity.Error);
     }
 }

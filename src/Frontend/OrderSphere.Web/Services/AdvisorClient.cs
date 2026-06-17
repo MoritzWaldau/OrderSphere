@@ -34,8 +34,10 @@ public interface IAdvisorClient
     Task<IReadOnlyList<AdvisorHistoryMessage>> GetMessagesAsync(string conversationId, CancellationToken ct = default);
 }
 
-public sealed class AdvisorClient(HttpClient client) : IAdvisorClient
+public sealed class AdvisorClient(IHttpClientFactory factory) : IAdvisorClient
 {
+    private readonly HttpClient client = factory.CreateClient("advisor");
+
     public async Task<IReadOnlyList<AdvisorConversation>> GetConversationsAsync(CancellationToken ct = default)
         => await client.GetFromJsonAsync<List<AdvisorConversation>>("/api/advisor/conversations", ct) ?? [];
 

@@ -90,7 +90,7 @@
     {
         try
         {
-            var profile = await UserProfile.GetOrCreateProfileAsync();
+            var profile = (await UserProfile.GetOrCreateProfileAsync()).Value;
             if (profile is not null)
             {
                 _displayName = profile.DisplayName;
@@ -125,15 +125,25 @@
         _saving = true;
         try
         {
-            await UserProfile.UpdateProfileAsync(new UpdateProfileRequest(_displayName, string.Empty));
+            var profileResult = await UserProfile.UpdateProfileAsync(new UpdateProfileRequest(_displayName, string.Empty));
+            if (!profileResult.IsSuccess)
+            {
+                Snackbar.Add(profileResult.Error!.Message, Severity.Error);
+                return;
+            }
 
-            await UserProfile.AddAddressAsync(new CreateAddressRequest(
+            var addressResult = await UserProfile.AddAddressAsync(new CreateAddressRequest(
                 "Standard", _address.FirstName, _address.LastName,
                 _address.Street, _address.City, _address.PostalCode, _address.Country,
                 SetAsDefault: true));
+            if (!addressResult.IsSuccess)
+            {
+                Snackbar.Add(addressResult.Error!.Message, Severity.Error);
+                return;
+            }
 
             var result = await UserProfile.CompleteOnboardingAsync();
-            if (result is null)
+            if (!result.IsSuccess)
             {
                 Snackbar.Add("Onboarding konnte nicht abgeschlossen werden. Bitte überprüfe deine Angaben.", Severity.Error);
                 return;

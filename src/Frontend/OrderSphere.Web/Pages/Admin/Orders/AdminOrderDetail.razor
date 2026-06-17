@@ -149,7 +149,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        try { _order = await AdminOrdering.GetOrderByIdAsync(OrderId); }
+        try { var r = await AdminOrdering.GetOrderByIdAsync(OrderId); _order = r.Value; if (!r.IsSuccess) Snackbar.Add(r.Error!.Message, Severity.Error); }
         catch (Exception ex) { Snackbar.Add($"Fehler: {ex.Message}", Severity.Error); }
         finally { _loading = false; }
     }
@@ -162,9 +162,9 @@
         _busy = true;
         try
         {
-            var ok = await AdminOrdering.UpdateStatusAsync(OrderId, status);
-            if (ok) { Snackbar.Add("Status aktualisiert.", Severity.Success); _order = await AdminOrdering.GetOrderByIdAsync(OrderId); }
-            else Snackbar.Add("Status konnte nicht geändert werden.", Severity.Error);
+            var result = await AdminOrdering.UpdateStatusAsync(OrderId, status);
+            if (result.IsSuccess) { Snackbar.Add("Status aktualisiert.", Severity.Success); _order = (await AdminOrdering.GetOrderByIdAsync(OrderId)).Value; }
+            else Snackbar.Add(result.Error!.Message, Severity.Error);
         }
         finally { _busy = false; }
     }
@@ -174,9 +174,9 @@
         _busy = true;
         try
         {
-            var ok = await AdminOrdering.CancelOrderAsync(OrderId);
-            if (ok) { Snackbar.Add("Bestellung storniert.", Severity.Success); _order = await AdminOrdering.GetOrderByIdAsync(OrderId); }
-            else Snackbar.Add("Stornierung fehlgeschlagen.", Severity.Error);
+            var result = await AdminOrdering.CancelOrderAsync(OrderId);
+            if (result.IsSuccess) { Snackbar.Add("Bestellung storniert.", Severity.Success); _order = (await AdminOrdering.GetOrderByIdAsync(OrderId)).Value; }
+            else Snackbar.Add(result.Error!.Message, Severity.Error);
         }
         finally { _busy = false; }
     }

@@ -91,7 +91,10 @@
         try
         {
             var all = await Catalog.GetProductsAsync();
-            _products = all.Items.Where(p => p.IsActive).ToList();
+            if (all.IsSuccess)
+                _products = all.Value!.Items.Where(p => p.IsActive).ToList();
+            else
+                Snackbar.Add(all.Error!.Message, Severity.Error);
         }
         catch (Exception ex)
         {
@@ -126,8 +129,8 @@
         _addingToCart = true;
         try
         {
-            var ok = await Ordering.AddToCartAsync(_selectedProduct.Id, _quantity);
-            if (ok)
+            var result = await Ordering.AddToCartAsync(_selectedProduct.Id, _quantity);
+            if (result.IsSuccess)
             {
                 Snackbar.Add($"{_quantity}× {_selectedProduct.Name} wurde hinzugefügt.", Severity.Success);
                 await CartState.RefreshAsync();
@@ -135,7 +138,7 @@
             }
             else
             {
-                Snackbar.Add("Fehler beim Hinzufügen zum Warenkorb.", Severity.Error);
+                Snackbar.Add(result.Error!.Message, Severity.Error);
             }
         }
         finally

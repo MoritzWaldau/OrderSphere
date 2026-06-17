@@ -105,7 +105,9 @@
 
     private async Task RemoveAsync(Guid productId)
     {
-        await Ordering.RemoveFromCartAsync(productId);
+        var result = await Ordering.RemoveFromCartAsync(productId);
+        if (!result.IsSuccess)
+            Snackbar.Add(result.Error!.Message, Severity.Error);
         await CartState.RefreshAsync();
     }
 

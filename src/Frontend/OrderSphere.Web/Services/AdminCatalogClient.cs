@@ -5,80 +5,55 @@ namespace OrderSphere.Web.Services;
 
 public interface IAdminCatalogClient
 {
-    Task<List<AdminProductDto>> GetProductsAsync(CancellationToken ct = default);
-    Task<AdminProductDto?> GetProductByIdAsync(Guid id, CancellationToken ct = default);
-    Task<Guid?> CreateProductAsync(AdminProductInput input, CancellationToken ct = default);
-    Task<bool> UpdateProductAsync(Guid id, AdminProductInput input, CancellationToken ct = default);
-    Task<bool> DeleteProductAsync(Guid id, CancellationToken ct = default);
-    Task<List<AdminCategoryDto>> GetCategoriesAsync(CancellationToken ct = default);
-    Task<Guid?> CreateCategoryAsync(AdminCategoryInput input, CancellationToken ct = default);
-    Task<bool> UpdateCategoryAsync(Guid id, AdminCategoryInput input, CancellationToken ct = default);
-    Task<bool> DeleteCategoryAsync(Guid id, CancellationToken ct = default);
+    Task<ApiResult<List<AdminProductDto>>> GetProductsAsync(CancellationToken ct = default);
+    Task<ApiResult<AdminProductDto>> GetProductByIdAsync(Guid id, CancellationToken ct = default);
+    Task<ApiResult<Guid>> CreateProductAsync(AdminProductInput input, CancellationToken ct = default);
+    Task<ApiResult> UpdateProductAsync(Guid id, AdminProductInput input, CancellationToken ct = default);
+    Task<ApiResult> DeleteProductAsync(Guid id, CancellationToken ct = default);
+    Task<ApiResult<List<AdminCategoryDto>>> GetCategoriesAsync(CancellationToken ct = default);
+    Task<ApiResult<Guid>> CreateCategoryAsync(AdminCategoryInput input, CancellationToken ct = default);
+    Task<ApiResult> UpdateCategoryAsync(Guid id, AdminCategoryInput input, CancellationToken ct = default);
+    Task<ApiResult> DeleteCategoryAsync(Guid id, CancellationToken ct = default);
 }
 
-public sealed class AdminCatalogClient : IAdminCatalogClient
+public sealed class AdminCatalogClient(HttpClient client) : IAdminCatalogClient
 {
-    private readonly HttpClient _client;
-    public AdminCatalogClient(HttpClient client) => _client = client;
+    public Task<ApiResult<List<AdminProductDto>>> GetProductsAsync(CancellationToken ct = default)
+        => client.GetApiAsync<List<AdminProductDto>>("/api/v1/admin/products", ct);
 
-    public async Task<List<AdminProductDto>> GetProductsAsync(CancellationToken ct = default)
+    public Task<ApiResult<AdminProductDto>> GetProductByIdAsync(Guid id, CancellationToken ct = default)
+        => client.GetApiAsync<AdminProductDto>($"/api/v1/admin/products/{id}", ct);
+
+    public async Task<ApiResult<Guid>> CreateProductAsync(AdminProductInput input, CancellationToken ct = default)
     {
-        var result = await _client.GetFromJsonAsync<List<AdminProductDto>>("/api/v1/admin/products", ct);
-        return result ?? [];
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/products") { Content = JsonContent.Create(input) };
+        var result = await client.SendApiAsync<CreatedResult>(request, ct);
+        return result.IsSuccess ? ApiResult<Guid>.Ok(result.Value!.Id) : ApiResult<Guid>.Fail(result.Error!);
     }
 
-    public async Task<AdminProductDto?> GetProductByIdAsync(Guid id, CancellationToken ct = default)
+    public Task<ApiResult> UpdateProductAsync(Guid id, AdminProductInput input, CancellationToken ct = default)
+        => client.SendApiAsync(
+            new HttpRequestMessage(HttpMethod.Put, $"/api/v1/admin/products/{id}") { Content = JsonContent.Create(input) }, ct);
+
+    public Task<ApiResult> DeleteProductAsync(Guid id, CancellationToken ct = default)
+        => client.SendApiAsync(new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/admin/products/{id}"), ct);
+
+    public Task<ApiResult<List<AdminCategoryDto>>> GetCategoriesAsync(CancellationToken ct = default)
+        => client.GetApiAsync<List<AdminCategoryDto>>("/api/v1/admin/categories", ct);
+
+    public async Task<ApiResult<Guid>> CreateCategoryAsync(AdminCategoryInput input, CancellationToken ct = default)
     {
-        var response = await _client.GetAsync($"/api/v1/admin/products/{id}", ct);
-        if (!response.IsSuccessStatusCode) return null;
-        return await response.Content.ReadFromJsonAsync<AdminProductDto>(ct);
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/categories") { Content = JsonContent.Create(input) };
+        var result = await client.SendApiAsync<CreatedResult>(request, ct);
+        return result.IsSuccess ? ApiResult<Guid>.Ok(result.Value!.Id) : ApiResult<Guid>.Fail(result.Error!);
     }
 
-    public async Task<Guid?> CreateProductAsync(AdminProductInput input, CancellationToken ct = default)
-    {
-        var response = await _client.PostAsJsonAsync("/api/v1/admin/products", input, ct);
-        if (!response.IsSuccessStatusCode) return null;
-        var result = await response.Content.ReadFromJsonAsync<CreatedResult>(ct);
-        return result?.Id;
-    }
+    public Task<ApiResult> UpdateCategoryAsync(Guid id, AdminCategoryInput input, CancellationToken ct = default)
+        => client.SendApiAsync(
+            new HttpRequestMessage(HttpMethod.Put, $"/api/v1/admin/categories/{id}") { Content = JsonContent.Create(input) }, ct);
 
-    public async Task<bool> UpdateProductAsync(Guid id, AdminProductInput input, CancellationToken ct = default)
-    {
-        var response = await _client.PutAsJsonAsync($"/api/v1/admin/products/{id}", input, ct);
-        return response.IsSuccessStatusCode;
-    }
-
-    public async Task<bool> DeleteProductAsync(Guid id, CancellationToken ct = default)
-    {
-        var response = await _client.DeleteAsync($"/api/v1/admin/products/{id}", ct);
-        return response.IsSuccessStatusCode;
-    }
-
-    public async Task<List<AdminCategoryDto>> GetCategoriesAsync(CancellationToken ct = default)
-    {
-        var result = await _client.GetFromJsonAsync<List<AdminCategoryDto>>("/api/v1/admin/categories", ct);
-        return result ?? [];
-    }
-
-    public async Task<Guid?> CreateCategoryAsync(AdminCategoryInput input, CancellationToken ct = default)
-    {
-        var response = await _client.PostAsJsonAsync("/api/v1/admin/categories", input, ct);
-        if (!response.IsSuccessStatusCode) return null;
-        var result = await response.Content.ReadFromJsonAsync<CreatedResult>(ct);
-        return result?.Id;
-    }
-
-    public async Task<bool> UpdateCategoryAsync(Guid id, AdminCategoryInput input, CancellationToken ct = default)
-    {
-        var response = await _client.PutAsJsonAsync($"/api/v1/admin/categories/{id}", input, ct);
-        return response.IsSuccessStatusCode;
-    }
-
-    public async Task<bool> DeleteCategoryAsync(Guid id, CancellationToken ct = default)
-    {
-        var response = await _client.DeleteAsync($"/api/v1/admin/categories/{id}", ct);
-        return response.IsSuccessStatusCode;
-    }
+    public Task<ApiResult> DeleteCategoryAsync(Guid id, CancellationToken ct = default)
+        => client.SendApiAsync(new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/admin/categories/{id}"), ct);
 
     private sealed record CreatedResult(Guid Id);
 }

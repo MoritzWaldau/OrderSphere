@@ -147,11 +147,22 @@
     {
         try
         {
-            _stats = await AdminOrdering.GetStatsAsync();
+            var stats = await AdminOrdering.GetStatsAsync();
+            _stats = stats.Value;
+            if (!stats.IsSuccess) Snackbar.Add(stats.Error!.Message, Severity.Error);
+
             var products = await AdminCatalog.GetProductsAsync();
-            _lowStockProducts = products.Where(p => p.Stock < 10).OrderBy(p => p.Stock).Take(5).ToList();
-            _lowStockCount = products.Count(p => p.Stock < 10);
-            _totalProducts = products.Count;
+            if (products.IsSuccess)
+            {
+                var items = products.Value!;
+                _lowStockProducts = items.Where(p => p.Stock < 10).OrderBy(p => p.Stock).Take(5).ToList();
+                _lowStockCount = items.Count(p => p.Stock < 10);
+                _totalProducts = items.Count;
+            }
+            else
+            {
+                Snackbar.Add(products.Error!.Message, Severity.Error);
+            }
         }
         catch (Exception ex)
         {

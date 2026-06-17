@@ -75,7 +75,10 @@
         try
         {
             var res = await Catalog.GetCategoriesAsync();
-            _categories = res.Items.ToList();
+            if (res.IsSuccess)
+                _categories = res.Value!.Items.ToList();
+            else
+                Snackbar.Add(res.Error!.Message, Severity.Error);
         }
         catch (Exception ex)
         {

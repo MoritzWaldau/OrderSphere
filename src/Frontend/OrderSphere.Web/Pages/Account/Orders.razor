@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @inject IOrderingClient Ordering
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 <PageTitle>Meine Bestellungen — OrderSphere</PageTitle>
 
@@ -105,8 +106,11 @@
     {
         try
         {
-            _orders = await Ordering.GetOrdersByCustomerAsync();
-            _orders = [.._orders.OrderByDescending(o => o.CreatedAt)];
+            var result = await Ordering.GetOrdersByCustomerAsync();
+            if (result.IsSuccess)
+                _orders = [..result.Value!.OrderByDescending(o => o.CreatedAt)];
+            else
+                Snackbar.Add(result.Error!.Message, Severity.Error);
         }
         finally
         {

@@ -1,0 +1,45 @@
+@implements IDisposable
+@inject NavigationManager Nav
+
+@* Wraps page content so an unhandled component exception shows a recoverable fallback
+   instead of tearing down the whole app. The built-in ErrorBoundary already logs the
+   exception via ILogger; this wrapper adds a branded fallback and auto-recovers on navigation. *@
+<ErrorBoundary @ref="_boundary">
+    <ChildContent>
+        @ChildContent
+    </ChildContent>
+    <ErrorContent>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="py-16">
+            <MudPaper Elevation="0" Class="surface-card-lg pa-8 text-center">
+                <MudIcon Icon="@Icons.Material.Outlined.ErrorOutline"
+                         Color="Color.Error"
+                         Style="font-size: 64px;" />
+                <MudText Typo="Typo.h5" Class="mt-4">Etwas ist schiefgelaufen</MudText>
+                <MudText Class="text-muted mt-2">
+                    Diese Ansicht konnte nicht geladen werden. Bitte versuche es erneut.
+                </MudText>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Class="btn-pill mt-6"
+                           OnClick="Recover">
+                    Erneut versuchen
+                </MudButton>
+            </MudPaper>
+        </MudContainer>
+    </ErrorContent>
+</ErrorBoundary>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private ErrorBoundary? _boundary;
+
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+        => _boundary?.Recover();
+
+    private void Recover() => _boundary?.Recover();
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}

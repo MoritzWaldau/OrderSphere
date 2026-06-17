@@ -33,7 +33,10 @@ public sealed class CartState
 
     public async Task RefreshAsync(CancellationToken ct = default)
     {
-        _cart = await _ordering.GetCartAsync(ct);
+        // Keep the last known cart on a transient failure rather than wiping the UI.
+        var result = await _ordering.GetCartAsync(ct);
+        if (result.IsSuccess)
+            _cart = result.Value;
         NotifyChanged();
     }
 

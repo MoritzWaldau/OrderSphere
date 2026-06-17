@@ -1,6 +1,7 @@
 @inject CartState CartState
 @inject NavigationManager Navigation
 @inject HttpClient Http
+@inject IStringLocalizer<AppStrings> L
 
 <MudAppBar Elevation="0" Fixed="true" Class="header-appbar">
 
@@ -15,16 +16,19 @@
     <MudSpacer />
 
     <MudHidden Breakpoint="Breakpoint.SmAndDown">
-        <MudButton Variant="Variant.Text" Href="/shop" Color="Color.Default">Shop</MudButton>
-        <MudButton Variant="Variant.Text" Href="/categories" Color="Color.Default">Kategorien</MudButton>
+        <MudButton Variant="Variant.Text" Href="/shop" Color="Color.Default">@L["Nav.Shop"]</MudButton>
+        <MudButton Variant="Variant.Text" Href="/categories" Color="Color.Default">@L["Nav.Categories"]</MudButton>
     </MudHidden>
 
     <MudSpacer />
 
+    <CultureSwitcher />
+    <BrandSwitcher />
+
     <MudBadge Content="@CartItemCount" Color="Color.Primary" Overlap="true" Visible="@(CartItemCount > 0)">
         <MudIconButton Icon="@Icons.Material.Outlined.ShoppingCart"
                        OnClick="OnCartToggle"
-                       aria-label="@($"Warenkorb mit {CartItemCount} Artikeln")"
+                       aria-label="@L["Cart.AriaLabel", CartItemCount]"
                        Color="Color.Default" />
     </MudBadge>
 
@@ -35,7 +39,7 @@
                      Variant="Variant.Text"
                      AnchorOrigin="Origin.BottomRight"
                      TransformOrigin="Origin.TopRight"
-                     aria-label="Konto-Menü"
+                     aria-label="@L["Account.MenuAriaLabel"]"
                      Dense="true">
 
                 <div class="pa-4" style="border-bottom: 1px solid var(--mud-palette-divider); min-width: 220px;">
@@ -48,15 +52,15 @@
                 </div>
 
                 <MudMenuItem Icon="@Icons.Material.Outlined.ShoppingBag" Href="/account/orders">
-                    Meine Bestellungen
+                    @L["Account.MyOrders"]
                 </MudMenuItem>
                 <MudMenuItem Icon="@Icons.Material.Outlined.Person" Href="/account/profile">
-                    Mein Profil
+                    @L["Account.MyProfile"]
                 </MudMenuItem>
 
                 <AuthorizeView Roles="admin" Context="adminCtx">
                     <MudMenuItem Icon="@Icons.Material.Outlined.AdminPanelSettings" Href="/admin">
-                        Admin
+                        @L["Account.Admin"]
                     </MudMenuItem>
                 </AuthorizeView>
 
@@ -65,7 +69,7 @@
                 <MudMenuItem Icon="@Icons.Material.Outlined.Logout"
                              IconColor="Color.Error"
                              OnClick="HandleLogout">
-                    <MudText Color="Color.Error">Abmelden</MudText>
+                    <MudText Color="Color.Error">@L["Account.Logout"]</MudText>
                 </MudMenuItem>
             </MudMenu>
         </Authorized>
@@ -75,7 +79,7 @@
                        Href="/bff/login"
                        Class="btn-pill ml-2"
                        Style="padding: 6px 20px !important;">
-                Anmelden
+                @L["Auth.SignIn"]
             </MudButton>
         </NotAuthorized>
     </AuthorizeView>

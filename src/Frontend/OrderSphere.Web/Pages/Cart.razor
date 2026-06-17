@@ -5,11 +5,12 @@
 @inject CartState CartState
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>Warenkorb — OrderSphere</PageTitle>
+<PageTitle>@L["Cart.PageTitle"]</PageTitle>
 
-<PageHero Title="Dein Warenkorb"
-          Subtitle="@($"{_items.Count} {"Artikel"} bereit zum Bestellen")" />
+<PageHero Title="@L["Cart.HeroTitle"]"
+          Subtitle="@L["Cart.HeroSubtitle", _items.Count]" />
 
 <section style="padding: 48px 0 80px;">
     <MudContainer MaxWidth="MaxWidth.Large">
@@ -26,16 +27,16 @@
                          Color="Color.Primary"
                          Style="font-size: 80px;" Class="mb-4" />
                 <MudText Typo="Typo.h5" Class="mb-2" Style="font-weight: 600;">
-                    Dein Warenkorb ist leer
+                    @L["Cart.EmptyHeading"]
                 </MudText>
                 <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
-                    Füge Produkte hinzu, um loszulegen.
+                    @L["Cart.AddProductsHint"]
                 </MudText>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
                            Href="/shop"
                            StartIcon="@Icons.Material.Outlined.Storefront"
                            Style="border-radius: 100px;">
-                    Produkte entdecken
+                    @L["Cart.DiscoverProducts"]
                 </MudButton>
             </MudPaper>
         }
@@ -58,7 +59,7 @@
                                             @item.ProductName
                                         </MudText>
                                         <MudText Typo="Typo.caption" Style="font-weight: 600; color: var(--mud-palette-primary);">
-                                            @item.Price.ToString("C") / Stk.
+                                            @Formatting.Currency(item.Price) @L["Cart.PerUnitSuffix"]
                                         </MudText>
 
                                         <div class="mt-2" style="display: inline-block;">
@@ -71,12 +72,12 @@
 
                                     <MudStack AlignItems="AlignItems.End" Spacing="2">
                                         <MudText Typo="Typo.h6" Style="font-weight: 700;">
-                                            @((item.Price * item.Quantity).ToString("C"))
+                                            @Formatting.Currency(item.Price * item.Quantity)
                                         </MudText>
                                         <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
                                                        Size="Size.Small"
                                                        Color="Color.Error"
-                                                       aria-label="@($"{item.ProductName} entfernen")"
+                                                       aria-label="@L["Cart.RemoveAria", item.ProductName]"
                                                        Disabled="_busy"
                                                        OnClick="@(() => RemoveItemAsync(item))" />
                                     </MudStack>
@@ -87,7 +88,7 @@
                 </MudItem>
 
                 <MudItem xs="12" lg="4">
-                    <OrderSummary Title="Zusammenfassung" Subtotal="Subtotal">
+                    <OrderSummary Title="@L["Cart.Summary"]" Subtotal="Subtotal">
                         <Actions>
                             <MudButton Variant="Variant.Filled"
                                        Color="Color.Primary"
@@ -97,7 +98,7 @@
                                        EndIcon="@Icons.Material.Outlined.ArrowForward"
                                        Class="mt-2"
                                        Style="border-radius: 100px;">
-                                Zur Kasse
+                                @L["Cart.ToCheckout"]
                             </MudButton>
 
                             <MudButton Variant="Variant.Text"
@@ -105,7 +106,7 @@
                                        Href="/shop"
                                        Color="Color.Default"
                                        Style="border-radius: 100px;">
-                                Weiter shoppen
+                                @L["Cart.ContinueShopping"]
                             </MudButton>
                         </Actions>
                     </OrderSummary>
@@ -146,16 +147,14 @@
         _busy = true;
         try
         {
-            bool ok;
-            if (newValue > item.Quantity)
-                ok = await Ordering.AddToCartAsync(item.ProductId, 1);
-            else
-                ok = await Ordering.DecreaseCartItemAsync(item.ProductId);
+            var result = newValue > item.Quantity
+                ? await Ordering.AddToCartAsync(item.ProductId, 1)
+                : await Ordering.DecreaseCartItemAsync(item.ProductId);
 
-            if (ok)
+            if (result.IsSuccess)
                 await CartState.RefreshAsync();
             else
-                Snackbar.Add("Menge konnte nicht geändert werden.", Severity.Error);
+                Snackbar.Add(result.Error!.Message, Severity.Error);
         }
         finally
         {
@@ -169,15 +168,15 @@
         _busy = true;
         try
         {
-            var ok = await Ordering.RemoveFromCartAsync(item.ProductId);
-            if (ok)
+            var result = await Ordering.RemoveFromCartAsync(item.ProductId);
+            if (result.IsSuccess)
             {
                 await CartState.RefreshAsync();
-                Snackbar.Add($"{item.ProductName} wurde entfernt.", Severity.Info);
+                Snackbar.Add(L["Cart.ItemRemoved", item.ProductName], Severity.Info);
             }
             else
             {
-                Snackbar.Add("Artikel konnte nicht entfernt werden.", Severity.Error);
+                Snackbar.Add(result.Error!.Message, Severity.Error);
             }
         }
         finally

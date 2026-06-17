@@ -3,11 +3,12 @@
 @inject ICatalogClient Catalog
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>Suche — OrderSphere</PageTitle>
+<PageTitle>@L["Search.PageTitle"]</PageTitle>
 
-<PageHero Eyebrow="Suche" Title="Produkte finden"
-          Subtitle="Finde genau das Produkt, das du suchst.">
+<PageHero Eyebrow="@L["Search.HeroEyebrow"]" Title="@L["Search.HeroTitle"]"
+          Subtitle="@L["Search.HeroSubtitle"]">
     <LeadingContent>
         <MudPaper Elevation="0" Class="pa-2 mx-auto"
                   Style="max-width: 600px; border-radius: 100px; background: var(--mud-palette-surface);">
@@ -15,7 +16,7 @@
                 <MudIcon Icon="@Icons.Material.Outlined.Search" Color="Color.Default" />
                 <MudTextField T="string"
                               @bind-Value="_queryInput"
-                              Placeholder="Produkte durchsuchen..."
+                              Placeholder="@L["Search.Placeholder"]"
                               Variant="Variant.Text"
                               Underline="false"
                               FullWidth="true"
@@ -25,7 +26,7 @@
                            Color="Color.Primary"
                            OnClick="ApplySearch"
                            Style="border-radius: 100px;">
-                    Suchen
+                    @L["Search.Button"]
                 </MudButton>
             </MudStack>
         </MudPaper>
@@ -47,10 +48,10 @@
                          Color="Color.Primary"
                          Style="font-size: 80px;" Class="mb-4" />
                 <MudText Typo="Typo.h5" Style="font-weight: 600;">
-                    Wonach suchst du?
+                    @L["Search.Prompt"]
                 </MudText>
                 <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-2">
-                    Gib einen Begriff oben ein, um Produkte zu finden.
+                    @L["Search.PromptHint"]
                 </MudText>
             </MudPaper>
         }
@@ -61,21 +62,21 @@
                          Color="Color.Primary"
                          Style="font-size: 80px;" Class="mb-4" />
                 <MudText Typo="Typo.h5" Style="font-weight: 600;">
-                    Keine Treffer für „@Query"
+                    @L["Search.NoResults", Query!]
                 </MudText>
                 <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-2 mb-6">
-                    Versuche es mit einem anderen Suchbegriff oder durchstöbere unser Sortiment.
+                    @L["Search.NoResultsHint"]
                 </MudText>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
                            Href="/shop" Style="border-radius: 100px;">
-                    Zum Shop
+                    @L["Cart.ToShop"]
                 </MudButton>
             </MudPaper>
         }
         else
         {
             <MudText Typo="Typo.h5" Class="mb-6" Style="font-weight: 600;">
-                @_results.Count Treffer für „@Query"
+                @L["Search.ResultsCount", _results.Count, Query!]
             </MudText>
 
             <MudGrid Spacing="3">
@@ -124,8 +125,14 @@
         try
         {
             var res = await Catalog.GetProductsAsync();
+            if (!res.IsSuccess)
+            {
+                Snackbar.Add(res.Error!.Message, Severity.Error);
+                _results = [];
+                return;
+            }
 
-            var all = res.Items;
+            var all = res.Value!.Items;
             var term = Query.Trim();
             _results = all.Where(p =>
                 (p.Name?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
@@ -135,7 +142,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Fehler bei der Suche: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["Search.Error", ex.Message], Severity.Error);
             _results = [];
         }
         finally

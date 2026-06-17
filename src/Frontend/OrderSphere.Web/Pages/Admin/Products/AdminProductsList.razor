@@ -1,20 +1,21 @@
 @page "/admin/products"
 @inject IAdminCatalogClient AdminCatalog
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>Produkte — Admin</PageTitle>
+<PageTitle>@L["Admin.Products.PageTitle"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-6">
         <MudStack Spacing="0">
-            <MudText Typo="Typo.h4" Style="font-weight: 700;">Produkte</MudText>
-            <MudText Typo="Typo.body2" Color="Color.Secondary">Verwalte den Produktkatalog</MudText>
+            <MudText Typo="Typo.h4" Style="font-weight: 700;">@L["Admin.Products.Title"]</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Products.Subtitle"]</MudText>
         </MudStack>
         <MudButton Variant="Variant.Filled" Color="Color.Primary"
                    StartIcon="@Icons.Material.Outlined.Add"
                    Href="/admin/products/new"
                    Style="border-radius:100px;">
-            Neues Produkt
+            @L["Admin.Products.New"]
         </MudButton>
     </MudStack>
 
@@ -28,7 +29,7 @@
     {
         <MudPaper Elevation="0" Class="pa-12 text-center" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
             <MudIcon Icon="@Icons.Material.Outlined.Inventory2" Color="Color.Secondary" Style="font-size:64px;" Class="mb-3" />
-            <MudText Typo="Typo.h6">Keine Produkte vorhanden</MudText>
+            <MudText Typo="Typo.h6">@L["Admin.Products.None"]</MudText>
         </MudPaper>
     }
     else
@@ -36,44 +37,44 @@
         <MudPaper Elevation="0" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);overflow:hidden;">
             <MudTable Items="_products" Hover="true" Dense="false">
                 <HeaderContent>
-                    <MudTh>SKU</MudTh>
-                    <MudTh>Name</MudTh>
-                    <MudTh>Kategorie</MudTh>
-                    <MudTh Style="text-align:right;">Preis</MudTh>
-                    <MudTh Style="text-align:right;">Lager</MudTh>
-                    <MudTh>Status</MudTh>
-                    <MudTh Style="text-align:right;">Aktion</MudTh>
+                    <MudTh>@L["Admin.Products.ColSKU"]</MudTh>
+                    <MudTh>@L["Admin.Products.ColName"]</MudTh>
+                    <MudTh>@L["Admin.Products.ColCategory"]</MudTh>
+                    <MudTh Style="text-align:right;">@L["Admin.Products.ColPrice"]</MudTh>
+                    <MudTh Style="text-align:right;">@L["Admin.Products.ColStock"]</MudTh>
+                    <MudTh>@L["Admin.Products.ColStatus"]</MudTh>
+                    <MudTh Style="text-align:right;">@L["Admin.Products.ColAction"]</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="SKU">
+                    <MudTd DataLabel="@L["Admin.Products.ColSKU"]">
                         <MudText Typo="Typo.body2" Class="os-mono">@context.SKU</MudText>
                     </MudTd>
-                    <MudTd DataLabel="Name">
+                    <MudTd DataLabel="@L["Admin.Products.ColName"]">
                         <MudText Typo="Typo.body2" Style="font-weight:500;">@context.Name</MudText>
                     </MudTd>
-                    <MudTd DataLabel="Kategorie">
+                    <MudTd DataLabel="@L["Admin.Products.ColCategory"]">
                         <MudText Typo="Typo.body2">@context.CategoryName</MudText>
                     </MudTd>
-                    <MudTd DataLabel="Preis" Style="text-align:right;">
+                    <MudTd DataLabel="@L["Admin.Products.ColPrice"]" Style="text-align:right;">
                         <MudText Typo="Typo.body2" Style="font-weight:600;">
-                            @context.Price.ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) €
+                            @Formatting.Currency(context.Price)
                         </MudText>
                     </MudTd>
-                    <MudTd DataLabel="Lager" Style="text-align:right;">
+                    <MudTd DataLabel="@L["Admin.Products.ColStock"]" Style="text-align:right;">
                         <MudText Typo="Typo.body2"
                                  Style="@(context.Stock < 10 ? "color:var(--mud-palette-warning);font-weight:600;" : "")">
                             @context.Stock
                         </MudText>
                     </MudTd>
-                    <MudTd DataLabel="Status">
+                    <MudTd DataLabel="@L["Admin.Products.ColStatus"]">
                         <MudChip T="string"
                                  Color="@(context.IsActive ? Color.Success : Color.Default)"
                                  Size="Size.Small" Variant="Variant.Filled"
                                  Style="border-radius:100px;">
-                            @(context.IsActive ? "Aktiv" : "Inaktiv")
+                            @(context.IsActive ? L["Common.Active"] : L["Common.Inactive"])
                         </MudChip>
                     </MudTd>
-                    <MudTd DataLabel="Aktion" Style="text-align:right;">
+                    <MudTd DataLabel="@L["Admin.Products.ColAction"]" Style="text-align:right;">
                         <MudIconButton Icon="@Icons.Material.Outlined.Edit"
                                        Color="Color.Primary" Size="Size.Small"
                                        Href="@($"/admin/products/{context.Id}")" />
@@ -85,10 +86,10 @@
             </MudTable>
         </MudPaper>
     }
-<MudMessageBox @ref="_msgBox" Title="Produkt löschen" CancelText="Abbrechen">
-    <MessageContent>@_pendingDeleteName wirklich löschen?</MessageContent>
+<MudMessageBox @ref="_msgBox" Title="@L["Admin.Products.DeleteTitle"]" CancelText="@L["Common.Cancel"]">
+    <MessageContent>@L["Admin.Products.DeleteConfirm", _pendingDeleteName]</MessageContent>
     <YesButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Error">Löschen</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error">@L["Common.Delete"]</MudButton>
     </YesButton>
 </MudMessageBox>
 
@@ -102,8 +103,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        try { _products = await AdminCatalog.GetProductsAsync(); }
-        catch (Exception ex) { Snackbar.Add($"Fehler: {ex.Message}", Severity.Error); }
+        try { var r = await AdminCatalog.GetProductsAsync(); if (r.IsSuccess) _products = r.Value!; else Snackbar.Add(r.Error!.Message, Severity.Error); }
+        catch (Exception ex) { Snackbar.Add(L["Common.Error", ex.Message], Severity.Error); }
         finally { _loading = false; }
     }
 
@@ -113,8 +114,8 @@
         var confirmed = await _msgBox!.ShowAsync();
         if (confirmed != true) return;
 
-        var ok = await AdminCatalog.DeleteProductAsync(id);
-        if (ok) { _products.RemoveAll(p => p.Id == id); Snackbar.Add("Produkt gelöscht.", Severity.Success); }
-        else Snackbar.Add("Löschen fehlgeschlagen.", Severity.Error);
+        var result = await AdminCatalog.DeleteProductAsync(id);
+        if (result.IsSuccess) { _products.RemoveAll(p => p.Id == id); Snackbar.Add(L["Admin.Products.Deleted"], Severity.Success); }
+        else Snackbar.Add(result.Error!.Message, Severity.Error);
     }
 }

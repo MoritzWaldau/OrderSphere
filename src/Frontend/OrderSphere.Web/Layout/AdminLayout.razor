@@ -53,7 +53,9 @@
     </MudDrawer>
 
     <MudMainContent Style="padding-top: 64px;">
-        @Body
+        <AppErrorBoundary>
+            @Body
+        </AppErrorBoundary>
     </MudMainContent>
 </MudLayout>
 

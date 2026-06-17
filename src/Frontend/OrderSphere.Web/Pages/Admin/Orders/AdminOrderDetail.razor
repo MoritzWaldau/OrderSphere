@@ -2,13 +2,14 @@
 @inject IAdminOrderingClient AdminOrdering
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>Bestellung — Admin</PageTitle>
+<PageTitle>@L["Admin.OrderDetail.PageTitle"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
     <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ArrowBack"
                Href="/admin/orders" Class="mb-4">
-        Zurück zur Übersicht
+        @L["Admin.OrderDetail.BackToList"]
     </MudButton>
 
     @if (_loading)
@@ -21,7 +22,7 @@
     {
         <MudPaper Elevation="0" Class="pa-12 text-center" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
             <MudIcon Icon="@Icons.Material.Outlined.SearchOff" Color="Color.Secondary" Style="font-size:64px;" Class="mb-3" />
-            <MudText Typo="Typo.h6">Bestellung nicht gefunden</MudText>
+            <MudText Typo="Typo.h6">@L["Admin.OrderDetail.NotFound"]</MudText>
         </MudPaper>
     }
     else
@@ -32,12 +33,12 @@
                     <MudPaper Elevation="0" Class="pa-6" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
                             <MudStack Spacing="0">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Bestellung</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Admin.OrderDetail.Order"]</MudText>
                                 <MudText Typo="Typo.h5" Class="os-mono" Style="font-weight:700;">
                                     #@_order.Id.ToString("N")[..8].ToUpperInvariant()
                                 </MudText>
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    @_order.CreatedAt.ToLocalTime().ToString("dd. MMMM yyyy, HH:mm 'Uhr'", System.Globalization.CultureInfo.GetCultureInfo("de-DE"))
+                                    @Formatting.DateTime(_order.CreatedAt.ToLocalTime())
                                 </MudText>
                             </MudStack>
                             <MudChip T="string" Color="@StatusColor(_order.Status)" Size="Size.Medium"
@@ -56,7 +57,7 @@
                     </MudPaper>
 
                     <MudPaper Elevation="0" Class="pa-6" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
-                        <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight:600;">Artikel</MudText>
+                        <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight:600;">@L["Admin.OrderDetail.Items"]</MudText>
                         <MudStack Spacing="3">
                             @foreach (var line in _order.Items)
                             {
@@ -64,20 +65,20 @@
                                     <MudStack Spacing="0">
                                         <MudText Typo="Typo.body1" Style="font-weight:500;">@line.ProductName</MudText>
                                         <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                            @line.Quantity × @line.Price.ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) €
+                                            @line.Quantity × @Formatting.Currency(line.Price)
                                         </MudText>
                                     </MudStack>
                                     <MudText Typo="Typo.body1" Style="font-weight:600;">
-                                        @((line.Price * line.Quantity).ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE"))) €
+                                        @Formatting.Currency(line.Price * line.Quantity)
                                     </MudText>
                                 </MudStack>
                             }
                         </MudStack>
                         <MudDivider Class="my-4" />
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.h6" Style="font-weight:600;">Gesamt</MudText>
+                            <MudText Typo="Typo.h6" Style="font-weight:600;">@L["Admin.OrderDetail.Total"]</MudText>
                             <MudText Typo="Typo.h5" Style="font-weight:700;color:var(--mud-palette-primary);">
-                                @_order.Total.ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) €
+                                @Formatting.Currency(_order.Total)
                             </MudText>
                         </MudStack>
                     </MudPaper>
@@ -85,7 +86,7 @@
                     <MudPaper Elevation="0" Class="pa-6" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
                             <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Color="Color.Primary" />
-                            <MudText Typo="Typo.h6" Style="font-weight:600;">Lieferadresse</MudText>
+                            <MudText Typo="Typo.h6" Style="font-weight:600;">@L["Admin.OrderDetail.ShippingAddress"]</MudText>
                         </MudStack>
                         <MudText Typo="Typo.body2" Style="line-height:1.6;">
                             @_order.ShippingAddress.FirstName @_order.ShippingAddress.LastName<br />
@@ -99,39 +100,39 @@
 
             <MudItem xs="12" md="4">
                 <MudPaper Elevation="0" Class="pa-6" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);position:sticky;top:80px;">
-                    <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight:600;">Aktionen</MudText>
+                    <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight:600;">@L["Admin.OrderDetail.Actions"]</MudText>
                     <MudStack Spacing="2">
                         <MudButton Variant="Variant.Filled" Color="Color.Warning" FullWidth="true"
                                    StartIcon="@Icons.Material.Outlined.LocalShipping"
                                    Disabled="@(_order.Status != "Paid" || _busy)"
                                    OnClick="MarkShippedAsync">
-                            Als versendet markieren
+                            @L["Admin.OrderDetail.MarkShipped"]
                         </MudButton>
                         <MudButton Variant="Variant.Filled" Color="Color.Success" FullWidth="true"
                                    StartIcon="@Icons.Material.Outlined.HomeWork"
                                    Disabled="@(_order.Status != "Shipped" || _busy)"
                                    OnClick="MarkDeliveredAsync">
-                            Als zugestellt markieren
+                            @L["Admin.OrderDetail.MarkDelivered"]
                         </MudButton>
                         <MudDivider Class="my-2" />
                         <MudButton Variant="Variant.Outlined" Color="Color.Error" FullWidth="true"
                                    StartIcon="@Icons.Material.Outlined.Cancel"
                                    Disabled="@(_order.Status is "Delivered" or "Cancelled" || _busy)"
                                    OnClick="CancelAsync">
-                            Stornieren
+                            @L["Admin.OrderDetail.Cancel"]
                         </MudButton>
                     </MudStack>
 
                     @if (_order.Status == "Cancelled")
                     {
                         <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
-                            Diese Bestellung wurde storniert.
+                            @L["Admin.OrderDetail.CancelledNote"]
                         </MudAlert>
                     }
                     else if (_order.Status == "Delivered")
                     {
                         <MudAlert Severity="Severity.Success" Variant="Variant.Outlined" Class="mt-4">
-                            Lieferung abgeschlossen.
+                            @L["Admin.OrderDetail.DeliveredNote"]
                         </MudAlert>
                     }
                 </MudPaper>
@@ -149,8 +150,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        try { _order = await AdminOrdering.GetOrderByIdAsync(OrderId); }
-        catch (Exception ex) { Snackbar.Add($"Fehler: {ex.Message}", Severity.Error); }
+        try { var r = await AdminOrdering.GetOrderByIdAsync(OrderId); _order = r.Value; if (!r.IsSuccess) Snackbar.Add(r.Error!.Message, Severity.Error); }
+        catch (Exception ex) { Snackbar.Add(L["Common.Error", ex.Message], Severity.Error); }
         finally { _loading = false; }
     }
 
@@ -162,9 +163,9 @@
         _busy = true;
         try
         {
-            var ok = await AdminOrdering.UpdateStatusAsync(OrderId, status);
-            if (ok) { Snackbar.Add("Status aktualisiert.", Severity.Success); _order = await AdminOrdering.GetOrderByIdAsync(OrderId); }
-            else Snackbar.Add("Status konnte nicht geändert werden.", Severity.Error);
+            var result = await AdminOrdering.UpdateStatusAsync(OrderId, status);
+            if (result.IsSuccess) { Snackbar.Add(L["Admin.OrderDetail.StatusUpdated"], Severity.Success); _order = (await AdminOrdering.GetOrderByIdAsync(OrderId)).Value; }
+            else Snackbar.Add(result.Error!.Message, Severity.Error);
         }
         finally { _busy = false; }
     }
@@ -174,9 +175,9 @@
         _busy = true;
         try
         {
-            var ok = await AdminOrdering.CancelOrderAsync(OrderId);
-            if (ok) { Snackbar.Add("Bestellung storniert.", Severity.Success); _order = await AdminOrdering.GetOrderByIdAsync(OrderId); }
-            else Snackbar.Add("Stornierung fehlgeschlagen.", Severity.Error);
+            var result = await AdminOrdering.CancelOrderAsync(OrderId);
+            if (result.IsSuccess) { Snackbar.Add(L["Admin.OrderDetail.OrderCancelled"], Severity.Success); _order = (await AdminOrdering.GetOrderByIdAsync(OrderId)).Value; }
+            else Snackbar.Add(result.Error!.Message, Severity.Error);
         }
         finally { _busy = false; }
     }
@@ -188,9 +189,13 @@
         _ => Color.Default
     };
 
-    private static string StatusLabel(string s) => s switch
+    private string StatusLabel(string s) => s switch
     {
-        "Created" => "Eingegangen", "Paid" => "Bezahlt", "Shipped" => "Versendet",
-        "Delivered" => "Zugestellt", "Cancelled" => "Storniert", _ => s
+        "Created"   => L["Admin.Orders.StatusCreated"],
+        "Paid"      => L["Admin.Orders.StatusPaid"],
+        "Shipped"   => L["Admin.Orders.StatusShipped"],
+        "Delivered" => L["Admin.Orders.StatusDelivered"],
+        "Cancelled" => L["Admin.Orders.StatusCancelled"],
+        _ => s
     };
 }

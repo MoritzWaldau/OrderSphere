@@ -3,11 +3,12 @@
 @inject ICatalogClient Catalog
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>Kategorien — OrderSphere</PageTitle>
+<PageTitle>@L["Categories.PageTitle"]</PageTitle>
 
-<PageHero Eyebrow="Sortiment" Title="Kategorien"
-          Subtitle="Entdecke unser Sortiment nach Themen sortiert." />
+<PageHero Eyebrow="@L["Categories.HeroEyebrow"]" Title="@L["Nav.Categories"]"
+          Subtitle="@L["Categories.HeroSubtitle"]" />
 
 <section style="padding: 48px 0 80px;">
     <MudContainer MaxWidth="MaxWidth.Large">
@@ -24,7 +25,7 @@
                          Color="Color.Primary"
                          Style="font-size: 80px;" Class="mb-4" />
                 <MudText Typo="Typo.h5" Style="font-weight: 600;">
-                    Noch keine Kategorien verfügbar
+                    @L["Categories.None"]
                 </MudText>
             </MudPaper>
         }
@@ -54,7 +55,7 @@
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-2">
                                     <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Filled"
                                              Style="border-radius: 100px;">
-                                        @category.ProductCount @(category.ProductCount == 1 ? "Produkt" : "Produkte")
+                                        @category.ProductCount @(category.ProductCount == 1 ? L["Categories.ProductSingular"] : L["Categories.ProductPlural"])
                                     </MudChip>
                                 </MudStack>
                             </MudStack>
@@ -75,11 +76,14 @@
         try
         {
             var res = await Catalog.GetCategoriesAsync();
-            _categories = res.Items.ToList();
+            if (res.IsSuccess)
+                _categories = res.Value!.Items.ToList();
+            else
+                Snackbar.Add(res.Error!.Message, Severity.Error);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Fehler beim Laden der Kategorien: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["Categories.LoadError", ex.Message], Severity.Error);
         }
         finally
         {

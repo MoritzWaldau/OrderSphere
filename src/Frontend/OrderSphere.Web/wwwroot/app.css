@@ -29,7 +29,15 @@
 
     /* ── Hero overlay ────────────────────────────────────── */
     --os-on-hero-soft:    rgba(255,255,255,0.12);
-    --os-success-soft-bg: rgba(58,77,209,0.08);
+
+    /* ── Primary tints ───────────────────────────────────────
+       Derived from the active brand primary via color-mix, so every
+       brand (indigo / green / red / …) gets matching tints automatically.
+       Use these instead of literal rgba() for primary-coloured fills. */
+    --os-primary-tint-weak:   color-mix(in srgb, var(--mud-palette-primary)  4%, transparent);
+    --os-primary-tint:        color-mix(in srgb, var(--mud-palette-primary)  8%, transparent);
+    --os-primary-tint-strong: color-mix(in srgb, var(--mud-palette-primary) 16%, transparent);
+    --os-success-soft-bg:     var(--os-primary-tint);
 }
 
 /* Dark mode shadow / gradient overrides */
@@ -39,7 +47,7 @@
     --os-shadow-bubble:     0 0 0 1px rgba(238,238,244,0.06), 0 2px 6px rgba(0,0,0,0.40);
     --os-shadow-float:      0 0 0 1px rgba(238,238,244,0.08), 0 24px 60px rgba(0,0,0,0.65);
     --os-on-hero-soft:      rgba(255,255,255,0.08);
-    --os-success-soft-bg:   rgba(58,77,209,0.18);
+    --os-success-soft-bg:   var(--os-primary-tint-strong);
 }
 
 /* ============================================================
@@ -466,11 +474,11 @@ body.scroll-locked {
 
 .shipping-option.selected {
     border-color: var(--mud-palette-primary);
-    background:   rgba(58,77,209,0.04);
+    background:   var(--os-primary-tint-weak);
 }
 
 [data-mud-theme="dark"] .shipping-option.selected {
-    background: rgba(58,77,209,0.16);
+    background: var(--os-primary-tint-strong);
 }
 
 .radio-dot {
@@ -669,8 +677,8 @@ body.scroll-locked {
 
 /* Primary outline hover tint (applies to MudButton.Variant.Outlined
    that carries .btn-pill) */
-.mud-button-outlined.btn-pill:hover               { background: rgba(58,77,209,0.06); }
-[data-mud-theme="dark"] .mud-button-outlined.btn-pill:hover { background: rgba(58,77,209,0.18); }
+.mud-button-outlined.btn-pill:hover               { background: var(--os-primary-tint); }
+[data-mud-theme="dark"] .mud-button-outlined.btn-pill:hover { background: var(--os-primary-tint-strong); }
 
 /* ============================================================
    EYEBROW ON DARK / PRIMARY BACKGROUNDS
@@ -696,4 +704,15 @@ body.scroll-locked {
 [data-mud-theme="dark"] .surface-card-row-hover:hover,
 [data-mud-theme="dark"] .category-card:hover {
     background: #232532;
+}
+
+/* ============================================================
+   BRAND SWITCHER
+   ============================================================ */
+.brand-swatch {
+    width:         16px;
+    height:        16px;
+    border-radius: 50%;
+    flex-shrink:   0;
+    box-shadow:    inset 0 0 0 1px rgba(13,13,24,0.12);
 }

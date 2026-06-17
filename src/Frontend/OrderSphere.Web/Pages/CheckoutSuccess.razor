@@ -2,9 +2,9 @@
 @attribute [Authorize]
 @inject IOrderingClient Ordering
 @inject NavigationManager Navigation
-@inject ISnackbar Snackbar
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>Bestellung bestätigt — OrderSphere</PageTitle>
+<PageTitle>@L["CheckoutSuccess.PageTitle"]</PageTitle>
 
 <section style="padding:80px 0;">
     <MudContainer MaxWidth="MaxWidth.Small" Class="text-center">
@@ -13,22 +13,22 @@
             <MudIcon Icon="@Icons.Material.Outlined.CheckCircle" Style="font-size:48px;color:#fff;" />
         </div>
 
-        <MudText Typo="Typo.h3" Style="font-weight:700;">Bestellung aufgegeben!</MudText>
+        <MudText Typo="Typo.h3" Style="font-weight:700;">@L["CheckoutSuccess.Title"]</MudText>
         <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-3">
-            Deine Bestellung wird verarbeitet. Du erhältst eine Bestätigungs-E-Mail.
+            @L["CheckoutSuccess.Body"]
         </MudText>
 
         @if (_totalAmount.HasValue)
         {
             <MudText Typo="Typo.h5" Class="mt-4" Style="font-weight:600;">
-                Gesamtbetrag: @_totalAmount.Value.ToString("0.00") €
+                @L["CheckoutSuccess.Total", Formatting.Currency(_totalAmount.Value)]
             </MudText>
         }
 
         @if (_order is not null)
         {
             <MudPaper Elevation="0" Class="surface-card pa-6 mt-6 text-left">
-                <MudText Typo="Typo.caption" Color="Color.Secondary">Bestellnummer</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["CheckoutSuccess.OrderNumber"]</MudText>
                 <MudText Typo="Typo.subtitle1" Class="text-monospace" Style="font-weight:600;">
                     #@_order.Id.ToString("N")[..8].ToUpperInvariant()
                 </MudText>
@@ -38,11 +38,11 @@
         <MudStack Row="true" Justify="Justify.Center" Spacing="3" Class="mt-8">
             <MudButton Href="/account/orders" Variant="Variant.Filled"
                        Color="Color.Primary" Size="Size.Large" Class="btn-pill">
-                Meine Bestellungen
+                @L["Account.MyOrders"]
             </MudButton>
             <MudButton Href="/shop" Variant="Variant.Outlined"
                        Color="Color.Primary" Size="Size.Large" Class="btn-pill">
-                Weiter einkaufen
+                @L["CheckoutSuccess.ContinueShopping"]
             </MudButton>
         </MudStack>
 
@@ -58,28 +58,21 @@
 
     protected override async Task OnInitializedAsync()
     {
-
-        Snackbar.Add("Step 1");
         if (decimal.TryParse(Total, System.Globalization.NumberStyles.Any,
             System.Globalization.CultureInfo.InvariantCulture, out var parsed))
         {
             _totalAmount = parsed;
         }
-        Snackbar.Add("Step 2");
-        if (CorrelationId is null) return;
 
-        Snackbar.Add("Step 3");
+        if (CorrelationId is null) return;
 
         // Poll for the order (Service Bus processing may take a moment).
         // Ownership is enforced server-side via the JWT token.
         for (var i = 0; i < 6; i++)
         {
-            Snackbar.Add("For nr: " + i);
             _order = await Ordering.GetOrderByCorrelationIdAsync(CorrelationId.Value);
             if (_order is not null) break;
             await Task.Delay(2000);
         }
-
-        Snackbar.Add("Done");
     }
 }

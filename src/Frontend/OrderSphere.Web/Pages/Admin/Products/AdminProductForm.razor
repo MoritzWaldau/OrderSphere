@@ -3,17 +3,18 @@
 @inject IAdminCatalogClient AdminCatalog
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>@(IsEdit ? "Produkt bearbeiten" : "Neues Produkt") — Admin</PageTitle>
+<PageTitle>@(IsEdit ? L["Admin.ProductForm.PageTitleEdit"] : L["Admin.ProductForm.PageTitleCreate"])</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-8">
     <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ArrowBack"
                Href="/admin/products" Class="mb-4">
-        Zurück zur Liste
+        @L["Admin.ProductForm.BackToList"]
     </MudButton>
 
     <MudText Typo="Typo.h4" Class="mb-6" Style="font-weight: 700;">
-        @(IsEdit ? "Produkt bearbeiten" : "Neues Produkt")
+        @(IsEdit ? L["Admin.ProductForm.TitleEdit"] : L["Admin.ProductForm.TitleCreate"])
     </MudText>
 
     @if (_loading)
@@ -26,31 +27,31 @@
     {
         <MudPaper Elevation="0" Class="pa-6" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
             <MudStack Spacing="4">
-                <MudTextField @bind-Value="_model.Name" Label="Produktname"
+                <MudTextField @bind-Value="_model.Name" Label="@L["Admin.ProductForm.Name"]"
                               Variant="Variant.Outlined" Required="true"
-                              RequiredError="Name ist erforderlich" />
+                              RequiredError="@L["Admin.ProductForm.NameRequired"]" />
 
-                <MudTextField @bind-Value="_model.SKU" Label="SKU"
+                <MudTextField @bind-Value="_model.SKU" Label="@L["Admin.ProductForm.SKU"]"
                               Variant="Variant.Outlined" Required="true"
-                              RequiredError="SKU ist erforderlich" />
+                              RequiredError="@L["Admin.ProductForm.SKURequired"]" />
 
-                <MudTextField @bind-Value="_model.Description" Label="Beschreibung"
+                <MudTextField @bind-Value="_model.Description" Label="@L["Admin.ProductForm.Description"]"
                               Variant="Variant.Outlined" Lines="3" />
 
                 <MudGrid>
                     <MudItem xs="12" sm="6">
-                        <MudNumericField @bind-Value="_model.Price" Label="Preis (€)"
+                        <MudNumericField @bind-Value="_model.Price" Label="@L["Admin.ProductForm.Price"]"
                                          Variant="Variant.Outlined" Min="0.01m" Step="0.01m" Format="F2"
-                                         Culture="@System.Globalization.CultureInfo.GetCultureInfo("de-DE")" />
+                                         Culture="@System.Globalization.CultureInfo.CurrentCulture" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudNumericField @bind-Value="_model.Stock" Label="Lagerbestand"
+                        <MudNumericField @bind-Value="_model.Stock" Label="@L["Admin.ProductForm.Stock"]"
                                          Variant="Variant.Outlined" Min="0" />
                     </MudItem>
                 </MudGrid>
 
-                <MudSelect T="Guid" @bind-Value="_model.CategoryId" Label="Kategorie"
-                           Variant="Variant.Outlined" Required="true" RequiredError="Kategorie ist erforderlich">
+                <MudSelect T="Guid" @bind-Value="_model.CategoryId" Label="@L["Admin.ProductForm.Category"]"
+                           Variant="Variant.Outlined" Required="true" RequiredError="@L["Admin.ProductForm.CategoryRequired"]">
                     @foreach (var cat in _categories)
                     {
                         <MudSelectItem T="Guid" Value="@cat.Id">@cat.Name</MudSelectItem>
@@ -60,15 +61,15 @@
                 @if (IsEdit)
                 {
                     <MudSwitch T="bool" @bind-Value="_model.IsActive"
-                               Label="Aktiv (im Shop sichtbar)" Color="Color.Primary" />
+                               Label="@L["Admin.ProductForm.ActiveLabel"]" Color="Color.Primary" />
                 }
 
                 <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-2">
-                    <MudButton Variant="Variant.Outlined" Href="/admin/products">Abbrechen</MudButton>
+                    <MudButton Variant="Variant.Outlined" Href="/admin/products">@L["Common.Cancel"]</MudButton>
                     <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                StartIcon="@Icons.Material.Outlined.Save"
                                Disabled="_saving" OnClick="SaveAsync">
-                        @(IsEdit ? "Speichern" : "Anlegen")
+                        @(IsEdit ? L["Common.Save"] : L["Common.Create"])
                     </MudButton>
                 </MudStack>
             </MudStack>
@@ -89,15 +90,17 @@
     {
         try
         {
-            _categories = await AdminCatalog.GetCategoriesAsync();
+            var cats = await AdminCatalog.GetCategoriesAsync();
+            if (cats.IsSuccess) _categories = cats.Value!;
+            else Snackbar.Add(cats.Error!.Message, Severity.Error);
             if (IsEdit)
             {
-                var p = await AdminCatalog.GetProductByIdAsync(ProductId!.Value);
+                var p = (await AdminCatalog.GetProductByIdAsync(ProductId!.Value)).Value;
                 if (p is not null)
                     _model = new ProductModel { Name = p.Name, SKU = p.SKU, Description = p.Description, Price = p.Price, Stock = p.Stock, CategoryId = p.CategoryId, IsActive = p.IsActive };
             }
         }
-        catch (Exception ex) { Snackbar.Add($"Fehler: {ex.Message}", Severity.Error); }
+        catch (Exception ex) { Snackbar.Add(L["Common.Error", ex.Message], Severity.Error); }
         finally { _loading = false; }
     }
 
@@ -109,15 +112,15 @@
             var input = new AdminProductInput(_model.Name, _model.Description, _model.Price, _model.Stock, _model.CategoryId, _model.SKU, _model.IsActive);
             if (IsEdit)
             {
-                var ok = await AdminCatalog.UpdateProductAsync(ProductId!.Value, input);
-                if (ok) { Snackbar.Add("Gespeichert.", Severity.Success); Navigation.NavigateTo("/admin/products"); }
-                else Snackbar.Add("Fehler beim Speichern.", Severity.Error);
+                var result = await AdminCatalog.UpdateProductAsync(ProductId!.Value, input);
+                if (result.IsSuccess) { Snackbar.Add(L["Admin.ProductForm.Saved"], Severity.Success); Navigation.NavigateTo("/admin/products"); }
+                else Snackbar.Add(result.Error!.Message, Severity.Error);
             }
             else
             {
-                var id = await AdminCatalog.CreateProductAsync(input);
-                if (id.HasValue) { Snackbar.Add("Produkt angelegt.", Severity.Success); Navigation.NavigateTo("/admin/products"); }
-                else Snackbar.Add("Fehler beim Anlegen.", Severity.Error);
+                var result = await AdminCatalog.CreateProductAsync(input);
+                if (result.IsSuccess) { Snackbar.Add(L["Admin.ProductForm.Created"], Severity.Success); Navigation.NavigateTo("/admin/products"); }
+                else Snackbar.Add(result.Error!.Message, Severity.Error);
             }
         }
         finally { _saving = false; }

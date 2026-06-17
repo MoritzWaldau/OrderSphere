@@ -5,19 +5,16 @@ namespace OrderSphere.Web.Services;
 
 public interface IAdminOrderingClient
 {
-    Task<List<OrderDto>> GetOrdersAsync(string? statusFilter = null, CancellationToken ct = default);
-    Task<OrderStatsDto?> GetStatsAsync(CancellationToken ct = default);
-    Task<OrderDto?> GetOrderByIdAsync(Guid id, CancellationToken ct = default);
-    Task<bool> UpdateStatusAsync(Guid id, int newStatus, CancellationToken ct = default);
-    Task<bool> CancelOrderAsync(Guid id, CancellationToken ct = default);
+    Task<ApiResult<List<OrderDto>>> GetOrdersAsync(string? statusFilter = null, CancellationToken ct = default);
+    Task<ApiResult<OrderStatsDto>> GetStatsAsync(CancellationToken ct = default);
+    Task<ApiResult<OrderDto>> GetOrderByIdAsync(Guid id, CancellationToken ct = default);
+    Task<ApiResult> UpdateStatusAsync(Guid id, int newStatus, CancellationToken ct = default);
+    Task<ApiResult> CancelOrderAsync(Guid id, CancellationToken ct = default);
 }
 
-public sealed class AdminOrderingClient : IAdminOrderingClient
+public sealed class AdminOrderingClient(HttpClient client) : IAdminOrderingClient
 {
-    private readonly HttpClient _client;
-    public AdminOrderingClient(HttpClient client) => _client = client;
-
-    public async Task<List<OrderDto>> GetOrdersAsync(string? statusFilter = null, CancellationToken ct = default)
+    public Task<ApiResult<List<OrderDto>>> GetOrdersAsync(string? statusFilter = null, CancellationToken ct = default)
     {
         var url = "/api/v1/admin/orders";
         if (!string.IsNullOrEmpty(statusFilter))
@@ -34,35 +31,22 @@ public sealed class AdminOrderingClient : IAdminOrderingClient
             };
             if (statusInt >= 0) url += $"?status={statusInt}";
         }
-        var result = await _client.GetFromJsonAsync<List<OrderDto>>(url, ct);
-        return result ?? [];
+        return client.GetApiAsync<List<OrderDto>>(url, ct);
     }
 
-    public async Task<OrderStatsDto?> GetStatsAsync(CancellationToken ct = default)
-    {
-        var response = await _client.GetAsync("/api/v1/admin/orders/stats", ct);
-        if (!response.IsSuccessStatusCode) return null;
-        return await response.Content.ReadFromJsonAsync<OrderStatsDto>(ct);
-    }
+    public Task<ApiResult<OrderStatsDto>> GetStatsAsync(CancellationToken ct = default)
+        => client.GetApiAsync<OrderStatsDto>("/api/v1/admin/orders/stats", ct);
 
-    public async Task<OrderDto?> GetOrderByIdAsync(Guid id, CancellationToken ct = default)
-    {
-        var response = await _client.GetAsync($"/api/v1/admin/orders/{id}", ct);
-        if (!response.IsSuccessStatusCode) return null;
-        return await response.Content.ReadFromJsonAsync<OrderDto>(ct);
-    }
+    public Task<ApiResult<OrderDto>> GetOrderByIdAsync(Guid id, CancellationToken ct = default)
+        => client.GetApiAsync<OrderDto>($"/api/v1/admin/orders/{id}", ct);
 
-    public async Task<bool> UpdateStatusAsync(Guid id, int newStatus, CancellationToken ct = default)
-    {
-        var response = await _client.PutAsJsonAsync(
-            $"/api/v1/admin/orders/{id}/status",
-            new { NewStatus = newStatus }, ct);
-        return response.IsSuccessStatusCode;
-    }
+    public Task<ApiResult> UpdateStatusAsync(Guid id, int newStatus, CancellationToken ct = default)
+        => client.SendApiAsync(
+            new HttpRequestMessage(HttpMethod.Put, $"/api/v1/admin/orders/{id}/status")
+            {
+                Content = JsonContent.Create(new { NewStatus = newStatus })
+            }, ct);
 
-    public async Task<bool> CancelOrderAsync(Guid id, CancellationToken ct = default)
-    {
-        var response = await _client.PostAsync($"/api/v1/admin/orders/{id}/cancel", null, ct);
-        return response.IsSuccessStatusCode;
-    }
+    public Task<ApiResult> CancelOrderAsync(Guid id, CancellationToken ct = default)
+        => client.SendApiAsync(new HttpRequestMessage(HttpMethod.Post, $"/api/v1/admin/orders/{id}/cancel"), ct);
 }

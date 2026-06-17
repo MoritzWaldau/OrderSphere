@@ -1,34 +1,45 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
+using Microsoft.JSInterop;
 using MudBlazor.Services;
 using OrderSphere.Web.Auth;
 using OrderSphere.Web.Services;
-
-CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("de-DE");
-CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("de-DE");
+using Polly;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<OrderSphere.Web.App>("#app");
 
-// CSRF protection services
-builder.Services.AddScoped<CsrfTokenService>();
-builder.Services.AddScoped<AntiforgeryDelegatingHandler>();
+// Localization — IStringLocalizer<AppStrings> resolves against Resources/AppStrings*.resx.
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
-// Base HttpClient — all API calls go to the same BFF origin.
-// AntiforgeryDelegatingHandler attaches X-XSRF-TOKEN on all mutating requests.
-builder.Services.AddScoped(sp =>
-{
-    var csrfService = sp.GetRequiredService<CsrfTokenService>();
-    var antiforgeryHandler = new AntiforgeryDelegatingHandler(csrfService)
-    {
-        InnerHandler = new HttpClientHandler()
-    };
-    return new HttpClient(antiforgeryHandler)
-    {
-        BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
-    };
-});
+// CSRF protection service.
+builder.Services.AddScoped<CsrfTokenService>();
+
+// HTTP message handlers (transient so the HttpClientFactory places one per client).
+builder.Services.AddTransient<AntiforgeryDelegatingHandler>();
+builder.Services.AddTransient<LoggingHandler>();
+
+var apiBaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+
+// "api" — all REST calls. Handlers run in registration order (outer→inner): logging,
+// resilience (retry/circuit-breaker/timeout), CSRF. Only idempotent GETs are retried;
+// mutations are never replayed.
+var apiClient = builder.Services.AddHttpClient("api", client => client.BaseAddress = apiBaseAddress);
+apiClient.AddHttpMessageHandler<LoggingHandler>();
+apiClient.AddResilienceHandler("api-pipeline", ConfigureResilience);
+apiClient.AddHttpMessageHandler<AntiforgeryDelegatingHandler>();
+
+// "advisor" — chat/SSE. Deliberately no resilience: a request timeout would abort the
+// streamed token response.
+var advisorClient = builder.Services.AddHttpClient("advisor", client => client.BaseAddress = apiBaseAddress);
+advisorClient.AddHttpMessageHandler<LoggingHandler>();
+advisorClient.AddHttpMessageHandler<AntiforgeryDelegatingHandler>();
+
+// Inject the "api" client wherever a plain HttpClient is requested.
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("api"));
 
 // Auth — BFF cookie pattern: state is derived from /bff/user
 builder.Services.AddAuthorizationCore();
@@ -63,4 +74,46 @@ builder.Services.AddMudServices(config =>
     config.SnackbarConfiguration.SnackbarVariant = MudBlazor.Variant.Outlined;
 });
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+
+// Apply the user's stored language before the first render. Reading localStorage requires
+// the built host's JS runtime; an unknown/absent value falls back to the default culture.
+var js = host.Services.GetRequiredService<IJSRuntime>();
+var stored = await js.InvokeAsync<string?>("localStorage.getItem", SupportedCultures.StorageKey);
+var culture = new CultureInfo(SupportedCultures.Normalize(stored));
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+await host.RunAsync();
+
+// Resilience pipeline for the "api" client: retry idempotent GETs on server errors,
+// trip a circuit breaker on sustained failures, and cap each attempt at 30s.
+static void ConfigureResilience(ResiliencePipelineBuilder<HttpResponseMessage> pipeline)
+{
+    pipeline.AddRetry(new HttpRetryStrategyOptions
+    {
+        MaxRetryAttempts = 2,
+        BackoffType = DelayBackoffType.Exponential,
+        UseJitter = true,
+        Delay = TimeSpan.FromMilliseconds(300),
+        // The request method is unknown for transport exceptions, so those are not
+        // retried — a non-idempotent mutation must never be replayed.
+        ShouldHandle = static args =>
+        {
+            var method = args.Outcome.Result?.RequestMessage?.Method;
+            var idempotent = method == HttpMethod.Get || method == HttpMethod.Head;
+            return ValueTask.FromResult(
+                idempotent && args.Outcome.Result is { } response && (int)response.StatusCode >= 500);
+        },
+    });
+
+    pipeline.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+    {
+        FailureRatio = 0.5,
+        MinimumThroughput = 10,
+        SamplingDuration = TimeSpan.FromSeconds(30),
+        BreakDuration = TimeSpan.FromSeconds(15),
+    });
+
+    pipeline.AddTimeout(TimeSpan.FromSeconds(30));
+}

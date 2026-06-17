@@ -2,12 +2,13 @@
 @inject IAdminOrderingClient AdminOrdering
 @inject IAdminCatalogClient AdminCatalog
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>Dashboard — Admin</PageTitle>
+<PageTitle>@L["Admin.Dashboard.PageTitle"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
-    <MudText Typo="Typo.h4" Class="mb-2" Style="font-weight: 700;">Dashboard</MudText>
-    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-8">Übersicht über deinen Shop</MudText>
+    <MudText Typo="Typo.h4" Class="mb-2" Style="font-weight: 700;">@L["Admin.Dashboard.Title"]</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-8">@L["Admin.Dashboard.Subtitle"]</MudText>
 
     @if (_loading)
     {
@@ -17,7 +18,7 @@
     }
     else if (_stats is null)
     {
-        <MudAlert Severity="Severity.Error">Stats konnten nicht geladen werden.</MudAlert>
+        <MudAlert Severity="Severity.Error">@L["Common.LoadError", "–"]</MudAlert>
     }
     else
     {
@@ -27,8 +28,8 @@
                     <MudStack Spacing="1">
                         <MudIcon Icon="@Icons.Material.Outlined.Receipt" Color="Color.Primary" />
                         <MudText Typo="Typo.h4" Style="font-weight:700;">@_stats.TotalOrders</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Bestellungen gesamt</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">@_stats.OrdersToday heute</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Dashboard.TotalOrders"]</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Admin.Dashboard.OrdersToday", _stats.OrdersToday]</MudText>
                     </MudStack>
                 </MudPaper>
             </MudItem>
@@ -36,9 +37,9 @@
                 <MudPaper Elevation="0" Class="pa-5" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
                     <MudStack Spacing="1">
                         <MudIcon Icon="@Icons.Material.Outlined.Euro" Color="Color.Success" />
-                        <MudText Typo="Typo.h4" Style="font-weight:700;">@Fmt(_stats.TotalRevenue)</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Umsatz gesamt</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">@Fmt(_stats.RevenueToday) heute</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight:700;">@Formatting.Currency(_stats.TotalRevenue)</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Dashboard.TotalRevenue"]</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@Formatting.Currency(_stats.RevenueToday) @L["Admin.Dashboard.OrdersToday", ""]</MudText>
                     </MudStack>
                 </MudPaper>
             </MudItem>
@@ -47,7 +48,7 @@
                     <MudStack Spacing="1">
                         <MudIcon Icon="@Icons.Material.Outlined.LocalShipping" Color="Color.Warning" />
                         <MudText Typo="Typo.h4" Style="font-weight:700;">@_stats.PendingShipments</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Offene Versände</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Dashboard.PendingShipments"]</MudText>
                     </MudStack>
                 </MudPaper>
             </MudItem>
@@ -56,8 +57,8 @@
                     <MudStack Spacing="1">
                         <MudIcon Icon="@Icons.Material.Outlined.Warning" Color="Color.Error" />
                         <MudText Typo="Typo.h4" Style="font-weight:700;">@_lowStockCount</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Niedriger Bestand</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">von @_totalProducts Produkten</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Dashboard.LowStock"]</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Admin.Dashboard.LowStockOf", _totalProducts]</MudText>
                     </MudStack>
                 </MudPaper>
             </MudItem>
@@ -67,12 +68,12 @@
             <MudItem xs="12" md="7">
                 <MudPaper Elevation="0" Class="pa-6" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
                     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
-                        <MudText Typo="Typo.h6" Style="font-weight:600;">Letzte Bestellungen</MudText>
-                        <MudButton Variant="Variant.Text" Size="Size.Small" Href="/admin/orders">Alle ansehen</MudButton>
+                        <MudText Typo="Typo.h6" Style="font-weight:600;">@L["Admin.Dashboard.RecentOrders"]</MudText>
+                        <MudButton Variant="Variant.Text" Size="Size.Small" Href="/admin/orders">@L["Admin.Dashboard.ViewAll"]</MudButton>
                     </MudStack>
                     @if (!_stats.RecentOrders.Any())
                     {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Noch keine Bestellungen</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Dashboard.NoOrders"]</MudText>
                     }
                     else
                     {
@@ -83,11 +84,11 @@
                                     <MudStack Spacing="0">
                                         <MudText Typo="Typo.body2" Style="font-weight:500;">@order.CustomerName</MudText>
                                         <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                            #@order.Id.ToString("N")[..8].ToUpperInvariant() · @order.CreatedAt.ToLocalTime().ToString("dd.MM. HH:mm")
+                                            #@order.Id.ToString("N")[..8].ToUpperInvariant() · @Formatting.DateTime(order.CreatedAt.ToLocalTime())
                                         </MudText>
                                     </MudStack>
                                     <MudStack Spacing="0" AlignItems="AlignItems.End">
-                                        <MudText Typo="Typo.body2" Style="font-weight:600;">@Fmt(order.Total)</MudText>
+                                        <MudText Typo="Typo.body2" Style="font-weight:600;">@Formatting.Currency(order.Total)</MudText>
                                         <MudText Typo="Typo.caption" Color="Color.Secondary">@order.Status</MudText>
                                     </MudStack>
                                 </MudStack>
@@ -100,14 +101,14 @@
             <MudItem xs="12" md="5">
                 <MudPaper Elevation="0" Class="pa-6" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
                     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
-                        <MudText Typo="Typo.h6" Style="font-weight:600;">Niedriger Bestand</MudText>
-                        <MudButton Variant="Variant.Text" Size="Size.Small" Href="/admin/products">Produkte</MudButton>
+                        <MudText Typo="Typo.h6" Style="font-weight:600;">@L["Admin.Dashboard.LowStock"]</MudText>
+                        <MudButton Variant="Variant.Text" Size="Size.Small" Href="/admin/products">@L["Admin.Dashboard.Products"]</MudButton>
                     </MudStack>
                     @if (!_lowStockProducts.Any())
                     {
                         <MudStack AlignItems="AlignItems.Center" Class="py-4">
                             <MudIcon Icon="@Icons.Material.Outlined.CheckCircle" Color="Color.Success" Style="font-size:48px;" />
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Alle Produkte gut bestückt.</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Dashboard.AllGood"]</MudText>
                         </MudStack>
                     }
                     else
@@ -147,22 +148,30 @@
     {
         try
         {
-            _stats = await AdminOrdering.GetStatsAsync();
+            var stats = await AdminOrdering.GetStatsAsync();
+            _stats = stats.Value;
+            if (!stats.IsSuccess) Snackbar.Add(stats.Error!.Message, Severity.Error);
+
             var products = await AdminCatalog.GetProductsAsync();
-            _lowStockProducts = products.Where(p => p.Stock < 10).OrderBy(p => p.Stock).Take(5).ToList();
-            _lowStockCount = products.Count(p => p.Stock < 10);
-            _totalProducts = products.Count;
+            if (products.IsSuccess)
+            {
+                var items = products.Value!;
+                _lowStockProducts = items.Where(p => p.Stock < 10).OrderBy(p => p.Stock).Take(5).ToList();
+                _lowStockCount = items.Count(p => p.Stock < 10);
+                _totalProducts = items.Count;
+            }
+            else
+            {
+                Snackbar.Add(products.Error!.Message, Severity.Error);
+            }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Fehler beim Laden: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["Common.LoadError", ex.Message], Severity.Error);
         }
         finally
         {
             _loading = false;
         }
     }
-
-    private static string Fmt(decimal v) =>
-        v.ToString("0.00", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) + " €";
 }

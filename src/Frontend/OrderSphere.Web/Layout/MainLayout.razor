@@ -17,7 +17,9 @@
 
     <MudMainContent Style="padding-top: 64px;">
         <CascadingValue Value="this">
-            @Body
+            <AppErrorBoundary>
+                @Body
+            </AppErrorBoundary>
         </CascadingValue>
     </MudMainContent>
 
@@ -37,6 +39,8 @@
 @code {
     [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
     [Inject] private CartState CartState { get; set; } = default!;
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+    [Inject] private ILogger<MainLayout> Logger { get; set; } = default!;
 
     private bool _cartOpen;
     private bool _advisorOpen;
@@ -51,6 +55,15 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
+
+        // Restore the persisted design brand (applies to anonymous and authenticated users).
+        try
+        {
+            var savedBrand = await JS.InvokeAsync<string?>("localStorage.getItem", "os-brand");
+            if (!string.IsNullOrWhiteSpace(savedBrand))
+                ThemeState.SetBrand(savedBrand);
+        }
+        catch { /* localStorage unavailable */ }
 
         var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
         if (state.User.Identity?.IsAuthenticated == true)
@@ -73,7 +86,7 @@
 
             NotificationHub.OnNotificationReceived += OnNotificationReceived;
             try { await NotificationHub.StartAsync(); }
-            catch (Exception ex) { Console.WriteLine($"SignalR connection failed: {ex.Message}"); }
+            catch (Exception ex) { Logger.LogWarning(ex, "SignalR notification hub connection failed"); }
 
             StateHasChanged();
         }

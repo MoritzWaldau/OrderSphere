@@ -2,6 +2,7 @@
 @inject IOrderingClient Ordering
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IStringLocalizer<AppStrings> L
 
 <MudDrawer @bind-Open="IsOpen"
            Anchor="Anchor.Right"
@@ -12,7 +13,7 @@
 
     <div style="padding:24px;height:100%;display:flex;flex-direction:column;gap:16px;">
         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-            <MudText Typo="Typo.h6" Style="font-weight:600;">Warenkorb</MudText>
+            <MudText Typo="Typo.h6" Style="font-weight:600;">@L["Cart.Title"]</MudText>
             <MudIconButton Icon="@Icons.Material.Outlined.Close"
                            OnClick="Close" Size="Size.Small" />
         </MudStack>
@@ -25,11 +26,11 @@
                 <MudIcon Icon="@Icons.Material.Outlined.ShoppingCart"
                          Style="font-size:64px;color:var(--mud-palette-divider);" />
                 <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-3">
-                    Dein Warenkorb ist leer.
+                    @L["Cart.Empty"]
                 </MudText>
                 <MudButton Href="/shop" Variant="Variant.Filled" Color="Color.Primary"
                            Class="btn-pill mt-4" OnClick="Close">
-                    Zum Shop
+                    @L["Cart.ToShop"]
                 </MudButton>
             </MudStack>
         }
@@ -45,12 +46,12 @@
                                     @item.ProductName
                                 </MudText>
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    @item.Quantity × @item.Price.ToString("C")
+                                    @item.Quantity × @Formatting.Currency(item.Price)
                                 </MudText>
                             </MudStack>
                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                                 <MudText Typo="Typo.body2" Style="font-weight:600;white-space:nowrap;">
-                                    @((item.Quantity * item.Price).ToString("C"))
+                                    @Formatting.Currency(item.Quantity * item.Price)
                                 </MudText>
                                 <MudIconButton Icon="@Icons.Material.Outlined.Delete"
                                                Size="Size.Small"
@@ -65,9 +66,9 @@
             <MudDivider />
 
             <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                <MudText Typo="Typo.h6">Gesamt</MudText>
+                <MudText Typo="Typo.h6">@L["Cart.Total"]</MudText>
                 <MudText Typo="Typo.h6" Style="font-weight:700;">
-                    @_total.ToString("C")
+                    @Formatting.Currency(_total)
                 </MudText>
             </MudStack>
 
@@ -77,7 +78,7 @@
                        Size="Size.Large"
                        Class="btn-pill"
                        OnClick="GoToCheckout">
-                Zur Kasse
+                @L["Cart.ToCheckout"]
             </MudButton>
         }
     </div>
@@ -105,7 +106,9 @@
 
     private async Task RemoveAsync(Guid productId)
     {
-        await Ordering.RemoveFromCartAsync(productId);
+        var result = await Ordering.RemoveFromCartAsync(productId);
+        if (!result.IsSuccess)
+            Snackbar.Add(result.Error!.Message, Severity.Error);
         await CartState.RefreshAsync();
     }
 

@@ -3,11 +3,13 @@
 @inject IUserProfileClient UserProfile
 @inject ISnackbar Snackbar
 @inject NavigationManager Nav
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>Konto einrichten — OrderSphere</PageTitle>
+<PageTitle>@L["Onboarding.PageTitle"]</PageTitle>
 
-<PageHero Title="Konto einrichten"
-          Subtitle="Bitte ergänze einen Anzeigenamen und deine erste Lieferadresse, bevor du den Shop nutzen kannst." />
+<PageHero Title="@L["Onboarding.DisplayName"]"
+          Subtitle="@L["Onboarding.HeroSubtitle"]" />
+
 
 <section style="padding:48px 0 80px;">
     <MudContainer MaxWidth="MaxWidth.Small">
@@ -22,9 +24,9 @@
             <MudStack Spacing="4">
                 <!-- Display name -->
                 <MudPaper Elevation="0" Class="surface-card-lg pa-6">
-                    <MudText Typo="Typo.h6" Style="font-weight:600;" Class="mb-4">Anzeigename</MudText>
+                    <MudText Typo="Typo.h6" Style="font-weight:600;" Class="mb-4">@L["Onboarding.DisplayName"]</MudText>
                     <MudTextField T="string"
-                                  Label="Wie sollen wir dich nennen?"
+                                  Label="@L["Onboarding.DisplayNameLabel"]"
                                   Variant="Variant.Outlined"
                                   FullWidth="true"
                                   @bind-Value="_displayName" />
@@ -32,30 +34,30 @@
 
                 <!-- Shipping address -->
                 <MudPaper Elevation="0" Class="surface-card-lg pa-6">
-                    <MudText Typo="Typo.h6" Style="font-weight:600;" Class="mb-4">Erste Lieferadresse</MudText>
+                    <MudText Typo="Typo.h6" Style="font-weight:600;" Class="mb-4">@L["Onboarding.FirstAddress"]</MudText>
                     <MudGrid Spacing="3">
                         <MudItem xs="12" md="6">
-                            <MudTextField T="string" Label="Vorname" Variant="Variant.Outlined"
+                            <MudTextField T="string" Label="@L["Address.FirstName"]" Variant="Variant.Outlined"
                                           FullWidth="true" @bind-Value="_address.FirstName" />
                         </MudItem>
                         <MudItem xs="12" md="6">
-                            <MudTextField T="string" Label="Nachname" Variant="Variant.Outlined"
+                            <MudTextField T="string" Label="@L["Address.LastName"]" Variant="Variant.Outlined"
                                           FullWidth="true" @bind-Value="_address.LastName" />
                         </MudItem>
                         <MudItem xs="12">
-                            <MudTextField T="string" Label="Straße und Hausnummer" Variant="Variant.Outlined"
+                            <MudTextField T="string" Label="@L["Address.Street"]" Variant="Variant.Outlined"
                                           FullWidth="true" @bind-Value="_address.Street" />
                         </MudItem>
                         <MudItem xs="4">
-                            <MudTextField T="string" Label="PLZ" Variant="Variant.Outlined"
+                            <MudTextField T="string" Label="@L["Address.PostalCode"]" Variant="Variant.Outlined"
                                           FullWidth="true" @bind-Value="_address.PostalCode" />
                         </MudItem>
                         <MudItem xs="5">
-                            <MudTextField T="string" Label="Stadt" Variant="Variant.Outlined"
+                            <MudTextField T="string" Label="@L["Address.City"]" Variant="Variant.Outlined"
                                           FullWidth="true" @bind-Value="_address.City" />
                         </MudItem>
                         <MudItem xs="3">
-                            <MudTextField T="string" Label="Land" Variant="Variant.Outlined"
+                            <MudTextField T="string" Label="@L["Address.Country"]" Variant="Variant.Outlined"
                                           FullWidth="true" @bind-Value="_address.Country" />
                         </MudItem>
                     </MudGrid>
@@ -72,7 +74,7 @@
                     {
                         <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
                     }
-                    Konto einrichten und loslegen
+                    @L["Onboarding.Submit"]
                 </MudButton>
             </MudStack>
         }
@@ -90,7 +92,7 @@
     {
         try
         {
-            var profile = await UserProfile.GetOrCreateProfileAsync();
+            var profile = (await UserProfile.GetOrCreateProfileAsync()).Value;
             if (profile is not null)
             {
                 _displayName = profile.DisplayName;
@@ -113,29 +115,39 @@
     {
         if (string.IsNullOrWhiteSpace(_displayName))
         {
-            Snackbar.Add("Bitte gib einen Anzeigenamen ein.", Severity.Warning);
+            Snackbar.Add(L["Onboarding.RequireDisplayName"], Severity.Warning);
             return;
         }
         if (!_address.IsValid())
         {
-            Snackbar.Add("Bitte fülle alle Adressfelder aus.", Severity.Warning);
+            Snackbar.Add(L["Onboarding.RequireAddress"], Severity.Warning);
             return;
         }
 
         _saving = true;
         try
         {
-            await UserProfile.UpdateProfileAsync(new UpdateProfileRequest(_displayName, string.Empty));
+            var profileResult = await UserProfile.UpdateProfileAsync(new UpdateProfileRequest(_displayName, string.Empty));
+            if (!profileResult.IsSuccess)
+            {
+                Snackbar.Add(profileResult.Error!.Message, Severity.Error);
+                return;
+            }
 
-            await UserProfile.AddAddressAsync(new CreateAddressRequest(
+            var addressResult = await UserProfile.AddAddressAsync(new CreateAddressRequest(
                 "Standard", _address.FirstName, _address.LastName,
                 _address.Street, _address.City, _address.PostalCode, _address.Country,
                 SetAsDefault: true));
+            if (!addressResult.IsSuccess)
+            {
+                Snackbar.Add(addressResult.Error!.Message, Severity.Error);
+                return;
+            }
 
             var result = await UserProfile.CompleteOnboardingAsync();
-            if (result is null)
+            if (!result.IsSuccess)
             {
-                Snackbar.Add("Onboarding konnte nicht abgeschlossen werden. Bitte überprüfe deine Angaben.", Severity.Error);
+                Snackbar.Add(L["Onboarding.OnboardingError"], Severity.Error);
                 return;
             }
 
@@ -143,7 +155,7 @@
         }
         catch
         {
-            Snackbar.Add("Ein Fehler ist aufgetreten. Bitte versuche es erneut.", Severity.Error);
+            Snackbar.Add(L["Onboarding.Error"], Severity.Error);
         }
         finally
         {

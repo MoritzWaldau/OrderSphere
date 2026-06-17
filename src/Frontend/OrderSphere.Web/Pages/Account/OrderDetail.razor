@@ -2,8 +2,10 @@
 @attribute [Authorize]
 @inject IOrderingClient Ordering
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<AppStrings> L
 
-<PageTitle>Bestellung – OrderSphere</PageTitle>
+<PageTitle>@L["OrderDetail.PageTitle"]</PageTitle>
 
 @if (_loading)
 {
@@ -14,9 +16,9 @@
 else if (_order is null)
 {
     <MudContainer MaxWidth="MaxWidth.Small" Class="text-center" Style="padding:80px 0;">
-        <MudText Typo="Typo.h5">Bestellung nicht gefunden.</MudText>
+        <MudText Typo="Typo.h5">@L["OrderDetail.NotFound"]</MudText>
         <MudButton Href="/account/orders" Variant="Variant.Filled" Color="Color.Primary" Class="btn-pill mt-4">
-            Zurück
+            @L["Common.Back"]
         </MudButton>
     </MudContainer>
 }
@@ -28,7 +30,7 @@ else
                 <MudIconButton Icon="@Icons.Material.Outlined.ArrowBack"
                                OnClick="@(() => Navigation.NavigateTo("/account/orders"))" />
                 <MudText Typo="Typo.h5" Style="font-weight:600;">
-                    Bestellung #@_order.Id.ToString("N")[..8].ToUpperInvariant()
+                    @L["Admin.OrderDetail.Order"] #@_order.Id.ToString("N")[..8].ToUpperInvariant()
                 </MudText>
                 <MudChip T="string"
                          Color="@GetStatusColor(_order.Status)"
@@ -41,7 +43,7 @@ else
             <MudGrid Spacing="4">
                 <MudItem xs="12" md="8">
                     <MudPaper Elevation="0" Class="surface-card-lg pa-6">
-                        <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight:600;">Bestellpositionen</MudText>
+                        <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight:600;">@L["OrderDetail.Items"]</MudText>
                         <MudStack Spacing="3">
                             @foreach (var line in _order.Items)
                             {
@@ -49,20 +51,20 @@ else
                                     <MudStack Spacing="0">
                                         <MudText Typo="Typo.body1" Style="font-weight:500;">@line.ProductName</MudText>
                                         <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                            @line.Quantity × @line.Price.ToString("0.00") €
+                                            @line.Quantity × @Formatting.Currency(line.Price)
                                         </MudText>
                                     </MudStack>
                                     <MudText Typo="Typo.body1" Style="font-weight:600;">
-                                        @((line.Quantity * line.Price).ToString("0.00")) €
+                                        @Formatting.Currency(line.Quantity * line.Price)
                                     </MudText>
                                 </MudStack>
                             }
                         </MudStack>
                         <MudDivider Class="my-4" />
                         <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudText Typo="Typo.h6">Gesamt</MudText>
+                            <MudText Typo="Typo.h6">@L["OrderDetail.Total"]</MudText>
                             <MudText Typo="Typo.h6" Style="font-weight:700;">
-                                @_order.Total.ToString("0.00") €
+                                @Formatting.Currency(_order.Total)
                             </MudText>
                         </MudStack>
                     </MudPaper>
@@ -72,7 +74,7 @@ else
                     <MudStack Spacing="4">
                         <MudPaper Elevation="0" Class="surface-card-lg pa-6">
                             <MudText Typo="Typo.subtitle1" Style="font-weight:600;" Class="mb-3">
-                                Lieferadresse
+                                @L["OrderDetail.ShippingAddress"]
                             </MudText>
                             <MudText Typo="Typo.body2">
                                 @_order.ShippingAddress.FirstName @_order.ShippingAddress.LastName
@@ -88,7 +90,7 @@ else
                         {
                             <MudPaper Elevation="0" Class="surface-card-lg pa-6">
                                 <MudText Typo="Typo.subtitle1" Style="font-weight:600;" Class="mb-2">
-                                    Tracking
+                                    @L["OrderDetail.Tracking"]
                                 </MudText>
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                                     <MudIcon Icon="@Icons.Material.Outlined.LocalShipping"
@@ -101,11 +103,10 @@ else
                         }
 
                         <MudPaper Elevation="0" Class="surface-card-lg pa-6">
-                            <MudText Typo="Typo.subtitle1" Style="font-weight:600;" Class="mb-2">Details</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Bestelldatum</MudText>
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:600;" Class="mb-2">@L["OrderDetail.Details"]</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@L["OrderDetail.OrderDate"]</MudText>
                             <MudText Typo="Typo.body2">
-                                @_order.CreatedAt.ToLocalTime().ToString("dd. MMMM yyyy, HH:mm",
-                                    System.Globalization.CultureInfo.GetCultureInfo("de-DE"))
+                                @Formatting.DateTime(_order.CreatedAt.ToLocalTime())
                             </MudText>
                         </MudPaper>
                     </MudStack>
@@ -125,7 +126,10 @@ else
     {
         try
         {
-            _order = await Ordering.GetOrderByIdAsync(OrderId);
+            var result = await Ordering.GetOrderByIdAsync(OrderId);
+            _order = result.Value;
+            if (!result.IsSuccess)
+                Snackbar.Add(result.Error!.Message, Severity.Error);
         }
         finally
         {
@@ -143,13 +147,13 @@ else
         _            => Color.Default,
     };
 
-    private static string GetStatusLabel(string status) => status switch
+    private string GetStatusLabel(string status) => status switch
     {
-        "Pending"    => "Ausstehend",
-        "Processing" => "In Bearbeitung",
-        "Shipped"    => "Versendet",
-        "Delivered"  => "Geliefert",
-        "Cancelled"  => "Storniert",
+        "Pending"    => L["OrderStatus.Pending"],
+        "Processing" => L["OrderStatus.Processing"],
+        "Shipped"    => L["OrderStatus.Shipped"],
+        "Delivered"  => L["OrderStatus.Delivered"],
+        "Cancelled"  => L["OrderStatus.Cancelled"],
         _            => status,
     };
 }

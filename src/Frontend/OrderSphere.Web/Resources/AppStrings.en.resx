@@ -1,0 +1,910 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Nav.Shop" xml:space="preserve">
+    <value>Shop</value>
+  </data>
+  <data name="Nav.Categories" xml:space="preserve">
+    <value>Categories</value>
+  </data>
+  <data name="Account.MyOrders" xml:space="preserve">
+    <value>My orders</value>
+  </data>
+  <data name="Account.MyProfile" xml:space="preserve">
+    <value>My profile</value>
+  </data>
+  <data name="Account.Admin" xml:space="preserve">
+    <value>Admin</value>
+  </data>
+  <data name="Account.Logout" xml:space="preserve">
+    <value>Sign out</value>
+  </data>
+  <data name="Account.MenuAriaLabel" xml:space="preserve">
+    <value>Account menu</value>
+  </data>
+  <data name="Auth.SignIn" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="Cart.AriaLabel" xml:space="preserve">
+    <value>Cart with {0} items</value>
+  </data>
+  <data name="Cart.Title" xml:space="preserve">
+    <value>Cart</value>
+  </data>
+  <data name="Cart.PageTitle" xml:space="preserve">
+    <value>Cart — OrderSphere</value>
+  </data>
+  <data name="Cart.HeroTitle" xml:space="preserve">
+    <value>Your cart</value>
+  </data>
+  <data name="Cart.HeroSubtitle" xml:space="preserve">
+    <value>{0} items ready to order</value>
+  </data>
+  <data name="Cart.Empty" xml:space="preserve">
+    <value>Your cart is empty.</value>
+  </data>
+  <data name="Cart.EmptyHeading" xml:space="preserve">
+    <value>Your cart is empty</value>
+  </data>
+  <data name="Cart.AddProductsHint" xml:space="preserve">
+    <value>Add products to get started.</value>
+  </data>
+  <data name="Cart.DiscoverProducts" xml:space="preserve">
+    <value>Discover products</value>
+  </data>
+  <data name="Cart.ToShop" xml:space="preserve">
+    <value>Go to shop</value>
+  </data>
+  <data name="Cart.PerUnitSuffix" xml:space="preserve">
+    <value>/ ea.</value>
+  </data>
+  <data name="Cart.Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Cart.Summary" xml:space="preserve">
+    <value>Summary</value>
+  </data>
+  <data name="Cart.ToCheckout" xml:space="preserve">
+    <value>Checkout</value>
+  </data>
+  <data name="Cart.ContinueShopping" xml:space="preserve">
+    <value>Continue shopping</value>
+  </data>
+  <data name="Cart.ItemRemoved" xml:space="preserve">
+    <value>{0} was removed.</value>
+  </data>
+  <data name="Cart.RemoveAria" xml:space="preserve">
+    <value>Remove {0}</value>
+  </data>
+  <data name="Checkout.Eyebrow" xml:space="preserve">
+    <value>Cart → Checkout → Confirmation</value>
+  </data>
+  <data name="Checkout.Title" xml:space="preserve">
+    <value>Checkout</value>
+  </data>
+  <data name="Checkout.PageTitle" xml:space="preserve">
+    <value>Checkout — OrderSphere</value>
+  </data>
+  <data name="Checkout.Subtitle" xml:space="preserve">
+    <value>Review your details, choose shipping and payment.</value>
+  </data>
+  <data name="Checkout.Summary" xml:space="preserve">
+    <value>Order summary</value>
+  </data>
+  <data name="Checkout.Submit" xml:space="preserve">
+    <value>Place order</value>
+  </data>
+  <data name="Checkout.TermsNote" xml:space="preserve">
+    <value>By completing your order you agree to our terms and conditions.</value>
+  </data>
+  <data name="Checkout.RequiredFields" xml:space="preserve">
+    <value>Please fill in all required fields.</value>
+  </data>
+  <data name="Language.Label" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Common.AddToCart" xml:space="preserve">
+    <value>Add to cart</value>
+  </data>
+  <data name="Common.Quantity" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="Common.Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common.SoldOut" xml:space="preserve">
+    <value>Sold out</value>
+  </data>
+  <data name="Common.AllProducts" xml:space="preserve">
+    <value>All products</value>
+  </data>
+  <data name="Common.AddedToCart" xml:space="preserve">
+    <value>{0}× {1} was added.</value>
+  </data>
+  <data name="Stock.Unavailable" xml:space="preserve">
+    <value>Unavailable</value>
+  </data>
+  <data name="Stock.OnlyLeft" xml:space="preserve">
+    <value>Only {0} left</value>
+  </data>
+  <data name="Stock.OnlyLeftAria" xml:space="preserve">
+    <value>Only {0} in stock</value>
+  </data>
+  <data name="Stock.InStock" xml:space="preserve">
+    <value>In stock</value>
+  </data>
+  <data name="Stock.InStockCount" xml:space="preserve">
+    <value>In stock ({0} available)</value>
+  </data>
+  <data name="OrderSummary.Quantity" xml:space="preserve">
+    <value>Quantity: {0}</value>
+  </data>
+  <data name="OrderSummary.Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="OrderSummary.Shipping" xml:space="preserve">
+    <value>Shipping</value>
+  </data>
+  <data name="OrderSummary.Free" xml:space="preserve">
+    <value>Free</value>
+  </data>
+  <data name="OrderSummary.Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Address.Title" xml:space="preserve">
+    <value>Shipping address</value>
+  </data>
+  <data name="Address.FirstName" xml:space="preserve">
+    <value>First name</value>
+  </data>
+  <data name="Address.LastName" xml:space="preserve">
+    <value>Last name</value>
+  </data>
+  <data name="Address.Street" xml:space="preserve">
+    <value>Street and number</value>
+  </data>
+  <data name="Address.PostalCode" xml:space="preserve">
+    <value>Postal code</value>
+  </data>
+  <data name="Address.City" xml:space="preserve">
+    <value>City</value>
+  </data>
+  <data name="Address.Country" xml:space="preserve">
+    <value>Country</value>
+  </data>
+  <data name="Address.Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Payment.Title" xml:space="preserve">
+    <value>Payment method</value>
+  </data>
+  <data name="Payment.CreditCard" xml:space="preserve">
+    <value>Credit card</value>
+  </data>
+  <data name="Payment.PayPal" xml:space="preserve">
+    <value>PayPal</value>
+  </data>
+  <data name="Payment.Invoice" xml:space="preserve">
+    <value>Invoice</value>
+  </data>
+  <data name="Footer.Rights" xml:space="preserve">
+    <value>© {0} OrderSphere. All rights reserved.</value>
+  </data>
+  <data name="Footer.Privacy" xml:space="preserve">
+    <value>Privacy</value>
+  </data>
+  <data name="Footer.Imprint" xml:space="preserve">
+    <value>Imprint</value>
+  </data>
+  <data name="Footer.Faq" xml:space="preserve">
+    <value>FAQ</value>
+  </data>
+  <data name="Home.HeroEyebrow" xml:space="preserve">
+    <value>Spring 2026 · New</value>
+  </data>
+  <data name="Home.HeroTitle" xml:space="preserve">
+    <value>The best tech. Carefully selected.</value>
+  </data>
+  <data name="Home.HeroSubtitle" xml:space="preserve">
+    <value>Laptops, tablets and accessories – expert-curated, quickly delivered.</value>
+  </data>
+  <data name="Home.FreeShipping" xml:space="preserve">
+    <value>Free shipping</value>
+  </data>
+  <data name="Home.Returns" xml:space="preserve">
+    <value>30-day returns</value>
+  </data>
+  <data name="Home.Warranty" xml:space="preserve">
+    <value>2-year warranty</value>
+  </data>
+  <data name="Home.CategoriesEyebrow" xml:space="preserve">
+    <value>01 / Categories</value>
+  </data>
+  <data name="Home.WhatLookingFor" xml:space="preserve">
+    <value>What are you looking for?</value>
+  </data>
+  <data name="Home.CatLaptops" xml:space="preserve">
+    <value>Laptops</value>
+  </data>
+  <data name="Home.CatSmartphones" xml:space="preserve">
+    <value>Smartphones</value>
+  </data>
+  <data name="Home.CatTablets" xml:space="preserve">
+    <value>Tablets</value>
+  </data>
+  <data name="Home.CatAccessories" xml:space="preserve">
+    <value>Accessories</value>
+  </data>
+  <data name="Home.PromiseEyebrow" xml:space="preserve">
+    <value>02 / Our promise</value>
+  </data>
+  <data name="Home.PromiseTitle" xml:space="preserve">
+    <value>Quality, &lt;em&gt;not&lt;/em&gt; quantity.</value>
+  </data>
+  <data name="Home.PromiseBody" xml:space="preserve">
+    <value>We don't list a thousand products. We curate carefully — so you quickly find the right one.</value>
+  </data>
+  <data name="Home.Quote" xml:space="preserve">
+    <value>“We buy what we sell ourselves. That's our only filter.”</value>
+  </data>
+  <data name="Home.TeamRole" xml:space="preserve">
+    <value>Curation &amp; purchasing</value>
+  </data>
+  <data name="Shop.PageTitle" xml:space="preserve">
+    <value>Products – OrderSphere</value>
+  </data>
+  <data name="Shop.HeroTitle" xml:space="preserve">
+    <value>Our selection</value>
+  </data>
+  <data name="Shop.HeroSubtitle" xml:space="preserve">
+    <value>Carefully curated tech devices and accessories.</value>
+  </data>
+  <data name="Shop.NoProducts" xml:space="preserve">
+    <value>No products available</value>
+  </data>
+  <data name="Shop.NoProductsHint" xml:space="preserve">
+    <value>Check back later.</value>
+  </data>
+  <data name="Shop.ProductsLabel" xml:space="preserve">
+    <value>products</value>
+  </data>
+  <data name="Shop.ChooseQuantity" xml:space="preserve">
+    <value>Choose quantity (max. {0}):</value>
+  </data>
+  <data name="Shop.LoadError" xml:space="preserve">
+    <value>Error while loading: {0}</value>
+  </data>
+  <data name="Categories.PageTitle" xml:space="preserve">
+    <value>Categories — OrderSphere</value>
+  </data>
+  <data name="Categories.HeroEyebrow" xml:space="preserve">
+    <value>Range</value>
+  </data>
+  <data name="Categories.HeroSubtitle" xml:space="preserve">
+    <value>Explore our range sorted by topic.</value>
+  </data>
+  <data name="Categories.None" xml:space="preserve">
+    <value>No categories available yet</value>
+  </data>
+  <data name="Categories.ProductSingular" xml:space="preserve">
+    <value>product</value>
+  </data>
+  <data name="Categories.ProductPlural" xml:space="preserve">
+    <value>products</value>
+  </data>
+  <data name="Categories.LoadError" xml:space="preserve">
+    <value>Error while loading categories: {0}</value>
+  </data>
+  <data name="Search.PageTitle" xml:space="preserve">
+    <value>Search — OrderSphere</value>
+  </data>
+  <data name="Search.HeroEyebrow" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Search.HeroTitle" xml:space="preserve">
+    <value>Find products</value>
+  </data>
+  <data name="Search.HeroSubtitle" xml:space="preserve">
+    <value>Find exactly the product you're looking for.</value>
+  </data>
+  <data name="Search.Placeholder" xml:space="preserve">
+    <value>Search products...</value>
+  </data>
+  <data name="Search.Button" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Search.Prompt" xml:space="preserve">
+    <value>What are you looking for?</value>
+  </data>
+  <data name="Search.PromptHint" xml:space="preserve">
+    <value>Enter a term above to find products.</value>
+  </data>
+  <data name="Search.NoResults" xml:space="preserve">
+    <value>No results for “{0}”</value>
+  </data>
+  <data name="Search.NoResultsHint" xml:space="preserve">
+    <value>Try another search term or browse our range.</value>
+  </data>
+  <data name="Search.ResultsCount" xml:space="preserve">
+    <value>{0} results for “{1}”</value>
+  </data>
+  <data name="Search.Error" xml:space="preserve">
+    <value>Search error: {0}</value>
+  </data>
+  <data name="ProductDetails.PageFallback" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="ProductDetails.NotFound" xml:space="preserve">
+    <value>Product not found.</value>
+  </data>
+  <data name="ProductDetails.BackToShop" xml:space="preserve">
+    <value>Back to shop</value>
+  </data>
+  <data name="ProductDetails.Error" xml:space="preserve">
+    <value>Error: {0}</value>
+  </data>
+  <data name="CheckoutSuccess.PageTitle" xml:space="preserve">
+    <value>Order confirmed — OrderSphere</value>
+  </data>
+  <data name="CheckoutSuccess.Title" xml:space="preserve">
+    <value>Order placed!</value>
+  </data>
+  <data name="CheckoutSuccess.Body" xml:space="preserve">
+    <value>Your order is being processed. You'll receive a confirmation email.</value>
+  </data>
+  <data name="CheckoutSuccess.Total" xml:space="preserve">
+    <value>Total amount: {0}</value>
+  </data>
+  <data name="CheckoutSuccess.OrderNumber" xml:space="preserve">
+    <value>Order number</value>
+  </data>
+  <data name="CheckoutSuccess.ContinueShopping" xml:space="preserve">
+    <value>Continue shopping</value>
+  </data>
+  <data name="Common.Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Common.Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Common.Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Common.Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Common.Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="Common.BackToList" xml:space="preserve">
+    <value>Back to list</value>
+  </data>
+  <data name="Common.BackToOverview" xml:space="preserve">
+    <value>Back to overview</value>
+  </data>
+  <data name="Common.Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Common.Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="Common.LoadError" xml:space="preserve">
+    <value>Error while loading: {0}</value>
+  </data>
+  <data name="Common.Error" xml:space="preserve">
+    <value>Error: {0}</value>
+  </data>
+  <data name="OrderStatus.Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="OrderStatus.Processing" xml:space="preserve">
+    <value>Processing</value>
+  </data>
+  <data name="OrderStatus.Shipped" xml:space="preserve">
+    <value>Shipped</value>
+  </data>
+  <data name="OrderStatus.Delivered" xml:space="preserve">
+    <value>Delivered</value>
+  </data>
+  <data name="OrderStatus.Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="Orders.PageTitle" xml:space="preserve">
+    <value>My orders — OrderSphere</value>
+  </data>
+  <data name="Orders.HeroSubtitle" xml:space="preserve">
+    <value>Overview of all your orders at OrderSphere.</value>
+  </data>
+  <data name="Orders.Loading" xml:space="preserve">
+    <value>Loading orders...</value>
+  </data>
+  <data name="Orders.EmptyHeading" xml:space="preserve">
+    <value>No orders yet</value>
+  </data>
+  <data name="Orders.EmptyBody" xml:space="preserve">
+    <value>Once you place an order, you'll find your order history here.</value>
+  </data>
+  <data name="Orders.Discover" xml:space="preserve">
+    <value>Explore now</value>
+  </data>
+  <data name="Orders.OrderNumber" xml:space="preserve">
+    <value>Order number</value>
+  </data>
+  <data name="OrderDetail.PageTitle" xml:space="preserve">
+    <value>Order – OrderSphere</value>
+  </data>
+  <data name="OrderDetail.NotFound" xml:space="preserve">
+    <value>Order not found.</value>
+  </data>
+  <data name="OrderDetail.Items" xml:space="preserve">
+    <value>Order items</value>
+  </data>
+  <data name="OrderDetail.Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="OrderDetail.ShippingAddress" xml:space="preserve">
+    <value>Shipping address</value>
+  </data>
+  <data name="OrderDetail.Tracking" xml:space="preserve">
+    <value>Tracking</value>
+  </data>
+  <data name="OrderDetail.Details" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="OrderDetail.OrderDate" xml:space="preserve">
+    <value>Order date</value>
+  </data>
+  <data name="Profile.PageTitle" xml:space="preserve">
+    <value>My profile — OrderSphere</value>
+  </data>
+  <data name="Profile.HeroSubtitle" xml:space="preserve">
+    <value>Manage your personal data and delivery addresses.</value>
+  </data>
+  <data name="Profile.PersonalData" xml:space="preserve">
+    <value>Personal data</value>
+  </data>
+  <data name="Profile.DisplayName" xml:space="preserve">
+    <value>Display name</value>
+  </data>
+  <data name="Profile.Addresses" xml:space="preserve">
+    <value>Delivery addresses</value>
+  </data>
+  <data name="Profile.AddressLabel" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="Profile.NoAddresses" xml:space="preserve">
+    <value>No addresses saved yet.</value>
+  </data>
+  <data name="Profile.DefaultAddress" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Profile.SetDefault" xml:space="preserve">
+    <value>Set as default</value>
+  </data>
+  <data name="Profile.Saved" xml:space="preserve">
+    <value>Profile saved.</value>
+  </data>
+  <data name="Profile.AddressSaved" xml:space="preserve">
+    <value>Address added.</value>
+  </data>
+  <data name="Profile.AddressDeleted" xml:space="preserve">
+    <value>Address deleted.</value>
+  </data>
+  <data name="Onboarding.PageTitle" xml:space="preserve">
+    <value>Set up account — OrderSphere</value>
+  </data>
+  <data name="Onboarding.HeroSubtitle" xml:space="preserve">
+    <value>Please add a display name and your first delivery address before you can use the shop.</value>
+  </data>
+  <data name="Onboarding.DisplayName" xml:space="preserve">
+    <value>Display name</value>
+  </data>
+  <data name="Onboarding.DisplayNameLabel" xml:space="preserve">
+    <value>What should we call you?</value>
+  </data>
+  <data name="Onboarding.FirstAddress" xml:space="preserve">
+    <value>First delivery address</value>
+  </data>
+  <data name="Onboarding.Submit" xml:space="preserve">
+    <value>Set up account and get started</value>
+  </data>
+  <data name="Onboarding.RequireDisplayName" xml:space="preserve">
+    <value>Please enter a display name.</value>
+  </data>
+  <data name="Onboarding.RequireAddress" xml:space="preserve">
+    <value>Please fill in all address fields.</value>
+  </data>
+  <data name="Onboarding.Error" xml:space="preserve">
+    <value>An error occurred. Please try again.</value>
+  </data>
+  <data name="Onboarding.OnboardingError" xml:space="preserve">
+    <value>Onboarding could not be completed. Please check your details.</value>
+  </data>
+  <data name="Admin.Dashboard.PageTitle" xml:space="preserve">
+    <value>Dashboard — Admin</value>
+  </data>
+  <data name="Admin.Dashboard.Title" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Admin.Dashboard.Subtitle" xml:space="preserve">
+    <value>Overview of your shop</value>
+  </data>
+  <data name="Admin.Dashboard.TotalOrders" xml:space="preserve">
+    <value>Total orders</value>
+  </data>
+  <data name="Admin.Dashboard.OrdersToday" xml:space="preserve">
+    <value>{0} today</value>
+  </data>
+  <data name="Admin.Dashboard.TotalRevenue" xml:space="preserve">
+    <value>Total revenue</value>
+  </data>
+  <data name="Admin.Dashboard.PendingShipments" xml:space="preserve">
+    <value>Pending shipments</value>
+  </data>
+  <data name="Admin.Dashboard.LowStock" xml:space="preserve">
+    <value>Low stock</value>
+  </data>
+  <data name="Admin.Dashboard.LowStockOf" xml:space="preserve">
+    <value>of {0} products</value>
+  </data>
+  <data name="Admin.Dashboard.RecentOrders" xml:space="preserve">
+    <value>Recent orders</value>
+  </data>
+  <data name="Admin.Dashboard.ViewAll" xml:space="preserve">
+    <value>View all</value>
+  </data>
+  <data name="Admin.Dashboard.NoOrders" xml:space="preserve">
+    <value>No orders yet</value>
+  </data>
+  <data name="Admin.Dashboard.Products" xml:space="preserve">
+    <value>Products</value>
+  </data>
+  <data name="Admin.Dashboard.AllGood" xml:space="preserve">
+    <value>All products well stocked.</value>
+  </data>
+  <data name="Admin.Orders.PageTitle" xml:space="preserve">
+    <value>Orders — Admin</value>
+  </data>
+  <data name="Admin.Orders.Title" xml:space="preserve">
+    <value>Orders</value>
+  </data>
+  <data name="Admin.Orders.Subtitle" xml:space="preserve">
+    <value>Overview of all orders in the system</value>
+  </data>
+  <data name="Admin.Orders.StatusFilter" xml:space="preserve">
+    <value>All statuses</value>
+  </data>
+  <data name="Admin.Orders.None" xml:space="preserve">
+    <value>No orders found</value>
+  </data>
+  <data name="Admin.Orders.ColOrder" xml:space="preserve">
+    <value>Order</value>
+  </data>
+  <data name="Admin.Orders.ColCustomer" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Admin.Orders.ColDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Admin.Orders.ColTracking" xml:space="preserve">
+    <value>Tracking</value>
+  </data>
+  <data name="Admin.Orders.ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Admin.Orders.ColTotal" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Admin.Orders.ColAction" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Admin.Orders.StatusCreated" xml:space="preserve">
+    <value>Received</value>
+  </data>
+  <data name="Admin.Orders.StatusPaid" xml:space="preserve">
+    <value>Paid</value>
+  </data>
+  <data name="Admin.Orders.StatusShipped" xml:space="preserve">
+    <value>Shipped</value>
+  </data>
+  <data name="Admin.Orders.StatusDelivered" xml:space="preserve">
+    <value>Delivered</value>
+  </data>
+  <data name="Admin.Orders.StatusCancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="Admin.OrderDetail.PageTitle" xml:space="preserve">
+    <value>Order — Admin</value>
+  </data>
+  <data name="Admin.OrderDetail.BackToList" xml:space="preserve">
+    <value>Back to overview</value>
+  </data>
+  <data name="Admin.OrderDetail.NotFound" xml:space="preserve">
+    <value>Order not found</value>
+  </data>
+  <data name="Admin.OrderDetail.Order" xml:space="preserve">
+    <value>Order</value>
+  </data>
+  <data name="Admin.OrderDetail.Items" xml:space="preserve">
+    <value>Items</value>
+  </data>
+  <data name="Admin.OrderDetail.Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Admin.OrderDetail.ShippingAddress" xml:space="preserve">
+    <value>Shipping address</value>
+  </data>
+  <data name="Admin.OrderDetail.Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Admin.OrderDetail.MarkShipped" xml:space="preserve">
+    <value>Mark as shipped</value>
+  </data>
+  <data name="Admin.OrderDetail.MarkDelivered" xml:space="preserve">
+    <value>Mark as delivered</value>
+  </data>
+  <data name="Admin.OrderDetail.Cancel" xml:space="preserve">
+    <value>Cancel order</value>
+  </data>
+  <data name="Admin.OrderDetail.CancelledNote" xml:space="preserve">
+    <value>This order has been cancelled.</value>
+  </data>
+  <data name="Admin.OrderDetail.DeliveredNote" xml:space="preserve">
+    <value>Delivery completed.</value>
+  </data>
+  <data name="Admin.OrderDetail.StatusUpdated" xml:space="preserve">
+    <value>Status updated.</value>
+  </data>
+  <data name="Admin.OrderDetail.OrderCancelled" xml:space="preserve">
+    <value>Order cancelled.</value>
+  </data>
+  <data name="Admin.Categories.PageTitle" xml:space="preserve">
+    <value>Categories — Admin</value>
+  </data>
+  <data name="Admin.Categories.Title" xml:space="preserve">
+    <value>Categories</value>
+  </data>
+  <data name="Admin.Categories.Subtitle" xml:space="preserve">
+    <value>Manage product categories</value>
+  </data>
+  <data name="Admin.Categories.New" xml:space="preserve">
+    <value>New category</value>
+  </data>
+  <data name="Admin.Categories.None" xml:space="preserve">
+    <value>No categories available</value>
+  </data>
+  <data name="Admin.Categories.ColName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Admin.Categories.ColDescription" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Admin.Categories.ColProducts" xml:space="preserve">
+    <value>Products</value>
+  </data>
+  <data name="Admin.Categories.ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Admin.Categories.ColAction" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Admin.Categories.DeleteTitle" xml:space="preserve">
+    <value>Delete category</value>
+  </data>
+  <data name="Admin.Categories.DeleteConfirm" xml:space="preserve">
+    <value>Really delete {0}?</value>
+  </data>
+  <data name="Admin.Categories.Deleted" xml:space="preserve">
+    <value>Category deleted.</value>
+  </data>
+  <data name="Admin.CategoryForm.PageTitleCreate" xml:space="preserve">
+    <value>New category — Admin</value>
+  </data>
+  <data name="Admin.CategoryForm.PageTitleEdit" xml:space="preserve">
+    <value>Edit category — Admin</value>
+  </data>
+  <data name="Admin.CategoryForm.TitleCreate" xml:space="preserve">
+    <value>New category</value>
+  </data>
+  <data name="Admin.CategoryForm.TitleEdit" xml:space="preserve">
+    <value>Edit category</value>
+  </data>
+  <data name="Admin.CategoryForm.BackToList" xml:space="preserve">
+    <value>Back to list</value>
+  </data>
+  <data name="Admin.CategoryForm.Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Admin.CategoryForm.NameRequired" xml:space="preserve">
+    <value>Name is required</value>
+  </data>
+  <data name="Admin.CategoryForm.Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Admin.CategoryForm.ActiveLabel" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Admin.CategoryForm.Saved" xml:space="preserve">
+    <value>Saved.</value>
+  </data>
+  <data name="Admin.CategoryForm.Created" xml:space="preserve">
+    <value>Category created.</value>
+  </data>
+  <data name="Admin.Products.PageTitle" xml:space="preserve">
+    <value>Products — Admin</value>
+  </data>
+  <data name="Admin.Products.Title" xml:space="preserve">
+    <value>Products</value>
+  </data>
+  <data name="Admin.Products.Subtitle" xml:space="preserve">
+    <value>Manage the product catalogue</value>
+  </data>
+  <data name="Admin.Products.New" xml:space="preserve">
+    <value>New product</value>
+  </data>
+  <data name="Admin.Products.None" xml:space="preserve">
+    <value>No products available</value>
+  </data>
+  <data name="Admin.Products.ColSKU" xml:space="preserve">
+    <value>SKU</value>
+  </data>
+  <data name="Admin.Products.ColName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Admin.Products.ColCategory" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Admin.Products.ColPrice" xml:space="preserve">
+    <value>Price</value>
+  </data>
+  <data name="Admin.Products.ColStock" xml:space="preserve">
+    <value>Stock</value>
+  </data>
+  <data name="Admin.Products.ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Admin.Products.ColAction" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Admin.Products.DeleteTitle" xml:space="preserve">
+    <value>Delete product</value>
+  </data>
+  <data name="Admin.Products.DeleteConfirm" xml:space="preserve">
+    <value>Really delete {0}?</value>
+  </data>
+  <data name="Admin.Products.Deleted" xml:space="preserve">
+    <value>Product deleted.</value>
+  </data>
+  <data name="Admin.ProductForm.PageTitleCreate" xml:space="preserve">
+    <value>New product — Admin</value>
+  </data>
+  <data name="Admin.ProductForm.PageTitleEdit" xml:space="preserve">
+    <value>Edit product — Admin</value>
+  </data>
+  <data name="Admin.ProductForm.TitleCreate" xml:space="preserve">
+    <value>New product</value>
+  </data>
+  <data name="Admin.ProductForm.TitleEdit" xml:space="preserve">
+    <value>Edit product</value>
+  </data>
+  <data name="Admin.ProductForm.BackToList" xml:space="preserve">
+    <value>Back to list</value>
+  </data>
+  <data name="Admin.ProductForm.Name" xml:space="preserve">
+    <value>Product name</value>
+  </data>
+  <data name="Admin.ProductForm.NameRequired" xml:space="preserve">
+    <value>Name is required</value>
+  </data>
+  <data name="Admin.ProductForm.SKU" xml:space="preserve">
+    <value>SKU</value>
+  </data>
+  <data name="Admin.ProductForm.SKURequired" xml:space="preserve">
+    <value>SKU is required</value>
+  </data>
+  <data name="Admin.ProductForm.Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Admin.ProductForm.Price" xml:space="preserve">
+    <value>Price (€)</value>
+  </data>
+  <data name="Admin.ProductForm.Stock" xml:space="preserve">
+    <value>Stock</value>
+  </data>
+  <data name="Admin.ProductForm.Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Admin.ProductForm.CategoryRequired" xml:space="preserve">
+    <value>Category is required</value>
+  </data>
+  <data name="Admin.ProductForm.ActiveLabel" xml:space="preserve">
+    <value>Active (visible in shop)</value>
+  </data>
+  <data name="Admin.ProductForm.Saved" xml:space="preserve">
+    <value>Saved.</value>
+  </data>
+  <data name="Admin.ProductForm.Created" xml:space="preserve">
+    <value>Product created.</value>
+  </data>
+  <data name="Admin.Users.PageTitle" xml:space="preserve">
+    <value>Customers — Admin</value>
+  </data>
+  <data name="Admin.Users.Title" xml:space="preserve">
+    <value>Customers</value>
+  </data>
+  <data name="Admin.Users.Subtitle" xml:space="preserve">
+    <value>Registered customer profiles</value>
+  </data>
+  <data name="Admin.Users.None" xml:space="preserve">
+    <value>No registered customers yet</value>
+  </data>
+  <data name="Admin.Users.ColName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Admin.Users.ColEmail" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Admin.Users.ColAddresses" xml:space="preserve">
+    <value>Addresses</value>
+  </data>
+  <data name="Admin.Users.ColDarkMode" xml:space="preserve">
+    <value>Dark mode</value>
+  </data>
+</root>

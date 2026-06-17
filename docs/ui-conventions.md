@@ -1,8 +1,12 @@
 # OrderSphere — UI & Styling Guide
 
 Binding reference for all visual, theming, MudBlazor, and CSS work in `src/Frontend/OrderSphere.Web`.
-The design direction is **"Flat & Focused"** (indigo). This document is the source of truth;
-where it and older notes disagree, this document wins.
+
+The design direction is **"Flat & Focused"**. It ships as a multi-brand system: the **Indigo** brand is
+the default; **Grün** and **Rot** are selectable variants (see §1a). Only the primary colour family
+changes between brands — every other rule below holds for all brands. This document is the source of
+truth; where it and older notes disagree, this document wins.
+
 
 The canonical implementations are:
 
@@ -17,19 +21,84 @@ Change those two files first; this guide documents what they contain.
 
 - **Flat surfaces, no chrome.** `Elevation="0"` everywhere; separation comes from 1px dividers
   and the `--os-shadow-*` token shadows, not Material elevation.
-- **One gradient.** The indigo gradient appears on the hero and CTA sections only
-  (`--os-gradient-primary` / `--os-gradient-primary-reverse`). Everything else is a flat surface.
+- **One gradient.** The primary gradient appears on the hero and CTA sections only
+  (`--os-gradient-primary` / `--os-gradient-primary-reverse`). It is built from the active brand's
+  primary, so it follows a brand switch automatically. Everything else is a flat surface.
 - **Two type roles.** Space Grotesk for display/headings, JetBrains Mono for numeric and
   metadata (prices, quantities, category/eyebrow labels, legal links).
-- **Light-only.** The application ships without a theme switch. A `PaletteDark` and
+- **Light-only.** The application ships without a dark-mode switch. A `PaletteDark` and
   `[data-mud-theme="dark"]` token overrides exist in code but are not surfaced in the UI;
-  do not add a dark-mode toggle.
+  do not add a dark-mode toggle. (The brand switch in §1a is separate and is surfaced.)
 - **Tokens over hardcoded values.** Use `var(--mud-palette-*)` for theme colors and
-  `var(--os-*)` for radii, shadows, gradients, and spacing. Avoid literal hex in components.
+  `var(--os-*)` for radii, shadows, gradients, and spacing. For primary-coloured fills use the
+  `--os-primary-tint{-weak,-strong}` tokens — never literal `rgba()` of a brand colour, or the fill
+  will not follow a brand switch. Avoid literal hex in components.
+
+---
+
+## 1a. Brands (multi-brand)
+
+The app supports multiple brands. A brand only redefines the **primary colour family**
+(`Primary`, `PrimaryDarken`, `PrimaryLighten`); typography, layout, neutral greys, dividers and the
+semantic colours (`Success`, `Warning`, `Error`) are shared across all brands.
+
+Brands are declared in `ThemeState.Brands` (`ThemeState.cs`):
+
+| Id | Name | Primary | Darken | Lighten |
+|---|---|---|---|---|
+| `indigo` *(default)* | Indigo | `#3A4DD1` | `#2B3BB8` | `#6A7AE8` |
+| `green` | Grün | `#1F9D57` | `#177A43` | `#54C07E` |
+| `red` | Rot | `#D92D4B` | `#B71F3A` | `#EA5E76` |
+
+Mechanics:
+
+- `ThemeState.SetBrand(id)` rebuilds the `MudTheme` and raises `OnChange`; `MudThemeProvider` re-emits
+  `--mud-palette-*`. CSS that uses `var(--mud-palette-primary)` and the `--os-primary-tint*` tokens
+  updates automatically — no per-brand CSS block exists or should be added.
+- The selection is surfaced via the `BrandSwitcher` component in the header and persisted to
+  `localStorage` under the key `os-brand`; it is restored on first render in `MainLayout`.
+
+**Adding a brand:** append one `BrandDefinition` to `ThemeState.Brands`. Nothing else is required —
+do not add brand-specific CSS. Verify white-on-gradient hero text still has adequate contrast for the
+chosen primary (the hero text helpers are fixed white).
+
+---
+
+## 1b. Internationalization (i18n)
+
+User-facing text is localized, not hardcoded. The supported UI languages are German (`de-DE`, the
+**neutral** resource and default) and English (`en-US`), declared in
+`Services/SupportedCultures.cs`. The active culture is resolved once at startup in `Program.cs` from
+`localStorage["os-culture"]` (falling back to the default) and surfaced via the `CultureSwitcher`
+component in the header; changing it persists the choice and force-reloads so every string re-resolves.
+
+Mechanics:
+
+- Strings live in `Resources/AppStrings.resx` (German, neutral) and `Resources/AppStrings.en.resx`
+  (English), keyed by dotted names (`Cart.Title`, `Checkout.Submit`). The marker type is
+  `AppStrings` at the root namespace.
+- Inject `IStringLocalizer<AppStrings>` (conventionally as `L`) and read `@L["Key"]`; pass arguments
+  for composite strings (`@L["Cart.AriaLabel", count]`) — never concatenate translated fragments.
+- Culture-dependent values use `Services/Formatting.cs`: `Formatting.Currency(value)` (EUR, current
+  culture's number layout), `Formatting.DateTime`/`Formatting.Date`. Do not call `ToString("C")` or
+  hardcode `"dd.MM.yyyy"` / `de-DE` in components.
+
+**Adding a string:** add the key to both `.resx` files (every key must exist in the neutral resource),
+then reference it through the localizer. A missing English entry falls back to the German neutral value.
+
+> Status: all customer-facing and admin pages are localized — header/navigation, footer, home, shop,
+> categories, search, product details, product card, stock badge, order summary, cart, cart drawer,
+> checkout (incl. address/payment forms), checkout success, all account pages (orders, order detail,
+> profile, onboarding), and all admin pages (dashboard, orders, order detail, categories, category
+> form, products, product form, users). Date and currency call-sites use `Formatting.DateTime/Date/Currency`
+> throughout. A test (`LocalizationTests`) enforces that every neutral key has an English entry.
 
 ---
 
 ## 2. Palette (`ThemeState.cs`, `PaletteLight`)
+
+Values below are the **Indigo** (default) brand. `Primary`, `PrimaryDarken` and `PrimaryLighten` vary
+per brand (§1a); all other tokens are shared.
 
 | Token | Value | Use |
 |---|---|---|

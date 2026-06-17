@@ -1,10 +1,12 @@
 # OrderSphere — UI & Styling Guide
 
 Binding reference for all visual, theming, MudBlazor, and CSS work in `src/Frontend/OrderSphere.Web`.
+
 The design direction is **"Flat & Focused"**. It ships as a multi-brand system: the **Indigo** brand is
 the default; **Grün** and **Rot** are selectable variants (see §1a). Only the primary colour family
 changes between brands — every other rule below holds for all brands. This document is the source of
 truth; where it and older notes disagree, this document wins.
+
 
 The canonical implementations are:
 

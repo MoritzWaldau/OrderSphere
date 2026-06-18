@@ -15,6 +15,12 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
     public string? TrackingNumber { get; private set; }
     public Guid CorrelationId { get; private set; }
 
+    /// <summary>Applied coupon code, or null when no coupon was used.</summary>
+    public string? CouponCode { get; private set; }
+
+    /// <summary>Discount applied to the order subtotal, in EUR. Zero when no coupon was used.</summary>
+    public decimal DiscountAmount { get; private set; }
+
     private readonly List<OrderItem> _items = [];
     public IReadOnlyCollection<OrderItem> Items => _items;
 
@@ -46,6 +52,13 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
         CorrelationId = correlationId;
 
         RaiseDomainEvent(new OrderCreatedDomainEvent(Id, CustomerId, CorrelationId));
+    }
+
+    /// <summary>Records a redeemed coupon and its discount. Set once during order creation.</summary>
+    public void ApplyDiscount(string couponCode, decimal amount)
+    {
+        CouponCode = couponCode;
+        DiscountAmount = amount;
     }
 
     public void Confirm(string trackingNumber)

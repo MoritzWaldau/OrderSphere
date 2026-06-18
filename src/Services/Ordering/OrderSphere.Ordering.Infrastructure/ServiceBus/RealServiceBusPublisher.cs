@@ -24,6 +24,7 @@ public sealed class RealServiceBusPublisher(IEventBus eventBus)
                 checkoutCartEvent.CheckoutCart.ShippingAddress.PostalCode,
                 checkoutCartEvent.CheckoutCart.ShippingAddress.Country),
             PaymentMethod = checkoutCartEvent.CheckoutCart.PaymentMethod.ToString(),
+            CouponCode = checkoutCartEvent.CheckoutCart.CouponCode,
             Items = checkoutCartEvent.Items.Select(i => new OrderItemDto(
                 i.ProductId, i.ProductName, i.Quantity, i.Price)).ToList()
         };

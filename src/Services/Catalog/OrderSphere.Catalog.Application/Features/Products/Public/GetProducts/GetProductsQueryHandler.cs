@@ -36,8 +36,17 @@ public sealed class GetProductsQueryHandler(ICatalogDbContext context)
 
         var total = await query.CountAsync(ct);
 
-        var items = await query
-            .OrderBy(p => p.Name)
+        var ordered = (request.SortBy, request.SortDir) switch
+        {
+            (ProductSortBy.Price, SortDirection.Desc) => query.OrderByDescending(p => p.Price.Amount),
+            (ProductSortBy.Price, _) => query.OrderBy(p => p.Price.Amount),
+            (ProductSortBy.Newest, SortDirection.Asc) => query.OrderBy(p => p.CreatedAt),
+            (ProductSortBy.Newest, _) => query.OrderByDescending(p => p.CreatedAt),
+            (_, SortDirection.Desc) => query.OrderByDescending(p => p.Name),
+            _ => query.OrderBy(p => p.Name),
+        };
+
+        var items = await ordered
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .Select(p => new ProductDto(

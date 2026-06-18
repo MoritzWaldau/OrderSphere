@@ -1,50 +1,50 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
+using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Application.Models;
 using OrderSphere.Ordering.Domain.Errors;
 
 namespace OrderSphere.Ordering.Application.Features.Coupon;
 
 public sealed class ValidateCouponQueryHandler(
+    IOrderingDbContext context,
     ILogger<ValidateCouponQueryHandler> logger)
     : IQueryHandler<ValidateCouponQuery, Result<CouponValidationDto>>
 {
-    private static readonly IReadOnlyDictionary<string, CouponDefinition> KnownCoupons =
-        new Dictionary<string, CouponDefinition>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["WELCOME10"] = new CouponDefinition(FlatAmount: 10m),
-            ["SUMMER15"] = new CouponDefinition(FlatAmount: 15m, MinSubtotal: 100m)
-        };
-
-    public Task<Result<CouponValidationDto>> Handle(ValidateCouponQuery request, CancellationToken cancellationToken)
+    public async Task<Result<CouponValidationDto>> Handle(ValidateCouponQuery request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Code))
-            return Task.FromResult(Result<CouponValidationDto>.Failure(CouponErrors.CodeRequired));
+            return Result<CouponValidationDto>.Failure(CouponErrors.CodeRequired);
 
-        if (!KnownCoupons.TryGetValue(request.Code.Trim(), out var coupon))
+        var normalized = Domain.Entities.Coupon.Normalize(request.Code);
+        var coupon = await context.Coupons
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Code == normalized, cancellationToken);
+
+        if (coupon is null)
         {
             logger.LogInformation("Coupon code not found: {Code}", request.Code);
-            return Task.FromResult(Result<CouponValidationDto>.Failure(CouponErrors.InvalidCode));
+            return Result<CouponValidationDto>.Failure(CouponErrors.InvalidCode);
         }
 
-        if (coupon.MinSubtotal is { } minSubtotal && request.Subtotal < minSubtotal)
+        var discountResult = coupon.CalculateDiscount(request.Subtotal, DateTime.UtcNow);
+        if (discountResult.IsFailure)
         {
-            return Task.FromResult(Result<CouponValidationDto>.Success(new CouponValidationDto(
-                request.Code,
+            // Not-yet-valid / min-subtotal / usage-limit surface as a non-applicable coupon rather
+            // than a hard error, so the checkout UI can show the reason without blocking the page.
+            return Result<CouponValidationDto>.Success(new CouponValidationDto(
+                coupon.Code,
                 IsValid: false,
                 DiscountAmount: 0m,
-                Message: $"Gutschein gilt erst ab einem Bestellwert von {minSubtotal:0.00} €.")));
+                Message: discountResult.Error.Description));
         }
 
-        var discount = Math.Min(coupon.FlatAmount, request.Subtotal);
-
-        return Task.FromResult(Result<CouponValidationDto>.Success(new CouponValidationDto(
-            request.Code,
+        return Result<CouponValidationDto>.Success(new CouponValidationDto(
+            coupon.Code,
             IsValid: true,
-            DiscountAmount: discount,
-            Message: "Gutschein wurde angewendet.")));
+            DiscountAmount: discountResult.Value,
+            Message: "Gutschein wurde angewendet."));
     }
-
-    private sealed record CouponDefinition(decimal FlatAmount, decimal? MinSubtotal = null);
 }

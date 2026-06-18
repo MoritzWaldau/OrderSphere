@@ -10,4 +10,5 @@ namespace OrderSphere.Ordering.Api.Models;
 /// </summary>
 public sealed record CheckoutRequest(
     Address ShippingAddress,
-    PaymentMethod PaymentMethod);
+    PaymentMethod PaymentMethod,
+    string? CouponCode = null);

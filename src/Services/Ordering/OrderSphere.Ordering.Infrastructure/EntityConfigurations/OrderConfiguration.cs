@@ -17,6 +17,8 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.Status).HasConversion<int>().IsRequired();
         builder.Property(o => o.TrackingNumber).HasMaxLength(20);
         builder.Property(o => o.CorrelationId).IsRequired();
+        builder.Property(o => o.CouponCode).HasMaxLength(40);
+        builder.Property(o => o.DiscountAmount).HasPrecision(18, 2);
 
         builder.HasIndex(o => o.CorrelationId).IsUnique();
 

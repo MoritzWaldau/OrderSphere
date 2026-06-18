@@ -76,7 +76,7 @@
         else
         {
             <MudText Typo="Typo.h5" Class="mb-6" Style="font-weight: 600;">
-                @L["Search.ResultsCount", _results.Count, Query!]
+                @L["Search.ResultsCount", _totalCount, Query!]
             </MudText>
 
             <MudGrid Spacing="3">
@@ -90,6 +90,14 @@
                     </MudItem>
                 }
             </MudGrid>
+
+            @if (_totalPages > 1)
+            {
+                <MudStack AlignItems="AlignItems.Center" Class="mt-8">
+                    <MudPagination Color="Color.Primary" Count="_totalPages"
+                                   Selected="_page" SelectedChanged="OnPageChangedAsync" />
+                </MudStack>
+            }
         }
     </MudContainer>
 </section>
@@ -102,6 +110,11 @@
     private List<ProductDto> _results = [];
     private bool _loading;
 
+    private const int PageSize = 12;
+    private int _page = 1;
+    private int _totalCount;
+    private int _totalPages;
+
     protected override void OnInitialized()
     {
         _queryInput = Query ?? string.Empty;
@@ -110,6 +123,7 @@
     protected override async Task OnParametersSetAsync()
     {
         _queryInput = Query ?? string.Empty;
+        _page = 1;
         await RunSearchAsync();
     }
 
@@ -118,37 +132,46 @@
         if (string.IsNullOrWhiteSpace(Query))
         {
             _results = [];
+            _totalCount = 0;
+            _totalPages = 0;
             return;
         }
 
         _loading = true;
         try
         {
-            var res = await Catalog.GetProductsAsync();
+            var res = await Catalog.GetProductsAsync(
+                new ProductQuery(Page: _page, PageSize: PageSize, Search: Query.Trim()));
             if (!res.IsSuccess)
             {
                 Snackbar.Add(res.Error!.Message, Severity.Error);
                 _results = [];
+                _totalCount = 0;
+                _totalPages = 0;
                 return;
             }
 
-            var all = res.Value!.Items;
-            var term = Query.Trim();
-            _results = all.Where(p =>
-                (p.Name?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (p.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (p.CategoryName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
-                .ToList();
+            _results = res.Value!.Items.ToList();
+            _totalCount = res.Value.TotalCount;
+            _totalPages = res.Value.TotalPages;
         }
         catch (Exception ex)
         {
             Snackbar.Add(L["Search.Error", ex.Message], Severity.Error);
             _results = [];
+            _totalCount = 0;
+            _totalPages = 0;
         }
         finally
         {
             _loading = false;
         }
+    }
+
+    private async Task OnPageChangedAsync(int page)
+    {
+        _page = page;
+        await RunSearchAsync();
     }
 
     private void OpenDetails(ProductDto product)

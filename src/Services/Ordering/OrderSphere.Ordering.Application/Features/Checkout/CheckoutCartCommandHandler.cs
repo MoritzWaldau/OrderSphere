@@ -103,7 +103,8 @@ public sealed class CheckoutCartCommandHandler(
                     request.CustomerEmail,
                     request.CustomerName,
                     request.ShippingAddress,
-                    request.PaymentMethod),
+                    request.PaymentMethod,
+                    request.CouponCode),
                 orderItemDtos);
 
             await serviceBusPublisher.PublishCheckoutCartEventAsync(checkoutCartEvent, cancellationToken);

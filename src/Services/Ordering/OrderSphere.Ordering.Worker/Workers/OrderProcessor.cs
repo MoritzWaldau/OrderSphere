@@ -132,13 +132,18 @@ public sealed class OrderProcessor(
                         orderItems,
                         evt.CorrelationId);
 
+                    // Apply a coupon (if carried through checkout) within this transaction.
+                    // The discount is computed server-side — the client only sends the code.
+                    var subtotal = evt.Items.Sum(i => i.Price * i.Quantity);
+                    var discount = await ApplyCouponAsync(evt.CouponCode, subtotal, order, context, ct);
+
                     await context.Orders.AddAsync(order, ct);
 
                     var paymentEvent = new PaymentRequestedIntegrationEvent
                     {
                         CorrelationId = evt.CorrelationId,
                         OrderId = order.Id.Value,
-                        Amount = evt.Items.Sum(i => i.Price * i.Quantity),
+                        Amount = subtotal - discount,
                         Currency = "EUR",
                         PaymentMethod = evt.PaymentMethod,
                         CustomerEmail = evt.CustomerEmail
@@ -178,6 +183,48 @@ public sealed class OrderProcessor(
                 evt.CustomerId, evt.CorrelationId);
             return ProcessResult.Fail(ex.Message);
         }
+    }
+
+    /// <summary>
+    /// Re-validates and redeems a coupon within the order-creation transaction, sets the discount
+    /// on the order, and returns the discount amount. A coupon that has become invalid between
+    /// checkout and processing (expired, usage limit) is ignored — checkout is not failed for it.
+    /// </summary>
+    private async Task<decimal> ApplyCouponAsync(
+        string? couponCode, decimal subtotal, Order order, OrderingDbContext context, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(couponCode))
+            return 0m;
+
+        var normalized = Coupon.Normalize(couponCode);
+        var coupon = await context.Coupons
+            .AsTracking()
+            .FirstOrDefaultAsync(c => c.Code == normalized, ct);
+
+        if (coupon is null)
+        {
+            logger.LogWarning("Coupon {Code} not found during order processing; ignoring.", normalized);
+            return 0m;
+        }
+
+        var discountResult = coupon.CalculateDiscount(subtotal, DateTime.UtcNow);
+        if (discountResult.IsFailure)
+        {
+            logger.LogWarning("Coupon {Code} not applicable ({Reason}); ignoring.", normalized, discountResult.Error.Code);
+            return 0m;
+        }
+
+        var redeem = coupon.Redeem();
+        if (redeem.IsFailure)
+        {
+            logger.LogWarning("Coupon {Code} could not be redeemed ({Reason}); ignoring.", normalized, redeem.Error.Code);
+            return 0m;
+        }
+
+        order.ApplyDiscount(normalized, discountResult.Value);
+        logger.LogInformation("Applied coupon {Code} to order {CorrelationId}: -{Discount}",
+            normalized, order.CorrelationId, discountResult.Value);
+        return discountResult.Value;
     }
 
     private static bool IsUniqueConstraintViolation(DbUpdateException ex)

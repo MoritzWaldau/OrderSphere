@@ -331,6 +331,132 @@
   <data name="Shop.LoadError" xml:space="preserve">
     <value>Error while loading: {0}</value>
   </data>
+  <data name="Shop.SearchPlaceholder" xml:space="preserve">
+    <value>Search products …</value>
+  </data>
+  <data name="Shop.CategoryFilter" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Shop.SortLabel" xml:space="preserve">
+    <value>Sort</value>
+  </data>
+  <data name="Shop.SortNameAsc" xml:space="preserve">
+    <value>Name A–Z</value>
+  </data>
+  <data name="Shop.SortNameDesc" xml:space="preserve">
+    <value>Name Z–A</value>
+  </data>
+  <data name="Shop.SortPriceAsc" xml:space="preserve">
+    <value>Price: low to high</value>
+  </data>
+  <data name="Shop.SortPriceDesc" xml:space="preserve">
+    <value>Price: high to low</value>
+  </data>
+  <data name="Shop.SortNewest" xml:space="preserve">
+    <value>Newest first</value>
+  </data>
+  <data name="Shop.MinPrice" xml:space="preserve">
+    <value>Min price</value>
+  </data>
+  <data name="Shop.MaxPrice" xml:space="preserve">
+    <value>Max price</value>
+  </data>
+  <data name="Shop.ApplyFilter" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Shop.ResetFilter" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="Admin.Coupons.PageTitle" xml:space="preserve">
+    <value>Coupons — OrderSphere</value>
+  </data>
+  <data name="Admin.Coupons.Title" xml:space="preserve">
+    <value>Coupons</value>
+  </data>
+  <data name="Admin.Coupons.Subtitle" xml:space="preserve">
+    <value>Manage discount codes</value>
+  </data>
+  <data name="Admin.Coupons.New" xml:space="preserve">
+    <value>New coupon</value>
+  </data>
+  <data name="Admin.Coupons.None" xml:space="preserve">
+    <value>No coupons yet</value>
+  </data>
+  <data name="Admin.Coupons.ColCode" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Admin.Coupons.ColDiscount" xml:space="preserve">
+    <value>Discount</value>
+  </data>
+  <data name="Admin.Coupons.ColMinSubtotal" xml:space="preserve">
+    <value>Minimum subtotal</value>
+  </data>
+  <data name="Admin.Coupons.ColValidity" xml:space="preserve">
+    <value>Validity</value>
+  </data>
+  <data name="Admin.Coupons.ColUsage" xml:space="preserve">
+    <value>Redemptions</value>
+  </data>
+  <data name="Admin.Coupons.ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Admin.Coupons.ColAction" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Admin.Coupons.TypeFlat" xml:space="preserve">
+    <value>Fixed amount</value>
+  </data>
+  <data name="Admin.Coupons.TypePercentage" xml:space="preserve">
+    <value>Percentage</value>
+  </data>
+  <data name="Admin.Coupons.FieldCode" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Admin.Coupons.FieldType" xml:space="preserve">
+    <value>Discount type</value>
+  </data>
+  <data name="Admin.Coupons.FieldValue" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="Admin.Coupons.FieldMinSubtotal" xml:space="preserve">
+    <value>Minimum subtotal</value>
+  </data>
+  <data name="Admin.Coupons.FieldValidFrom" xml:space="preserve">
+    <value>Valid from</value>
+  </data>
+  <data name="Admin.Coupons.FieldValidUntil" xml:space="preserve">
+    <value>Valid until</value>
+  </data>
+  <data name="Admin.Coupons.FieldMaxRedemptions" xml:space="preserve">
+    <value>Max redemptions</value>
+  </data>
+  <data name="Admin.Coupons.FieldActive" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Admin.Coupons.CreateTitle" xml:space="preserve">
+    <value>Create coupon</value>
+  </data>
+  <data name="Admin.Coupons.EditTitle" xml:space="preserve">
+    <value>Edit coupon</value>
+  </data>
+  <data name="Admin.Coupons.Saved" xml:space="preserve">
+    <value>Coupon saved.</value>
+  </data>
+  <data name="Admin.Coupons.Deactivated" xml:space="preserve">
+    <value>Coupon deactivated.</value>
+  </data>
+  <data name="OrderSummary.Discount" xml:space="preserve">
+    <value>Discount</value>
+  </data>
+  <data name="Checkout.CouponPlaceholder" xml:space="preserve">
+    <value>Coupon code</value>
+  </data>
+  <data name="Checkout.CouponApply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Checkout.CouponRemove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
   <data name="Categories.PageTitle" xml:space="preserve">
     <value>Categories — OrderSphere</value>
   </data>

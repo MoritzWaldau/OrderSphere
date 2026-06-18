@@ -11,6 +11,7 @@ using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Application.Features.Checkout;
+using OrderSphere.Ordering.Domain.Entities;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Events;
 using OrderSphere.Ordering.Domain.ValueObjects;
@@ -127,6 +128,7 @@ public sealed class CheckoutToPaymentFlowTests
                 e.CheckoutCart.ShippingAddress.PostalCode,
                 e.CheckoutCart.ShippingAddress.Country),
             PaymentMethod = e.CheckoutCart.PaymentMethod.ToString(),
+            CouponCode = e.CheckoutCart.CouponCode,
             Items = e.Items.Select(i => new OrderItemDto(i.ProductId, i.ProductName, i.Quantity, i.Price)).ToList()
         };
 
@@ -191,6 +193,48 @@ public sealed class CheckoutToPaymentFlowTests
         payment.Currency.Should().Be("EUR");
         payment.PaymentMethod.Should().Be(PaymentMethod.CreditCard.ToString());
         payment.CustomerEmail.Should().Be("customer@example.com");
+    }
+
+    [Fact]
+    public async Task Worker_applies_coupon_reduces_payment_amount_and_redeems_once()
+    {
+        var (catalog, basket) = WireSuccessfulClients();
+        var publisher = new CapturingPublisher();
+        var idempotency = new InMemoryCheckoutIdempotencyStore();
+
+        // Checkout carries a coupon code.
+        await NewHandler(catalog, basket, publisher, idempotency)
+            .Handle(NewCommand(Guid.NewGuid()) with { CouponCode = "SAVE20" }, CancellationToken.None);
+        var orderEvent = publisher.Published[0];
+
+        await using var context = NewContext();
+
+        // Seed a flat €20 coupon for the worker to redeem.
+        context.Coupons.Add(new Coupon("SAVE20", DiscountType.Flat, 20m,
+            minSubtotal: null, validFrom: null, validUntil: null, maxRedemptions: null, isActive: true));
+        await context.SaveChangesAsync();
+
+        var processResult = await NewProcessor()
+            .ProcessOrderAsync(ToIntegrationEvent(orderEvent), context, CancellationToken.None);
+        processResult.IsSuccess.Should().BeTrue();
+
+        // The order records the coupon and discount.
+        var order = await context.Orders
+            .Where(o => o.CorrelationId == orderEvent.CorrelationId)
+            .Select(o => new { o.Id, o.DiscountAmount, o.CouponCode })
+            .SingleAsync();
+        order.DiscountAmount.Should().Be(20m);
+        order.CouponCode.Should().Be("SAVE20");
+
+        // The coupon was redeemed exactly once.
+        var redeemed = await context.Coupons.Where(c => c.Code == "SAVE20")
+            .Select(c => c.RedeemedCount).SingleAsync();
+        redeemed.Should().Be(1);
+
+        // Payment amount is the subtotal minus the discount: 168.99 − 20 = 148.99.
+        var outbox = await context.OutboxMessages.SingleAsync();
+        var payment = JsonSerializer.Deserialize<PaymentRequestedIntegrationEvent>(outbox.Content);
+        payment!.Amount.Should().Be(148.99m);
     }
 
     [Fact]

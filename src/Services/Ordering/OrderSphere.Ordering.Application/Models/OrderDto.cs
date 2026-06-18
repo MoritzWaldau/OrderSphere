@@ -11,6 +11,8 @@ public sealed record OrderDto(
     OrderShippingAddressDto ShippingAddress,
     IReadOnlyList<OrderLineDto> Items,
     decimal Total,
+    decimal DiscountAmount,
+    string? CouponCode,
     DateTime CreatedAt);
 
 public sealed record OrderShippingAddressDto(

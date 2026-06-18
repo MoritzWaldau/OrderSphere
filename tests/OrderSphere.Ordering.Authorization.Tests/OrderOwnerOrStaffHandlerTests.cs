@@ -45,6 +45,8 @@ public sealed class OrderOwnerOrStaffHandlerTests
             "Jane", "Doe", "Teststr. 1", "Berlin", "10115", "DE"),
         Items: [],
         Total: 99.99m,
+        DiscountAmount: 0m,
+        CouponCode: null,
         CreatedAt: DateTime.UtcNow);
 
     private readonly IAuthorizationHandler _handler = new OrderOwnerOrStaffHandler();

@@ -331,6 +331,132 @@
   <data name="Shop.LoadError" xml:space="preserve">
     <value>Fehler beim Laden: {0}</value>
   </data>
+  <data name="Shop.SearchPlaceholder" xml:space="preserve">
+    <value>Produkte suchen …</value>
+  </data>
+  <data name="Shop.CategoryFilter" xml:space="preserve">
+    <value>Kategorie</value>
+  </data>
+  <data name="Shop.SortLabel" xml:space="preserve">
+    <value>Sortieren</value>
+  </data>
+  <data name="Shop.SortNameAsc" xml:space="preserve">
+    <value>Name A–Z</value>
+  </data>
+  <data name="Shop.SortNameDesc" xml:space="preserve">
+    <value>Name Z–A</value>
+  </data>
+  <data name="Shop.SortPriceAsc" xml:space="preserve">
+    <value>Preis aufsteigend</value>
+  </data>
+  <data name="Shop.SortPriceDesc" xml:space="preserve">
+    <value>Preis absteigend</value>
+  </data>
+  <data name="Shop.SortNewest" xml:space="preserve">
+    <value>Neueste zuerst</value>
+  </data>
+  <data name="Shop.MinPrice" xml:space="preserve">
+    <value>Preis ab</value>
+  </data>
+  <data name="Shop.MaxPrice" xml:space="preserve">
+    <value>Preis bis</value>
+  </data>
+  <data name="Shop.ApplyFilter" xml:space="preserve">
+    <value>Anwenden</value>
+  </data>
+  <data name="Shop.ResetFilter" xml:space="preserve">
+    <value>Zurücksetzen</value>
+  </data>
+  <data name="Admin.Coupons.PageTitle" xml:space="preserve">
+    <value>Gutscheine — OrderSphere</value>
+  </data>
+  <data name="Admin.Coupons.Title" xml:space="preserve">
+    <value>Gutscheine</value>
+  </data>
+  <data name="Admin.Coupons.Subtitle" xml:space="preserve">
+    <value>Rabattcodes verwalten</value>
+  </data>
+  <data name="Admin.Coupons.New" xml:space="preserve">
+    <value>Neuer Gutschein</value>
+  </data>
+  <data name="Admin.Coupons.None" xml:space="preserve">
+    <value>Noch keine Gutscheine vorhanden</value>
+  </data>
+  <data name="Admin.Coupons.ColCode" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Admin.Coupons.ColDiscount" xml:space="preserve">
+    <value>Rabatt</value>
+  </data>
+  <data name="Admin.Coupons.ColMinSubtotal" xml:space="preserve">
+    <value>Mindestbestellwert</value>
+  </data>
+  <data name="Admin.Coupons.ColValidity" xml:space="preserve">
+    <value>Gültigkeit</value>
+  </data>
+  <data name="Admin.Coupons.ColUsage" xml:space="preserve">
+    <value>Einlösungen</value>
+  </data>
+  <data name="Admin.Coupons.ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Admin.Coupons.ColAction" xml:space="preserve">
+    <value>Aktion</value>
+  </data>
+  <data name="Admin.Coupons.TypeFlat" xml:space="preserve">
+    <value>Fester Betrag</value>
+  </data>
+  <data name="Admin.Coupons.TypePercentage" xml:space="preserve">
+    <value>Prozentual</value>
+  </data>
+  <data name="Admin.Coupons.FieldCode" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Admin.Coupons.FieldType" xml:space="preserve">
+    <value>Rabattart</value>
+  </data>
+  <data name="Admin.Coupons.FieldValue" xml:space="preserve">
+    <value>Wert</value>
+  </data>
+  <data name="Admin.Coupons.FieldMinSubtotal" xml:space="preserve">
+    <value>Mindestbestellwert</value>
+  </data>
+  <data name="Admin.Coupons.FieldValidFrom" xml:space="preserve">
+    <value>Gültig ab</value>
+  </data>
+  <data name="Admin.Coupons.FieldValidUntil" xml:space="preserve">
+    <value>Gültig bis</value>
+  </data>
+  <data name="Admin.Coupons.FieldMaxRedemptions" xml:space="preserve">
+    <value>Maximale Einlösungen</value>
+  </data>
+  <data name="Admin.Coupons.FieldActive" xml:space="preserve">
+    <value>Aktiv</value>
+  </data>
+  <data name="Admin.Coupons.CreateTitle" xml:space="preserve">
+    <value>Gutschein anlegen</value>
+  </data>
+  <data name="Admin.Coupons.EditTitle" xml:space="preserve">
+    <value>Gutschein bearbeiten</value>
+  </data>
+  <data name="Admin.Coupons.Saved" xml:space="preserve">
+    <value>Gutschein gespeichert.</value>
+  </data>
+  <data name="Admin.Coupons.Deactivated" xml:space="preserve">
+    <value>Gutschein deaktiviert.</value>
+  </data>
+  <data name="OrderSummary.Discount" xml:space="preserve">
+    <value>Rabatt</value>
+  </data>
+  <data name="Checkout.CouponPlaceholder" xml:space="preserve">
+    <value>Gutscheincode</value>
+  </data>
+  <data name="Checkout.CouponApply" xml:space="preserve">
+    <value>Einlösen</value>
+  </data>
+  <data name="Checkout.CouponRemove" xml:space="preserve">
+    <value>Entfernen</value>
+  </data>
   <data name="Categories.PageTitle" xml:space="preserve">
     <value>Kategorien — OrderSphere</value>
   </data>

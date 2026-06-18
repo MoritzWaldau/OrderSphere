@@ -22,10 +22,19 @@
             <MudDivider />
         }
 
+        @CouponSlot
+
         <MudStack Row="true" Justify="Justify.SpaceBetween">
             <MudText Typo="Typo.body2" Class="text-muted">@L["OrderSummary.Subtotal"]</MudText>
             <MudText Typo="Typo.body2">@Formatting.Currency(Subtotal)</MudText>
         </MudStack>
+        @if (Discount > 0)
+        {
+            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.body2" Class="text-muted">@(DiscountLabel ?? L["OrderSummary.Discount"])</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Success">−@Formatting.Currency(Discount)</MudText>
+            </MudStack>
+        }
         <MudStack Row="true" Justify="Justify.SpaceBetween">
             <MudText Typo="Typo.body2" Class="text-muted">@L["OrderSummary.Shipping"]</MudText>
             <MudText Typo="Typo.body2" Class="shipping-free">@L["OrderSummary.Free"]</MudText>
@@ -36,7 +45,7 @@
         <MudStack Row="true" Justify="Justify.SpaceBetween">
             <MudText Typo="Typo.h6" Style="font-weight:700;">@L["OrderSummary.Total"]</MudText>
             <MudText Typo="Typo.h6" Style="font-weight:700;color:var(--mud-palette-primary);">
-                @Formatting.Currency(Subtotal)
+                @Formatting.Currency(Subtotal - Discount)
             </MudText>
         </MudStack>
 
@@ -47,8 +56,11 @@
 @code {
     [Parameter] public string Title { get; set; } = "Zusammenfassung";
     [Parameter] public decimal Subtotal { get; set; }
+    [Parameter] public decimal Discount { get; set; }
+    [Parameter] public string? DiscountLabel { get; set; }
     [Parameter] public bool ShowLineItems { get; set; }
     [Parameter] public IReadOnlyList<CartItemDto> Items { get; set; } = [];
     [Parameter] public string StickyTop { get; set; } = "24px";
+    [Parameter] public RenderFragment? CouponSlot { get; set; }
     [Parameter] public RenderFragment? Actions { get; set; }
 }

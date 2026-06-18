@@ -92,6 +92,84 @@ namespace OrderSphere.Ordering.Infrastructure.Migrations
                     b.ToTable("outbox_messages", (string)null);
                 });
 
+            modelBuilder.Entity("OrderSphere.Ordering.Domain.Entities.Coupon", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DiscountType")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("MaxRedemptions")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("MinSubtotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("RedeemedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ValidFrom")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ValidUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Value")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("coupons", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("0192a000-0000-7000-8000-000000000001"),
+                            Code = "WELCOME10",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DiscountType = 0,
+                            IsActive = true,
+                            IsDeleted = false,
+                            RedeemedCount = 0,
+                            Value = 10m
+                        },
+                        new
+                        {
+                            Id = new Guid("0192a000-0000-7000-8000-000000000002"),
+                            Code = "SUMMER15",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DiscountType = 0,
+                            IsActive = true,
+                            IsDeleted = false,
+                            MinSubtotal = 100m,
+                            RedeemedCount = 0,
+                            Value = 15m
+                        });
+                });
+
             modelBuilder.Entity("OrderSphere.Ordering.Domain.Entities.Order", b =>
                 {
                     b.Property<Guid>("Id")
@@ -100,11 +178,19 @@ namespace OrderSphere.Ordering.Infrastructure.Migrations
                     b.Property<Guid>("CorrelationId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("CouponCode")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("CustomerId")
                         .HasColumnType("uuid");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");

@@ -17,6 +17,7 @@ public sealed record CheckoutCartDto(
     string CustomerEmail,
     string CustomerName,
     Address ShippingAddress,
-    PaymentMethod PaymentMethod);
+    PaymentMethod PaymentMethod,
+    string? CouponCode = null);
 
 public sealed record OrderItemEventDto(Guid ProductId, string ProductName, int Quantity, decimal Price);

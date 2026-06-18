@@ -5,6 +5,7 @@ using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.BuildingBlocks.ValueObjects;
+using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Entities;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.ValueObjects;
@@ -15,6 +16,7 @@ namespace OrderSphere.Ordering.Worker.Workers;
 public sealed class OrderProcessor(
     ServiceBusClient serviceBusClient,
     IServiceScopeFactory scopeFactory,
+    IShippingRateProvider shippingRateProvider,
     ILogger<OrderProcessor> logger) : BackgroundService
 {
     private const string QueueName = "orders";
@@ -137,13 +139,16 @@ public sealed class OrderProcessor(
                     var subtotal = evt.Items.Sum(i => i.Price * i.Quantity);
                     var discount = await ApplyCouponAsync(evt.CouponCode, subtotal, order, context, ct);
 
+                    var shipping = shippingRateProvider.Calculate(subtotal);
+                    order.SetShippingCost(shipping);
+
                     await context.Orders.AddAsync(order, ct);
 
                     var paymentEvent = new PaymentRequestedIntegrationEvent
                     {
                         CorrelationId = evt.CorrelationId,
                         OrderId = order.Id.Value,
-                        Amount = subtotal - discount,
+                        Amount = subtotal - discount + shipping,
                         Currency = "EUR",
                         PaymentMethod = evt.PaymentMethod,
                         CustomerEmail = evt.CustomerEmail

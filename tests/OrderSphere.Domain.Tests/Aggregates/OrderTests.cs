@@ -34,6 +34,37 @@ public sealed class OrderTests
     }
 
     [Fact]
+    public void Constructor_AppendsCreatedStatusHistory()
+    {
+        var order = CreateOrder();
+
+        order.StatusHistory.Should().ContainSingle()
+            .Which.Status.Should().Be(OrderStatus.Created);
+    }
+
+    [Fact]
+    public void StatusTransitions_AppendTimelineEntries_InOrder()
+    {
+        var order = CreateOrder();
+        order.Confirm("TRACK-1");
+        order.MarkShipped();
+        order.MarkDelivered();
+
+        order.StatusHistory.Select(h => h.Status).Should()
+            .Equal(OrderStatus.Created, OrderStatus.Paid, OrderStatus.Shipped, OrderStatus.Delivered);
+    }
+
+    [Fact]
+    public void SetShippingCost_SetsValue()
+    {
+        var order = CreateOrder();
+
+        order.SetShippingCost(4.99m);
+
+        order.ShippingCost.Should().Be(4.99m);
+    }
+
+    [Fact]
     public void Constructor_EmptyItems_Throws()
     {
         var act = () => CreateOrder([]);

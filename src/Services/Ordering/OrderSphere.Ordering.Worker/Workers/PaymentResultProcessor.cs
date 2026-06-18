@@ -5,6 +5,7 @@ using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Services;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 
@@ -65,8 +66,9 @@ public sealed class PaymentResultProcessor(
             await using var scope = scopeFactory.CreateAsyncScope();
             var context = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
             var inboxStore = scope.ServiceProvider.GetRequiredService<IInboxStore>();
+            var catalogClient = scope.ServiceProvider.GetRequiredService<ICatalogClient>();
 
-            var outcome = await ProcessPaymentResultAsync(evt, context, inboxStore, args.CancellationToken);
+            var outcome = await ProcessPaymentResultAsync(evt, context, inboxStore, catalogClient, args.CancellationToken);
 
             if (outcome == PaymentResultOutcome.OrderNotFound)
             {
@@ -90,6 +92,7 @@ public sealed class PaymentResultProcessor(
         PaymentProcessedIntegrationEvent evt,
         OrderingDbContext context,
         IInboxStore inboxStore,
+        ICatalogClient catalogClient,
         CancellationToken ct)
     {
         if (await inboxStore.HasBeenProcessedAsync(evt.Id, ct))
@@ -109,6 +112,14 @@ public sealed class PaymentResultProcessor(
 
         if (evt.Succeeded)
         {
+            // Confirm the stock reservation (decrements on-hand stock) before persisting the
+            // order state. Confirm is idempotent; on failure we throw so the message is retried
+            // rather than leaving stock reserved-but-uncommitted for a paid order.
+            var confirm = await catalogClient.ConfirmReservationAsync(order.CorrelationId, ct);
+            if (confirm.IsFailure)
+                throw new InvalidOperationException(
+                    $"Reservation confirm failed for order {order.Id} (correlation {order.CorrelationId}): {confirm.Error.Code}");
+
             order.Confirm(TrackingNumberGenerator.Generate());
             OrderingMetrics.OrdersConfirmed.Add(1);
             logger.LogInformation("Order {OrderId} confirmed after payment. TrackingNumber: {TrackingNumber}",
@@ -120,6 +131,12 @@ public sealed class PaymentResultProcessor(
             OrderingMetrics.OrdersCancelled.Add(1);
             logger.LogWarning("Order {OrderId} cancelled due to payment failure: {Reason}",
                 order.Id, evt.FailureReason);
+
+            // Release the hold (best-effort: the TTL sweeper reclaims it if this call fails).
+            var release = await catalogClient.ReleaseReservationAsync(order.CorrelationId, ct);
+            if (release.IsFailure)
+                logger.LogWarning("Reservation release failed for order {OrderId}; TTL sweeper will reclaim it.",
+                    order.Id);
         }
 
         // Queue downstream events in the outbox — committed atomically with the order state
@@ -142,7 +159,7 @@ public sealed class PaymentResultProcessor(
                 Items = order.Items
                     .Select(i => new OrderPlacedItemDto(i.ProductName, i.Quantity, i.Price))
                     .ToList(),
-                Total = order.Items.Sum(i => i.Price * i.Quantity)
+                Total = order.Items.Sum(i => i.Price * i.Quantity) - order.DiscountAmount + order.ShippingCost
             };
             context.AddOutboxMessage(
                 nameof(OrderPlacedIntegrationEvent),

@@ -30,6 +30,7 @@
                               Items="_cartItems"
                               Subtotal="Subtotal"
                               Discount="_discount"
+                              ShippingCost="Shipping"
                               StickyTop="100px">
                     <CouponSlot>
                         @if (string.IsNullOrEmpty(_appliedCoupon))
@@ -101,6 +102,9 @@
     private bool _couponValidating;
 
     private decimal Subtotal => _cartItems.Sum(i => i.Quantity * i.Price);
+
+    // Estimate; the worker recomputes shipping authoritatively from the (pre-discount) subtotal.
+    private decimal Shipping => ShippingEstimate.For(Subtotal);
 
     private async Task ApplyCouponAsync()
     {
@@ -190,7 +194,7 @@
             }
 
             await CartState.RefreshAsync();
-            var total = Subtotal - _discount;
+            var total = Subtotal - _discount + Shipping;
             Navigation.NavigateTo(
                 $"/checkout/success?correlationId={result.Value}&total={total.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}");
         }

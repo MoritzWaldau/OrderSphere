@@ -56,9 +56,14 @@ public sealed class GetOrdersByCustomerQueryHandler(
                 o.ShippingAddress.Street, o.ShippingAddress.City,
                 o.ShippingAddress.PostalCode, o.ShippingAddress.Country),
             o.Items.Select(i => new OrderLineDto(i.ProductId.Value, i.ProductName, i.Quantity, i.Price)).ToList(),
-            subtotal - o.DiscountAmount,
+            subtotal - o.DiscountAmount + o.ShippingCost,
             o.DiscountAmount,
             o.CouponCode,
-            o.CreatedAt);
+            o.CreatedAt,
+            o.ShippingCost,
+            o.StatusHistory
+                .OrderBy(h => h.OccurredAt)
+                .Select(h => new OrderStatusEntryDto(h.Status.ToString(), h.OccurredAt, h.Note))
+                .ToList());
     }
 }

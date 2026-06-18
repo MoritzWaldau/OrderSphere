@@ -19,6 +19,7 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.CorrelationId).IsRequired();
         builder.Property(o => o.CouponCode).HasMaxLength(40);
         builder.Property(o => o.DiscountAmount).HasPrecision(18, 2);
+        builder.Property(o => o.ShippingCost).HasPrecision(18, 2);
 
         builder.HasIndex(o => o.CorrelationId).IsUnique();
 
@@ -27,6 +28,18 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasForeignKey("OrderId")
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Append-only status timeline, owned by the order (auto-loaded with the aggregate).
+        builder.OwnsMany(o => o.StatusHistory, history =>
+        {
+            history.ToTable("order_status_history");
+            history.HasKey(h => h.Id);
+            history.WithOwner().HasForeignKey("OrderId");
+            history.Property(h => h.Id).ValueGeneratedNever();
+            history.Property(h => h.Status).HasConversion<int>().IsRequired();
+            history.Property(h => h.OccurredAt).IsRequired();
+            history.Property(h => h.Note).HasMaxLength(200);
+        });
 
         builder.OwnsOne(o => o.ShippingAddress, address =>
         {

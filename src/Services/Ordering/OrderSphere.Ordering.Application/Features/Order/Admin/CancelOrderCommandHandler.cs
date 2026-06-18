@@ -4,6 +4,7 @@ using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Application.Abstractions;
+using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Errors;
 
 namespace OrderSphere.Ordering.Application.Features.Order.Admin;
@@ -27,6 +28,11 @@ public sealed class CancelOrderCommandHandler(
             if (order is null)
                 return Result.Failure(OrderErrors.OrderNotFoundError);
 
+            // Status before cancellation decides the stock compensation:
+            //   Created  → the reservation is still an active hold; release it.
+            //   Paid/Shipped → the reservation was confirmed (on-hand stock decremented); restore it.
+            var wasConfirmed = order.Status is not OrderStatus.Created;
+
             try { order.Cancel(); }
             catch (InvalidOperationException ex)
             {
@@ -34,18 +40,27 @@ public sealed class CancelOrderCommandHandler(
                 return Result.Failure(OrderErrors.InvalidStatusTransition);
             }
 
-            foreach (var item in order.Items)
+            if (wasConfirmed)
             {
-                var restoreResult = await catalogClient.RestoreStockAsync(item.ProductId.Value, item.Quantity, cancellationToken);
-                if (restoreResult.IsFailure)
-                    logger.LogWarning("Stock restore failed for product {ProductId} during order cancellation", item.ProductId);
+                foreach (var item in order.Items)
+                {
+                    var restoreResult = await catalogClient.RestoreStockAsync(item.ProductId.Value, item.Quantity, cancellationToken);
+                    if (restoreResult.IsFailure)
+                        logger.LogWarning("Stock restore failed for product {ProductId} during order cancellation", item.ProductId);
+                }
+            }
+            else
+            {
+                var releaseResult = await catalogClient.ReleaseReservationAsync(order.CorrelationId, cancellationToken);
+                if (releaseResult.IsFailure)
+                    logger.LogWarning("Reservation release failed for order {OrderId} during cancellation; TTL sweeper will reclaim it.", order.Id);
             }
 
             context.Orders.Update(order);
             await context.SaveChangesAsync(cancellationToken);
 
-            logger.LogInformation("Order {OrderId} cancelled. Stock restore attempted for {ItemCount} item(s).",
-                order.Id, order.Items.Count);
+            logger.LogInformation("Order {OrderId} cancelled. Stock compensation: {Mode}.",
+                order.Id, wasConfirmed ? "restore" : "release");
 
             return Result.Success();
         }

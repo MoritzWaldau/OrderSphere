@@ -90,4 +90,63 @@ public sealed class HttpCatalogClient(HttpClient httpClient, ILogger<HttpCatalog
             return Result.Failure(new Error("Catalog.Unavailable", "Catalog service unavailable."));
         }
     }
+
+    public async Task<Result> ReserveStockAsync(
+        Guid correlationId, IReadOnlyList<ReservationItem> items, CancellationToken ct = default)
+    {
+        try
+        {
+            var response = await httpClient.PostAsJsonAsync(
+                "/internal/reservations",
+                new
+                {
+                    CorrelationId = correlationId,
+                    Items = items.Select(i => new { i.ProductId, i.Quantity }),
+                }, ct);
+
+            if (response.IsSuccessStatusCode)
+                return Result.Success();
+
+            return response.StatusCode == System.Net.HttpStatusCode.Conflict
+                ? Result.Failure(new Error("Catalog.InsufficientStock", "Insufficient stock to reserve.", ErrorType.Conflict))
+                : Result.Failure(new Error("Catalog.Reserve", "Stock reservation failed."));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error reserving stock for correlation {CorrelationId}", correlationId);
+            return Result.Failure(new Error("Catalog.Unavailable", "Catalog service unavailable."));
+        }
+    }
+
+    public async Task<Result> ConfirmReservationAsync(Guid correlationId, CancellationToken ct = default)
+    {
+        try
+        {
+            var response = await httpClient.PostAsync($"/internal/reservations/{correlationId}/confirm", null, ct);
+            return response.IsSuccessStatusCode
+                ? Result.Success()
+                : Result.Failure(new Error("Catalog.ConfirmReservation", "Reservation confirm failed."));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error confirming reservation for correlation {CorrelationId}", correlationId);
+            return Result.Failure(new Error("Catalog.Unavailable", "Catalog service unavailable."));
+        }
+    }
+
+    public async Task<Result> ReleaseReservationAsync(Guid correlationId, CancellationToken ct = default)
+    {
+        try
+        {
+            var response = await httpClient.PostAsync($"/internal/reservations/{correlationId}/release", null, ct);
+            return response.IsSuccessStatusCode
+                ? Result.Success()
+                : Result.Failure(new Error("Catalog.ReleaseReservation", "Reservation release failed."));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error releasing reservation for correlation {CorrelationId}", correlationId);
+            return Result.Failure(new Error("Catalog.Unavailable", "Catalog service unavailable."));
+        }
+    }
 }

@@ -61,13 +61,58 @@ else
                             }
                         </MudStack>
                         <MudDivider Class="my-4" />
-                        <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudText Typo="Typo.h6">@L["OrderDetail.Total"]</MudText>
-                            <MudText Typo="Typo.h6" Style="font-weight:700;">
-                                @Formatting.Currency(_order.Total)
-                            </MudText>
+                        <MudStack Spacing="2">
+                            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.body2" Class="text-muted">@L["OrderSummary.Subtotal"]</MudText>
+                                <MudText Typo="Typo.body2">@Formatting.Currency(Subtotal)</MudText>
+                            </MudStack>
+                            @if (_order.DiscountAmount > 0)
+                            {
+                                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                    <MudText Typo="Typo.body2" Class="text-muted">
+                                        @L["OrderSummary.Discount"] @(_order.CouponCode is { } c ? $"({c})" : "")
+                                    </MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Success">−@Formatting.Currency(_order.DiscountAmount)</MudText>
+                                </MudStack>
+                            }
+                            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.body2" Class="text-muted">@L["OrderSummary.Shipping"]</MudText>
+                                @if (_order.ShippingCost > 0)
+                                {
+                                    <MudText Typo="Typo.body2">@Formatting.Currency(_order.ShippingCost)</MudText>
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.body2" Class="shipping-free">@L["OrderSummary.Free"]</MudText>
+                                }
+                            </MudStack>
+                            <MudDivider />
+                            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.h6">@L["OrderDetail.Total"]</MudText>
+                                <MudText Typo="Typo.h6" Style="font-weight:700;">
+                                    @Formatting.Currency(_order.Total)
+                                </MudText>
+                            </MudStack>
                         </MudStack>
                     </MudPaper>
+
+                    @if (_order.StatusHistory is { Count: > 0 } history)
+                    {
+                        <MudPaper Elevation="0" Class="surface-card-lg pa-6 mt-4">
+                            <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight:600;">@L["OrderDetail.Timeline"]</MudText>
+                            <MudTimeline TimelinePosition="TimelinePosition.Start">
+                                @foreach (var entry in history)
+                                {
+                                    <MudTimelineItem Color="@GetStatusColor(entry.Status)" Size="Size.Small">
+                                        <MudText Typo="Typo.body2" Style="font-weight:600;">@GetStatusLabel(entry.Status)</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            @Formatting.DateTime(entry.OccurredAt.ToLocalTime())
+                                        </MudText>
+                                    </MudTimelineItem>
+                                }
+                            </MudTimeline>
+                        </MudPaper>
+                    }
                 </MudItem>
 
                 <MudItem xs="12" md="4">
@@ -122,6 +167,8 @@ else
     private OrderDto? _order;
     private bool _loading = true;
 
+    private decimal Subtotal => _order?.Items.Sum(i => i.Quantity * i.Price) ?? 0m;
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -139,7 +186,9 @@ else
 
     private static Color GetStatusColor(string status) => status switch
     {
+        "Created"    => Color.Warning,
         "Pending"    => Color.Warning,
+        "Paid"       => Color.Info,
         "Processing" => Color.Info,
         "Shipped"    => Color.Primary,
         "Delivered"  => Color.Success,
@@ -149,7 +198,9 @@ else
 
     private string GetStatusLabel(string status) => status switch
     {
+        "Created"    => L["OrderStatus.Created"],
         "Pending"    => L["OrderStatus.Pending"],
+        "Paid"       => L["OrderStatus.Paid"],
         "Processing" => L["OrderStatus.Processing"],
         "Shipped"    => L["OrderStatus.Shipped"],
         "Delivered"  => L["OrderStatus.Delivered"],

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.Catalog.Api.BackgroundServices;
 using OrderSphere.Catalog.Api.Configuration;
 using OrderSphere.Catalog.Api.Endpoints;
 using OrderSphere.Catalog.Application;
@@ -48,6 +49,9 @@ builder.Services.AddHealthChecks()
 
 // gRPC
 builder.Services.AddGrpc();
+
+// Background release of expired stock reservations (saga TTL compensation).
+builder.Services.AddHostedService<ReservationSweeper>();
 
 var app = builder.Build();
 

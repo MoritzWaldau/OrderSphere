@@ -1102,4 +1102,13 @@
   <data name="Admin.Reviews.Rejected" xml:space="preserve">
     <value>Bewertung abgelehnt</value>
   </data>
+  <data name="OrderStatus.Created" xml:space="preserve">
+    <value>Erstellt</value>
+  </data>
+  <data name="OrderStatus.Paid" xml:space="preserve">
+    <value>Bezahlt</value>
+  </data>
+  <data name="OrderDetail.Timeline" xml:space="preserve">
+    <value>Verlauf</value>
+  </data>
 </root>

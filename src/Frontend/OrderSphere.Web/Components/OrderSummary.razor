@@ -37,7 +37,14 @@
         }
         <MudStack Row="true" Justify="Justify.SpaceBetween">
             <MudText Typo="Typo.body2" Class="text-muted">@L["OrderSummary.Shipping"]</MudText>
-            <MudText Typo="Typo.body2" Class="shipping-free">@L["OrderSummary.Free"]</MudText>
+            @if (ShippingCost > 0)
+            {
+                <MudText Typo="Typo.body2">@Formatting.Currency(ShippingCost)</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.body2" Class="shipping-free">@L["OrderSummary.Free"]</MudText>
+            }
         </MudStack>
 
         <MudDivider />
@@ -45,7 +52,7 @@
         <MudStack Row="true" Justify="Justify.SpaceBetween">
             <MudText Typo="Typo.h6" Style="font-weight:700;">@L["OrderSummary.Total"]</MudText>
             <MudText Typo="Typo.h6" Style="font-weight:700;color:var(--mud-palette-primary);">
-                @Formatting.Currency(Subtotal - Discount)
+                @Formatting.Currency(Subtotal - Discount + ShippingCost)
             </MudText>
         </MudStack>
 
@@ -57,6 +64,7 @@
     [Parameter] public string Title { get; set; } = "Zusammenfassung";
     [Parameter] public decimal Subtotal { get; set; }
     [Parameter] public decimal Discount { get; set; }
+    [Parameter] public decimal ShippingCost { get; set; }
     [Parameter] public string? DiscountLabel { get; set; }
     [Parameter] public bool ShowLineItems { get; set; }
     [Parameter] public IReadOnlyList<CartItemDto> Items { get; set; } = [];

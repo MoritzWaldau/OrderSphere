@@ -34,9 +34,14 @@ public sealed class CheckoutCartCommandHandler(
             return Result<Guid>.Success(existingCorrelationId);
         }
 
-        // Tracks items whose stock was decremented so they can be restored on failure.
-        // ProductId kept typed; ICatalogClient calls convert to .Value at the boundary.
-        var decremented = new List<(ProductId ProductId, int Quantity)>();
+        // CorrelationId is derived deterministically so retries produce the same value, letting
+        // the reservation and the Worker's uniqueness check deduplicate repeated checkouts.
+        var correlationId = DeriveCorrelationId(request.CustomerId, request.IdempotencyKey);
+
+        // Set once the checkout is accepted (event published). Until then, a reservation taken
+        // below is compensated (released) in the finally block.
+        var reserved = false;
+        var committed = false;
 
         try
         {
@@ -74,28 +79,24 @@ public sealed class CheckoutCartCommandHandler(
                     productResult.Value.Price));
             }
 
-            // 3. Decrement stock — every success is tracked for compensation.
-            foreach (var item in orderItemDtos)
+            // 3. Reserve stock against the correlation id. The hold is confirmed (decremented)
+            // on payment success or released on failure/cancellation/TTL — no stock is committed
+            // before payment. A single call reserves all items atomically.
+            var reserveResult = await catalogClient.ReserveStockAsync(
+                correlationId,
+                orderItemDtos.Select(i => new ReservationItem(i.ProductId, i.Quantity)).ToList(),
+                cancellationToken);
+
+            if (reserveResult.IsFailure)
             {
-                var decrementResult = await catalogClient.DecrementStockAsync(
-                    item.ProductId, item.Quantity, cancellationToken);
-
-                if (decrementResult.IsFailure)
-                {
-                    logger.LogWarning("Stock decrement failed for product {ProductId}; compensating {Count} previously decremented item(s)",
-                        item.ProductId, decremented.Count);
-                    return Result<Guid>.Failure(ProductErrors.InsufficientStockError);
-                    // finally block restores decremented items
-                }
-
-                decremented.Add((ProductId.From(item.ProductId), item.Quantity));
+                logger.LogWarning("Stock reservation failed for customer {CustomerId}: {Error}",
+                    request.CustomerId, reserveResult.Error.Code);
+                return Result<Guid>.Failure(ProductErrors.InsufficientStockError);
             }
 
-            // 4. Publish to Service Bus — if this throws, finally compensates.
-            // CorrelationId is derived deterministically so retries produce the same value,
-            // letting the Worker's CorrelationId uniqueness check deduplicate concurrent or
-            // repeated checkout attempts for the same IdempotencyKey.
-            var correlationId = DeriveCorrelationId(request.CustomerId, request.IdempotencyKey);
+            reserved = true;
+
+            // 4. Publish to Service Bus — if this throws, finally releases the reservation.
             var checkoutCartEvent = new CheckoutCartEvent(
                 correlationId,
                 new CheckoutCartDto(
@@ -110,7 +111,7 @@ public sealed class CheckoutCartCommandHandler(
             await serviceBusPublisher.PublishCheckoutCartEventAsync(checkoutCartEvent, cancellationToken);
 
             await idempotencyStore.SetCorrelationIdAsync(cacheKey, correlationId, IdempotencyTtl, cancellationToken);
-            decremented.Clear();
+            committed = true;
 
             // 5. Clear cart. Best-effort: the order is already committed to the bus.
             var clearResult = await basketClient.ClearCartItemsAsync(request.CustomerId.Value, cancellationToken);
@@ -134,23 +135,20 @@ public sealed class CheckoutCartCommandHandler(
         }
         finally
         {
-            if (decremented.Count > 0)
+            // Release the hold if it was taken but the checkout was not accepted.
+            // (If never released here, the Catalog TTL sweeper releases it after expiry.)
+            if (reserved && !committed)
             {
                 logger.LogWarning(
-                    "Restoring stock for {Count} item(s) after checkout failure for customer {CustomerId}",
-                    decremented.Count, request.CustomerId);
+                    "Releasing stock reservation after checkout failure for customer {CustomerId}. CorrelationId: {CorrelationId}",
+                    request.CustomerId, correlationId);
 
-                foreach (var (productId, quantity) in decremented)
+                var releaseResult = await catalogClient.ReleaseReservationAsync(correlationId, CancellationToken.None);
+                if (releaseResult.IsFailure)
                 {
-                    var restoreResult = await catalogClient.RestoreStockAsync(
-                        productId.Value, quantity, CancellationToken.None);
-
-                    if (restoreResult.IsFailure)
-                    {
-                        logger.LogError(
-                            "COMPENSATION FAILED: stock restore for product {ProductId} (qty {Quantity}) did not succeed. Manual reconciliation required.",
-                            productId, quantity);
-                    }
+                    logger.LogError(
+                        "COMPENSATION: immediate reservation release failed for CorrelationId {CorrelationId}; TTL sweeper will reclaim it.",
+                        correlationId);
                 }
             }
         }

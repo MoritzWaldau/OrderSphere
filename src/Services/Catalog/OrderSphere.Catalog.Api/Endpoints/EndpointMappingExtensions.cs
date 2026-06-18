@@ -51,6 +51,9 @@ public static class EndpointMappingExtensions
         app.MapGroup("internal/products")
             .MapInternalProductEndpoints();
 
+        app.MapGroup("internal/reservations")
+            .MapInternalReservationEndpoints();
+
         app.MapGrpcService<CatalogGrpcService>();
 
         return app;

@@ -83,9 +83,9 @@ public sealed class CheckoutToPaymentFlowTests
         catalog.GetProductByIdAsync(CableId, Arg.Any<CancellationToken>())
             .Returns(Result<CatalogProductInfo>.Success(
                 new CatalogProductInfo(CableId, "USB-C Cable", 9.99m, 200, true)));
-        catalog.DecrementStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+        catalog.ReserveStockAsync(Arg.Any<Guid>(), Arg.Any<IReadOnlyList<ReservationItem>>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
-        catalog.RestoreStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+        catalog.ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         return (catalog, basket);
@@ -111,6 +111,7 @@ public sealed class CheckoutToPaymentFlowTests
         new(
             Substitute.For<Azure.Messaging.ServiceBus.ServiceBusClient>(),
             Substitute.For<IServiceScopeFactory>(),
+            Substitute.For<IShippingRateProvider>(),  // unconfigured → free shipping (0)
             NullLogger<OrderProcessor>.Instance);
 
     private static CheckoutCartIntegrationEvent ToIntegrationEvent(CheckoutCartEvent e) =>
@@ -151,9 +152,11 @@ public sealed class CheckoutToPaymentFlowTests
         orderEvent.CorrelationId.Should().Be(checkoutResult.Value);
         orderEvent.Items.Should().HaveCount(2);
 
-        // Stock was decremented for each line and the cart was cleared.
-        await catalog.Received(1).DecrementStockAsync(KeyboardId, 2, Arg.Any<CancellationToken>());
-        await catalog.Received(1).DecrementStockAsync(CableId, 1, Arg.Any<CancellationToken>());
+        // Stock was reserved (not decremented) against the correlation id and the cart was cleared.
+        await catalog.Received(1).ReserveStockAsync(
+            checkoutResult.Value,
+            Arg.Is<IReadOnlyList<ReservationItem>>(items => items.Count == 2),
+            Arg.Any<CancellationToken>());
         await basket.Received(1).ClearCartItemsAsync(CustomerGuid, Arg.Any<CancellationToken>());
 
         // Stage 2 — the worker consumes the very event the API produced.
@@ -252,11 +255,12 @@ public sealed class CheckoutToPaymentFlowTests
 
         result.IsFailure.Should().BeTrue();
         publisher.Published.Should().BeEmpty();
-        await catalog.DidNotReceive().DecrementStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+        await catalog.DidNotReceive().ReserveStockAsync(
+            Arg.Any<Guid>(), Arg.Any<IReadOnlyList<ReservationItem>>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Failed_stock_decrement_compensates_and_publishes_nothing()
+    public async Task Failed_reservation_publishes_nothing_and_does_not_release()
     {
         var (_, basket) = WireSuccessfulClients();
         var catalog = Substitute.For<ICatalogClient>();
@@ -266,12 +270,9 @@ public sealed class CheckoutToPaymentFlowTests
         catalog.GetProductByIdAsync(CableId, Arg.Any<CancellationToken>())
             .Returns(Result<CatalogProductInfo>.Success(
                 new CatalogProductInfo(CableId, "USB-C Cable", 9.99m, 200, true)));
-        // First line succeeds, second fails → compensation restores the first.
-        catalog.DecrementStockAsync(KeyboardId, 2, Arg.Any<CancellationToken>()).Returns(Result.Success());
-        catalog.DecrementStockAsync(CableId, 1, Arg.Any<CancellationToken>())
-            .Returns(Result.Failure(new Error("Catalog.Stock", "Insufficient stock.")));
-        catalog.RestoreStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
+        // Reservation is rejected (insufficient availability) → nothing is published or released.
+        catalog.ReserveStockAsync(Arg.Any<Guid>(), Arg.Any<IReadOnlyList<ReservationItem>>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure(new Error("Catalog.InsufficientStock", "Insufficient stock.", ErrorType.Conflict)));
 
         var publisher = new CapturingPublisher();
         var idempotency = new InMemoryCheckoutIdempotencyStore();
@@ -281,7 +282,7 @@ public sealed class CheckoutToPaymentFlowTests
 
         result.IsFailure.Should().BeTrue();
         publisher.Published.Should().BeEmpty();
-        await catalog.Received(1).RestoreStockAsync(KeyboardId, 2, Arg.Any<CancellationToken>());
+        await catalog.DidNotReceive().ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

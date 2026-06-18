@@ -16,7 +16,14 @@ public sealed record OrderDto(
     decimal Total,
     decimal DiscountAmount,
     string? CouponCode,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    decimal ShippingCost = 0,
+    List<OrderStatusEntryDto>? StatusHistory = null);
+
+public sealed record OrderStatusEntryDto(
+    string Status,
+    DateTime OccurredAt,
+    string? Note);
 
 public sealed record OrderShippingAddressDto(
     string FirstName,

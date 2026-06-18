@@ -14,6 +14,7 @@ builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
+    // Named limiters available for endpoint-level policies via [EnableRateLimiting].
     options.AddFixedWindowLimiter("gateway-global", cfg =>
     {
         cfg.PermitLimit = 200;
@@ -30,14 +31,30 @@ builder.Services.AddRateLimiter(options =>
         cfg.QueueLimit = 5;
     });
 
+    // Global limiter runs after UseAuthentication() so the sub claim is available.
+    // Authenticated users are partitioned per user-id (120 req/min) to prevent a
+    // compromised token from consuming the IP quota of other users on shared egress
+    // (NAT, corporate proxies). Anonymous callers fall back to per-IP (30 req/min).
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
     {
-        var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        return RateLimitPartition.GetFixedWindowLimiter(clientIp, _ => new FixedWindowRateLimiterOptions
+        var sub = context.User.FindFirst("sub")?.Value;
+        if (sub is not null)
         {
-            PermitLimit = 200,
-            Window = TimeSpan.FromMinutes(1)
-        });
+            return RateLimitPartition.GetFixedWindowLimiter($"user:{sub}", _ =>
+                new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 120,
+                    Window = TimeSpan.FromMinutes(1)
+                });
+        }
+
+        var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter($"ip:{clientIp}", _ =>
+            new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 30,
+                Window = TimeSpan.FromMinutes(1)
+            });
     });
 });
 
@@ -66,9 +83,10 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.UseRateLimiter();
+// Authentication before rate limiting so the GlobalLimiter can partition on the sub claim.
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.UseMiddleware<OnboardingGateMiddleware>();
 
 app.MapReverseProxy();

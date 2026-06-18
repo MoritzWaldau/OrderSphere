@@ -1033,4 +1033,73 @@
   <data name="Admin.Users.ColDarkMode" xml:space="preserve">
     <value>Dark Mode</value>
   </data>
+  <data name="Reviews.RatingAria" xml:space="preserve">
+    <value>Bewertung {0} von 5</value>
+  </data>
+  <data name="Reviews.WriteTitle" xml:space="preserve">
+    <value>Bewertung schreiben</value>
+  </data>
+  <data name="Reviews.WriteHint" xml:space="preserve">
+    <value>Nur Kunden, die dieses Produkt gekauft haben, können es bewerten.</value>
+  </data>
+  <data name="Reviews.RatingLabel" xml:space="preserve">
+    <value>Bewertung</value>
+  </data>
+  <data name="Reviews.TitleLabel" xml:space="preserve">
+    <value>Titel</value>
+  </data>
+  <data name="Reviews.BodyLabel" xml:space="preserve">
+    <value>Ihre Bewertung</value>
+  </data>
+  <data name="Reviews.Submit" xml:space="preserve">
+    <value>Absenden</value>
+  </data>
+  <data name="Reviews.SubmitSuccess" xml:space="preserve">
+    <value>Vielen Dank für Ihre Bewertung.</value>
+  </data>
+  <data name="Reviews.ListTitle" xml:space="preserve">
+    <value>Bewertungen</value>
+  </data>
+  <data name="Reviews.Empty" xml:space="preserve">
+    <value>Noch keine Bewertungen. Seien Sie die oder der Erste.</value>
+  </data>
+  <data name="Reviews.VerifiedPurchase" xml:space="preserve">
+    <value>Verifizierter Kauf</value>
+  </data>
+  <data name="Admin.Reviews.PageTitle" xml:space="preserve">
+    <value>Bewertungen – Admin</value>
+  </data>
+  <data name="Admin.Reviews.Title" xml:space="preserve">
+    <value>Bewertungen</value>
+  </data>
+  <data name="Admin.Reviews.Subtitle" xml:space="preserve">
+    <value>Produktbewertungen moderieren</value>
+  </data>
+  <data name="Admin.Reviews.None" xml:space="preserve">
+    <value>Noch keine Bewertungen vorhanden</value>
+  </data>
+  <data name="Admin.Reviews.ColRating" xml:space="preserve">
+    <value>Bewertung</value>
+  </data>
+  <data name="Admin.Reviews.ColReview" xml:space="preserve">
+    <value>Inhalt</value>
+  </data>
+  <data name="Admin.Reviews.ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Admin.Reviews.ColAction" xml:space="preserve">
+    <value>Aktion</value>
+  </data>
+  <data name="Admin.Reviews.StatusApproved" xml:space="preserve">
+    <value>Freigegeben</value>
+  </data>
+  <data name="Admin.Reviews.StatusRejected" xml:space="preserve">
+    <value>Abgelehnt</value>
+  </data>
+  <data name="Admin.Reviews.Approved" xml:space="preserve">
+    <value>Bewertung freigegeben</value>
+  </data>
+  <data name="Admin.Reviews.Rejected" xml:space="preserve">
+    <value>Bewertung abgelehnt</value>
+  </data>
 </root>

@@ -52,6 +52,12 @@ else
                         <div>
                             <span class="os-eyebrow">@_product.CategoryName</span>
                             <MudText Typo="Typo.h3" Style="margin-top:8px;font-weight:700;">@_product.Name</MudText>
+                            @if (_product.ReviewCount > 0)
+                            {
+                                <div style="margin-top:8px;">
+                                    <StarRating Value="_product.AverageRating" Count="_product.ReviewCount" />
+                                </div>
+                            }
                             <span class="os-mono" style="font-size:1.75rem;font-weight:700;display:block;margin-top:16px;">
                                 @Formatting.Currency(_product.Price)
                             </span>
@@ -101,6 +107,76 @@ else
             </MudGrid>
         </MudContainer>
     </section>
+
+    <section style="padding:0 0 80px;">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            <MudDivider Class="mb-8" />
+            <MudGrid Spacing="6">
+                <!-- Write a review -->
+                <MudItem xs="12" md="5">
+                    <MudText Typo="Typo.h5" Style="font-weight:700;" Class="mb-2">@L["Reviews.WriteTitle"]</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">@L["Reviews.WriteHint"]</MudText>
+
+                    <MudStack Spacing="3">
+                        <div>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Reviews.RatingLabel"]</MudText>
+                            <MudRating @bind-SelectedValue="_newRating" MaxValue="5" />
+                        </div>
+                        <MudTextField @bind-Value="_newTitle" Label="@L["Reviews.TitleLabel"]"
+                                      Variant="Variant.Outlined" MaxLength="150" Immediate="true" />
+                        <MudTextField @bind-Value="_newBody" Label="@L["Reviews.BodyLabel"]"
+                                      Variant="Variant.Outlined" Lines="4" MaxLength="2000" Immediate="true" />
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="btn-pill"
+                                   Disabled="@(_submitting || _newRating == 0 || string.IsNullOrWhiteSpace(_newTitle) || string.IsNullOrWhiteSpace(_newBody))"
+                                   OnClick="SubmitReviewAsync">
+                            @if (_submitting)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            }
+                            @L["Reviews.Submit"]
+                        </MudButton>
+                    </MudStack>
+                </MudItem>
+
+                <!-- Existing reviews -->
+                <MudItem xs="12" md="7">
+                    <MudText Typo="Typo.h5" Style="font-weight:700;" Class="mb-4">
+                        @L["Reviews.ListTitle"] (@_reviews.Count)
+                    </MudText>
+
+                    @if (_reviews.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Reviews.Empty"]</MudText>
+                    }
+                    else
+                    {
+                        <MudStack Spacing="4">
+                            @foreach (var review in _reviews)
+                            {
+                                <MudPaper Elevation="0" Style="padding:16px;border:1px solid var(--mud-palette-divider);border-radius:12px;">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                        <StarRating Value="review.Rating" ShowCount="false" />
+                                        @if (review.IsVerifiedPurchase)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text"
+                                                     Icon="@Icons.Material.Filled.Verified">
+                                                @L["Reviews.VerifiedPurchase"]
+                                            </MudChip>
+                                        }
+                                    </MudStack>
+                                    <MudText Typo="Typo.subtitle1" Style="font-weight:600;margin-top:8px;">@review.Title</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary" Style="line-height:1.6;">@review.Body</MudText>
+                                    <MudText Typo="Typo.caption" Class="text-muted" Style="display:block;margin-top:8px;">
+                                        @review.CreatedAt.ToLocalTime().ToString("d")
+                                    </MudText>
+                                </MudPaper>
+                            }
+                        </MudStack>
+                    }
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </section>
 }
 
 @code {
@@ -112,6 +188,12 @@ else
     private bool _adding;
     private int _quantity = 1;
 
+    private List<ReviewDto> _reviews = [];
+    private int _newRating;
+    private string _newTitle = string.Empty;
+    private string _newBody = string.Empty;
+    private bool _submitting;
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -120,6 +202,9 @@ else
             _product = res.Value;
             if (!res.IsSuccess && res.Error!.Kind != ApiErrorKind.NotFound)
                 Snackbar.Add(res.Error!.Message, Severity.Error);
+
+            if (_product is not null)
+                await LoadReviewsAsync();
         }
         catch (Exception ex)
         {
@@ -128,6 +213,47 @@ else
         finally
         {
             _loading = false;
+        }
+    }
+
+    private async Task LoadReviewsAsync()
+    {
+        if (_product is null) return;
+        var res = await Catalog.GetReviewsAsync(_product.Id);
+        if (res.IsSuccess)
+            _reviews = res.Value ?? [];
+    }
+
+    private async Task SubmitReviewAsync()
+    {
+        if (_product is null) return;
+        _submitting = true;
+        try
+        {
+            var result = await Catalog.CreateReviewAsync(
+                _product.Id, new CreateReviewRequest(_newRating, _newTitle.Trim(), _newBody.Trim()));
+
+            if (result.IsSuccess)
+            {
+                Snackbar.Add(L["Reviews.SubmitSuccess"], Severity.Success);
+                _newRating = 0;
+                _newTitle = string.Empty;
+                _newBody = string.Empty;
+
+                // Refresh reviews and the product so the average rating updates.
+                await LoadReviewsAsync();
+                var refreshed = await Catalog.GetProductBySlugAsync(Slug);
+                if (refreshed.IsSuccess)
+                    _product = refreshed.Value;
+            }
+            else
+            {
+                Snackbar.Add(result.Error!.Message, Severity.Error);
+            }
+        }
+        finally
+        {
+            _submitting = false;
         }
     }
 

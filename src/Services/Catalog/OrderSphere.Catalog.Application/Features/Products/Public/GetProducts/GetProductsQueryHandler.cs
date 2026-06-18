@@ -60,7 +60,9 @@ public sealed class GetProductsQueryHandler(ICatalogDbContext context)
                 p.Category!.Name,
                 p.SKU,
                 p.ImageUrl,
-                p.IsActive))
+                p.IsActive,
+                p.AverageRating,
+                p.ReviewCount))
             .ToListAsync(ct);
 
         return Result<PagedResult<ProductDto>>.Success(

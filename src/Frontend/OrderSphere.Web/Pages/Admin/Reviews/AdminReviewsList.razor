@@ -1,0 +1,100 @@
+@page "/admin/reviews"
+@inject IAdminCatalogClient AdminCatalog
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<AppStrings> L
+
+<PageTitle>@L["Admin.Reviews.PageTitle"]</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+    <MudStack Spacing="0" Class="mb-6">
+        <MudText Typo="Typo.h4" Style="font-weight: 700;">@L["Admin.Reviews.Title"]</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Reviews.Subtitle"]</MudText>
+    </MudStack>
+
+    @if (_loading)
+    {
+        <MudStack AlignItems="AlignItems.Center" Class="py-12">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        </MudStack>
+    }
+    else if (_reviews.Count == 0)
+    {
+        <MudPaper Elevation="0" Class="pa-12 text-center" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);">
+            <MudIcon Icon="@Icons.Material.Outlined.RateReview" Color="Color.Secondary" Style="font-size:64px;" Class="mb-3" />
+            <MudText Typo="Typo.h6">@L["Admin.Reviews.None"]</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Elevation="0" Style="border-radius:16px;border:1px solid var(--mud-palette-divider);overflow:hidden;">
+            <MudTable Items="_reviews" Hover="true">
+                <HeaderContent>
+                    <MudTh>@L["Admin.Reviews.ColRating"]</MudTh>
+                    <MudTh>@L["Admin.Reviews.ColReview"]</MudTh>
+                    <MudTh>@L["Admin.Reviews.ColStatus"]</MudTh>
+                    <MudTh Style="text-align:right;">@L["Admin.Reviews.ColAction"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="@L["Admin.Reviews.ColRating"]">
+                        <StarRating Value="context.Rating" ShowCount="false" />
+                    </MudTd>
+                    <MudTd DataLabel="@L["Admin.Reviews.ColReview"]">
+                        <MudText Typo="Typo.body2" Style="font-weight:600;">@context.Title</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@context.Body</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="@L["Admin.Reviews.ColStatus"]">
+                        <MudChip T="string"
+                                 Color="@(context.Status == "Approved" ? Color.Success : Color.Default)"
+                                 Size="Size.Small" Variant="Variant.Filled" Style="border-radius:100px;">
+                            @(context.Status == "Approved" ? L["Admin.Reviews.StatusApproved"] : L["Admin.Reviews.StatusRejected"])
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="@L["Admin.Reviews.ColAction"]" Style="text-align:right;">
+                        <MudIconButton Icon="@Icons.Material.Outlined.Check"
+                                       Color="Color.Success" Size="Size.Small"
+                                       Disabled="@(context.Status == "Approved")"
+                                       OnClick="@(() => ModerateAsync(context, true))" />
+                        <MudIconButton Icon="@Icons.Material.Outlined.Block"
+                                       Color="Color.Error" Size="Size.Small"
+                                       Disabled="@(context.Status == "Rejected")"
+                                       OnClick="@(() => ModerateAsync(context, false))" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private List<ReviewDto> _reviews = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            var r = await AdminCatalog.GetReviewsAsync();
+            if (r.IsSuccess) _reviews = r.Value!;
+            else Snackbar.Add(r.Error!.Message, Severity.Error);
+        }
+        catch (Exception ex) { Snackbar.Add(L["Common.Error", ex.Message], Severity.Error); }
+        finally { _loading = false; }
+    }
+
+    private async Task ModerateAsync(ReviewDto review, bool approve)
+    {
+        var result = await AdminCatalog.ModerateReviewAsync(review.Id, approve);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(approve ? L["Admin.Reviews.Approved"] : L["Admin.Reviews.Rejected"], Severity.Success);
+            await LoadAsync();
+        }
+        else
+        {
+            Snackbar.Add(result.Error!.Message, Severity.Error);
+        }
+    }
+}

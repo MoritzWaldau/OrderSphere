@@ -11,10 +11,24 @@ public sealed record ProductDto(
     string CategoryName,
     string SKU,
     string? ImageUrl,
-    bool IsActive);
+    bool IsActive,
+    double AverageRating = 0,
+    int ReviewCount = 0);
 
 public sealed record CategoryDto(
     Guid Id,
     string Name,
     string Description,
     int ProductCount);
+
+public sealed record ReviewDto(
+    Guid Id,
+    Guid ProductId,
+    int Rating,
+    string Title,
+    string Body,
+    bool IsVerifiedPurchase,
+    string Status,
+    DateTime CreatedAt);
+
+public sealed record CreateReviewRequest(int Rating, string Title, string Body);

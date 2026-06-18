@@ -46,6 +46,8 @@ public sealed class GetProductBySlugQueryHandler(ICatalogDbContext context, Hybr
                 p.Category!.Name,
                 p.SKU,
                 p.ImageUrl,
-                p.IsActive))
+                p.IsActive,
+                p.AverageRating,
+                p.ReviewCount))
             .FirstOrDefaultAsync(ct);
 }

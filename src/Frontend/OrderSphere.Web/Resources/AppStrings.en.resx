@@ -1033,4 +1033,73 @@
   <data name="Admin.Users.ColDarkMode" xml:space="preserve">
     <value>Dark mode</value>
   </data>
+  <data name="Reviews.RatingAria" xml:space="preserve">
+    <value>Rated {0} out of 5</value>
+  </data>
+  <data name="Reviews.WriteTitle" xml:space="preserve">
+    <value>Write a review</value>
+  </data>
+  <data name="Reviews.WriteHint" xml:space="preserve">
+    <value>Only customers who purchased this product can review it.</value>
+  </data>
+  <data name="Reviews.RatingLabel" xml:space="preserve">
+    <value>Rating</value>
+  </data>
+  <data name="Reviews.TitleLabel" xml:space="preserve">
+    <value>Title</value>
+  </data>
+  <data name="Reviews.BodyLabel" xml:space="preserve">
+    <value>Your review</value>
+  </data>
+  <data name="Reviews.Submit" xml:space="preserve">
+    <value>Submit</value>
+  </data>
+  <data name="Reviews.SubmitSuccess" xml:space="preserve">
+    <value>Thank you for your review.</value>
+  </data>
+  <data name="Reviews.ListTitle" xml:space="preserve">
+    <value>Reviews</value>
+  </data>
+  <data name="Reviews.Empty" xml:space="preserve">
+    <value>No reviews yet. Be the first.</value>
+  </data>
+  <data name="Reviews.VerifiedPurchase" xml:space="preserve">
+    <value>Verified purchase</value>
+  </data>
+  <data name="Admin.Reviews.PageTitle" xml:space="preserve">
+    <value>Reviews – Admin</value>
+  </data>
+  <data name="Admin.Reviews.Title" xml:space="preserve">
+    <value>Reviews</value>
+  </data>
+  <data name="Admin.Reviews.Subtitle" xml:space="preserve">
+    <value>Moderate product reviews</value>
+  </data>
+  <data name="Admin.Reviews.None" xml:space="preserve">
+    <value>No reviews yet</value>
+  </data>
+  <data name="Admin.Reviews.ColRating" xml:space="preserve">
+    <value>Rating</value>
+  </data>
+  <data name="Admin.Reviews.ColReview" xml:space="preserve">
+    <value>Content</value>
+  </data>
+  <data name="Admin.Reviews.ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Admin.Reviews.ColAction" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Admin.Reviews.StatusApproved" xml:space="preserve">
+    <value>Approved</value>
+  </data>
+  <data name="Admin.Reviews.StatusRejected" xml:space="preserve">
+    <value>Rejected</value>
+  </data>
+  <data name="Admin.Reviews.Approved" xml:space="preserve">
+    <value>Review approved</value>
+  </data>
+  <data name="Admin.Reviews.Rejected" xml:space="preserve">
+    <value>Review rejected</value>
+  </data>
 </root>

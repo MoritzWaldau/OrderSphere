@@ -11,4 +11,6 @@ public sealed record ProductDto(
     string CategoryName,
     string SKU,
     string? ImageUrl,
-    bool IsActive);
+    bool IsActive,
+    double AverageRating,
+    int ReviewCount);

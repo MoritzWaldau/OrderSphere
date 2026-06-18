@@ -11,6 +11,7 @@ public sealed class CatalogDbContext(
 {
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<ProductReview> Reviews => Set<ProductReview>();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -34,6 +35,8 @@ public sealed class CatalogDbContext(
     {
         configurationBuilder.Properties<ProductId>().HaveConversion<ProductIdConverter>();
         configurationBuilder.Properties<CategoryId>().HaveConversion<CategoryIdConverter>();
+        configurationBuilder.Properties<ReviewId>().HaveConversion<ReviewIdConverter>();
+        configurationBuilder.Properties<CustomerId>().HaveConversion<CustomerIdConverter>();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

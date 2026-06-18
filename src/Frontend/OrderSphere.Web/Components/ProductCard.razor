@@ -35,6 +35,11 @@
         }
         <MudText Typo="Typo.body1" Style="font-weight:600;line-height:1.3;">@Product.Name</MudText>
 
+        @if (Product.ReviewCount > 0)
+        {
+            <StarRating Value="Product.AverageRating" Count="Product.ReviewCount" />
+        }
+
         @if (!string.IsNullOrWhiteSpace(Product.Description))
         {
             <MudText Typo="Typo.body2" Color="Color.Secondary"

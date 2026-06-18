@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using OrderSphere.Ordering.Api.Endpoints.Internal;
 
 namespace OrderSphere.Ordering.Api.Endpoints;
 
@@ -19,5 +20,8 @@ public static class EndpointMappingExtensions
         v1.MapOrderEndpoints();
         v1.MapCheckoutEndpoints();
         v1.MapCouponEndpoints();
+
+        app.MapGroup("internal")
+            .MapInternalPurchaseEndpoints();
     }
 }

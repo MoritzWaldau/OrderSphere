@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net.Http.Json;
 using OrderSphere.BuildingBlocks.Contracts;
 using OrderSphere.Web.Models;
 
@@ -21,6 +22,8 @@ public interface ICatalogClient
     Task<ApiResult<PagedResult<ProductDto>>> GetProductsAsync(ProductQuery? query = null, CancellationToken ct = default);
     Task<ApiResult<ProductDto>> GetProductBySlugAsync(string slug, CancellationToken ct = default);
     Task<ApiResult<PagedResult<CategoryDto>>> GetCategoriesAsync(CancellationToken ct = default);
+    Task<ApiResult<List<ReviewDto>>> GetReviewsAsync(Guid productId, CancellationToken ct = default);
+    Task<ApiResult> CreateReviewAsync(Guid productId, CreateReviewRequest request, CancellationToken ct = default);
 }
 
 public sealed class CatalogClient(HttpClient client) : ICatalogClient
@@ -56,4 +59,14 @@ public sealed class CatalogClient(HttpClient client) : ICatalogClient
 
     public Task<ApiResult<PagedResult<CategoryDto>>> GetCategoriesAsync(CancellationToken ct = default)
         => client.GetApiAsync<PagedResult<CategoryDto>>("/api/v1/categories?page=1&pageSize=100", ct);
+
+    public Task<ApiResult<List<ReviewDto>>> GetReviewsAsync(Guid productId, CancellationToken ct = default)
+        => client.GetApiAsync<List<ReviewDto>>($"/api/v1/reviews/product/{productId}", ct);
+
+    public Task<ApiResult> CreateReviewAsync(Guid productId, CreateReviewRequest request, CancellationToken ct = default)
+        => client.SendApiAsync(
+            new HttpRequestMessage(HttpMethod.Post, $"/api/v1/reviews/product/{productId}")
+            {
+                Content = JsonContent.Create(request),
+            }, ct);
 }

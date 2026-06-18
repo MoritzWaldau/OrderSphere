@@ -72,3 +72,8 @@ public sealed class CouponIdConverter : ValueConverter<CouponId, Guid>
 {
     public CouponIdConverter() : base(id => id.Value, v => new CouponId(v)) { }
 }
+
+public sealed class ReviewIdConverter : ValueConverter<ReviewId, Guid>
+{
+    public ReviewIdConverter() : base(id => id.Value, v => new ReviewId(v)) { }
+}

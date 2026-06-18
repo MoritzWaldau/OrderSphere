@@ -20,6 +20,12 @@ public sealed class Product : AuditableEntity<ProductId>, IAggregateRoot
     public string? ImageUrl { get; private set; }
     public bool IsActive { get; private set; } = true;
 
+    /// <summary>Mean rating across approved reviews, rounded to one decimal. Zero when there are no reviews.</summary>
+    public double AverageRating { get; private set; }
+
+    /// <summary>Number of approved reviews contributing to <see cref="AverageRating"/>.</summary>
+    public int ReviewCount { get; private set; }
+
     public Category? Category { get; set; }
 
     // Parameterless constructor for EF Core materialisation.
@@ -40,6 +46,14 @@ public sealed class Product : AuditableEntity<ProductId>, IAggregateRoot
 
     private static string GenerateSlug(string name)
         => Regex.Replace(name.ToLowerInvariant().Trim(), @"[^a-z0-9]+", "-").Trim('-');
+
+    /// <summary>Replaces the cached rating summary. Recomputed by the application layer
+    /// from the set of approved reviews whenever a review is created or moderated.</summary>
+    public void SetRatingSummary(double averageRating, int reviewCount)
+    {
+        AverageRating = Math.Round(averageRating, 1, MidpointRounding.AwayFromZero);
+        ReviewCount = reviewCount;
+    }
 
     public void AddToStock(int quantity) => Stock += quantity;
 

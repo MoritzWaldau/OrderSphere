@@ -46,13 +46,24 @@ public sealed class GetOrdersByCustomerQueryHandler(
         }
     }
 
-    internal static OrderDto ToDto(Domain.Entities.Order o) => new(
-        o.Id.Value, o.CustomerId.Value, o.Status, o.PaymentMethod, o.TrackingNumber,
-        new OrderShippingAddressDto(
-            o.ShippingAddress.FirstName, o.ShippingAddress.LastName,
-            o.ShippingAddress.Street, o.ShippingAddress.City,
-            o.ShippingAddress.PostalCode, o.ShippingAddress.Country),
-        o.Items.Select(i => new OrderLineDto(i.ProductId.Value, i.ProductName, i.Quantity, i.Price)).ToList(),
-        o.Items.Sum(i => i.Price * i.Quantity),
-        o.CreatedAt);
+    internal static OrderDto ToDto(Domain.Entities.Order o)
+    {
+        var subtotal = o.Items.Sum(i => i.Price * i.Quantity);
+        return new(
+            o.Id.Value, o.CustomerId.Value, o.Status, o.PaymentMethod, o.TrackingNumber,
+            new OrderShippingAddressDto(
+                o.ShippingAddress.FirstName, o.ShippingAddress.LastName,
+                o.ShippingAddress.Street, o.ShippingAddress.City,
+                o.ShippingAddress.PostalCode, o.ShippingAddress.Country),
+            o.Items.Select(i => new OrderLineDto(i.ProductId.Value, i.ProductName, i.Quantity, i.Price)).ToList(),
+            subtotal - o.DiscountAmount + o.ShippingCost,
+            o.DiscountAmount,
+            o.CouponCode,
+            o.CreatedAt,
+            o.ShippingCost,
+            o.StatusHistory
+                .OrderBy(h => h.OccurredAt)
+                .Select(h => new OrderStatusEntryDto(h.Status.ToString(), h.OccurredAt, h.Note))
+                .ToList());
+    }
 }

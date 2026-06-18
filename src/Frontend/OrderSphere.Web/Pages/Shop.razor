@@ -15,6 +15,58 @@
 
 <section style="padding:48px 0 80px;">
     <MudContainer MaxWidth="MaxWidth.Large">
+
+        <MudPaper Elevation="0" Outlined="true" Class="pa-4 mb-6">
+            <MudGrid Spacing="2" Class="align-center">
+                <MudItem xs="12" md="4">
+                    <MudTextField T="string" @bind-Value="_search"
+                                  Placeholder="@L["Shop.SearchPlaceholder"]"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Outlined.Search"
+                                  Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  OnKeyDown="OnSearchKeyDown" />
+                </MudItem>
+                <MudItem xs="6" md="3">
+                    <MudSelect T="string" @bind-Value="_categoryFilter" @bind-Value:after="ResetAndReloadAsync"
+                               Label="@L["Shop.CategoryFilter"]" Clearable="true"
+                               Variant="Variant.Outlined" Margin="Margin.Dense">
+                        @foreach (var c in _categories)
+                        {
+                            <MudSelectItem Value="@c.Name">@c.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6" md="3">
+                    <MudSelect T="string" @bind-Value="_sort" @bind-Value:after="ResetAndReloadAsync"
+                               Label="@L["Shop.SortLabel"]"
+                               Variant="Variant.Outlined" Margin="Margin.Dense">
+                        <MudSelectItem Value="@("name_asc")">@L["Shop.SortNameAsc"]</MudSelectItem>
+                        <MudSelectItem Value="@("name_desc")">@L["Shop.SortNameDesc"]</MudSelectItem>
+                        <MudSelectItem Value="@("price_asc")">@L["Shop.SortPriceAsc"]</MudSelectItem>
+                        <MudSelectItem Value="@("price_desc")">@L["Shop.SortPriceDesc"]</MudSelectItem>
+                        <MudSelectItem Value="@("newest")">@L["Shop.SortNewest"]</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="2">
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+                               OnClick="ApplyAsync">@L["Shop.ApplyFilter"]</MudButton>
+                </MudItem>
+
+                <MudItem xs="6" md="3">
+                    <MudNumericField T="decimal?" @bind-Value="_minPrice" Label="@L["Shop.MinPrice"]"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
+                </MudItem>
+                <MudItem xs="6" md="3">
+                    <MudNumericField T="decimal?" @bind-Value="_maxPrice" Label="@L["Shop.MaxPrice"]"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
+                </MudItem>
+                <MudItem xs="12" md="2">
+                    <MudButton FullWidth="true" Variant="Variant.Text" Color="Color.Default"
+                               OnClick="ResetFiltersAsync">@L["Shop.ResetFilter"]</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
         @if (_loading)
         {
             <MudStack AlignItems="AlignItems.Center" Style="min-height:40vh;justify-content:center;">
@@ -32,9 +84,9 @@
         }
         else
         {
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
                 <MudText Typo="Typo.body2" Class="text-muted">
-                    <span class="os-mono">@_products.Count</span> @L["Shop.ProductsLabel"]
+                    <span class="os-mono">@_totalCount</span> @L["Shop.ProductsLabel"]
                 </MudText>
             </div>
 
@@ -49,6 +101,14 @@
                     </MudItem>
                 }
             </MudGrid>
+
+            @if (_totalPages > 1)
+            {
+                <MudStack AlignItems="AlignItems.Center" Class="mt-8">
+                    <MudPagination Color="Color.Primary" Count="_totalPages"
+                                   Selected="_page" SelectedChanged="OnPageChangedAsync" />
+                </MudStack>
+            }
 
             <!-- Quantity dialog -->
             <MudDialog @bind-Visible="_popupOpen">
@@ -81,21 +141,76 @@
     [Parameter] public string? Category { get; set; }
 
     private List<ProductDto> _products = [];
+    private List<CategoryDto> _categories = [];
     private bool _loading = true;
     private bool _popupOpen;
     private bool _addingToCart;
     private ProductDto? _selectedProduct;
     private int _quantity = 1;
 
+    private const int PageSize = 12;
+    private int _page = 1;
+    private int _totalCount;
+    private int _totalPages;
+
+    private string _search = string.Empty;
+    private string? _categoryFilter;
+    private decimal? _minPrice;
+    private decimal? _maxPrice;
+    private string _sort = "name_asc";
+
+    private string? _lastCategoryRoute;
+
     protected override async Task OnInitializedAsync()
     {
+        var cats = await Catalog.GetCategoriesAsync();
+        if (cats.IsSuccess)
+            _categories = cats.Value!.Items.ToList();
+
+        _categoryFilter = Category;
+        _lastCategoryRoute = Category;
+        await LoadAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // React to navigation between /shop and /shop/category/{Category}.
+        if (_lastCategoryRoute != Category)
+        {
+            _lastCategoryRoute = Category;
+            _categoryFilter = Category;
+            _page = 1;
+            await LoadAsync();
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
         try
         {
-            var all = await Catalog.GetProductsAsync();
-            if (all.IsSuccess)
-                _products = all.Value!.Items.Where(p => p.IsActive).ToList();
+            var (by, dir) = MapSort();
+            var query = new ProductQuery(
+                Page: _page,
+                PageSize: PageSize,
+                Search: string.IsNullOrWhiteSpace(_search) ? null : _search.Trim(),
+                Category: string.IsNullOrWhiteSpace(_categoryFilter) ? null : _categoryFilter,
+                MinPrice: _minPrice,
+                MaxPrice: _maxPrice,
+                SortBy: by,
+                SortDir: dir);
+
+            var res = await Catalog.GetProductsAsync(query);
+            if (res.IsSuccess)
+            {
+                _products = res.Value!.Items.ToList();
+                _totalCount = res.Value.TotalCount;
+                _totalPages = res.Value.TotalPages;
+            }
             else
-                Snackbar.Add(all.Error!.Message, Severity.Error);
+            {
+                Snackbar.Add(res.Error!.Message, Severity.Error);
+            }
         }
         catch (Exception ex)
         {
@@ -105,6 +220,46 @@
         {
             _loading = false;
         }
+    }
+
+    private (string by, string dir) MapSort() => _sort switch
+    {
+        "name_desc" => ("name", "desc"),
+        "price_asc" => ("price", "asc"),
+        "price_desc" => ("price", "desc"),
+        "newest" => ("newest", "desc"),
+        _ => ("name", "asc"),
+    };
+
+    private async Task ResetAndReloadAsync()
+    {
+        _page = 1;
+        await LoadAsync();
+    }
+
+    private Task ApplyAsync() => ResetAndReloadAsync();
+
+    private async Task ResetFiltersAsync()
+    {
+        _search = string.Empty;
+        _categoryFilter = Category;
+        _minPrice = null;
+        _maxPrice = null;
+        _sort = "name_asc";
+        _page = 1;
+        await LoadAsync();
+    }
+
+    private async Task OnPageChangedAsync(int page)
+    {
+        _page = page;
+        await LoadAsync();
+    }
+
+    private void OnSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            _ = ApplyAsync();
     }
 
     private void OpenDetails(ProductDto product)

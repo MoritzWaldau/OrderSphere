@@ -4,8 +4,22 @@ namespace OrderSphere.Ordering.Application.Tests.Features;
 
 public sealed class ValidateCouponQueryHandlerTests
 {
-    private static ValidateCouponQueryHandler CreateHandler() =>
-        new(Substitute.For<ILogger<ValidateCouponQueryHandler>>());
+    private static ValidateCouponQueryHandler CreateHandler()
+    {
+        // Seed the two codes the former hardcoded handler supported.
+        var coupons = new List<Coupon>
+        {
+            new("WELCOME10", DiscountType.Flat, 10m, minSubtotal: null,
+                validFrom: null, validUntil: null, maxRedemptions: null, isActive: true),
+            new("SUMMER15", DiscountType.Flat, 15m, minSubtotal: 100m,
+                validFrom: null, validUntil: null, maxRedemptions: null, isActive: true),
+        }.BuildMockDbSet();
+
+        var ctx = Substitute.For<IOrderingDbContext>();
+        ctx.Coupons.Returns(coupons);
+
+        return new ValidateCouponQueryHandler(ctx, Substitute.For<ILogger<ValidateCouponQueryHandler>>());
+    }
 
     // ── Code required ────────────────────────────────────────────────────────────
 

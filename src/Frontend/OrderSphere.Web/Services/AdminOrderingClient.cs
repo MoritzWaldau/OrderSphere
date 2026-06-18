@@ -10,6 +10,11 @@ public interface IAdminOrderingClient
     Task<ApiResult<OrderDto>> GetOrderByIdAsync(Guid id, CancellationToken ct = default);
     Task<ApiResult> UpdateStatusAsync(Guid id, int newStatus, CancellationToken ct = default);
     Task<ApiResult> CancelOrderAsync(Guid id, CancellationToken ct = default);
+
+    Task<ApiResult<List<AdminCouponDto>>> GetCouponsAsync(CancellationToken ct = default);
+    Task<ApiResult<Guid>> CreateCouponAsync(AdminCouponInput input, CancellationToken ct = default);
+    Task<ApiResult> UpdateCouponAsync(Guid id, AdminCouponInput input, CancellationToken ct = default);
+    Task<ApiResult> DeactivateCouponAsync(Guid id, CancellationToken ct = default);
 }
 
 public sealed class AdminOrderingClient(HttpClient client) : IAdminOrderingClient
@@ -49,4 +54,23 @@ public sealed class AdminOrderingClient(HttpClient client) : IAdminOrderingClien
 
     public Task<ApiResult> CancelOrderAsync(Guid id, CancellationToken ct = default)
         => client.SendApiAsync(new HttpRequestMessage(HttpMethod.Post, $"/api/v1/admin/orders/{id}/cancel"), ct);
+
+    public Task<ApiResult<List<AdminCouponDto>>> GetCouponsAsync(CancellationToken ct = default)
+        => client.GetApiAsync<List<AdminCouponDto>>("/api/v1/admin/coupons", ct);
+
+    public async Task<ApiResult<Guid>> CreateCouponAsync(AdminCouponInput input, CancellationToken ct = default)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/coupons") { Content = JsonContent.Create(input) };
+        var result = await client.SendApiAsync<CreatedResult>(request, ct);
+        return result.IsSuccess ? ApiResult<Guid>.Ok(result.Value!.Id) : ApiResult<Guid>.Fail(result.Error!);
+    }
+
+    public Task<ApiResult> UpdateCouponAsync(Guid id, AdminCouponInput input, CancellationToken ct = default)
+        => client.SendApiAsync(
+            new HttpRequestMessage(HttpMethod.Put, $"/api/v1/admin/coupons/{id}") { Content = JsonContent.Create(input) }, ct);
+
+    public Task<ApiResult> DeactivateCouponAsync(Guid id, CancellationToken ct = default)
+        => client.SendApiAsync(new HttpRequestMessage(HttpMethod.Post, $"/api/v1/admin/coupons/{id}/deactivate"), ct);
+
+    private sealed record CreatedResult(Guid Id);
 }

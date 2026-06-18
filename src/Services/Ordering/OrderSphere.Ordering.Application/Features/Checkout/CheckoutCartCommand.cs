@@ -23,5 +23,6 @@ public sealed record CheckoutCartCommand(
     string CustomerName,
     Address ShippingAddress,
     PaymentMethod PaymentMethod,
-    Guid IdempotencyKey
+    Guid IdempotencyKey,
+    string? CouponCode = null
 ) : ICommand<Result<Guid>>;

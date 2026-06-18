@@ -19,7 +19,8 @@ namespace OrderSphere.Ordering.Checkout.Tests;
 ///
 /// All external dependencies are substituted. Tests verify:
 /// - Correct result codes for each failure path.
-/// - Compensating stock restores are called for the right items in the right scenarios.
+/// - Stock is reserved (not decremented) against the checkout correlation id.
+/// - The reservation is released when the checkout is not accepted (publish failure).
 /// - Cart-clear failure is treated as non-fatal after a successful publish.
 /// </summary>
 public sealed class CheckoutCartCommandHandlerTests
@@ -63,6 +64,14 @@ public sealed class CheckoutCartCommandHandlerTests
     private CheckoutCartCommandHandler CreateHandler() =>
         new(_catalog, _basket, _bus, _idempotency, _logger);
 
+    private void ReservationSucceeds() =>
+        _catalog.ReserveStockAsync(Arg.Any<Guid>(), Arg.Any<IReadOnlyList<ReservationItem>>(), Arg.Any<CancellationToken>())
+                .Returns(Result.Success());
+
+    private void ReleaseSucceeds() =>
+        _catalog.ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+                .Returns(Result.Success());
+
     // ── Cart retrieval failures ───────────────────────────────────────────────
 
     [Fact]
@@ -91,10 +100,10 @@ public sealed class CheckoutCartCommandHandlerTests
         await _catalog.DidNotReceive().GetProductByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
-    // ── Product resolution phase (read-only, no stock changes yet) ───────────
+    // ── Product resolution phase (read-only, no reservation yet) ──────────────
 
     [Fact]
-    public async Task ProductNotFound_ReturnsProductNotFoundError_NoDecrementCalled()
+    public async Task ProductNotFound_ReturnsProductNotFoundError_NoReservation()
     {
         _basket.GetCartAsync(CustomerId, Arg.Any<CancellationToken>())
                .Returns(Result<BasketCartInfo>.Success(
@@ -111,13 +120,13 @@ public sealed class CheckoutCartCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ProductErrors.ProductNotFoundError);
         await _catalog.DidNotReceive()
-                      .DecrementStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+                      .ReserveStockAsync(Arg.Any<Guid>(), Arg.Any<IReadOnlyList<ReservationItem>>(), Arg.Any<CancellationToken>());
     }
 
-    // ── Stock decrement phase ─────────────────────────────────────────────────
+    // ── Reservation phase ─────────────────────────────────────────────────────
 
     [Fact]
-    public async Task InsufficientStock_OnFirstItem_ReturnsError_NoCompensationNeeded()
+    public async Task ReservationFails_ReturnsInsufficientStock_NoRelease()
     {
         _basket.GetCartAsync(CustomerId, Arg.Any<CancellationToken>())
                .Returns(Result<BasketCartInfo>.Success(
@@ -128,48 +137,21 @@ public sealed class CheckoutCartCommandHandlerTests
         _catalog.GetProductByIdAsync(ProductId2, Arg.Any<CancellationToken>())
                 .Returns(Result<CatalogProductInfo>.Success(Product(ProductId2)));
 
-        _catalog.DecrementStockAsync(ProductId1, 5, Arg.Any<CancellationToken>())
-                .Returns(Result.Failure(ProductErrors.InsufficientStockError));
+        _catalog.ReserveStockAsync(Arg.Any<Guid>(), Arg.Any<IReadOnlyList<ReservationItem>>(), Arg.Any<CancellationToken>())
+                .Returns(Result.Failure(new Error("Catalog.InsufficientStock", "no stock", ErrorType.Conflict)));
 
         var result = await CreateHandler().Handle(Command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ProductErrors.InsufficientStockError);
-        await _catalog.DidNotReceive()
-                      .RestoreStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+        await _catalog.DidNotReceive().ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        await _bus.DidNotReceive().PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>(), Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task InsufficientStock_OnSecondItem_CompensatesFirstDecrement()
-    {
-        _basket.GetCartAsync(CustomerId, Arg.Any<CancellationToken>())
-               .Returns(Result<BasketCartInfo>.Success(
-                   CartWithItems((ProductId1, 2), (ProductId2, 5))));
-
-        _catalog.GetProductByIdAsync(ProductId1, Arg.Any<CancellationToken>())
-                .Returns(Result<CatalogProductInfo>.Success(Product(ProductId1)));
-        _catalog.GetProductByIdAsync(ProductId2, Arg.Any<CancellationToken>())
-                .Returns(Result<CatalogProductInfo>.Success(Product(ProductId2)));
-
-        _catalog.DecrementStockAsync(ProductId1, 2, Arg.Any<CancellationToken>())
-                .Returns(Result.Success());
-        _catalog.DecrementStockAsync(ProductId2, 5, Arg.Any<CancellationToken>())
-                .Returns(Result.Failure(ProductErrors.InsufficientStockError));
-        _catalog.RestoreStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-                .Returns(Result.Success());
-
-        var result = await CreateHandler().Handle(Command, CancellationToken.None);
-
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(ProductErrors.InsufficientStockError);
-        await _catalog.Received(1).RestoreStockAsync(ProductId1, 2, CancellationToken.None);
-        await _catalog.DidNotReceive().RestoreStockAsync(ProductId2, Arg.Any<int>(), Arg.Any<CancellationToken>());
-    }
-
-    // ── Service Bus publish failure ───────────────────────────────────────────
+    // ── Service Bus publish failure releases the reservation ──────────────────
 
     [Fact]
-    public async Task ServiceBusPublishFails_CompensatesAllDecrementedItems()
+    public async Task ServiceBusPublishFails_ReleasesReservation()
     {
         _basket.GetCartAsync(CustomerId, Arg.Any<CancellationToken>())
                .Returns(Result<BasketCartInfo>.Success(
@@ -180,10 +162,8 @@ public sealed class CheckoutCartCommandHandlerTests
         _catalog.GetProductByIdAsync(ProductId2, Arg.Any<CancellationToken>())
                 .Returns(Result<CatalogProductInfo>.Success(Product(ProductId2)));
 
-        _catalog.DecrementStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-                .Returns(Result.Success());
-        _catalog.RestoreStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-                .Returns(Result.Success());
+        ReservationSucceeds();
+        ReleaseSucceeds();
 
         _bus.PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Service Bus unavailable"));
@@ -192,15 +172,14 @@ public sealed class CheckoutCartCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(CheckoutCartErrors.UnknownError);
-        await _catalog.Received(1).RestoreStockAsync(ProductId1, 1, CancellationToken.None);
-        await _catalog.Received(1).RestoreStockAsync(ProductId2, 3, CancellationToken.None);
+        await _catalog.Received(1).ReleaseReservationAsync(Arg.Any<Guid>(), CancellationToken.None);
         await _basket.DidNotReceive().ClearCartItemsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     // ── Cart-clear failure is non-fatal ───────────────────────────────────────
 
     [Fact]
-    public async Task CartClearFails_ReturnsSuccess_NoCompensation()
+    public async Task CartClearFails_ReturnsSuccess_NoRelease()
     {
         _basket.GetCartAsync(CustomerId, Arg.Any<CancellationToken>())
                .Returns(Result<BasketCartInfo>.Success(
@@ -209,8 +188,7 @@ public sealed class CheckoutCartCommandHandlerTests
         _catalog.GetProductByIdAsync(ProductId1, Arg.Any<CancellationToken>())
                 .Returns(Result<CatalogProductInfo>.Success(Product(ProductId1)));
 
-        _catalog.DecrementStockAsync(ProductId1, 1, Arg.Any<CancellationToken>())
-                .Returns(Result.Success());
+        ReservationSucceeds();
 
         _bus.PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
@@ -221,14 +199,13 @@ public sealed class CheckoutCartCommandHandlerTests
         var result = await CreateHandler().Handle(Command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue("cart-clear failure is non-fatal after accepted publish");
-        await _catalog.DidNotReceive()
-                      .RestoreStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+        await _catalog.DidNotReceive().ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     // ── Happy path ────────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task HappyPath_TwoItems_ReturnsCorrelationId_AndClearsCart()
+    public async Task HappyPath_TwoItems_ReservesAndReturnsCorrelationId_AndClearsCart()
     {
         _basket.GetCartAsync(CustomerId, Arg.Any<CancellationToken>())
                .Returns(Result<BasketCartInfo>.Success(
@@ -239,8 +216,7 @@ public sealed class CheckoutCartCommandHandlerTests
         _catalog.GetProductByIdAsync(ProductId2, Arg.Any<CancellationToken>())
                 .Returns(Result<CatalogProductInfo>.Success(Product(ProductId2)));
 
-        _catalog.DecrementStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-                .Returns(Result.Success());
+        ReservationSucceeds();
 
         _bus.PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
@@ -253,12 +229,13 @@ public sealed class CheckoutCartCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBe(Guid.Empty, "a valid CorrelationId must be returned");
 
-        await _catalog.Received(1).DecrementStockAsync(ProductId1, 2, Arg.Any<CancellationToken>());
-        await _catalog.Received(1).DecrementStockAsync(ProductId2, 1, Arg.Any<CancellationToken>());
+        await _catalog.Received(1).ReserveStockAsync(
+            Arg.Any<Guid>(),
+            Arg.Is<IReadOnlyList<ReservationItem>>(items => items.Count == 2),
+            Arg.Any<CancellationToken>());
         await _bus.Received(1).PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>());
         await _basket.Received(1).ClearCartItemsAsync(CustomerId, Arg.Any<CancellationToken>());
-        await _catalog.DidNotReceive()
-                      .RestoreStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+        await _catalog.DidNotReceive().ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     // ── Idempotency guard ─────────────────────────────────────────────────────
@@ -266,13 +243,11 @@ public sealed class CheckoutCartCommandHandlerTests
     [Fact]
     public async Task DuplicateIdempotencyKey_ReturnsCachedCorrelationId_WithoutReprocessing()
     {
-        // Arrange: first call succeeds and populates the cache.
         _basket.GetCartAsync(CustomerId, Arg.Any<CancellationToken>())
                .Returns(Result<BasketCartInfo>.Success(CartWithItems((ProductId1, 1))));
         _catalog.GetProductByIdAsync(ProductId1, Arg.Any<CancellationToken>())
                 .Returns(Result<CatalogProductInfo>.Success(Product(ProductId1)));
-        _catalog.DecrementStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-                .Returns(Result.Success());
+        ReservationSucceeds();
         _bus.PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
         _basket.ClearCartItemsAsync(CustomerId, Arg.Any<CancellationToken>())
@@ -282,13 +257,12 @@ public sealed class CheckoutCartCommandHandlerTests
         var firstResult = await handler.Handle(Command, CancellationToken.None);
         firstResult.IsSuccess.Should().BeTrue();
 
-        // Act: second call with the same IdempotencyKey.
         var secondResult = await handler.Handle(Command, CancellationToken.None);
 
-        // Assert: same CorrelationId, no second decrement or publish.
         secondResult.IsSuccess.Should().BeTrue();
         secondResult.Value.Should().Be(firstResult.Value, "duplicate request must return the same CorrelationId");
-        await _catalog.Received(1).DecrementStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+        await _catalog.Received(1).ReserveStockAsync(
+            Arg.Any<Guid>(), Arg.Any<IReadOnlyList<ReservationItem>>(), Arg.Any<CancellationToken>());
         await _bus.Received(1).PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>());
     }
 }

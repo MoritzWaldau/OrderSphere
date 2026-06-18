@@ -123,13 +123,19 @@ var ordering = builder.AddProject<Projects.OrderSphere_Ordering_Api>("orderspher
     .WithEnvironment("Oidc__ClientId", "xY2Mgok7H98OsgFswj8JLC0gcgA6Oegy")
     .WithEnvironment("Oidc__ClientSecret", orderingWorkerSecret);
 
+// Catalog calls Ordering's internal purchase-verification endpoint for review eligibility.
+// Declared after `ordering` exists; service discovery injects Services__Ordering__BaseUrl.
+catalog.WithReference(ordering);
+
 builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-worker")
     .WithHttpEndpoint()
     .WithReference(orderingDb)
     .WithReference(serviceBus)
+    .WithReference(catalog)
     .WaitFor(orderingDb)
     .WaitFor(serviceBus)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
+    .WithEnvironment("Oidc__Audience", OidcAudience)
     .WithEnvironment("Oidc__ClientId", "xY2Mgok7H98OsgFswj8JLC0gcgA6Oegy")
     .WithEnvironment("Oidc__ClientSecret", orderingWorkerSecret);
 

@@ -14,6 +14,8 @@ public interface IAdminCatalogClient
     Task<ApiResult<Guid>> CreateCategoryAsync(AdminCategoryInput input, CancellationToken ct = default);
     Task<ApiResult> UpdateCategoryAsync(Guid id, AdminCategoryInput input, CancellationToken ct = default);
     Task<ApiResult> DeleteCategoryAsync(Guid id, CancellationToken ct = default);
+    Task<ApiResult<List<ReviewDto>>> GetReviewsAsync(CancellationToken ct = default);
+    Task<ApiResult> ModerateReviewAsync(Guid reviewId, bool approve, CancellationToken ct = default);
 }
 
 public sealed class AdminCatalogClient(HttpClient client) : IAdminCatalogClient
@@ -54,6 +56,16 @@ public sealed class AdminCatalogClient(HttpClient client) : IAdminCatalogClient
 
     public Task<ApiResult> DeleteCategoryAsync(Guid id, CancellationToken ct = default)
         => client.SendApiAsync(new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/admin/categories/{id}"), ct);
+
+    public Task<ApiResult<List<ReviewDto>>> GetReviewsAsync(CancellationToken ct = default)
+        => client.GetApiAsync<List<ReviewDto>>("/api/v1/admin/reviews", ct);
+
+    public Task<ApiResult> ModerateReviewAsync(Guid reviewId, bool approve, CancellationToken ct = default)
+        => client.SendApiAsync(
+            new HttpRequestMessage(HttpMethod.Post, $"/api/v1/admin/reviews/{reviewId}/moderate")
+            {
+                Content = JsonContent.Create(new { Approve = approve }),
+            }, ct);
 
     private sealed record CreatedResult(Guid Id);
 }

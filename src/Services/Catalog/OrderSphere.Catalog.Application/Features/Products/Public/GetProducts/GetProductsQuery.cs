@@ -6,5 +6,20 @@ public sealed record GetProductsQuery(
     string? SearchTerm = null,
     string? CategoryName = null,
     decimal? MinPrice = null,
-    decimal? MaxPrice = null)
+    decimal? MaxPrice = null,
+    ProductSortBy SortBy = ProductSortBy.Name,
+    SortDirection SortDir = SortDirection.Asc)
     : IQuery<Result<PagedResult<ProductDto>>>;
+
+public enum ProductSortBy
+{
+    Name,
+    Price,
+    Newest,
+}
+
+public enum SortDirection
+{
+    Asc,
+    Desc,
+}

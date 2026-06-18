@@ -19,6 +19,9 @@ public static class DependencyInjection
     {
         services.AddScoped<IOrderingDbContext>(sp => sp.GetRequiredService<OrderingDbContext>());
 
+        // Shipping rate (flat rate, waived above a free-shipping threshold).
+        services.AddSingleton<IShippingRateProvider, Shipping.FlatRateShippingProvider>();
+
         // Outbox: writes to DB, dispatched by OutboxDispatcher background service.
         services.AddScoped<IOrderingServiceBusPublisher, OutboxPublisher>();
         services.AddSingleton<RealServiceBusPublisher>();

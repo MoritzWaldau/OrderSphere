@@ -7,6 +7,7 @@ public interface IOrderingDbContext
 {
     DbSet<Order> Orders { get; }
     DbSet<OrderItem> OrderItems { get; }
+    DbSet<Coupon> Coupons { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 

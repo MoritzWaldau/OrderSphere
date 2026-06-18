@@ -29,6 +29,10 @@ public static class EndpointMappingExtensions
             .RequireRateLimiting(RateLimitingExtensions.PublicPolicy)
             .MapPublicCategoryEndpoints();
 
+        v1.MapGroup("reviews")
+            .RequireRateLimiting(RateLimitingExtensions.PublicPolicy)
+            .MapPublicReviewEndpoints();
+
         v1.MapGroup("admin/products")
             .RequireAuthorization(AuthorizationExtensions.CatalogAdminPolicy)
             .RequireRateLimiting(RateLimitingExtensions.AdminPolicy)
@@ -39,8 +43,16 @@ public static class EndpointMappingExtensions
             .RequireRateLimiting(RateLimitingExtensions.AdminPolicy)
             .MapAdminCategoryEndpoints();
 
+        v1.MapGroup("admin/reviews")
+            .RequireAuthorization(AuthorizationExtensions.CatalogAdminPolicy)
+            .RequireRateLimiting(RateLimitingExtensions.AdminPolicy)
+            .MapAdminReviewEndpoints();
+
         app.MapGroup("internal/products")
             .MapInternalProductEndpoints();
+
+        app.MapGroup("internal/reservations")
+            .MapInternalReservationEndpoints();
 
         app.MapGrpcService<CatalogGrpcService>();
 

@@ -41,6 +41,8 @@ public static class ProductEndpoints
         [FromQuery] string? categoryName,
         [FromQuery] decimal? minPrice,
         [FromQuery] decimal? maxPrice,
+        [FromQuery] ProductSortBy? sortBy,
+        [FromQuery] SortDirection? sortDir,
         IMediator mediator,
         CancellationToken ct)
     {
@@ -51,7 +53,9 @@ public static class ProductEndpoints
                 searchTerm,
                 categoryName,
                 minPrice,
-                maxPrice), ct);
+                maxPrice,
+                sortBy ?? ProductSortBy.Name,
+                sortDir ?? SortDirection.Asc), ct);
         return result.ToHttpResult();
     }
 

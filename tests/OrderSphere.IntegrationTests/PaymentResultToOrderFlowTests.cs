@@ -9,7 +9,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
+using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Events;
 using OrderSphere.Ordering.Domain.ValueObjects;
@@ -63,6 +65,17 @@ public sealed class PaymentResultToOrderFlowTests : IDisposable
             Substitute.For<IServiceScopeFactory>(),
             NullLogger<PaymentResultProcessor>.Instance);
 
+    // Catalog reservation confirm/release succeed by default in these order-flow tests.
+    private static ICatalogClient Catalog()
+    {
+        var catalog = Substitute.For<ICatalogClient>();
+        catalog.ConfirmReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+        catalog.ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+        return catalog;
+    }
+
     private async Task<(Guid OrderId, Guid CorrelationId)> SeedOrderAsync()
     {
         var checkoutEvent = new CheckoutCartIntegrationEvent
@@ -80,6 +93,7 @@ public sealed class PaymentResultToOrderFlowTests : IDisposable
         var result = await new OrderProcessor(
             Substitute.For<ServiceBusClient>(),
             Substitute.For<IServiceScopeFactory>(),
+            Substitute.For<IShippingRateProvider>(),
             NullLogger<OrderProcessor>.Instance)
             .ProcessOrderAsync(checkoutEvent, ctx, CancellationToken.None);
 
@@ -123,7 +137,7 @@ public sealed class PaymentResultToOrderFlowTests : IDisposable
         inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(false);
 
         await using var ctx = NewContext();
-        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, CancellationToken.None);
+        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, Catalog(), CancellationToken.None);
         await ctx.SaveChangesAsync();
 
         outcome.Should().Be(PaymentResultProcessor.PaymentResultOutcome.Processed);
@@ -161,7 +175,7 @@ public sealed class PaymentResultToOrderFlowTests : IDisposable
         inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(false);
 
         await using var ctx = NewContext();
-        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, CancellationToken.None);
+        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, Catalog(), CancellationToken.None);
         await ctx.SaveChangesAsync();
 
         outcome.Should().Be(PaymentResultProcessor.PaymentResultOutcome.Processed);
@@ -189,7 +203,7 @@ public sealed class PaymentResultToOrderFlowTests : IDisposable
         inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(true);
 
         await using var ctx = NewContext();
-        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, CancellationToken.None);
+        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, Catalog(), CancellationToken.None);
 
         outcome.Should().Be(PaymentResultProcessor.PaymentResultOutcome.AlreadyProcessed);
 
@@ -207,7 +221,7 @@ public sealed class PaymentResultToOrderFlowTests : IDisposable
         inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(false);
 
         await using var ctx = NewContext();
-        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, CancellationToken.None);
+        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, Catalog(), CancellationToken.None);
 
         outcome.Should().Be(PaymentResultProcessor.PaymentResultOutcome.OrderNotFound);
     }

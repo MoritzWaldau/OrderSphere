@@ -14,7 +14,16 @@ public sealed record OrderDto(
     OrderShippingAddressDto ShippingAddress,
     List<OrderLineDto> Items,
     decimal Total,
-    DateTime CreatedAt);
+    decimal DiscountAmount,
+    string? CouponCode,
+    DateTime CreatedAt,
+    decimal ShippingCost = 0,
+    List<OrderStatusEntryDto>? StatusHistory = null);
+
+public sealed record OrderStatusEntryDto(
+    string Status,
+    DateTime OccurredAt,
+    string? Note);
 
 public sealed record OrderShippingAddressDto(
     string FirstName,
@@ -34,7 +43,8 @@ public sealed record OrderLineDto(
 // CustomerId, CustomerEmail, and CustomerName are derived from the JWT token server-side.
 public sealed record CheckoutRequest(
     CheckoutAddress ShippingAddress,
-    int PaymentMethod);
+    int PaymentMethod,
+    string? CouponCode = null);
 
 public sealed record CheckoutAddress(
     string FirstName,

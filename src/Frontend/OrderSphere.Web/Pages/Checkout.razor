@@ -29,7 +29,38 @@
                               ShowLineItems="true"
                               Items="_cartItems"
                               Subtotal="Subtotal"
+                              Discount="_discount"
+                              ShippingCost="Shipping"
                               StickyTop="100px">
+                    <CouponSlot>
+                        @if (string.IsNullOrEmpty(_appliedCoupon))
+                        {
+                            <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                                <MudTextField T="string" @bind-Value="_couponInput"
+                                              Placeholder="@L["Checkout.CouponPlaceholder"]"
+                                              Variant="Variant.Outlined" Margin="Margin.Dense" />
+                                <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                           OnClick="ApplyCouponAsync" Disabled="_couponValidating">
+                                    @L["Checkout.CouponApply"]
+                                </MudButton>
+                            </MudStack>
+                        }
+                        else
+                        {
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled"
+                                         Icon="@Icons.Material.Outlined.LocalOffer">@_appliedCoupon</MudChip>
+                                <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="RemoveCoupon">
+                                    @L["Checkout.CouponRemove"]
+                                </MudButton>
+                            </MudStack>
+                        }
+                        @if (!string.IsNullOrEmpty(_couponMessage))
+                        {
+                            <MudText Typo="Typo.caption" Class="text-muted">@_couponMessage</MudText>
+                        }
+                        <MudDivider />
+                    </CouponSlot>
                     <Actions>
                         <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                    FullWidth="true" Class="btn-pill my-4" Size="Size.Large"
@@ -63,7 +94,61 @@
 
     private readonly CheckoutFormModel _model = new();
 
+    // Coupon state. The discount shown here is a preview; the worker recomputes it authoritatively.
+    private string _couponInput = string.Empty;
+    private string? _appliedCoupon;
+    private decimal _discount;
+    private string? _couponMessage;
+    private bool _couponValidating;
+
     private decimal Subtotal => _cartItems.Sum(i => i.Quantity * i.Price);
+
+    // Estimate; the worker recomputes shipping authoritatively from the (pre-discount) subtotal.
+    private decimal Shipping => ShippingEstimate.For(Subtotal);
+
+    private async Task ApplyCouponAsync()
+    {
+        var code = _couponInput?.Trim() ?? string.Empty;
+        if (string.IsNullOrEmpty(code)) return;
+
+        _couponValidating = true;
+        try
+        {
+            var result = await Ordering.ValidateCouponAsync(code, Subtotal);
+            if (!result.IsSuccess)
+            {
+                _couponMessage = result.Error!.Message;
+                _appliedCoupon = null;
+                _discount = 0;
+                return;
+            }
+
+            var dto = result.Value!;
+            _couponMessage = dto.Message;
+            if (dto.IsValid)
+            {
+                _appliedCoupon = code;
+                _discount = dto.DiscountAmount;
+            }
+            else
+            {
+                _appliedCoupon = null;
+                _discount = 0;
+            }
+        }
+        finally
+        {
+            _couponValidating = false;
+        }
+    }
+
+    private void RemoveCoupon()
+    {
+        _appliedCoupon = null;
+        _discount = 0;
+        _couponMessage = null;
+        _couponInput = string.Empty;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -98,7 +183,8 @@
             var request = new CheckoutRequest(
                 new CheckoutAddress(_model.FirstName, _model.LastName, _model.Street,
                     _model.City, _model.PostalCode, _model.Country),
-                _model.PaymentMethod);
+                _model.PaymentMethod,
+                _appliedCoupon);
 
             var result = await Ordering.CheckoutAsync(request, _idempotencyKey);
             if (!result.IsSuccess)
@@ -108,8 +194,9 @@
             }
 
             await CartState.RefreshAsync();
+            var total = Subtotal - _discount + Shipping;
             Navigation.NavigateTo(
-                $"/checkout/success?correlationId={result.Value}&total={Subtotal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}");
+                $"/checkout/success?correlationId={result.Value}&total={total.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}");
         }
         finally
         {

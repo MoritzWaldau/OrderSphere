@@ -10,6 +10,10 @@ public sealed record CheckoutCartIntegrationEvent : IntegrationEvent
     public required ShippingAddressDto ShippingAddress { get; init; }
     public required string PaymentMethod { get; init; }
     public required IReadOnlyList<OrderItemDto> Items { get; init; }
+
+    /// <summary>Applied coupon code, or null when no coupon was used. The worker re-validates and
+    /// computes the authoritative discount — the amount is never trusted from the client.</summary>
+    public string? CouponCode { get; init; }
 }
 
 public sealed record ShippingAddressDto(

@@ -1,0 +1,25 @@
+@inject IStringLocalizer<AppStrings> L
+
+<span style="display:inline-flex;align-items:center;gap:2px;"
+      aria-label="@L["Reviews.RatingAria", Value.ToString("0.0")]">
+    @for (var i = 1; i <= 5; i++)
+    {
+        var icon = Value >= i
+            ? Icons.Material.Filled.Star
+            : Value >= i - 0.5
+                ? Icons.Material.Filled.StarHalf
+                : Icons.Material.Outlined.StarBorder;
+        <MudIcon Icon="@icon" Size="Size" Style="color:#f5a623;" />
+    }
+    @if (ShowCount && Count > 0)
+    {
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-1">(@Count)</MudText>
+    }
+</span>
+
+@code {
+    [Parameter] public double Value { get; set; }
+    [Parameter] public int Count { get; set; }
+    [Parameter] public bool ShowCount { get; set; } = true;
+    [Parameter] public Size Size { get; set; } = Size.Small;
+}

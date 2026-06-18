@@ -67,3 +67,18 @@ public sealed class OrderItemIdConverter : ValueConverter<OrderItemId, Guid>
 {
     public OrderItemIdConverter() : base(id => id.Value, v => new OrderItemId(v)) { }
 }
+
+public sealed class CouponIdConverter : ValueConverter<CouponId, Guid>
+{
+    public CouponIdConverter() : base(id => id.Value, v => new CouponId(v)) { }
+}
+
+public sealed class ReviewIdConverter : ValueConverter<ReviewId, Guid>
+{
+    public ReviewIdConverter() : base(id => id.Value, v => new ReviewId(v)) { }
+}
+
+public sealed class ReservationIdConverter : ValueConverter<ReservationId, Guid>
+{
+    public ReservationIdConverter() : base(id => id.Value, v => new ReservationId(v)) { }
+}

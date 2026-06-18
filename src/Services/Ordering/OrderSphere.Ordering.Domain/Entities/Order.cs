@@ -15,8 +15,20 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
     public string? TrackingNumber { get; private set; }
     public Guid CorrelationId { get; private set; }
 
+    /// <summary>Applied coupon code, or null when no coupon was used.</summary>
+    public string? CouponCode { get; private set; }
+
+    /// <summary>Discount applied to the order subtotal, in EUR. Zero when no coupon was used.</summary>
+    public decimal DiscountAmount { get; private set; }
+
+    /// <summary>Shipping cost added to the order total, in EUR. Set once during order processing.</summary>
+    public decimal ShippingCost { get; private set; }
+
     private readonly List<OrderItem> _items = [];
     public IReadOnlyCollection<OrderItem> Items => _items;
+
+    private readonly List<OrderStatusHistory> _statusHistory = [];
+    public IReadOnlyCollection<OrderStatusHistory> StatusHistory => _statusHistory;
 
     private Order()
     {
@@ -45,13 +57,25 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
         Status = OrderStatus.Created;
         CorrelationId = correlationId;
 
+        AppendStatus(OrderStatus.Created);
         RaiseDomainEvent(new OrderCreatedDomainEvent(Id, CustomerId, CorrelationId));
     }
+
+    /// <summary>Records a redeemed coupon and its discount. Set once during order creation.</summary>
+    public void ApplyDiscount(string couponCode, decimal amount)
+    {
+        CouponCode = couponCode;
+        DiscountAmount = amount;
+    }
+
+    /// <summary>Records the calculated shipping cost. Set once during order processing.</summary>
+    public void SetShippingCost(decimal amount) => ShippingCost = amount;
 
     public void Confirm(string trackingNumber)
     {
         TrackingNumber = trackingNumber;
         Status = OrderStatus.Paid;
+        AppendStatus(OrderStatus.Paid);
         RaiseDomainEvent(new OrderConfirmedDomainEvent(Id, trackingNumber));
     }
 
@@ -62,6 +86,7 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
                 $"Order can only be marked as shipped when status is Paid (current: {Status}).");
 
         Status = OrderStatus.Shipped;
+        AppendStatus(OrderStatus.Shipped);
         RaiseDomainEvent(new OrderShippedDomainEvent(Id));
     }
 
@@ -72,6 +97,7 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
                 $"Order can only be marked as delivered when status is Shipped (current: {Status}).");
 
         Status = OrderStatus.Delivered;
+        AppendStatus(OrderStatus.Delivered);
         RaiseDomainEvent(new OrderDeliveredDomainEvent(Id));
     }
 
@@ -82,6 +108,10 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
                 $"Order in status {Status} cannot be cancelled.");
 
         Status = OrderStatus.Cancelled;
+        AppendStatus(OrderStatus.Cancelled);
         RaiseDomainEvent(new OrderCancelledDomainEvent(Id));
     }
+
+    private void AppendStatus(OrderStatus status, string? note = null)
+        => _statusHistory.Add(new OrderStatusHistory(status, DateTime.UtcNow, note));
 }

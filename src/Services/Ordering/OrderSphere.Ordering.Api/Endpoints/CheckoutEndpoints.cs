@@ -33,7 +33,8 @@ public static class CheckoutEndpoints
                     currentUser.Name ?? string.Empty,
                     request.ShippingAddress,
                     request.PaymentMethod,
-                    idempotencyKey);
+                    idempotencyKey,
+                    request.CouponCode);
 
                 var result = await mediator.Send(command, ct);
                 return result.ToHttpResult(correlationId => Results.Ok(new { CorrelationId = correlationId }));

@@ -29,6 +29,8 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.ImageUrl).HasMaxLength(500);
         builder.Property(p => p.CategoryId).IsRequired();
         builder.Property(p => p.IsActive).IsRequired().HasDefaultValue(true);
+        builder.Property(p => p.AverageRating).IsRequired().HasDefaultValue(0d);
+        builder.Property(p => p.ReviewCount).IsRequired().HasDefaultValue(0);
         builder.HasOne(p => p.Category)
             .WithMany()
             .HasForeignKey(p => p.CategoryId)

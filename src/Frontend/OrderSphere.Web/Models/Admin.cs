@@ -69,3 +69,26 @@ public sealed record AdminUserDetailDto(
     string Email,
     bool DarkModeEnabled,
     IReadOnlyList<AddressDto> Addresses);
+
+// Ordering admin — coupons
+public sealed record AdminCouponDto(
+    Guid Id,
+    string Code,
+    int DiscountType,   // 0 = Flat, 1 = Percentage
+    decimal Value,
+    decimal? MinSubtotal,
+    DateTime? ValidFrom,
+    DateTime? ValidUntil,
+    int? MaxRedemptions,
+    int RedeemedCount,
+    bool IsActive);
+
+public sealed record AdminCouponInput(
+    string Code,
+    int DiscountType,
+    decimal Value,
+    decimal? MinSubtotal,
+    DateTime? ValidFrom,
+    DateTime? ValidUntil,
+    int? MaxRedemptions,
+    bool IsActive = true);

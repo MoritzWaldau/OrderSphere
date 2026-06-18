@@ -75,7 +75,8 @@ public sealed class OrderingClient(HttpClient client) : IOrderingClient
 
     public Task<ApiResult<CouponValidationDto>> ValidateCouponAsync(string code, decimal subtotal, CancellationToken ct = default)
         => client.GetApiAsync<CouponValidationDto>(
-            $"/api/v1/coupons/validate?code={Uri.EscapeDataString(code)}&subtotal={subtotal}", ct);
+            // Invariant formatting: the backend binds [FromQuery] decimal with InvariantCulture.
+            $"/api/v1/coupons/validate?code={Uri.EscapeDataString(code)}&subtotal={subtotal.ToString(System.Globalization.CultureInfo.InvariantCulture)}", ct);
 
     private sealed record CheckoutResult(Guid CorrelationId);
 }

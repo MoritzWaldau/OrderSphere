@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
+using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Infrastructure;
+using OrderSphere.Ordering.Infrastructure.CatalogClient;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 using OrderSphere.Ordering.Worker.Workers;
 
@@ -26,6 +28,14 @@ builder.AddNpgsqlDbContext<OrderingDbContext>("ordering-db", settings =>
 // Ordering infrastructure (outbox handler registrations, DI bindings)
 builder.Services.AddOrderingInfrastructure(builder.Environment);
 builder.Services.AddOrderingOutboxProcessing();
+
+// HTTP client for Catalog service — confirm/release stock reservations on payment result.
+builder.Services.AddHttpClient<ICatalogClient, HttpCatalogClient>(client =>
+{
+    var catalogUrl = builder.Configuration["Services:Catalog:BaseUrl"]
+        ?? "https://ordersphere-catalog";
+    client.BaseAddress = new Uri(catalogUrl);
+}).AddClientCredentialsHandler();
 
 // Service Bus consumers
 builder.Services.AddHostedService<OrderProcessor>();

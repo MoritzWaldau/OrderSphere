@@ -1,0 +1,95 @@
+using Bunit;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
+using OrderSphere.Web.Components;
+
+namespace OrderSphere.Web.Tests.Components;
+
+public sealed class CartDrawerTests : BunitBase
+{
+    private IOrderingClient SetupCart(CartDto cart)
+    {
+        var client = Substitute.For<IOrderingClient>();
+        client.GetCartAsync(Arg.Any<CancellationToken>())
+            .Returns(ApiResult<CartDto>.Ok(cart));
+        Services.AddSingleton(client);
+        Services.AddSingleton<CartState>();
+        return client;
+    }
+
+    // ── Empty state ──────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task EmptyCart_ShowsEmptyMessage()
+    {
+        SetupCart(new CartDto(Guid.NewGuid(), []));
+        await Services.GetRequiredService<CartState>().RefreshAsync();
+
+        var cut = RenderComponent<CartDrawer>(p => p.Add(c => c.IsOpen, true));
+
+        cut.Markup.Should().Contain("Cart.Empty");
+    }
+
+    [Fact]
+    public async Task EmptyCart_DoesNotShowTotalOrCheckoutButton()
+    {
+        SetupCart(new CartDto(Guid.NewGuid(), []));
+        await Services.GetRequiredService<CartState>().RefreshAsync();
+
+        var cut = RenderComponent<CartDrawer>(p => p.Add(c => c.IsOpen, true));
+
+        cut.Markup.Should().NotContain("Cart.Total");
+        cut.Markup.Should().NotContain("Cart.ToCheckout");
+    }
+
+    // ── Items ────────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task CartWithItems_ShowsProductName()
+    {
+        var item = new CartItemDto(Guid.NewGuid(), "Widget Pro", 29.99m, 2);
+        SetupCart(new CartDto(Guid.NewGuid(), [item]));
+        await Services.GetRequiredService<CartState>().RefreshAsync();
+
+        var cut = RenderComponent<CartDrawer>(p => p.Add(c => c.IsOpen, true));
+
+        cut.Markup.Should().Contain("Widget Pro");
+    }
+
+    [Fact]
+    public async Task CartWithItems_ShowsLineTotal()
+    {
+        var item = new CartItemDto(Guid.NewGuid(), "Widget", 10m, 3);
+        SetupCart(new CartDto(Guid.NewGuid(), [item]));
+        await Services.GetRequiredService<CartState>().RefreshAsync();
+
+        var cut = RenderComponent<CartDrawer>(p => p.Add(c => c.IsOpen, true));
+
+        // 10 × 3 = 30
+        cut.Markup.Should().Contain(Formatting.Currency(30m));
+    }
+
+    // ── Navigation ───────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GoToCheckout_NavigatesToCheckoutAndClosesDrawer()
+    {
+        var item = new CartItemDto(Guid.NewGuid(), "Widget", 10m, 1);
+        SetupCart(new CartDto(Guid.NewGuid(), [item]));
+        await Services.GetRequiredService<CartState>().RefreshAsync();
+
+        bool? isOpenChangedTo = null;
+        var cut = RenderComponent<CartDrawer>(p =>
+        {
+            p.Add(c => c.IsOpen, true);
+            p.Add(c => c.IsOpenChanged,
+                EventCallback.Factory.Create<bool>(this, v => isOpenChangedTo = v));
+        });
+
+        cut.Find(".btn-pill").Click();
+
+        var nav = Services.GetRequiredService<NavigationManager>();
+        nav.Uri.Should().EndWith("/checkout");
+        isOpenChangedTo.Should().BeFalse();
+    }
+}

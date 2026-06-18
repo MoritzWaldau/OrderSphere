@@ -1,0 +1,30 @@
+using Bunit;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
+using MudBlazor.Services;
+
+namespace OrderSphere.Web.Tests.Components;
+
+/// <summary>
+/// Shared base for bUnit component tests. Registers MudBlazor services and a
+/// pass-through string localizer so components render without cultural infrastructure.
+/// Localized strings resolve to their key, enabling stable markup assertions.
+/// </summary>
+public abstract class BunitBase : TestContext
+{
+    protected BunitBase()
+    {
+        Services.AddMudServices();
+        Services.AddSingleton<IStringLocalizer<AppStrings>>(new PassthroughLocalizer());
+        JSInterop.Mode = JSRuntimeMode.Loose;
+    }
+
+    private sealed class PassthroughLocalizer : IStringLocalizer<AppStrings>
+    {
+        public LocalizedString this[string name] => new(name, name);
+
+        public LocalizedString this[string name, params object[] arguments] => new(name, name);
+
+        public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures) => [];
+    }
+}

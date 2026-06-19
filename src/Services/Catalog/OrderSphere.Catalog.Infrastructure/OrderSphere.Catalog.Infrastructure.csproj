@@ -9,6 +9,9 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Aspire.StackExchange.Redis.DistributedCaching" />
+    <PackageReference Include="Azure.AI.OpenAI" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Search.Documents" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">

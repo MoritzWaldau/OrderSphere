@@ -12,7 +12,8 @@ public sealed class CreateProductCommandHandlerTests
     private static CreateProductCommand ValidCommand(string sku = "SKU-001") =>
         new("Widget", "A widget", 9.99m, 10, CategoryA, sku, null);
 
-    private static CreateProductCommandHandler CreateHandler(ICatalogDbContext ctx) => new(ctx);
+    private static CreateProductCommandHandler CreateHandler(ICatalogDbContext ctx)
+        => new(ctx, DisabledProductSearchIndex.Instance);
 
     // ── SKU already exists ──────────────────────────────────────────────────────
 

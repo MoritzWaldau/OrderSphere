@@ -53,6 +53,9 @@ builder.Services.AddGrpc();
 // Background release of expired stock reservations (saga TTL compensation).
 builder.Services.AddHostedService<ReservationSweeper>();
 
+// Ensures the Azure AI Search index exists and seeds it when empty (no-op if unconfigured).
+builder.Services.AddHostedService<CatalogSearchInitializer>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

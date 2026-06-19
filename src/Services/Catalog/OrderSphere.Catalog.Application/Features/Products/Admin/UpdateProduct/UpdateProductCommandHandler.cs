@@ -2,7 +2,7 @@ using OrderSphere.BuildingBlocks.ValueObjects;
 
 namespace OrderSphere.Catalog.Application.Features.Products.Admin.UpdateProduct;
 
-public sealed class UpdateProductCommandHandler(ICatalogDbContext context)
+public sealed class UpdateProductCommandHandler(ICatalogDbContext context, IProductSearchIndex searchIndex)
     : ICommandHandler<UpdateProductCommand, Result>
 {
     public async Task<Result> Handle(UpdateProductCommand request, CancellationToken ct)
@@ -29,6 +29,8 @@ public sealed class UpdateProductCommandHandler(ICatalogDbContext context)
             product.Deactivate();
 
         await context.SaveChangesAsync(ct);
+
+        await searchIndex.SyncAsync(product.Id.Value, ct);
 
         return Result.Success();
     }

@@ -19,6 +19,8 @@ var paymentBypassProviders = builder.AddParameter("payment-bypass-providers");
 // via: dotnet user-secrets set "Foundry:Endpoint" "https://...".
 var foundryEndpoint = builder.Configuration["Foundry:Endpoint"] ?? "";
 var foundryDeployment = builder.Configuration["Foundry:Deployment"] ?? "gpt-4o-mini";
+// Embedding model for catalog hybrid search; same Foundry endpoint, separate deployment.
+var foundryEmbeddingDeployment = builder.Configuration["Foundry:EmbeddingDeployment"] ?? "text-embedding-3-small";
 
 // ── Azure Key Vault ───────────────────────────────────────────────────────────
 // Provisioned by azd in non-dev environments. Parameters above are backed by
@@ -126,6 +128,24 @@ var ordering = builder.AddProject<Projects.OrderSphere_Ordering_Api>("orderspher
 // Catalog calls Ordering's internal purchase-verification endpoint for review eligibility.
 // Declared after `ordering` exists; service discovery injects Services__Ordering__BaseUrl.
 catalog.WithReference(ordering);
+
+// Azure AI Search for catalog hybrid (keyword + vector) search, with the Foundry
+// embedding deployment. AI Search has no local emulator: it is provisioned only in
+// publish mode (azd), and the reference injects ConnectionStrings__search. Local runs
+// read Search__Endpoint from config (empty by default) and degrade to database search.
+catalog
+    .WithEnvironment("Foundry__Endpoint", foundryEndpoint)
+    .WithEnvironment("Foundry__EmbeddingDeployment", foundryEmbeddingDeployment);
+
+if (builder.ExecutionContext.IsPublishMode)
+{
+    var search = builder.AddAzureSearch("search");
+    catalog.WithReference(search);
+}
+else
+{
+    catalog.WithEnvironment("Search__Endpoint", builder.Configuration["Search:Endpoint"] ?? "");
+}
 
 builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-worker")
     .WithHttpsEndpoint()

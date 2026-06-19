@@ -10,4 +10,5 @@ public static class ProductErrors
     public static readonly Error InsufficientStock = new("Product.InsufficientStock", "Insufficient stock for the requested quantity.", ErrorType.Conflict);
     public static readonly Error SkuAlreadyExists = new("Product.SkuAlreadyExists", "A product with this SKU already exists.", ErrorType.Conflict);
     public static readonly Error UnknownError = new("Product.UnknownError", "An unexpected error occurred.", ErrorType.Unexpected);
+    public static readonly Error SearchUnavailable = new("Product.SearchUnavailable", "The search index is not configured.", ErrorType.Failure);
 }

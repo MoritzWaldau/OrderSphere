@@ -9,7 +9,7 @@ public sealed class OrderSummaryTests : BunitBase
     [Fact]
     public void DiscountRow_Hidden_WhenDiscountIsZero()
     {
-        var cut = RenderComponent<OrderSummary>(p =>
+        var cut = Render<OrderSummary>(p =>
         {
             p.Add(c => c.Subtotal, 50m);
             p.Add(c => c.Discount, 0m);
@@ -21,7 +21,7 @@ public sealed class OrderSummaryTests : BunitBase
     [Fact]
     public void DiscountRow_Shown_WhenDiscountGreaterThanZero()
     {
-        var cut = RenderComponent<OrderSummary>(p =>
+        var cut = Render<OrderSummary>(p =>
         {
             p.Add(c => c.Subtotal, 50m);
             p.Add(c => c.Discount, 10m);
@@ -36,7 +36,7 @@ public sealed class OrderSummaryTests : BunitBase
     [Fact]
     public void ShippingFreeText_Shown_WhenShippingCostIsZero()
     {
-        var cut = RenderComponent<OrderSummary>(p =>
+        var cut = Render<OrderSummary>(p =>
         {
             p.Add(c => c.Subtotal, 50m);
             p.Add(c => c.ShippingCost, 0m);
@@ -48,7 +48,7 @@ public sealed class OrderSummaryTests : BunitBase
     [Fact]
     public void ShippingAmount_Shown_WhenShippingCostGreaterThanZero()
     {
-        var cut = RenderComponent<OrderSummary>(p =>
+        var cut = Render<OrderSummary>(p =>
         {
             p.Add(c => c.Subtotal, 50m);
             p.Add(c => c.ShippingCost, 4.99m);
@@ -63,7 +63,7 @@ public sealed class OrderSummaryTests : BunitBase
     [Fact]
     public void Total_Equals_SubtotalMinusDiscountPlusShippingCost()
     {
-        var cut = RenderComponent<OrderSummary>(p =>
+        var cut = Render<OrderSummary>(p =>
         {
             p.Add(c => c.Subtotal, 100m);
             p.Add(c => c.Discount, 10m);
@@ -84,7 +84,7 @@ public sealed class OrderSummaryTests : BunitBase
             new(Guid.NewGuid(), "Widget", 9.99m, 2)
         };
 
-        var cut = RenderComponent<OrderSummary>(p =>
+        var cut = Render<OrderSummary>(p =>
         {
             p.Add(c => c.Subtotal, 19.98m);
             p.Add(c => c.ShowLineItems, false);
@@ -102,7 +102,7 @@ public sealed class OrderSummaryTests : BunitBase
             new(Guid.NewGuid(), "Widget", 9.99m, 2)
         };
 
-        var cut = RenderComponent<OrderSummary>(p =>
+        var cut = Render<OrderSummary>(p =>
         {
             p.Add(c => c.Subtotal, 19.98m);
             p.Add(c => c.ShowLineItems, true);

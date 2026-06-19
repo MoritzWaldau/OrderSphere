@@ -10,13 +10,26 @@ namespace OrderSphere.Web.Tests.Components;
 /// pass-through string localizer so components render without cultural infrastructure.
 /// Localized strings resolve to their key, enabling stable markup assertions.
 /// </summary>
-public abstract class BunitBase : TestContext
+public abstract class BunitBase : BunitContext, IAsyncLifetime
 {
     protected BunitBase()
     {
         Services.AddMudServices();
         Services.AddSingleton<IStringLocalizer<AppStrings>>(new PassthroughLocalizer());
         JSInterop.Mode = JSRuntimeMode.Loose;
+    }
+
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+
+    // MudBlazor 9.x registers services (PointerEventsNoneService, KeyInterceptorService)
+    // that are IAsyncDisposable-only. BunitContext.DisposeAsync() internally calls
+    // Dispose(bool), which in turn calls ServiceProvider.Dispose() — that throws
+    // InvalidOperationException for any IAsyncDisposable-only service that was
+    // instantiated during the test. Catch it here so the test does not fail on teardown.
+    async Task IAsyncLifetime.DisposeAsync()
+    {
+        try { await DisposeAsync(); }
+        catch (InvalidOperationException) { }
     }
 
     private sealed class PassthroughLocalizer : IStringLocalizer<AppStrings>

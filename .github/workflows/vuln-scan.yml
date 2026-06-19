@@ -42,9 +42,28 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          # Advisories accepted as known-unfixable. Each entry must include the GHSA ID,
+          # the reason no patch exists, and a revisit condition.
+          #
+          # GHSA-2m69-gcr7-jv3q — SQLitePCLRaw.lib.e_sqlite3 2.1.11 (High)
+          #   No patched release exists; 2.1.11 is the current latest on NuGet (2026-06-19).
+          #   SQLite is used only in test projects for in-process FK-constraint enforcement
+          #   and EF Core ComplexProperty support, which the InMemory provider cannot cover.
+          #   Revisit when a patched SQLitePCLRaw version ships.
+          ACCEPTED_ADVISORIES="GHSA-2m69-gcr7-jv3q"
+
           report="$(dotnet list OrderSphere.slnx package --vulnerable --include-transitive 2>&1)"
           echo "$report"
-          if echo "$report" | grep -q "has the following vulnerable packages"; then
+
+          # Strip accepted advisories from the report before checking for failures.
+          filtered="$report"
+          for id in $ACCEPTED_ADVISORIES; do
+            filtered="$(echo "$filtered" | grep -v "$id")"
+          done
+
+          # Fail on any advisory URL line that wasn't filtered out above.
+          if echo "$filtered" | grep -q "github.com/advisories"; then
             echo "::error::Vulnerable NuGet packages found."
             exit 1
           fi

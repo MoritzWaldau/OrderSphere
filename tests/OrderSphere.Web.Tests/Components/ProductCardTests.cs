@@ -27,7 +27,7 @@ public sealed class ProductCardTests : BunitBase
     [Fact]
     public void ProductName_RenderedInMarkup()
     {
-        var cut = RenderComponent<ProductCard>(p => p.Add(c => c.Product, MakeProduct()));
+        var cut = Render<ProductCard>(p => p.Add(c => c.Product, MakeProduct()));
 
         cut.Markup.Should().Contain("Test Widget");
     }
@@ -35,7 +35,7 @@ public sealed class ProductCardTests : BunitBase
     [Fact]
     public void ProductPrice_RenderedInMarkup()
     {
-        var cut = RenderComponent<ProductCard>(p => p.Add(c => c.Product, MakeProduct()));
+        var cut = Render<ProductCard>(p => p.Add(c => c.Product, MakeProduct()));
 
         cut.Markup.Should().Contain("19");
     }
@@ -45,7 +45,7 @@ public sealed class ProductCardTests : BunitBase
     [Fact]
     public void SoldOutChip_Shown_WhenStockIsZero()
     {
-        var cut = RenderComponent<ProductCard>(p => p.Add(c => c.Product, MakeProduct(stock: 0)));
+        var cut = Render<ProductCard>(p => p.Add(c => c.Product, MakeProduct(stock: 0)));
 
         cut.Markup.Should().Contain("Common.SoldOut");
     }
@@ -53,7 +53,7 @@ public sealed class ProductCardTests : BunitBase
     [Fact]
     public void SoldOutChip_Hidden_WhenStockGreaterThanZero()
     {
-        var cut = RenderComponent<ProductCard>(p => p.Add(c => c.Product, MakeProduct(stock: 10)));
+        var cut = Render<ProductCard>(p => p.Add(c => c.Product, MakeProduct(stock: 10)));
 
         cut.Markup.Should().NotContain("Common.SoldOut");
     }
@@ -63,7 +63,7 @@ public sealed class ProductCardTests : BunitBase
     [Fact]
     public void StarRating_Shown_WhenReviewCountGreaterThanZero()
     {
-        var cut = RenderComponent<ProductCard>(p =>
+        var cut = Render<ProductCard>(p =>
             p.Add(c => c.Product, MakeProduct(reviewCount: 5, avgRating: 4.2)));
 
         // StarRating renders its aria-label attribute containing the localizer key
@@ -73,7 +73,7 @@ public sealed class ProductCardTests : BunitBase
     [Fact]
     public void StarRating_Hidden_WhenReviewCountIsZero()
     {
-        var cut = RenderComponent<ProductCard>(p =>
+        var cut = Render<ProductCard>(p =>
             p.Add(c => c.Product, MakeProduct(reviewCount: 0)));
 
         cut.Markup.Should().NotContain("Reviews.RatingAria");
@@ -87,7 +87,7 @@ public sealed class ProductCardTests : BunitBase
         ProductDto? opened = null;
         var product = MakeProduct();
 
-        var cut = RenderComponent<ProductCard>(p =>
+        var cut = Render<ProductCard>(p =>
         {
             p.Add(c => c.Product, product);
             p.Add(c => c.OnOpen, EventCallback.Factory.Create<ProductDto>(this, dto => opened = dto));
@@ -104,7 +104,7 @@ public sealed class ProductCardTests : BunitBase
         ProductDto? added = null;
         var product = MakeProduct(stock: 5);
 
-        var cut = RenderComponent<ProductCard>(p =>
+        var cut = Render<ProductCard>(p =>
         {
             p.Add(c => c.Product, product);
             p.Add(c => c.OnAdd, EventCallback.Factory.Create<ProductDto>(this, dto => added = dto));
@@ -118,7 +118,7 @@ public sealed class ProductCardTests : BunitBase
     [Fact]
     public void AddButton_Disabled_WhenStockIsZero()
     {
-        var cut = RenderComponent<ProductCard>(p =>
+        var cut = Render<ProductCard>(p =>
             p.Add(c => c.Product, MakeProduct(stock: 0)));
 
         var button = cut.Find(".product-add-btn");

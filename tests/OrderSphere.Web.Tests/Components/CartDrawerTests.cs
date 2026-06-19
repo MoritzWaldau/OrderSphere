@@ -25,7 +25,7 @@ public sealed class CartDrawerTests : BunitBase
         SetupCart(new CartDto(Guid.NewGuid(), []));
         await Services.GetRequiredService<CartState>().RefreshAsync();
 
-        var cut = RenderComponent<CartDrawer>(p => p.Add(c => c.IsOpen, true));
+        var cut = Render<CartDrawer>(p => p.Add(c => c.IsOpen, true));
 
         cut.Markup.Should().Contain("Cart.Empty");
     }
@@ -36,7 +36,7 @@ public sealed class CartDrawerTests : BunitBase
         SetupCart(new CartDto(Guid.NewGuid(), []));
         await Services.GetRequiredService<CartState>().RefreshAsync();
 
-        var cut = RenderComponent<CartDrawer>(p => p.Add(c => c.IsOpen, true));
+        var cut = Render<CartDrawer>(p => p.Add(c => c.IsOpen, true));
 
         cut.Markup.Should().NotContain("Cart.Total");
         cut.Markup.Should().NotContain("Cart.ToCheckout");
@@ -51,7 +51,7 @@ public sealed class CartDrawerTests : BunitBase
         SetupCart(new CartDto(Guid.NewGuid(), [item]));
         await Services.GetRequiredService<CartState>().RefreshAsync();
 
-        var cut = RenderComponent<CartDrawer>(p => p.Add(c => c.IsOpen, true));
+        var cut = Render<CartDrawer>(p => p.Add(c => c.IsOpen, true));
 
         cut.Markup.Should().Contain("Widget Pro");
     }
@@ -63,7 +63,7 @@ public sealed class CartDrawerTests : BunitBase
         SetupCart(new CartDto(Guid.NewGuid(), [item]));
         await Services.GetRequiredService<CartState>().RefreshAsync();
 
-        var cut = RenderComponent<CartDrawer>(p => p.Add(c => c.IsOpen, true));
+        var cut = Render<CartDrawer>(p => p.Add(c => c.IsOpen, true));
 
         // 10 × 3 = 30
         cut.Markup.Should().Contain(Formatting.Currency(30m));
@@ -79,7 +79,7 @@ public sealed class CartDrawerTests : BunitBase
         await Services.GetRequiredService<CartState>().RefreshAsync();
 
         bool? isOpenChangedTo = null;
-        var cut = RenderComponent<CartDrawer>(p =>
+        var cut = Render<CartDrawer>(p =>
         {
             p.Add(c => c.IsOpen, true);
             p.Add(c => c.IsOpenChanged,

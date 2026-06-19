@@ -128,7 +128,7 @@ var ordering = builder.AddProject<Projects.OrderSphere_Ordering_Api>("orderspher
 catalog.WithReference(ordering);
 
 builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-worker")
-    .WithHttpEndpoint()
+    .WithHttpsEndpoint()
     .WithReference(orderingDb)
     .WithReference(serviceBus)
     .WithReference(catalog)
@@ -140,7 +140,7 @@ builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-w
     .WithEnvironment("Oidc__ClientSecret", orderingWorkerSecret);
 
 builder.AddProject<Projects.OrderSphere_Notification_Worker>("ordersphere-notification-worker")
-    .WithHttpEndpoint()
+    .WithHttpsEndpoint()
     .WithReference(notificationDb)
     .WithReference(serviceBus)
     .WaitFor(notificationDb)
@@ -158,7 +158,7 @@ var payment = builder.AddProject<Projects.OrderSphere_Payment_Api>("ordersphere-
     .WithEnvironment("Oidc__Audience", OidcAudience);
 
 builder.AddProject<Projects.OrderSphere_Payment_Worker>("ordersphere-payment-worker")
-    .WithHttpEndpoint()
+    .WithHttpsEndpoint()
     .WithReference(paymentDb)
     .WithReference(serviceBus)
     .WaitFor(paymentDb)
@@ -181,7 +181,7 @@ var webhooks = builder.AddProject<Projects.OrderSphere_Webhooks_Api>("orderspher
     .WithEnvironment("Oidc__Audience", OidcAudience);
 
 builder.AddProject<Projects.OrderSphere_Webhooks_Worker>("ordersphere-webhooks-worker")
-    .WithHttpEndpoint()
+    .WithHttpsEndpoint()
     .WithReference(webhooksDb)
     .WithReference(serviceBus)
     .WaitFor(webhooksDb)
@@ -223,17 +223,20 @@ var advisory = builder.AddProject<Projects.OrderSphere_Advisory_Api>("orderspher
     .WithEnvironment("Foundry__Deployment", foundryDeployment)
     // Concrete endpoint reference, not the logical name: the MCP client transport
     // uses a plain HttpClient without Aspire service discovery.
-    .WithEnvironment("Services__Mcp__BaseUrl", mcpServer.GetEndpoint("http"));
+    .WithEnvironment("Services__Mcp__BaseUrl", mcpServer.GetEndpoint("https"));
+
+// The gateway proxies advisor traffic like every other service. Wired after declaration
+// (and without WaitFor) to break the apiGateway → advisory → mcp → apiGateway cycle:
+// the gateway only needs advisory's address for service discovery, not its startup.
+apiGateway.WithReference(advisory);
 
 builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")
     .WithExternalHttpEndpoints()
     .WithReference(apiGateway)
-    .WithReference(advisory)
     .WithReference(redis)
     .WithReference(serviceBus)
     .WithReference(userProfile)
     .WaitFor(apiGateway)
-    .WaitFor(advisory)
     .WaitFor(redis)
     .WaitFor(serviceBus)
     .WaitFor(userProfile)

@@ -118,11 +118,6 @@
             Snackbar.Add(L["Onboarding.RequireDisplayName"], Severity.Warning);
             return;
         }
-        if (!_address.IsValid())
-        {
-            Snackbar.Add(L["Onboarding.RequireAddress"], Severity.Warning);
-            return;
-        }
 
         _saving = true;
         try
@@ -134,14 +129,17 @@
                 return;
             }
 
-            var addressResult = await UserProfile.AddAddressAsync(new CreateAddressRequest(
-                "Standard", _address.FirstName, _address.LastName,
-                _address.Street, _address.City, _address.PostalCode, _address.Country,
-                SetAsDefault: true));
-            if (!addressResult.IsSuccess)
+            if (_address.IsValid())
             {
-                Snackbar.Add(addressResult.Error!.Message, Severity.Error);
-                return;
+                var addressResult = await UserProfile.AddAddressAsync(new CreateAddressRequest(
+                    "Standard", _address.FirstName, _address.LastName,
+                    _address.Street, _address.City, _address.PostalCode, _address.Country,
+                    SetAsDefault: true));
+                if (!addressResult.IsSuccess)
+                {
+                    Snackbar.Add(addressResult.Error!.Message, Severity.Error);
+                    return;
+                }
             }
 
             var result = await UserProfile.CompleteOnboardingAsync();

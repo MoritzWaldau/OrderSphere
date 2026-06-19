@@ -7,12 +7,12 @@ public sealed record ChatRequest(string? ConversationId, string Message);
 
 public static class ChatEndpoints
 {
-    public static IEndpointRouteBuilder MapAdvisorEndpoints(this IEndpointRouteBuilder app)
+    public static RouteGroupBuilder MapAdvisorChatEndpoints(this RouteGroupBuilder group)
     {
         // Streams the assistant reply as Server-Sent Events. Each text token delta is
         // one unnamed `data:` frame; tool activity is a named `event: tool` frame whose
         // data carries a user-facing label; a final `data: [DONE]` frame signals completion.
-        app.MapPost("/chat", async (
+        group.MapPost("/chat", async (
             ChatRequest request,
             AdvisorChatService chat,
             HttpContext http,
@@ -49,6 +49,6 @@ public static class ChatEndpoints
         })
         .RequireRateLimiting(RateLimitingExtensions.ChatPolicy);
 
-        return app;
+        return group;
     }
 }

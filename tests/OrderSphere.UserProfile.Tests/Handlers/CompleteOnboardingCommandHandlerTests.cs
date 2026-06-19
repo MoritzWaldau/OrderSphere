@@ -13,13 +13,6 @@ public sealed class CompleteOnboardingCommandHandlerTests
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
         => new(ctx);
 
-    private static CustomerProfile ProfileWithAddress(string sub)
-    {
-        var p = new CustomerProfile(sub, "Alice", "alice@example.com");
-        p.AddAddress("Home", "Alice", "Smith", "Hauptstr. 1", "Berlin", "10115", "DE");
-        return p;
-    }
-
     // ── Profile not found ─────────────────────────────────────────────────────
 
     [Fact]
@@ -37,26 +30,10 @@ public sealed class CompleteOnboardingCommandHandlerTests
     // ── Incomplete profile ────────────────────────────────────────────────────
 
     [Fact]
-    public async Task Handle_NoAddress_ReturnsOnboardingIncompleteError()
-    {
-        await using var ctx = DbContextFactory.Create();
-        ctx.CustomerProfiles.Add(new CustomerProfile("sub-no-addr", "Alice", "alice@example.com"));
-        await ctx.SaveChangesAsync();
-
-        var result = await CreateHandler(ctx).Handle(
-            new CompleteOnboardingCommand("sub-no-addr"), CancellationToken.None);
-
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be(UserProfileErrors.OnboardingIncomplete);
-    }
-
-    [Fact]
     public async Task Handle_EmptyDisplayName_ReturnsOnboardingIncompleteError()
     {
         await using var ctx = DbContextFactory.Create();
-        var p = new CustomerProfile("sub-empty-name", string.Empty, "alice@example.com");
-        p.AddAddress("Home", "Alice", "Smith", "Hauptstr. 1", "Berlin", "10115", "DE");
-        ctx.CustomerProfiles.Add(p);
+        ctx.CustomerProfiles.Add(new CustomerProfile("sub-empty-name", string.Empty, "alice@example.com"));
         await ctx.SaveChangesAsync();
 
         var result = await CreateHandler(ctx).Handle(
@@ -66,20 +43,20 @@ public sealed class CompleteOnboardingCommandHandlerTests
         result.Error.Should().Be(UserProfileErrors.OnboardingIncomplete);
     }
 
-    // ── Happy path ────────────────────────────────────────────────────────────
+    // ── Happy path — address is now optional ─────────────────────────────────
 
     [Fact]
-    public async Task Handle_ValidProfile_SetsIsOnboardingComplete()
+    public async Task Handle_ValidDisplayNameNoAddress_SetsIsOnboardingComplete()
     {
         await using var ctx = DbContextFactory.Create();
-        ctx.CustomerProfiles.Add(ProfileWithAddress("sub-valid"));
+        ctx.CustomerProfiles.Add(new CustomerProfile("sub-no-addr", "Alice", "alice@example.com"));
         await ctx.SaveChangesAsync();
 
         var result = await CreateHandler(ctx).Handle(
-            new CompleteOnboardingCommand("sub-valid"), CancellationToken.None);
+            new CompleteOnboardingCommand("sub-no-addr"), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        ctx.CustomerProfiles.Single(p => p.Subject == "sub-valid")
+        ctx.CustomerProfiles.Single(p => p.Subject == "sub-no-addr")
             .IsOnboardingComplete.Should().BeTrue();
     }
 
@@ -87,7 +64,7 @@ public sealed class CompleteOnboardingCommandHandlerTests
     public async Task Handle_ValidProfile_ReturnsDtoWithFlagTrue()
     {
         await using var ctx = DbContextFactory.Create();
-        ctx.CustomerProfiles.Add(ProfileWithAddress("sub-dto"));
+        ctx.CustomerProfiles.Add(new CustomerProfile("sub-dto", "Alice", "alice@example.com"));
         await ctx.SaveChangesAsync();
 
         var result = await CreateHandler(ctx).Handle(
@@ -100,7 +77,7 @@ public sealed class CompleteOnboardingCommandHandlerTests
     public async Task Handle_AlreadyComplete_SucceedsIdempotently()
     {
         await using var ctx = DbContextFactory.Create();
-        var p = ProfileWithAddress("sub-idempotent");
+        var p = new CustomerProfile("sub-idempotent", "Alice", "alice@example.com");
         p.MarkOnboardingComplete();
         ctx.CustomerProfiles.Add(p);
         await ctx.SaveChangesAsync();

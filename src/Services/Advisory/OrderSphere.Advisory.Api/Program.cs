@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.Advisory.Api.Agent;
 using OrderSphere.Advisory.Api.Configuration;
+using OrderSphere.Advisory.Api.Endpoints;
 using OrderSphere.Advisory.Infrastructure;
 using OrderSphere.Advisory.Infrastructure.Persistence;
 
@@ -9,28 +9,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Aspire defaults (OpenTelemetry, health checks, service discovery, resilience).
 builder.AddServiceDefaults();
-
-builder.Services.AddHttpContextAccessor();
+builder.AddOrderSphereSwagger("OrderSphere Advisory API");
 
 // EF Core persistence for conversation history (advisory-db).
 builder.AddAdvisoryInfrastructure();
 
 // Auth0 JWT validation. The end-user token is forwarded by the BFF; the agent
-// passes it on to the MCP server. Audience is validated downstream, not here.
-var authority = builder.Configuration["Oidc:Authority"];
-var authEnabled = !string.IsNullOrWhiteSpace(authority);
-if (authEnabled)
-{
-    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
-        {
-            options.Authority = authority;
-            options.RequireHttpsMetadata = false;
-            options.TokenValidationParameters.ValidateAudience = false;
-        });
-    builder.Services.AddAuthorization();
-}
+// passes it on to the MCP server. Audience is validated downstream, not here —
+// hence the no-audience overload (ValidateAudience = false).
+builder.AddOrderSphereJwtAuth();
+builder.Services.AddCurrentUser();
 
+builder.AddOrderSphereExceptionHandling();
+builder.Services.AddAdvisoryApiVersioning();
 builder.Services.AddAdvisorRateLimiting();
 
 // Shared Foundry chat-client pipeline (credential, history reducer, GenAI telemetry).
@@ -54,16 +45,17 @@ using (var scope = app.Services.CreateScope())
     scope.ServiceProvider.GetRequiredService<AdvisoryDbContext>().Database.Migrate();
 }
 
-if (authEnabled)
+if (app.Environment.IsDevelopment())
 {
-    app.UseAuthentication();
-    app.UseAuthorization();
+    app.UseOrderSphereSwagger(docTitle: "OrderSphere Advisory API");
 }
 
+app.UseExceptionHandler();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseRateLimiter();
 
 app.MapDefaultEndpoints();
 app.MapAdvisorEndpoints();
-app.MapAdvisorHistoryEndpoints();
 
 app.Run();

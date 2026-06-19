@@ -12,9 +12,9 @@ public sealed record ConversationMessageDto(string Role, string Text, DateTime C
 // Auth0 subject; a caller without a resolvable subject sees nothing.
 public static class HistoryEndpoints
 {
-    public static IEndpointRouteBuilder MapAdvisorHistoryEndpoints(this IEndpointRouteBuilder app)
+    public static RouteGroupBuilder MapAdvisorHistoryEndpoints(this RouteGroupBuilder group)
     {
-        app.MapGet("/conversations", async (
+        group.MapGet("/conversations", async (
             IAdvisoryDbContext db, HttpContext http, CancellationToken ct) =>
         {
             var sub = CustomerContext.ResolveSub(http.User);
@@ -36,7 +36,7 @@ public static class HistoryEndpoints
             return Results.Ok(conversations);
         });
 
-        app.MapGet("/conversations/{conversationId}", async (
+        group.MapGet("/conversations/{conversationId}", async (
             string conversationId, IAdvisoryDbContext db, HttpContext http, CancellationToken ct) =>
         {
             var sub = CustomerContext.ResolveSub(http.User);
@@ -55,6 +55,6 @@ public static class HistoryEndpoints
             return messages.Count == 0 ? Results.NotFound() : Results.Ok(messages);
         });
 
-        return app;
+        return group;
     }
 }

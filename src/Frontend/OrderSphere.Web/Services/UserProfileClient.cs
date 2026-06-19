@@ -13,6 +13,7 @@ public interface IUserProfileClient
     Task<ApiResult> DeleteAddressAsync(Guid addressId, CancellationToken ct = default);
     Task<ApiResult> SetDefaultAddressAsync(Guid addressId, CancellationToken ct = default);
     Task<ApiResult<ProfileDto>> CompleteOnboardingAsync(CancellationToken ct = default);
+    Task<ApiResult<ProfileDto>> SkipOnboardingAsync(CancellationToken ct = default);
 }
 
 public sealed class UserProfileClient(HttpClient client) : IUserProfileClient
@@ -46,4 +47,8 @@ public sealed class UserProfileClient(HttpClient client) : IUserProfileClient
     public Task<ApiResult<ProfileDto>> CompleteOnboardingAsync(CancellationToken ct = default)
         => client.SendApiAsync<ProfileDto>(
             new HttpRequestMessage(HttpMethod.Post, "/api/v1/profile/complete-onboarding"), ct);
+
+    public Task<ApiResult<ProfileDto>> SkipOnboardingAsync(CancellationToken ct = default)
+        => client.SendApiAsync<ProfileDto>(
+            new HttpRequestMessage(HttpMethod.Post, "/api/v1/profile/skip-onboarding"), ct);
 }

@@ -38,9 +38,14 @@ public sealed class ProductSearchClients
     public ProductSearchClients(IConfiguration configuration)
     {
         // The Aspire AddAzureSearch reference injects ConnectionStrings:search in Azure;
-        // local/dev runs pass Search:Endpoint (empty when Azure is not wired).
-        var searchEndpoint = configuration["Search:Endpoint"]
-            ?? configuration.GetConnectionString("search");
+        // local/dev runs pass Search:Endpoint (empty when Azure is not wired). appsettings
+        // ships Search:Endpoint as "" (not null), so coalesce on whitespace — `??` would let
+        // the empty default win over the connection string. The Aspire connection string is
+        // "Endpoint=https://...", not a bare URL, so normalize both forms.
+        var rawSearch = configuration["Search:Endpoint"];
+        if (string.IsNullOrWhiteSpace(rawSearch))
+            rawSearch = configuration.GetConnectionString("search");
+        var searchEndpoint = NormalizeEndpoint(rawSearch);
         var foundryEndpoint = configuration["Foundry:Endpoint"];
         var embeddingDeployment = configuration["Foundry:EmbeddingDeployment"] ?? "text-embedding-3-small";
         IndexName = configuration["Search:IndexName"] ?? "products";
@@ -57,6 +62,24 @@ public sealed class ProductSearchClients
         EmbeddingClient = new AzureOpenAIClient(new Uri(foundryEndpoint), credential)
             .GetEmbeddingClient(embeddingDeployment);
         IsEnabled = true;
+    }
+
+    /// <summary>
+    /// Accepts both a bare endpoint URL and the Aspire connection-string form
+    /// ("Endpoint=https://...;Key=..."), returning just the endpoint URL.
+    /// </summary>
+    private static string? NormalizeEndpoint(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || !value.Contains('='))
+            return value;
+
+        foreach (var part in value.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (part.StartsWith("Endpoint=", StringComparison.OrdinalIgnoreCase))
+                return part["Endpoint=".Length..];
+        }
+
+        return value;
     }
 
     /// <summary>Vector field name used in queries and documents.</summary>

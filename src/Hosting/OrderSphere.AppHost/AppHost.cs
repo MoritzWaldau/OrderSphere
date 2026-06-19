@@ -1,3 +1,5 @@
+using Azure.Provisioning.Search;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 // ── Secret parameters ─────────────────────────────────────────────────────────
@@ -139,7 +141,21 @@ catalog
 
 if (builder.ExecutionContext.IsPublishMode)
 {
-    var search = builder.AddAzureSearch("search");
+    // Free tier: zero-cost for DEV/learning. Note its limits (small vector quota,
+    // limited index count, no semantic ranker) — move to Basic for production-like load.
+    var search = builder.AddAzureSearch("search")
+        .ConfigureInfrastructure(infra =>
+        {
+            var service = infra.GetProvisionableResources().OfType<SearchService>().Single();
+            service.SearchSkuName = SearchServiceSkuName.Free;
+        });
+
+    // WithReference grants the catalog identity SearchServiceContributor +
+    // SearchIndexDataContributor by default (azd generates the role assignments in this
+    // legacy container-app-environment model). The catalog needs both: ServiceContributor
+    // to create the index (CatalogSearchInitializer), IndexDataContributor to write/query
+    // documents (AzureAiProductSearchIndex). Explicit WithRoleAssignments is unsupported
+    // here — it requires AddAzureContainerAppEnvironment, which this AppHost does not use.
     catalog.WithReference(search);
 }
 else

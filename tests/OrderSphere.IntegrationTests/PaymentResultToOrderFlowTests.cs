@@ -13,13 +13,11 @@ using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Enums;
-using OrderSphere.Ordering.Domain.Events;
-using OrderSphere.Ordering.Domain.ValueObjects;
-using ShippingAddressDto = OrderSphere.BuildingBlocks.Contracts.Events.ShippingAddressDto;
-using OrderItemDto = OrderSphere.BuildingBlocks.Contracts.Events.OrderItemDto;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 using OrderSphere.Ordering.Worker.Workers;
 using Xunit;
+using OrderItemDto = OrderSphere.BuildingBlocks.Contracts.Events.OrderItemDto;
+using ShippingAddressDto = OrderSphere.BuildingBlocks.Contracts.Events.ShippingAddressDto;
 
 namespace OrderSphere.IntegrationTests;
 

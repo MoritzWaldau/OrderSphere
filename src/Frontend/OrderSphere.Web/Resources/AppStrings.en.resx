@@ -677,7 +677,7 @@
     <value>Set up account — OrderSphere</value>
   </data>
   <data name="Onboarding.HeroSubtitle" xml:space="preserve">
-    <value>Please add a display name and your first delivery address before you can use the shop.</value>
+    <value>Add a display name and optionally a delivery address.</value>
   </data>
   <data name="Onboarding.DisplayName" xml:space="preserve">
     <value>Display name</value>
@@ -702,6 +702,18 @@
   </data>
   <data name="Onboarding.OnboardingError" xml:space="preserve">
     <value>Onboarding could not be completed. Please check your details.</value>
+  </data>
+  <data name="OnboardingPrompt.Title" xml:space="preserve">
+    <value>Complete your profile?</value>
+  </data>
+  <data name="OnboardingPrompt.Message" xml:space="preserve">
+    <value>Add a display name to represent yourself in the community. You can skip this step and fill it in later from your account settings.</value>
+  </data>
+  <data name="OnboardingPrompt.Complete" xml:space="preserve">
+    <value>Fill in now</value>
+  </data>
+  <data name="OnboardingPrompt.Skip" xml:space="preserve">
+    <value>Skip</value>
   </data>
   <data name="Admin.Dashboard.PageTitle" xml:space="preserve">
     <value>Dashboard — Admin</value>

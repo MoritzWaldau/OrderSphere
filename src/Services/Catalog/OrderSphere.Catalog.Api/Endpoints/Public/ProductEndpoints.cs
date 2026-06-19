@@ -41,11 +41,18 @@ public static class ProductEndpoints
         [FromQuery] string? categoryName,
         [FromQuery] decimal? minPrice,
         [FromQuery] decimal? maxPrice,
-        [FromQuery] ProductSortBy? sortBy,
-        [FromQuery] SortDirection? sortDir,
+        [FromQuery] string? sortBy,
+        [FromQuery] string? sortDir,
         IMediator mediator,
         CancellationToken ct)
     {
+        // The public sort contract is lowercase ("name"/"price"/"newest", "asc"/"desc"); enum
+        // query binding is case-sensitive, so parse case-insensitively and fall back to defaults.
+        var sort = Enum.TryParse<ProductSortBy>(sortBy, ignoreCase: true, out var sb)
+            ? sb : ProductSortBy.Name;
+        var direction = Enum.TryParse<SortDirection>(sortDir, ignoreCase: true, out var sd)
+            ? sd : SortDirection.Asc;
+
         var result = await mediator.Send(
             new GetProductsQuery(
                 page == 0 ? 1 : page,
@@ -54,8 +61,8 @@ public static class ProductEndpoints
                 categoryName,
                 minPrice,
                 maxPrice,
-                sortBy ?? ProductSortBy.Name,
-                sortDir ?? SortDirection.Asc), ct);
+                sort,
+                direction), ct);
         return result.ToHttpResult();
     }
 

@@ -22,10 +22,7 @@ public sealed class CompleteOnboardingCommandHandler(IUserProfileDbContext conte
         if (profile is null)
             return Result<ProfileDto>.Failure(UserProfileErrors.ProfileNotFound);
 
-        var hasDisplayName = !string.IsNullOrWhiteSpace(profile.DisplayName);
-        var hasAddress = profile.Addresses.Any();
-
-        if (!hasDisplayName || !hasAddress)
+        if (string.IsNullOrWhiteSpace(profile.DisplayName))
             return Result<ProfileDto>.Failure(UserProfileErrors.OnboardingIncomplete);
 
         profile.MarkOnboardingComplete();

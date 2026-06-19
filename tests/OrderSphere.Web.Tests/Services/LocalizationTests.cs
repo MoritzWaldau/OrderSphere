@@ -1,7 +1,6 @@
 using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
-using OrderSphere.Web;
 
 namespace OrderSphere.Web.Tests.Services;
 

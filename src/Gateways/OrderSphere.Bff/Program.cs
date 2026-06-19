@@ -46,7 +46,7 @@ builder.AddBffAuthentication(oidcAuthority, oidcClientId, oidcClientSecret, isPr
 
 // ── UserProfile status client (onboarding check for /bff/user) ───────────────
 builder.Services.AddHttpClient("userprofile-status", c =>
-    c.BaseAddress = new Uri("http://ordersphere-userprofile"))
+    c.BaseAddress = new Uri("https://ordersphere-userprofile"))
     .AddServiceDiscovery();
 
 // ── Reverse proxy ─────────────────────────────────────────────────────────────

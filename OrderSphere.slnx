@@ -1,10 +1,19 @@
 <Solution>
   <Folder Name="/Solution Items/">
-    <File Path="Directory.Packages.props" />
-    <File Path=".gitignore" />
     <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="azure.yaml" />
+    <File Path="CHANGELOG.md" />
     <File Path="CLAUDE.md" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="coverage.runsettings" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
     <File Path="README.md" />
+    <File Path="SECURITY.md" />
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/BuildingBlocks/">
@@ -76,7 +85,6 @@
     <Project Path="src/Frontend/OrderSphere.Web/OrderSphere.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/OrderSphere.ApiGateway.Tests/OrderSphere.ApiGateway.Tests.csproj" />
     <Project Path="tests/OrderSphere.Advisory.Tests/OrderSphere.Advisory.Tests.csproj" />
     <Project Path="tests/OrderSphere.Basket.Tests/OrderSphere.Basket.Tests.csproj" />
     <Project Path="tests/OrderSphere.Bff.Tests/OrderSphere.Bff.Tests.csproj" />

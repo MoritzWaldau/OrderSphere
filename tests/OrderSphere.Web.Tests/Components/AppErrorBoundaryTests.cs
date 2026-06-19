@@ -1,11 +1,10 @@
 using Bunit;
-using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
 using OrderSphere.Web.Components;
 
 namespace OrderSphere.Web.Tests.Components;
 
-public sealed class AppErrorBoundaryTests : TestContext
+public sealed class AppErrorBoundaryTests : BunitContext, IAsyncLifetime
 {
     public AppErrorBoundaryTests()
     {
@@ -13,10 +12,14 @@ public sealed class AppErrorBoundaryTests : TestContext
         JSInterop.Mode = JSRuntimeMode.Loose;
     }
 
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     [Fact]
     public void RendersChildContent_WhenNoError()
     {
-        var cut = RenderComponent<AppErrorBoundary>(
+        var cut = Render<AppErrorBoundary>(
             parameters => parameters.AddChildContent("<p>child works</p>"));
 
         cut.Markup.Should().Contain("child works");
@@ -25,7 +28,7 @@ public sealed class AppErrorBoundaryTests : TestContext
     [Fact]
     public void ShowsFallback_WhenChildThrows()
     {
-        var cut = RenderComponent<AppErrorBoundary>(
+        var cut = Render<AppErrorBoundary>(
             parameters => parameters.AddChildContent<ThrowingChild>());
 
         cut.Markup.Should().Contain("Etwas ist schiefgelaufen");

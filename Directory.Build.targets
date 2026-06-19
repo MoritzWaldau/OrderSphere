@@ -1,0 +1,14 @@
+<Project>
+
+  <!--
+    GHSA-2m69-gcr7-jv3q: SQLitePCLRaw.lib.e_sqlite3 2.1.11 — no patched release exists
+    as of 2026-06-19 (2.1.11 is the current latest on NuGet). SQLite is required by test
+    projects for FK-constraint enforcement and ComplexProperty support (EF Core InMemory
+    does not support either). Scoped to test projects so production assemblies retain full
+    audit coverage. Revisit when a patched SQLitePCLRaw version ships.
+  -->
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+    <NoWarn>$(NoWarn);NU1903</NoWarn>
+  </PropertyGroup>
+
+</Project>

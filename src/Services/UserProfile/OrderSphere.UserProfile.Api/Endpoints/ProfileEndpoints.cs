@@ -9,6 +9,7 @@ using OrderSphere.UserProfile.Application.Features.Profile.EnsureProfile;
 using OrderSphere.UserProfile.Application.Features.Profile.GetAddresses;
 using OrderSphere.UserProfile.Application.Features.Profile.OnboardingStatus;
 using OrderSphere.UserProfile.Application.Features.Profile.SetDefaultAddress;
+using OrderSphere.UserProfile.Application.Features.Profile.SkipOnboarding;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdateAddress;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdatePreferences;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdateProfile;
@@ -27,6 +28,7 @@ public static class ProfileEndpoints
         group.MapPut("/preferences", UpdatePreferences);
         group.MapGet("/onboarding-status", GetOnboardingStatus);
         group.MapPost("/complete-onboarding", CompleteOnboarding);
+        group.MapPost("/skip-onboarding", SkipOnboarding);
         group.MapGet("/addresses", GetAddresses);
         group.MapPost("/addresses", AddAddress);
         group.MapPut("/addresses/{addressId:guid}", UpdateAddress);
@@ -89,6 +91,18 @@ public static class ProfileEndpoints
         if (currentUser.Sub is not { } sub) return Results.Unauthorized();
 
         var result = await sender.Send(new CompleteOnboardingCommand(sub), ct);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> SkipOnboarding(
+        ICurrentUser currentUser,
+        ISender sender,
+        CancellationToken ct)
+    {
+        if (currentUser.Sub is not { } sub) return Results.Unauthorized();
+
+        var result = await sender.Send(
+            new SkipOnboardingCommand(sub, currentUser.Name ?? string.Empty, currentUser.Email ?? string.Empty), ct);
         return result.ToHttpResult();
     }
 

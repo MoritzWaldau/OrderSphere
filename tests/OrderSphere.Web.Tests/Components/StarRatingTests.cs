@@ -8,7 +8,7 @@ public sealed class StarRatingTests : BunitBase
     [Fact]
     public void Renders_FiveStarIcons()
     {
-        var cut = RenderComponent<StarRating>(p => p.Add(c => c.Value, 4.0));
+        var cut = Render<StarRating>(p => p.Add(c => c.Value, 4.0));
 
         cut.FindAll(".mud-icon-root").Should().HaveCount(5);
     }
@@ -16,7 +16,7 @@ public sealed class StarRatingTests : BunitBase
     [Fact]
     public void ShowCount_True_RendersCountText()
     {
-        var cut = RenderComponent<StarRating>(p =>
+        var cut = Render<StarRating>(p =>
         {
             p.Add(c => c.Value, 4.0);
             p.Add(c => c.Count, 12);
@@ -29,7 +29,7 @@ public sealed class StarRatingTests : BunitBase
     [Fact]
     public void ShowCount_False_HidesCountText()
     {
-        var cut = RenderComponent<StarRating>(p =>
+        var cut = Render<StarRating>(p =>
         {
             p.Add(c => c.Value, 4.0);
             p.Add(c => c.Count, 12);
@@ -42,7 +42,7 @@ public sealed class StarRatingTests : BunitBase
     [Fact]
     public void Count_Zero_HidesCountText_EvenWhenShowCountIsTrue()
     {
-        var cut = RenderComponent<StarRating>(p =>
+        var cut = Render<StarRating>(p =>
         {
             p.Add(c => c.Value, 4.0);
             p.Add(c => c.Count, 0);

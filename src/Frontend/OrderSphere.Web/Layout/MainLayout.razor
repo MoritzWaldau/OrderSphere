@@ -4,6 +4,8 @@
 @inject ISnackbar Snackbar
 @inject NotificationHubClient NotificationHub
 @inject NavigationManager Nav
+@inject IDialogService DialogService
+@inject AuthenticationStateProvider AuthStateProvider
 
 <MudThemeProvider Theme="ThemeState.Theme" IsDarkMode="ThemeState.IsDarkMode" />
 <MudPopoverProvider />
@@ -25,13 +27,20 @@
 
     <CartDrawer IsOpen="@_cartOpen" IsOpenChanged="val => _cartOpen = val" />
 
-    <AdvisorDrawer IsOpen="@_advisorOpen" IsOpenChanged="val => _advisorOpen = val" />
+    @* The advisor is an authenticated feature (per-user chat history, MCP calls with the
+       caller's bearer token) and is reached through the gateway like every other API, whose
+       routes require login. Hide it from anonymous visitors so they never trigger a 401. *@
+    <AuthorizeView>
+        <Authorized>
+            <AdvisorDrawer IsOpen="@_advisorOpen" IsOpenChanged="val => _advisorOpen = val" />
 
-    <MudFab Color="Color.Primary"
-            StartIcon="@Icons.Material.Filled.SupportAgent"
-            Style="position:fixed;bottom:24px;right:24px;z-index:1300;"
-            OnClick="ToggleAdvisor"
-            aria-label="Berater öffnen" />
+            <MudFab Color="Color.Primary"
+                    StartIcon="@Icons.Material.Filled.SupportAgent"
+                    Style="position:fixed;bottom:24px;right:24px;z-index:1300;"
+                    OnClick="ToggleAdvisor"
+                    aria-label="Berater öffnen" />
+        </Authorized>
+    </AuthorizeView>
 
     <AppFooter />
 </MudLayout>
@@ -45,6 +54,7 @@
     private bool _cartOpen;
     private bool _advisorOpen;
     private int _cartItemCount;
+    private bool _onboardingPromptShown;
 
     protected override void OnInitialized()
     {
@@ -68,17 +78,19 @@
         var state = await (AuthState ?? Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal())));
         if (state.User.Identity?.IsAuthenticated == true)
         {
-            // Redirect to onboarding if the BFF reports it is not yet complete.
-            // The actual enforcement is server-side (Gateway middleware); this is purely UX.
             var userInfo = state.User.Identity as System.Security.Claims.ClaimsIdentity;
-            var onboardingClaim = userInfo?.FindFirst("onboardingComplete");
-            var onboardingComplete = onboardingClaim?.Value == "true";
+            var onboardingComplete = userInfo?.FindFirst("onboardingComplete")?.Value == "true";
 
-            var currentPath = Nav.ToBaseRelativePath(Nav.Uri);
-            if (!onboardingComplete && !currentPath.StartsWith("onboarding", StringComparison.OrdinalIgnoreCase))
+            if (!onboardingComplete && !_onboardingPromptShown)
             {
-                Nav.NavigateTo("/onboarding");
-                return;
+                _onboardingPromptShown = true;
+                var dialog = await DialogService.ShowAsync<OnboardingPromptDialog>(string.Empty,
+                    new DialogOptions { CloseOnEscapeKey = false, BackdropClick = false, MaxWidth = MaxWidth.Small, FullWidth = true });
+                var result = await dialog.Result;
+                // Skip path: SkipOnboardingAsync already called inside the dialog.
+                // Fill path: dialog navigated to /onboarding.
+                // Either way the onboarding claim needs refreshing.
+                ((BffAuthStateProvider)AuthStateProvider).NotifyAuthStateChanged();
             }
 
             await CartState.InitializeAsync();

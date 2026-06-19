@@ -4,6 +4,7 @@
     Solution-wide compiler and analysis settings.
     Per-project .csproj files may still override individual properties where needed.
   -->
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>

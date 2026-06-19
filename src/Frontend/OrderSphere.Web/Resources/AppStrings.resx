@@ -677,7 +677,7 @@
     <value>Konto einrichten — OrderSphere</value>
   </data>
   <data name="Onboarding.HeroSubtitle" xml:space="preserve">
-    <value>Bitte ergänze einen Anzeigenamen und deine erste Lieferadresse, bevor du den Shop nutzen kannst.</value>
+    <value>Ergänze deinen Anzeigenamen und optional eine Lieferadresse.</value>
   </data>
   <data name="Onboarding.DisplayName" xml:space="preserve">
     <value>Anzeigename</value>
@@ -702,6 +702,18 @@
   </data>
   <data name="Onboarding.OnboardingError" xml:space="preserve">
     <value>Onboarding konnte nicht abgeschlossen werden. Bitte überprüfe deine Angaben.</value>
+  </data>
+  <data name="OnboardingPrompt.Title" xml:space="preserve">
+    <value>Profil vervollständigen?</value>
+  </data>
+  <data name="OnboardingPrompt.Message" xml:space="preserve">
+    <value>Hinterlege einen Anzeigenamen, um dich in der Community zu zeigen. Du kannst diesen Schritt auch überspringen und später in deinen Kontoeinstellungen ergänzen.</value>
+  </data>
+  <data name="OnboardingPrompt.Complete" xml:space="preserve">
+    <value>Jetzt ausfüllen</value>
+  </data>
+  <data name="OnboardingPrompt.Skip" xml:space="preserve">
+    <value>Überspringen</value>
   </data>
   <data name="Admin.Dashboard.PageTitle" xml:space="preserve">
     <value>Dashboard — Admin</value>

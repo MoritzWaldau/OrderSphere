@@ -39,19 +39,19 @@ public sealed class AdvisorClient(IHttpClientFactory factory) : IAdvisorClient
     private readonly HttpClient client = factory.CreateClient("advisor");
 
     public async Task<IReadOnlyList<AdvisorConversation>> GetConversationsAsync(CancellationToken ct = default)
-        => await client.GetFromJsonAsync<List<AdvisorConversation>>("/api/advisor/conversations", ct) ?? [];
+        => await client.GetFromJsonAsync<List<AdvisorConversation>>("/api/v1/advisor/conversations", ct) ?? [];
 
     public async Task<IReadOnlyList<AdvisorHistoryMessage>> GetMessagesAsync(
         string conversationId, CancellationToken ct = default)
         => await client.GetFromJsonAsync<List<AdvisorHistoryMessage>>(
-               $"/api/advisor/conversations/{Uri.EscapeDataString(conversationId)}", ct) ?? [];
+               $"/api/v1/advisor/conversations/{Uri.EscapeDataString(conversationId)}", ct) ?? [];
 
     public async IAsyncEnumerable<AdvisorStreamItem> StreamAsync(
         string conversationId,
         string message,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/advisor/chat")
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/advisor/chat")
         {
             Content = JsonContent.Create(new { conversationId, message })
         };

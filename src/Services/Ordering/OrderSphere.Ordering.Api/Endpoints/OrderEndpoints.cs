@@ -5,7 +5,6 @@ using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Api.Configuration;
 using OrderSphere.Ordering.Application.Features.Order;
 using OrderSphere.Ordering.Application.Features.Order.Admin;
-using OrderSphere.Ordering.Application.Models;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.ServiceDefaults;
 

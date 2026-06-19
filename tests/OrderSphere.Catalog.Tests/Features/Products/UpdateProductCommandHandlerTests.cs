@@ -11,7 +11,8 @@ public sealed class UpdateProductCommandHandlerTests
     private static UpdateProductCommand ValidCommand(bool isActive = true) =>
         new(ProductA, "Updated Widget", "desc", 12.99m, 20, CategoryA, "SKU-002", isActive, null);
 
-    private static UpdateProductCommandHandler CreateHandler(ICatalogDbContext ctx) => new(ctx);
+    private static UpdateProductCommandHandler CreateHandler(ICatalogDbContext ctx)
+        => new(ctx, DisabledProductSearchIndex.Instance);
 
     // ── Product not found ────────────────────────────────────────────────────────
 

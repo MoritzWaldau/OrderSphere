@@ -6,6 +6,7 @@ using OrderSphere.Catalog.Application.Features.Products.Admin.CreateProduct;
 using OrderSphere.Catalog.Application.Features.Products.Admin.DeleteProduct;
 using OrderSphere.Catalog.Application.Features.Products.Admin.GetAllProductsAdmin;
 using OrderSphere.Catalog.Application.Features.Products.Admin.GetProductByIdAdmin;
+using OrderSphere.Catalog.Application.Features.Products.Admin.ReindexSearch;
 using OrderSphere.Catalog.Application.Features.Products.Admin.UpdateProduct;
 using OrderSphere.ServiceDefaults;
 
@@ -33,6 +34,10 @@ public static class ProductEndpoints
 
         group.MapDelete("/{id:guid}", Delete)
             .WithName("AdminDeleteProduct")
+            .WithTags("Products Admin");
+
+        group.MapPost("/reindex-search", ReindexSearch)
+            .WithName("AdminReindexProductSearch")
             .WithTags("Products Admin");
     }
 
@@ -75,5 +80,11 @@ public static class ProductEndpoints
     {
         var result = await mediator.Send(new DeleteProductCommand(ProductId.From(id)), ct);
         return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> ReindexSearch(IMediator mediator, CancellationToken ct)
+    {
+        var result = await mediator.Send(new ReindexSearchCommand(), ct);
+        return result.ToHttpResult(indexed => Results.Ok(new { indexed }));
     }
 }

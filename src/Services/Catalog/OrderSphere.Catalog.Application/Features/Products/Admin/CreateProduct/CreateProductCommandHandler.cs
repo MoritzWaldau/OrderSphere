@@ -3,7 +3,7 @@ using OrderSphere.Catalog.Domain.Entities;
 
 namespace OrderSphere.Catalog.Application.Features.Products.Admin.CreateProduct;
 
-public sealed class CreateProductCommandHandler(ICatalogDbContext context)
+public sealed class CreateProductCommandHandler(ICatalogDbContext context, IProductSearchIndex searchIndex)
     : ICommandHandler<CreateProductCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(CreateProductCommand request, CancellationToken ct)
@@ -33,6 +33,8 @@ public sealed class CreateProductCommandHandler(ICatalogDbContext context)
 
         context.Products.Add(product);
         await context.SaveChangesAsync(ct);
+
+        await searchIndex.SyncAsync(product.Id.Value, ct);
 
         // Return the raw Guid so the endpoint can use it in the Location header.
         return Result<Guid>.Success(product.Id.Value);

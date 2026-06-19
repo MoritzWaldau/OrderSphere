@@ -1,9 +1,73 @@
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
+
 namespace OrderSphere.Catalog.Application.Features.Products.Public.GetProducts;
 
-public sealed class GetProductsQueryHandler(ICatalogDbContext context)
+public sealed class GetProductsQueryHandler(ICatalogDbContext context, IProductSearchIndex searchIndex)
     : IQueryHandler<GetProductsQuery, Result<PagedResult<ProductDto>>>
 {
     public async Task<Result<PagedResult<ProductDto>>> Handle(GetProductsQuery request, CancellationToken ct)
+    {
+        // Hybrid (keyword + vector) search applies only when there is a free-text term
+        // and the index is configured. Everything else (browsing, filtering, sorting)
+        // stays on the database, which remains the system of record.
+        if (searchIndex.IsEnabled && !string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            try
+            {
+                return await SearchViaIndexAsync(request, ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // A search outage must not take down browsing — fall back to the database.
+                _ = ex;
+            }
+        }
+
+        return await SearchViaDatabaseAsync(request, ct);
+    }
+
+    private async Task<Result<PagedResult<ProductDto>>> SearchViaIndexAsync(GetProductsQuery request, CancellationToken ct)
+    {
+        var criteria = new ProductSearchCriteria(
+            request.SearchTerm!.Trim(),
+            string.IsNullOrWhiteSpace(request.CategoryName) ? null : request.CategoryName.Trim(),
+            request.MinPrice,
+            request.MaxPrice,
+            (request.Page - 1) * request.PageSize,
+            request.PageSize);
+
+        var page = await searchIndex.SearchAsync(criteria, ct);
+
+        var total = (int)page.Total;
+
+        if (page.ProductIds.Count == 0)
+            return Result<PagedResult<ProductDto>>.Success(
+                new PagedResult<ProductDto>([], total, request.Page, request.PageSize));
+
+        var typedIds = page.ProductIds.Select(ProductId.From).ToList();
+
+        var products = await context.Products
+            .Include(p => p.Category)
+            .AsNoTracking()
+            .Where(p => typedIds.Contains(p.Id))
+            .Select(p => new ProductDto(
+                p.Id.Value, p.Name, p.Slug, p.Description, p.Price, p.Stock,
+                p.CategoryId.Value, p.Category!.Name, p.SKU, p.ImageUrl, p.IsActive,
+                p.AverageRating, p.ReviewCount))
+            .ToListAsync(ct);
+
+        // Preserve the relevance order returned by the search index.
+        var byId = products.ToDictionary(p => p.Id);
+        var ordered = page.ProductIds
+            .Where(byId.ContainsKey)
+            .Select(id => byId[id])
+            .ToList();
+
+        return Result<PagedResult<ProductDto>>.Success(
+            new PagedResult<ProductDto>(ordered, total, request.Page, request.PageSize));
+    }
+
+    private async Task<Result<PagedResult<ProductDto>>> SearchViaDatabaseAsync(GetProductsQuery request, CancellationToken ct)
     {
         var query = context.Products
             .Include(p => p.Category)

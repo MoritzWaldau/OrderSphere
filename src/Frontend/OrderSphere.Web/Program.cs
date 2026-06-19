@@ -14,8 +14,9 @@ builder.RootComponents.Add<OrderSphere.Web.App>("#app");
 // Localization — IStringLocalizer<AppStrings> resolves against Resources/AppStrings*.resx.
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
-// CSRF protection service.
-builder.Services.AddScoped<CsrfTokenService>();
+// CSRF protection service. Singleton so IHttpClientFactory handler scopes resolve
+// the same instance that BffAuthStateProvider writes to.
+builder.Services.AddSingleton<CsrfTokenService>();
 
 // HTTP message handlers (transient so the HttpClientFactory places one per client).
 builder.Services.AddTransient<AntiforgeryDelegatingHandler>();

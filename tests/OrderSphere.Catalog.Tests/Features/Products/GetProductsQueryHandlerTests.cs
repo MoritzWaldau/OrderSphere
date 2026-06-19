@@ -8,7 +8,8 @@ public sealed class GetProductsQueryHandlerTests
     private static readonly CategoryId ShoesId = CategoryId.New();
     private static readonly CategoryId JacketsId = CategoryId.New();
 
-    private static GetProductsQueryHandler CreateHandler(ICatalogDbContext ctx) => new(ctx);
+    private static GetProductsQueryHandler CreateHandler(ICatalogDbContext ctx)
+        => new(ctx, DisabledProductSearchIndex.Instance);
 
     private static ICatalogDbContext Context(params Product[] products)
     {

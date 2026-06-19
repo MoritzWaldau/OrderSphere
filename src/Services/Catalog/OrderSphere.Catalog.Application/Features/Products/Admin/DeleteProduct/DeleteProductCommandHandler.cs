@@ -1,6 +1,6 @@
 namespace OrderSphere.Catalog.Application.Features.Products.Admin.DeleteProduct;
 
-public sealed class DeleteProductCommandHandler(ICatalogDbContext context)
+public sealed class DeleteProductCommandHandler(ICatalogDbContext context, IProductSearchIndex searchIndex)
     : ICommandHandler<DeleteProductCommand, Result>
 {
     public async Task<Result> Handle(DeleteProductCommand request, CancellationToken ct)
@@ -15,6 +15,8 @@ public sealed class DeleteProductCommandHandler(ICatalogDbContext context)
         product.Delete();
 
         await context.SaveChangesAsync(ct);
+
+        await searchIndex.RemoveAsync(product.Id.Value, ct);
 
         return Result.Success();
     }

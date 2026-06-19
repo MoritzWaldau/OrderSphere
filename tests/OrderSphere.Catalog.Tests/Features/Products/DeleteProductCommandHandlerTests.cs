@@ -11,7 +11,8 @@ public sealed class DeleteProductCommandHandlerTests
 
     private static DeleteProductCommand ValidCommand() => new(ProductA);
 
-    private static DeleteProductCommandHandler CreateHandler(ICatalogDbContext ctx) => new(ctx);
+    private static DeleteProductCommandHandler CreateHandler(ICatalogDbContext ctx)
+        => new(ctx, DisabledProductSearchIndex.Instance);
 
     // ── Product not found ────────────────────────────────────────────────────────
 

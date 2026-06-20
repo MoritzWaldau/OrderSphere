@@ -56,7 +56,8 @@ public static class ProfileEndpoints
     {
         if (currentUser.Sub is not { } sub) return Results.Unauthorized();
 
-        var result = await sender.Send(new UpdateProfileCommand(sub, request.DisplayName, request.Email), ct);
+        var email = currentUser.Email ?? string.Empty;
+        var result = await sender.Send(new UpdateProfileCommand(sub, request.DisplayName, email), ct);
         return result.ToHttpResult();
     }
 

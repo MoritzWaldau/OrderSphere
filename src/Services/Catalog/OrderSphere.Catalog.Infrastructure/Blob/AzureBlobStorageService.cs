@@ -1,6 +1,5 @@
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
-using OrderSphere.Catalog.Application.Abstractions;
 
 namespace OrderSphere.Catalog.Infrastructure.Blob;
 

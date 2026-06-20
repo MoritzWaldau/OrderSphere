@@ -1,10 +1,7 @@
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
-using OrderSphere.Catalog.Application.Abstractions;
-using OrderSphere.Catalog.Domain.Entities;
 
 namespace OrderSphere.Catalog.Infrastructure.Search;
 

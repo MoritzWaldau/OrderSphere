@@ -1,5 +1,3 @@
-using OrderSphere.Catalog.Application.Abstractions;
-
 namespace OrderSphere.Catalog.Infrastructure.Blob;
 
 public sealed class DisabledBlobStorageService : IBlobStorageService

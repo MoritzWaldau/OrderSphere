@@ -1,5 +1,3 @@
-using OrderSphere.Catalog.Application.Abstractions;
-
 namespace OrderSphere.Catalog.Infrastructure.Search;
 
 /// <summary>

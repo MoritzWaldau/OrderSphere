@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using OrderSphere.Catalog.Application.Abstractions;
 using OrderSphere.Catalog.Infrastructure.Blob;
 using OrderSphere.Catalog.Infrastructure.Persistence;
 using OrderSphere.Catalog.Infrastructure.Search;

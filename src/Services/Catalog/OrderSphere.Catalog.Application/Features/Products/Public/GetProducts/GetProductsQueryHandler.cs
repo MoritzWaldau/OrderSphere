@@ -57,12 +57,19 @@ public sealed class GetProductsQueryHandler(
             .Select(p => new
             {
                 Id = p.Id.Value,
-                p.Name, p.Slug, p.Description,
+                p.Name,
+                p.Slug,
+                p.Description,
                 Price = (decimal)p.Price,
                 p.Stock,
                 CategoryId = p.CategoryId.Value,
                 CategoryName = p.Category!.Name,
-                p.SKU, p.ImageUrl, p.ImageBlobName, p.IsActive, p.AverageRating, p.ReviewCount,
+                p.SKU,
+                p.ImageUrl,
+                p.ImageBlobName,
+                p.IsActive,
+                p.AverageRating,
+                p.ReviewCount,
                 BrandId = p.Brand != null ? (Guid?)p.Brand.Id.Value : null,
                 BrandName = p.Brand != null ? p.Brand.Name : null,
             })
@@ -140,12 +147,19 @@ public sealed class GetProductsQueryHandler(
             .Select(p => new
             {
                 Id = p.Id.Value,
-                p.Name, p.Slug, p.Description,
+                p.Name,
+                p.Slug,
+                p.Description,
                 Price = (decimal)p.Price,
                 p.Stock,
                 CategoryId = p.CategoryId.Value,
                 CategoryName = p.Category!.Name,
-                p.SKU, p.ImageUrl, p.ImageBlobName, p.IsActive, p.AverageRating, p.ReviewCount,
+                p.SKU,
+                p.ImageUrl,
+                p.ImageBlobName,
+                p.IsActive,
+                p.AverageRating,
+                p.ReviewCount,
                 BrandId = p.Brand != null ? (Guid?)p.Brand.Id.Value : null,
                 BrandName = p.Brand != null ? p.Brand.Name : null,
             })

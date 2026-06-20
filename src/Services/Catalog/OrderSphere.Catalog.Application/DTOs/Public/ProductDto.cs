@@ -13,4 +13,6 @@ public sealed record ProductDto(
     string? ImageUrl,
     bool IsActive,
     double AverageRating,
-    int ReviewCount);
+    int ReviewCount,
+    Guid? BrandId = null,
+    string? BrandName = null);

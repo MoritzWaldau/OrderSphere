@@ -51,6 +51,7 @@ public sealed class GetProductsQueryHandler(
 
         var rawProducts = await context.Products
             .Include(p => p.Category)
+            .Include(p => p.Brand)
             .AsNoTracking()
             .Where(p => typedIds.Contains(p.Id))
             .Select(p => new
@@ -62,6 +63,8 @@ public sealed class GetProductsQueryHandler(
                 CategoryId = p.CategoryId.Value,
                 CategoryName = p.Category!.Name,
                 p.SKU, p.ImageUrl, p.ImageBlobName, p.IsActive, p.AverageRating, p.ReviewCount,
+                BrandId = p.Brand != null ? (Guid?)p.Brand.Id.Value : null,
+                BrandName = p.Brand != null ? p.Brand.Name : null,
             })
             .ToListAsync(ct);
 
@@ -73,7 +76,7 @@ public sealed class GetProductsQueryHandler(
                 : raw.ImageUrl;
             products.Add(new ProductDto(raw.Id, raw.Name, raw.Slug, raw.Description, raw.Price,
                 raw.Stock, raw.CategoryId, raw.CategoryName, raw.SKU, imageUrl,
-                raw.IsActive, raw.AverageRating, raw.ReviewCount));
+                raw.IsActive, raw.AverageRating, raw.ReviewCount, raw.BrandId, raw.BrandName));
         }
 
         // Preserve the relevance order returned by the search index.
@@ -91,6 +94,7 @@ public sealed class GetProductsQueryHandler(
     {
         var query = context.Products
             .Include(p => p.Category)
+            .Include(p => p.Brand)
             .AsNoTracking()
             .Where(p => p.IsActive);
 
@@ -142,6 +146,8 @@ public sealed class GetProductsQueryHandler(
                 CategoryId = p.CategoryId.Value,
                 CategoryName = p.Category!.Name,
                 p.SKU, p.ImageUrl, p.ImageBlobName, p.IsActive, p.AverageRating, p.ReviewCount,
+                BrandId = p.Brand != null ? (Guid?)p.Brand.Id.Value : null,
+                BrandName = p.Brand != null ? p.Brand.Name : null,
             })
             .ToListAsync(ct);
 
@@ -153,7 +159,7 @@ public sealed class GetProductsQueryHandler(
                 : raw.ImageUrl;
             items.Add(new ProductDto(raw.Id, raw.Name, raw.Slug, raw.Description, raw.Price,
                 raw.Stock, raw.CategoryId, raw.CategoryName, raw.SKU, imageUrl,
-                raw.IsActive, raw.AverageRating, raw.ReviewCount));
+                raw.IsActive, raw.AverageRating, raw.ReviewCount, raw.BrandId, raw.BrandName));
         }
 
         return Result<PagedResult<ProductDto>>.Success(

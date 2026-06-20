@@ -16,6 +16,7 @@ public sealed class Product : AuditableEntity<ProductId>, IAggregateRoot
     public Money Price { get; private set; } = null!;
     public int Stock { get; private set; }
     public CategoryId CategoryId { get; private set; }
+    public BrandId? BrandId { get; private set; }
     public string SKU { get; private set; } = null!;
     public string? ImageUrl { get; private set; }
     public string? ImageBlobName { get; private set; }
@@ -28,11 +29,12 @@ public sealed class Product : AuditableEntity<ProductId>, IAggregateRoot
     public int ReviewCount { get; private set; }
 
     public Category? Category { get; set; }
+    public Brand? Brand { get; set; }
 
     // Parameterless constructor for EF Core materialisation.
     public Product() { }
 
-    public Product(string name, string description, Money price, int stock, CategoryId categoryId, string sku, string? imageUrl = null)
+    public Product(string name, string description, Money price, int stock, CategoryId categoryId, string sku, string? imageUrl = null, BrandId? brandId = null)
     {
         Id = ProductId.New();
         Name = name;
@@ -41,6 +43,7 @@ public sealed class Product : AuditableEntity<ProductId>, IAggregateRoot
         Price = price;
         Stock = stock;
         CategoryId = categoryId;
+        BrandId = brandId;
         SKU = sku;
         ImageUrl = imageUrl;
     }
@@ -69,7 +72,7 @@ public sealed class Product : AuditableEntity<ProductId>, IAggregateRoot
         return Result.Success();
     }
 
-    public void UpdateDetails(string name, string description, Money price, int stock, CategoryId categoryId, string sku, string? imageUrl = null)
+    public void UpdateDetails(string name, string description, Money price, int stock, CategoryId categoryId, string sku, string? imageUrl = null, BrandId? brandId = null)
     {
         Name = name;
         Slug = GenerateSlug(name);
@@ -77,6 +80,7 @@ public sealed class Product : AuditableEntity<ProductId>, IAggregateRoot
         Price = price;
         Stock = stock;
         CategoryId = categoryId;
+        BrandId = brandId;
         SKU = sku;
         ImageUrl = imageUrl;
     }

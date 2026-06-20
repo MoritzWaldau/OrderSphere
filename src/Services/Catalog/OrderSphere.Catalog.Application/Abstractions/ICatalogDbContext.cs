@@ -6,6 +6,7 @@ public interface ICatalogDbContext
 {
     DbSet<Product> Products { get; }
     DbSet<Category> Categories { get; }
+    DbSet<Brand> Brands { get; }
     DbSet<ProductReview> Reviews { get; }
     DbSet<StockReservation> StockReservations { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);

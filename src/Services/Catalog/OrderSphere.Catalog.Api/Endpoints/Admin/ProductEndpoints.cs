@@ -65,7 +65,8 @@ public static class ProductEndpoints
         var result = await mediator.Send(
             new CreateProductCommand(
                 input.Name, input.Description, input.Price,
-                input.Stock, CategoryId.From(input.CategoryId), input.SKU, input.ImageUrl), ct);
+                input.Stock, CategoryId.From(input.CategoryId), input.SKU, input.ImageUrl,
+                input.BrandId is { } brandId ? BrandId.From(brandId) : null), ct);
 
         return result.ToHttpResult(
             id => Results.Created($"/api/v1/admin/products/{id}", new { id }));
@@ -77,7 +78,8 @@ public static class ProductEndpoints
         var result = await mediator.Send(
             new UpdateProductCommand(
                 ProductId.From(id), input.Name, input.Description, input.Price,
-                input.Stock, CategoryId.From(input.CategoryId), input.SKU, input.IsActive, input.ImageUrl), ct);
+                input.Stock, CategoryId.From(input.CategoryId), input.SKU, input.IsActive, input.ImageUrl,
+                input.BrandId is { } brandId ? BrandId.From(brandId) : null), ct);
 
         return result.ToHttpResult();
     }

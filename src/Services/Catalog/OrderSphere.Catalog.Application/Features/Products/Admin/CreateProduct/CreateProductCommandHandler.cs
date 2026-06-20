@@ -22,6 +22,16 @@ public sealed class CreateProductCommandHandler(ICatalogDbContext context, IProd
         if (!categoryExists)
             return Result<Guid>.Failure(CategoryErrors.NotFound);
 
+        if (request.BrandId is { } brandId)
+        {
+            var brandExists = await context.Brands
+                .AsNoTracking()
+                .AnyAsync(b => b.Id == brandId, ct);
+
+            if (!brandExists)
+                return Result<Guid>.Failure(BrandErrors.NotFound);
+        }
+
         var product = new Product(
             request.Name,
             request.Description,
@@ -29,7 +39,8 @@ public sealed class CreateProductCommandHandler(ICatalogDbContext context, IProd
             request.Stock,
             request.CategoryId,
             request.SKU,
-            request.ImageUrl);
+            request.ImageUrl,
+            request.BrandId);
 
         context.Products.Add(product);
         await context.SaveChangesAsync(ct);

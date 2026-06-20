@@ -14,6 +14,16 @@ public sealed class UpdateProductCommandHandler(ICatalogDbContext context, IProd
         if (product is null)
             return Result.Failure(ProductErrors.NotFound);
 
+        if (request.BrandId is { } brandId)
+        {
+            var brandExists = await context.Brands
+                .AsNoTracking()
+                .AnyAsync(b => b.Id == brandId, ct);
+
+            if (!brandExists)
+                return Result.Failure(BrandErrors.NotFound);
+        }
+
         product.UpdateDetails(
             request.Name,
             request.Description,
@@ -21,7 +31,8 @@ public sealed class UpdateProductCommandHandler(ICatalogDbContext context, IProd
             request.Stock,
             request.CategoryId,
             request.SKU,
-            request.ImageUrl);
+            request.ImageUrl,
+            request.BrandId);
 
         if (request.IsActive)
             product.Activate();

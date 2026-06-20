@@ -12,7 +12,9 @@ public sealed record AdminProductDto(
     string SKU,
     bool IsActive,
     DateTime CreatedAt,
-    DateTime? UpdatedAt);
+    DateTime? UpdatedAt,
+    Guid? BrandId = null,
+    string? BrandName = null);
 
 public sealed record AdminProductInput(
     string Name,
@@ -22,4 +24,5 @@ public sealed record AdminProductInput(
     Guid CategoryId,
     string SKU,
     bool IsActive = true,
-    string? ImageUrl = null);
+    string? ImageUrl = null,
+    Guid? BrandId = null);

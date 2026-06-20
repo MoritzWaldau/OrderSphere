@@ -33,6 +33,7 @@ public sealed class GetProductBySlugQueryHandler(ICatalogDbContext context, Hybr
     private async Task<ProductDto?> FetchAsync(string slug, CancellationToken ct) =>
         await context.Products
             .Include(p => p.Category)
+            .Include(p => p.Brand)
             .AsNoTracking()
             .Where(p => p.Slug == slug && p.IsActive)
             .Select(p => new ProductDto(
@@ -48,6 +49,8 @@ public sealed class GetProductBySlugQueryHandler(ICatalogDbContext context, Hybr
                 p.ImageUrl,
                 p.IsActive,
                 p.AverageRating,
-                p.ReviewCount))
+                p.ReviewCount,
+                p.Brand != null ? (Guid?)p.Brand.Id.Value : null,
+                p.Brand != null ? p.Brand.Name : null))
             .FirstOrDefaultAsync(ct);
 }

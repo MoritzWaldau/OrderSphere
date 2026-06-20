@@ -2,7 +2,10 @@ using OrderSphere.BuildingBlocks.StronglyTypedIds;
 
 namespace OrderSphere.Catalog.Application.Features.Products.Public.GetProducts;
 
-public sealed class GetProductsQueryHandler(ICatalogDbContext context, IProductSearchIndex searchIndex)
+public sealed class GetProductsQueryHandler(
+    ICatalogDbContext context,
+    IProductSearchIndex searchIndex,
+    IBlobStorageService blobService)
     : IQueryHandler<GetProductsQuery, Result<PagedResult<ProductDto>>>
 {
     public async Task<Result<PagedResult<ProductDto>>> Handle(GetProductsQuery request, CancellationToken ct)
@@ -46,15 +49,32 @@ public sealed class GetProductsQueryHandler(ICatalogDbContext context, IProductS
 
         var typedIds = page.ProductIds.Select(ProductId.From).ToList();
 
-        var products = await context.Products
+        var rawProducts = await context.Products
             .Include(p => p.Category)
             .AsNoTracking()
             .Where(p => typedIds.Contains(p.Id))
-            .Select(p => new ProductDto(
-                p.Id.Value, p.Name, p.Slug, p.Description, p.Price, p.Stock,
-                p.CategoryId.Value, p.Category!.Name, p.SKU, p.ImageUrl, p.IsActive,
-                p.AverageRating, p.ReviewCount))
+            .Select(p => new
+            {
+                Id = p.Id.Value,
+                p.Name, p.Slug, p.Description,
+                Price = (decimal)p.Price,
+                p.Stock,
+                CategoryId = p.CategoryId.Value,
+                CategoryName = p.Category!.Name,
+                p.SKU, p.ImageUrl, p.ImageBlobName, p.IsActive, p.AverageRating, p.ReviewCount,
+            })
             .ToListAsync(ct);
+
+        var products = new List<ProductDto>(rawProducts.Count);
+        foreach (var raw in rawProducts)
+        {
+            var imageUrl = raw.ImageBlobName is not null && blobService.IsEnabled
+                ? await blobService.GetSasUrlAsync(raw.ImageBlobName, ct)
+                : raw.ImageUrl;
+            products.Add(new ProductDto(raw.Id, raw.Name, raw.Slug, raw.Description, raw.Price,
+                raw.Stock, raw.CategoryId, raw.CategoryName, raw.SKU, imageUrl,
+                raw.IsActive, raw.AverageRating, raw.ReviewCount));
+        }
 
         // Preserve the relevance order returned by the search index.
         var byId = products.ToDictionary(p => p.Id);
@@ -110,24 +130,31 @@ public sealed class GetProductsQueryHandler(ICatalogDbContext context, IProductS
             _ => query.OrderBy(p => p.Name),
         };
 
-        var items = await ordered
+        var rawItems = await ordered
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(p => new ProductDto(
-                p.Id.Value,
-                p.Name,
-                p.Slug,
-                p.Description,
-                p.Price,
+            .Select(p => new
+            {
+                Id = p.Id.Value,
+                p.Name, p.Slug, p.Description,
+                Price = (decimal)p.Price,
                 p.Stock,
-                p.CategoryId.Value,
-                p.Category!.Name,
-                p.SKU,
-                p.ImageUrl,
-                p.IsActive,
-                p.AverageRating,
-                p.ReviewCount))
+                CategoryId = p.CategoryId.Value,
+                CategoryName = p.Category!.Name,
+                p.SKU, p.ImageUrl, p.ImageBlobName, p.IsActive, p.AverageRating, p.ReviewCount,
+            })
             .ToListAsync(ct);
+
+        var items = new List<ProductDto>(rawItems.Count);
+        foreach (var raw in rawItems)
+        {
+            var imageUrl = raw.ImageBlobName is not null && blobService.IsEnabled
+                ? await blobService.GetSasUrlAsync(raw.ImageBlobName, ct)
+                : raw.ImageUrl;
+            items.Add(new ProductDto(raw.Id, raw.Name, raw.Slug, raw.Description, raw.Price,
+                raw.Stock, raw.CategoryId, raw.CategoryName, raw.SKU, imageUrl,
+                raw.IsActive, raw.AverageRating, raw.ReviewCount));
+        }
 
         return Result<PagedResult<ProductDto>>.Success(
             new PagedResult<ProductDto>(items, total, request.Page, request.PageSize));

@@ -27,6 +27,7 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.SKU).IsRequired().HasMaxLength(100);
         builder.HasIndex(p => p.SKU).IsUnique().HasDatabaseName("IX_products_sku");
         builder.Property(p => p.ImageUrl).HasMaxLength(500);
+        builder.Property(p => p.ImageBlobName).HasMaxLength(500);
         builder.Property(p => p.CategoryId).IsRequired();
         builder.Property(p => p.IsActive).IsRequired().HasDefaultValue(true);
         builder.Property(p => p.AverageRating).IsRequired().HasDefaultValue(0d);

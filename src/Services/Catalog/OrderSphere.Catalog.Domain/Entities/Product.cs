@@ -18,6 +18,7 @@ public sealed class Product : AuditableEntity<ProductId>, IAggregateRoot
     public CategoryId CategoryId { get; private set; }
     public string SKU { get; private set; } = null!;
     public string? ImageUrl { get; private set; }
+    public string? ImageBlobName { get; private set; }
     public bool IsActive { get; private set; } = true;
 
     /// <summary>Mean rating across approved reviews, rounded to one decimal. Zero when there are no reviews.</summary>
@@ -49,6 +50,8 @@ public sealed class Product : AuditableEntity<ProductId>, IAggregateRoot
 
     /// <summary>Replaces the cached rating summary. Recomputed by the application layer
     /// from the set of approved reviews whenever a review is created or moderated.</summary>
+    public void SetImageBlob(string? blobName) => ImageBlobName = blobName;
+
     public void SetRatingSummary(double averageRating, int reviewCount)
     {
         AverageRating = Math.Round(averageRating, 1, MidpointRounding.AwayFromZero);

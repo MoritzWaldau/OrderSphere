@@ -8,6 +8,7 @@ using OrderSphere.Catalog.Application.Features.Products.Admin.GetAllProductsAdmi
 using OrderSphere.Catalog.Application.Features.Products.Admin.GetProductByIdAdmin;
 using OrderSphere.Catalog.Application.Features.Products.Admin.ReindexSearch;
 using OrderSphere.Catalog.Application.Features.Products.Admin.UpdateProduct;
+using OrderSphere.Catalog.Application.Features.Products.Admin.UploadProductImage;
 using OrderSphere.ServiceDefaults;
 
 namespace OrderSphere.Catalog.Api.Endpoints.Admin;
@@ -39,6 +40,11 @@ public static class ProductEndpoints
         group.MapPost("/reindex-search", ReindexSearch)
             .WithName("AdminReindexProductSearch")
             .WithTags("Products Admin");
+
+        group.MapPost("/{id:guid}/image", UploadImage)
+            .WithName("AdminUploadProductImage")
+            .WithTags("Products Admin")
+            .DisableAntiforgery();
     }
 
     private static async Task<IResult> GetAllAdmin(IMediator mediator, CancellationToken ct)
@@ -86,5 +92,18 @@ public static class ProductEndpoints
     {
         var result = await mediator.Send(new ReindexSearchCommand(), ct);
         return result.ToHttpResult(indexed => Results.Ok(new { indexed }));
+    }
+
+    private static async Task<IResult> UploadImage(
+        Guid id, IFormFile file, IMediator mediator, CancellationToken ct)
+    {
+        if (file.Length > 5 * 1024 * 1024)
+            return Results.Problem("Image must be 5 MB or smaller.", statusCode: 400);
+
+        await using var stream = file.OpenReadStream();
+        var result = await mediator.Send(
+            new UploadProductImageCommand(ProductId.From(id), stream, file.ContentType, file.FileName), ct);
+
+        return result.ToHttpResult(blobName => Results.Ok(new { blobName }));
     }
 }

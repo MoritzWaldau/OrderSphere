@@ -11,7 +11,8 @@ public sealed record BrandDefinition(
     string Name,
     string Primary,
     string PrimaryDarken,
-    string PrimaryLighten);
+    string PrimaryLighten,
+    string PrimaryContrastText = "#FFFFFF");
 
 /// <summary>
 /// Holds the active MudBlazor theme, the active brand, and the dark-mode flag.
@@ -23,9 +24,12 @@ public sealed class ThemeState
     /// <summary>Available brands. Indigo is the default and the original "Flat &amp; Focused" identity.</summary>
     public static readonly IReadOnlyList<BrandDefinition> Brands =
     [
-        new("indigo", "Indigo", "#3A4DD1", "#2B3BB8", "#6A7AE8"),
-        new("green", "Grün", "#1F9D57", "#177A43", "#54C07E"),
-        new("red", "Rot", "#D92D4B", "#B71F3A", "#EA5E76"),
+        new("electric", "Electric", "#6260FF", "#4A48CC", "#E4E4FF"),
+        new("lime",     "Lime",     "#9FE870", "#163300", "#C4F5A7", "#163300"),
+        new("sage",     "Sage",     "#BDD9D7", "#03363D", "#D8EDEC", "#03363D"),
+        new("royal",    "Royal",    "#3447AA", "#253592", "#FBEAEB"),
+        new("solar",    "Solar",    "#FCDB32", "#141D38", "#FEF08A", "#141D38"),
+        new("mint",     "Mint",     "#34E0A1", "#000000", "#87EEC8", "#000000"),
     ];
 
     private static readonly string[] FontFamily =
@@ -137,7 +141,7 @@ public sealed class ThemeState
     private static PaletteLight BuildLight(BrandDefinition b) => new()
     {
         Primary = b.Primary,
-        PrimaryContrastText = "#FFFFFF",
+        PrimaryContrastText = b.PrimaryContrastText,
         PrimaryDarken = b.PrimaryDarken,
         PrimaryLighten = b.PrimaryLighten,
         Secondary = "#0D0D18",
@@ -165,7 +169,7 @@ public sealed class ThemeState
     private static PaletteDark BuildDark(BrandDefinition b) => new()
     {
         Primary = b.Primary,
-        PrimaryContrastText = "#FFFFFF",
+        PrimaryContrastText = b.PrimaryContrastText,
         PrimaryDarken = b.PrimaryDarken,
         PrimaryLighten = b.PrimaryLighten,
         Secondary = "#EEEEF4",

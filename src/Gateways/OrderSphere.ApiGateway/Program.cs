@@ -81,6 +81,7 @@ app.Use(async (context, next) =>
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
+app.UseOrderSphereRequestLogging();
 
 app.MapReverseProxy();
 app.MapHealthChecks("/health/gateway");

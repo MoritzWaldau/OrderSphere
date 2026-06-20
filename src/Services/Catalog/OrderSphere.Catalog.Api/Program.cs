@@ -80,6 +80,7 @@ app.UseExceptionHandler();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseOrderSphereRequestLogging();
 
 // Endpoints
 app.MapCatalogEndpoints();

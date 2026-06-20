@@ -48,6 +48,7 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseOrderSphereRequestLogging();
 
 app.MapPaymentEndpoints();
 app.MapInternalPaymentEndpoints();

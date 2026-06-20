@@ -88,6 +88,7 @@ app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseOrderSphereRequestLogging();
 
 // ── BFF endpoints ─────────────────────────────────────────────────────────────
 app.MapGet("/bff/login", (HttpContext ctx, string? returnUrl) =>
@@ -187,6 +188,13 @@ app.Use(async (ctx, next) =>
         }
         catch (AntiforgeryValidationException)
         {
+            var audit = ctx.RequestServices.GetRequiredService<OrderSphere.BuildingBlocks.Security.ISecurityAuditLogger>();
+            audit.Log(new OrderSphere.BuildingBlocks.Security.SecurityAuditEvent(
+                OrderSphere.BuildingBlocks.Security.SecurityAuditEventType.AntiforgeryValidationFailed,
+                UserId: ctx.User.FindFirst("sub")?.Value,
+                IpAddress: ctx.Connection.RemoteIpAddress?.ToString(),
+                Details: $"{ctx.Request.Method} {ctx.Request.Path}"));
+
             ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
             await ctx.Response.WriteAsJsonAsync(new
             {

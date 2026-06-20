@@ -38,7 +38,6 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseOrderSphereRequestLogging();
 
 app.MapWebhookEndpoints();
 

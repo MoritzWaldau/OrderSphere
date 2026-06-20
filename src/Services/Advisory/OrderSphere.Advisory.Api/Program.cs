@@ -54,7 +54,6 @@ app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
-app.UseOrderSphereRequestLogging();
 
 app.MapDefaultEndpoints();
 app.MapAdvisorEndpoints();

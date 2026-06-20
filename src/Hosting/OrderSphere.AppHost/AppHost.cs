@@ -29,6 +29,8 @@ var foundryEmbeddingDeployment = builder.Configuration["Foundry:EmbeddingDeploym
 // Key Vault secrets at deployment time; no code change required in service projects.
 builder.AddAzureKeyVault("ordersphere-kv");
 
+// Application Insights is provisioned and wired after all resources are declared (see bottom).
+
 // Auth0 authority URL for all services. Local default is in appsettings.Development.json;
 // in Azure the value is provided via Key Vault / azd parameter.
 var oidcAuthority = builder.AddParameter("oidc-authority");
@@ -170,7 +172,7 @@ else
     catalog.WithEnvironment("Blob__Endpoint", builder.Configuration["Blob:Endpoint"] ?? "");
 }
 
-builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-worker")
+var orderingWorker = builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-worker")
     .WithHttpsEndpoint()
     .WithReference(orderingDb)
     .WithReference(serviceBus)
@@ -182,7 +184,7 @@ builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-w
     .WithEnvironment("Oidc__ClientId", "xY2Mgok7H98OsgFswj8JLC0gcgA6Oegy")
     .WithEnvironment("Oidc__ClientSecret", orderingWorkerSecret);
 
-builder.AddProject<Projects.OrderSphere_Notification_Worker>("ordersphere-notification-worker")
+var notificationWorker = builder.AddProject<Projects.OrderSphere_Notification_Worker>("ordersphere-notification-worker")
     .WithHttpsEndpoint()
     .WithReference(notificationDb)
     .WithReference(serviceBus)
@@ -200,7 +202,7 @@ var payment = builder.AddProject<Projects.OrderSphere_Payment_Api>("ordersphere-
     .WithEnvironment("Oidc__Authority", oidcAuthority)
     .WithEnvironment("Oidc__Audience", OidcAudience);
 
-builder.AddProject<Projects.OrderSphere_Payment_Worker>("ordersphere-payment-worker")
+var paymentWorker = builder.AddProject<Projects.OrderSphere_Payment_Worker>("ordersphere-payment-worker")
     .WithHttpsEndpoint()
     .WithReference(paymentDb)
     .WithReference(serviceBus)
@@ -223,7 +225,7 @@ var webhooks = builder.AddProject<Projects.OrderSphere_Webhooks_Api>("orderspher
     .WithEnvironment("Oidc__Authority", oidcAuthority)
     .WithEnvironment("Oidc__Audience", OidcAudience);
 
-builder.AddProject<Projects.OrderSphere_Webhooks_Worker>("ordersphere-webhooks-worker")
+var webhooksWorker = builder.AddProject<Projects.OrderSphere_Webhooks_Worker>("ordersphere-webhooks-worker")
     .WithHttpsEndpoint()
     .WithReference(webhooksDb)
     .WithReference(serviceBus)
@@ -273,7 +275,7 @@ var advisory = builder.AddProject<Projects.OrderSphere_Advisory_Api>("orderspher
 // the gateway only needs advisory's address for service discovery, not its startup.
 apiGateway.WithReference(advisory);
 
-builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")
+var bff = builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")
     .WithExternalHttpEndpoints()
     .WithReference(apiGateway)
     .WithReference(redis)
@@ -286,5 +288,29 @@ builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")
     .WithEnvironment("Oidc__Authority", oidcAuthority)
     .WithEnvironment("Oidc__ClientId", "B70xhPsEf7EBrKbpZiUZHoXmBIATbrDO")
     .WithEnvironment("Oidc__ClientSecret", bffClientSecret);
+
+// ── Application Insights ──────────────────────────────────────────────────────
+// Provisioned only in Azure (publish mode / azd up). Locally, OTEL signals flow
+// to the Aspire dashboard via the OTLP exporter — no Azure connection required.
+// WithReference injects APPLICATIONINSIGHTS_CONNECTION_STRING so the Azure Monitor
+// exporter in ServiceDefaults activates automatically without per-service changes.
+if (builder.ExecutionContext.IsPublishMode)
+{
+    var appInsights = builder.AddAzureApplicationInsights("appinsights");
+    catalog.WithReference(appInsights);
+    basket.WithReference(appInsights);
+    ordering.WithReference(appInsights);
+    orderingWorker.WithReference(appInsights);
+    notificationWorker.WithReference(appInsights);
+    payment.WithReference(appInsights);
+    paymentWorker.WithReference(appInsights);
+    userProfile.WithReference(appInsights);
+    webhooks.WithReference(appInsights);
+    webhooksWorker.WithReference(appInsights);
+    apiGateway.WithReference(appInsights);
+    mcpServer.WithReference(appInsights);
+    advisory.WithReference(appInsights);
+    bff.WithReference(appInsights);
+}
 
 builder.Build().Run();

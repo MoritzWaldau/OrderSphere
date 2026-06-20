@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using OrderSphere.BuildingBlocks.Security;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -78,33 +79,48 @@ public static class OidcAuthenticationExtensions
                 {
                     OnAuthenticationFailed = ctx =>
                     {
-                        var logger = ctx.HttpContext.RequestServices
-                            .GetRequiredService<ILoggerFactory>()
-                            .CreateLogger("OrderSphere.Security");
+                        var audit = ctx.HttpContext.RequestServices
+                            .GetRequiredService<ISecurityAuditLogger>();
 
-                        logger.LogWarning(
-                            "JWT validation failed for {Method} {Path}: {ErrorType} — {ErrorMessage}",
-                            ctx.HttpContext.Request.Method,
-                            ctx.HttpContext.Request.Path,
-                            ctx.Exception.GetType().Name,
-                            ctx.Exception.Message);
+                        audit.Log(new SecurityAuditEvent(
+                            SecurityAuditEventType.TokenValidationFailed,
+                            IpAddress: ctx.HttpContext.Connection.RemoteIpAddress?.ToString(),
+                            Details: $"{ctx.Request.Method} {ctx.Request.Path} — {ctx.Exception.GetType().Name}: {ctx.Exception.Message}"));
 
                         return Task.CompletedTask;
                     },
 
                     OnChallenge = ctx =>
                     {
+                        // OnAuthenticationFailed already covers invalid tokens; this handles
+                        // requests that arrive with no bearer token at all (anonymous → 401).
                         if (ctx.AuthenticateFailure is null)
                         {
-                            var logger = ctx.HttpContext.RequestServices
-                                .GetRequiredService<ILoggerFactory>()
-                                .CreateLogger("OrderSphere.Security");
+                            var audit = ctx.HttpContext.RequestServices
+                                .GetRequiredService<ISecurityAuditLogger>();
 
-                            logger.LogWarning(
-                                "No bearer token for {Method} {Path} — 401 issued",
-                                ctx.HttpContext.Request.Method,
-                                ctx.HttpContext.Request.Path);
+                            audit.Log(new SecurityAuditEvent(
+                                SecurityAuditEventType.LoginFailure,
+                                IpAddress: ctx.HttpContext.Connection.RemoteIpAddress?.ToString(),
+                                Details: $"{ctx.Request.Method} {ctx.Request.Path} — no bearer token"));
                         }
+
+                        return Task.CompletedTask;
+                    },
+
+                    OnForbidden = ctx =>
+                    {
+                        var audit = ctx.HttpContext.RequestServices
+                            .GetRequiredService<ISecurityAuditLogger>();
+
+                        var userId = ctx.Principal?.FindFirst("sub")?.Value
+                            ?? ctx.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+                        audit.Log(new SecurityAuditEvent(
+                            SecurityAuditEventType.AuthorizationDenied,
+                            UserId: userId,
+                            IpAddress: ctx.HttpContext.Connection.RemoteIpAddress?.ToString(),
+                            Details: $"{ctx.Request.Method} {ctx.Request.Path} — 403 Forbidden"));
 
                         return Task.CompletedTask;
                     },

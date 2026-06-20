@@ -55,6 +55,7 @@ app.UseExceptionHandler();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseOrderSphereRequestLogging();
 
 app.MapCartEndpoints();
 app.MapInternalCartEndpoints();

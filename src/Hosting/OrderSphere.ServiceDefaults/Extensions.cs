@@ -56,6 +56,13 @@ public static class Extensions
         //     options.AllowedSchemes = ["https"];
         // });
 
+        // Structured HTTP request logging (method, path, status, duration, user_id, client_ip).
+        // Body content is never logged to avoid PII exposure.
+        builder.Services.AddOrderSphereRequestLogging();
+
+        // Security audit logger available to all services (APIs, workers, gateways).
+        builder.Services.AddSecurityAuditLogger();
+
         return builder;
     }
 

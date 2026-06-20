@@ -29,6 +29,13 @@ var foundryEmbeddingDeployment = builder.Configuration["Foundry:EmbeddingDeploym
 // Key Vault secrets at deployment time; no code change required in service projects.
 builder.AddAzureKeyVault("ordersphere-kv");
 
+// ── Application Insights ──────────────────────────────────────────────────────
+// Provisioned in Azure; locally the Aspire dashboard receives all OTEL signals via
+// the OTLP exporter. WithReference injects APPLICATIONINSIGHTS_CONNECTION_STRING
+// into each project so the Azure Monitor exporter in ServiceDefaults activates
+// automatically in cloud environments without any per-service code change.
+var appInsights = builder.AddAzureApplicationInsights("appinsights");
+
 // Auth0 authority URL for all services. Local default is in appsettings.Development.json;
 // in Azure the value is provided via Key Vault / azd parameter.
 var oidcAuthority = builder.AddParameter("oidc-authority");
@@ -99,6 +106,7 @@ var redis = builder.AddAzureManagedRedis("redis")
 var catalog = builder.AddProject<Projects.OrderSphere_Catalog_Api>("ordersphere-catalog")
     .WithReference(catalogDb)
     .WithReference(redis)
+    .WithReference(appInsights)
     .WaitFor(catalogDb)
     .WaitFor(redis)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
@@ -107,6 +115,7 @@ var catalog = builder.AddProject<Projects.OrderSphere_Catalog_Api>("ordersphere-
 var basket = builder.AddProject<Projects.OrderSphere_Basket_Api>("ordersphere-basket")
     .WithReference(basketDb)
     .WithReference(catalog)
+    .WithReference(appInsights)
     .WaitFor(basketDb)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
     .WithEnvironment("Oidc__Audience", OidcAudience)
@@ -119,6 +128,7 @@ var ordering = builder.AddProject<Projects.OrderSphere_Ordering_Api>("orderspher
     .WithReference(catalog)
     .WithReference(basket)
     .WithReference(redis)
+    .WithReference(appInsights)
     .WaitFor(orderingDb)
     .WaitFor(serviceBus)
     .WaitFor(redis)
@@ -175,6 +185,7 @@ builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-w
     .WithReference(orderingDb)
     .WithReference(serviceBus)
     .WithReference(catalog)
+    .WithReference(appInsights)
     .WaitFor(orderingDb)
     .WaitFor(serviceBus)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
@@ -186,6 +197,7 @@ builder.AddProject<Projects.OrderSphere_Notification_Worker>("ordersphere-notifi
     .WithHttpsEndpoint()
     .WithReference(notificationDb)
     .WithReference(serviceBus)
+    .WithReference(appInsights)
     .WaitFor(notificationDb)
     .WaitFor(serviceBus)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
@@ -195,6 +207,7 @@ builder.AddProject<Projects.OrderSphere_Notification_Worker>("ordersphere-notifi
 var payment = builder.AddProject<Projects.OrderSphere_Payment_Api>("ordersphere-payment")
     .WithReference(paymentDb)
     .WithReference(serviceBus)
+    .WithReference(appInsights)
     .WaitFor(paymentDb)
     .WaitFor(serviceBus)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
@@ -204,6 +217,7 @@ builder.AddProject<Projects.OrderSphere_Payment_Worker>("ordersphere-payment-wor
     .WithHttpsEndpoint()
     .WithReference(paymentDb)
     .WithReference(serviceBus)
+    .WithReference(appInsights)
     .WaitFor(paymentDb)
     .WaitFor(serviceBus)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
@@ -213,12 +227,14 @@ builder.AddProject<Projects.OrderSphere_Payment_Worker>("ordersphere-payment-wor
 
 var userProfile = builder.AddProject<Projects.OrderSphere_UserProfile_Api>("ordersphere-userprofile")
     .WithReference(userProfileDb)
+    .WithReference(appInsights)
     .WaitFor(userProfileDb)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
     .WithEnvironment("Oidc__Audience", OidcAudience);
 
 var webhooks = builder.AddProject<Projects.OrderSphere_Webhooks_Api>("ordersphere-webhooks")
     .WithReference(webhooksDb)
+    .WithReference(appInsights)
     .WaitFor(webhooksDb)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
     .WithEnvironment("Oidc__Audience", OidcAudience);
@@ -227,6 +243,7 @@ builder.AddProject<Projects.OrderSphere_Webhooks_Worker>("ordersphere-webhooks-w
     .WithHttpsEndpoint()
     .WithReference(webhooksDb)
     .WithReference(serviceBus)
+    .WithReference(appInsights)
     .WaitFor(webhooksDb)
     .WaitFor(serviceBus);
 
@@ -237,6 +254,7 @@ var apiGateway = builder.AddProject<Projects.OrderSphere_ApiGateway>("orderspher
     .WithReference(payment)
     .WithReference(userProfile)
     .WithReference(webhooks)
+    .WithReference(appInsights)
     .WaitFor(catalog)
     .WaitFor(ordering)
     .WaitFor(basket)
@@ -251,6 +269,7 @@ var apiGateway = builder.AddProject<Projects.OrderSphere_ApiGateway>("orderspher
 var mcpServer = builder.AddProject<Projects.OrderSphere_Mcp_Server>("ordersphere-mcp")
     .WithExternalHttpEndpoints()
     .WithReference(apiGateway)
+    .WithReference(appInsights)
     .WaitFor(apiGateway)
     .WithEnvironment("Oidc__Authority", oidcAuthority);
 
@@ -259,6 +278,7 @@ var mcpServer = builder.AddProject<Projects.OrderSphere_Mcp_Server>("ordersphere
 var advisory = builder.AddProject<Projects.OrderSphere_Advisory_Api>("ordersphere-advisory")
     .WithReference(mcpServer)
     .WithReference(advisoryDb)
+    .WithReference(appInsights)
     .WaitFor(mcpServer)
     .WaitFor(advisoryDb)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
@@ -279,6 +299,7 @@ builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")
     .WithReference(redis)
     .WithReference(serviceBus)
     .WithReference(userProfile)
+    .WithReference(appInsights)
     .WaitFor(apiGateway)
     .WaitFor(redis)
     .WaitFor(serviceBus)

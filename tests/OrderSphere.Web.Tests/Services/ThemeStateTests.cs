@@ -86,10 +86,10 @@ public sealed class ThemeStateTests
     }
 
     [Theory]
-    [InlineData("lime",  "#163300")]
-    [InlineData("sage",  "#03363D")]
+    [InlineData("lime", "#163300")]
+    [InlineData("sage", "#03363D")]
     [InlineData("solar", "#141D38")]
-    [InlineData("mint",  "#000000")]
+    [InlineData("mint", "#000000")]
     public void LightPrimaryBrands_HaveDarkContrastText(string brandId, string expectedContrast)
     {
         var brand = ThemeState.Brands.Single(b => b.Id == brandId);

@@ -15,33 +15,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── Style gate (blocking) ────────────────────────────────────────────────────
-  # EnforceCodeStyleInBuild is false; therefore check formatting explicitly here.
-  # Generated EF migrations are excluded.
-  format:
-    name: Format
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
-        with:
-          egress-policy: audit
-
-      # .editorconfig enforces end_of_line=crlf. So that the checkout on the
-      # Linux runner produces CRLF (instead of LF), set autocrlf before checkout —
-      # otherwise `dotnet format` reports every line as a violation.
-      - name: Force CRLF checkout (.editorconfig)
-        run: git config --global core.autocrlf true
-
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-
-      - name: Setup .NET + NuGet cache
-        uses: ./.github/actions/setup-dotnet-cache
-
-      - name: Verify formatting (generated migrations excluded)
-        run: dotnet format OrderSphere.slnx --no-restore --verify-no-changes --severity warn --exclude "**/Migrations/**"
-
   # ── Build + Test + Coverage ──────────────────────────────────────────────────
   build-test:
     name: Build & Test

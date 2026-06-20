@@ -381,3 +381,10 @@ graphify-out/
 # azure.yaml IS checked in; the .azure/ folder (env values, local Key Vault
 # references, provisioned outputs) is local and must not be committed.
 .azure/
+
+# Coverage collection output (local + CI). The committed baseline lives in
+# docs/coverage/; these working dirs are regenerated and must not be committed.
+TestResults/
+TestResults_*/
+CoverageReport/
+CoverageReport_*/

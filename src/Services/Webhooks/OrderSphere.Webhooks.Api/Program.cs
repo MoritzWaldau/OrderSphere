@@ -25,8 +25,12 @@ builder.AddOrderSphereJwtAuth("webhooks-api");
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+// Integration tests boot the host with an in-memory provider and supply the schema
+// themselves; the relational Migrate() is a no-op there and would throw on a non-relational
+// provider, so it is skipped under the "Testing" environment.
+if (!app.Environment.IsEnvironment("Testing"))
 {
+    using var scope = app.Services.CreateScope();
     scope.ServiceProvider.GetRequiredService<WebhooksDbContext>().Database.Migrate();
 }
 

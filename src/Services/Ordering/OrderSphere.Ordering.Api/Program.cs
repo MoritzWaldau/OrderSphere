@@ -100,8 +100,11 @@ builder.Services.AddSingleton<IAuthorizationHandler, OrderOwnerOrStaffHandler>()
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+// Skipped under "Testing": integration tests boot with a non-relational in-memory provider
+// where the relational Migrate() would throw. See OrderSphere.IntegrationTests.Api.
+if (!app.Environment.IsEnvironment("Testing"))
 {
+    using var scope = app.Services.CreateScope();
     scope.ServiceProvider.GetRequiredService<OrderingDbContext>().Database.Migrate();
 }
 

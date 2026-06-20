@@ -1,15 +1,32 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <RunSettings>
+  <!--
+    Single source of truth for coverage collection (IDE + CI).
+    The headline metric is whole-codebase LINE coverage.
+
+    NOTE: the collector's <Threshold> does NOT fail `dotnet test` reliably
+    (verified: a run at 32.8% branch exited 0 against the old 70 gate).
+    Enforcement therefore lives in CI as an explicit line-rate gate
+    (.github/workflows/ci.yml, step "Coverage gate"). Do not re-add a
+    <Threshold> here expecting it to block a merge — it will not.
+  -->
   <DataCollectionRunSettings>
     <DataCollectors>
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>cobertura</Format>
-          <Threshold>70</Threshold>
-          <ThresholdType>branch</ThresholdType>
-          <ThresholdStat>total</ThresholdStat>
+          <!--
+            Honest denominator: exclude cross-cutting wiring that carries no
+            unit-testable business logic and only dilutes the percentage.
+            AppHost = Aspire orchestration; ServiceDefaults = OTel/health/logging.
+            Business UI (Web) and gateways (Bff) stay IN scope deliberately.
+          -->
+          <Exclude>
+            [*.AppHost]*,
+            [*.ServiceDefaults]*
+          </Exclude>
           <ExcludeByFile>**/Migrations/**,**/obj/**</ExcludeByFile>
-          <ExcludeByAttribute>GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
+          <ExcludeByAttribute>GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
         </Configuration>
       </DataCollector>
     </DataCollectors>

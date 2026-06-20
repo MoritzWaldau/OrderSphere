@@ -15,6 +15,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
@@ -29,6 +30,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Services\Ordering\OrderSphere.Ordering.Api\OrderSphere.Ordering.Api.csproj" />
     <ProjectReference Include="..\..\src\Services\Ordering\OrderSphere.Ordering.Worker\OrderSphere.Ordering.Worker.csproj" />
+    <ProjectReference Include="..\..\src\Services\Webhooks\OrderSphere.Webhooks.Api\OrderSphere.Webhooks.Api.csproj" />
+    <ProjectReference Include="..\..\src\Services\UserProfile\OrderSphere.UserProfile.Api\OrderSphere.UserProfile.Api.csproj" />
+    <ProjectReference Include="..\..\src\Services\Payment\OrderSphere.Payment.Api\OrderSphere.Payment.Api.csproj" />
+    <ProjectReference Include="..\..\src\Services\Basket\OrderSphere.Basket.Api\OrderSphere.Basket.Api.csproj" />
+    <ProjectReference Include="..\..\src\Services\Catalog\OrderSphere.Catalog.Api\OrderSphere.Catalog.Api.csproj" />
   </ItemGroup>
 
 </Project>

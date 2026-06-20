@@ -68,8 +68,15 @@
 
                 <MudMenuItem Icon="@Icons.Material.Outlined.Logout"
                              IconColor="Color.Error"
-                             OnClick="HandleLogout">
-                    <MudText Color="Color.Error">@L["Account.Logout"]</MudText>
+                             OnClick="HandleLogout"
+                             Disabled="_isLoggingOut">
+                    <MudText Color="Color.Error">
+                        @if (_isLoggingOut)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-1" />
+                        }
+                        @L["Account.Logout"]
+                    </MudText>
                 </MudMenuItem>
             </MudMenu>
         </Authorized>
@@ -91,13 +98,12 @@
     [Parameter] public int CartItemCount { get; set; }
     [Parameter] public bool IsCartOpen { get; set; }
 
+    private bool _isLoggingOut;
+
     private async Task HandleLogout()
     {
-        // POST with X-XSRF-TOKEN attached by AntiforgeryDelegatingHandler.
-        // HttpClient follows the redirect chain (BFF → Auth0 end_session → BFF /).
-        // After completion the session cookie is gone; force a full reload to /bff/logout
-        // so Auth0's post-logout redirect lands on a clean state.
-        try { await Http.PostAsync("/bff/logout", content: null); } catch { /* redirect responses may throw */ }
+        _isLoggingOut = true;
+        try { await Http.PostAsync("/bff/logout", content: null); } catch { }
         Navigation.NavigateTo("/", forceLoad: true);
     }
 }

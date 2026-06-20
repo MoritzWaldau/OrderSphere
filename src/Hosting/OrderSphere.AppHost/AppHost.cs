@@ -157,10 +157,17 @@ if (builder.ExecutionContext.IsPublishMode)
     // documents (AzureAiProductSearchIndex). Explicit WithRoleAssignments is unsupported
     // here — it requires AddAzureContainerAppEnvironment, which this AppHost does not use.
     catalog.WithReference(search);
+
+    // Azure Blob Storage for catalog product images (private container, SAS URLs).
+    // azd auto-generates Storage Blob Data Contributor on the catalog identity via WithReference.
+    var storage = builder.AddAzureStorage("storage");
+    var images = storage.AddBlobs("images");
+    catalog.WithReference(images);
 }
 else
 {
     catalog.WithEnvironment("Search__Endpoint", builder.Configuration["Search:Endpoint"] ?? "");
+    catalog.WithEnvironment("Blob__Endpoint", builder.Configuration["Blob:Endpoint"] ?? "");
 }
 
 builder.AddProject<Projects.OrderSphere_Ordering_Worker>("ordersphere-ordering-worker")

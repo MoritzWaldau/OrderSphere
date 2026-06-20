@@ -99,6 +99,7 @@ public sealed class ProductSearchClients
                 new SearchableField("name") { IsFilterable = true, IsSortable = true },
                 new SearchableField("description"),
                 new SimpleField("categoryName", SearchFieldDataType.String) { IsFilterable = true, IsFacetable = true },
+                new SimpleField("brandName", SearchFieldDataType.String) { IsFilterable = true, IsFacetable = true },
                 new SimpleField("price", SearchFieldDataType.Double) { IsFilterable = true, IsSortable = true },
                 new SimpleField("isActive", SearchFieldDataType.Boolean) { IsFilterable = true },
                 new SearchField(VectorField, SearchFieldDataType.Collection(SearchFieldDataType.Single))

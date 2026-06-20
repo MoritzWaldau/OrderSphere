@@ -29,6 +29,10 @@ public static class EndpointMappingExtensions
             .RequireRateLimiting(RateLimitingExtensions.PublicPolicy)
             .MapPublicCategoryEndpoints();
 
+        v1.MapGroup("brands")
+            .RequireRateLimiting(RateLimitingExtensions.PublicPolicy)
+            .MapPublicBrandEndpoints();
+
         v1.MapGroup("reviews")
             .RequireRateLimiting(RateLimitingExtensions.PublicPolicy)
             .MapPublicReviewEndpoints();
@@ -42,6 +46,11 @@ public static class EndpointMappingExtensions
             .RequireAuthorization(AuthorizationExtensions.CatalogAdminPolicy)
             .RequireRateLimiting(RateLimitingExtensions.AdminPolicy)
             .MapAdminCategoryEndpoints();
+
+        v1.MapGroup("admin/brands")
+            .RequireAuthorization(AuthorizationExtensions.CatalogAdminPolicy)
+            .RequireRateLimiting(RateLimitingExtensions.AdminPolicy)
+            .MapAdminBrandEndpoints();
 
         v1.MapGroup("admin/reviews")
             .RequireAuthorization(AuthorizationExtensions.CatalogAdminPolicy)

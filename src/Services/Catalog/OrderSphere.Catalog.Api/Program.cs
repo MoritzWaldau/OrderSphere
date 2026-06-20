@@ -56,6 +56,13 @@ builder.Services.AddHostedService<ReservationSweeper>();
 // Ensures the Azure AI Search index exists and seeds it when empty (no-op if unconfigured).
 builder.Services.AddHostedService<CatalogSearchInitializer>();
 
+// Ensures the product-images blob container exists (no-op if blob storage is not configured).
+builder.Services.AddHostedService<BlobContainerInitializer>();
+
+// Seeds brands, categories and products from embedded data (Development by default).
+// Registered last so the search index and blob container are initialized first.
+builder.Services.AddHostedService<CatalogDataSeeder>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

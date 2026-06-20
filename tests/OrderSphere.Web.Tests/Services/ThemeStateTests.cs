@@ -3,32 +3,33 @@ namespace OrderSphere.Web.Tests.Services;
 public sealed class ThemeStateTests
 {
     [Fact]
-    public void DefaultBrand_IsIndigo()
+    public void DefaultBrand_IsElectric()
     {
         var sut = new ThemeState();
 
-        sut.CurrentBrand.Id.Should().Be("indigo");
+        sut.CurrentBrand.Id.Should().Be("electric");
         sut.Theme.Should().NotBeNull();
     }
 
     [Fact]
-    public void AvailableBrands_AreIndigoGreenRed()
+    public void AvailableBrands_AreAllSix()
     {
         var sut = new ThemeState();
 
-        sut.AvailableBrands.Select(b => b.Id).Should().Equal("indigo", "green", "red");
+        sut.AvailableBrands.Select(b => b.Id)
+           .Should().Equal("electric", "lime", "sage", "royal", "solar", "mint");
     }
 
     [Fact]
-    public void SetBrand_Green_SwitchesBrandAndRebuildsTheme()
+    public void SetBrand_Lime_SwitchesBrandAndRebuildsTheme()
     {
         var sut = new ThemeState();
         var before = sut.Theme;
 
-        sut.SetBrand("green");
+        sut.SetBrand("lime");
 
-        sut.CurrentBrand.Id.Should().Be("green");
-        sut.CurrentBrand.Primary.Should().Be("#1F9D57");
+        sut.CurrentBrand.Id.Should().Be("lime");
+        sut.CurrentBrand.Primary.Should().Be("#9FE870");
         sut.Theme.Should().NotBeSameAs(before, "the MudTheme is rebuilt for the new brand");
     }
 
@@ -39,7 +40,7 @@ public sealed class ThemeStateTests
         var raised = false;
         sut.OnChange += () => raised = true;
 
-        sut.SetBrand("red");
+        sut.SetBrand("royal");
 
         raised.Should().BeTrue();
     }
@@ -54,7 +55,7 @@ public sealed class ThemeStateTests
 
         sut.SetBrand("purple");
 
-        sut.CurrentBrand.Id.Should().Be("indigo");
+        sut.CurrentBrand.Id.Should().Be("electric");
         sut.Theme.Should().BeSameAs(before);
         raised.Should().BeFalse();
     }
@@ -66,7 +67,7 @@ public sealed class ThemeStateTests
         var raised = false;
         sut.OnChange += () => raised = true;
 
-        sut.SetBrand("indigo");
+        sut.SetBrand("electric");
 
         raised.Should().BeFalse();
     }
@@ -82,5 +83,17 @@ public sealed class ThemeStateTests
 
         sut.IsDarkMode.Should().BeTrue();
         raised.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("lime", "#163300")]
+    [InlineData("sage", "#03363D")]
+    [InlineData("solar", "#141D38")]
+    [InlineData("mint", "#000000")]
+    public void LightPrimaryBrands_HaveDarkContrastText(string brandId, string expectedContrast)
+    {
+        var brand = ThemeState.Brands.Single(b => b.Id == brandId);
+
+        brand.PrimaryContrastText.Should().Be(expectedContrast);
     }
 }

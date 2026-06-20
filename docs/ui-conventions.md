@@ -2,10 +2,10 @@
 
 Binding reference for all visual, theming, MudBlazor, and CSS work in `src/Frontend/OrderSphere.Web`.
 
-The design direction is **"Flat & Focused"**. It ships as a multi-brand system: the **Indigo** brand is
-the default; **Grün** and **Rot** are selectable variants (see §1a). Only the primary colour family
-changes between brands — every other rule below holds for all brands. This document is the source of
-truth; where it and older notes disagree, this document wins.
+The design direction is **"Flat & Focused"**. It ships as a multi-brand system: the **Electric** brand is
+the default; five further variants (Lime, Sage, Royal, Solar, Mint) are selectable (see §1a). Only the
+primary colour family changes between brands — every other rule below holds for all brands. This document
+is the source of truth; where it and older notes disagree, this document wins.
 
 
 The canonical implementations are:
@@ -44,11 +44,16 @@ semantic colours (`Success`, `Warning`, `Error`) are shared across all brands.
 
 Brands are declared in `ThemeState.Brands` (`ThemeState.cs`):
 
-| Id | Name | Primary | Darken | Lighten |
-|---|---|---|---|---|
-| `indigo` *(default)* | Indigo | `#3A4DD1` | `#2B3BB8` | `#6A7AE8` |
-| `green` | Grün | `#1F9D57` | `#177A43` | `#54C07E` |
-| `red` | Rot | `#D92D4B` | `#B71F3A` | `#EA5E76` |
+| Id | Name | Primary | PrimaryDarken | PrimaryLighten | ContrastText |
+|---|---|---|---|---|---|
+| `electric` *(default)* | Electric | `#6260FF` | `#4A48CC` | `#E4E4FF` | `#FFFFFF` |
+| `lime` | Lime | `#9FE870` | `#163300` | `#C4F5A7` | `#163300` |
+| `sage` | Sage | `#BDD9D7` | `#03363D` | `#D8EDEC` | `#03363D` |
+| `royal` | Royal | `#3447AA` | `#253592` | `#FBEAEB` | `#FFFFFF` |
+| `solar` | Solar | `#FCDB32` | `#141D38` | `#FEF08A` | `#141D38` |
+| `mint` | Mint | `#34E0A1` | `#000000` | `#87EEC8` | `#000000` |
+
+`BrandDefinition` carries a `PrimaryContrastText` field (defaults `"#FFFFFF"`). Brands with light primaries (Lime, Sage, Solar, Mint) set a dark contrast value so button labels remain legible.
 
 Mechanics:
 
@@ -97,14 +102,14 @@ then reference it through the localizer. A missing English entry falls back to t
 
 ## 2. Palette (`ThemeState.cs`, `PaletteLight`)
 
-Values below are the **Indigo** (default) brand. `Primary`, `PrimaryDarken` and `PrimaryLighten` vary
-per brand (§1a); all other tokens are shared.
+Values below are the **Electric** (default) brand. `Primary`, `PrimaryDarken`, `PrimaryLighten`, and
+`PrimaryContrastText` vary per brand (§1a); all other tokens are shared.
 
 | Token | Value | Use |
 |---|---|---|
-| Primary | `#3A4DD1` | Buttons, links, accents, focus |
-| PrimaryDarken | `#2B3BB8` | Gradient end, hover |
-| PrimaryLighten | `#6A7AE8` | Subtle accents, hover borders |
+| Primary | `#6260FF` | Buttons, links, accents, focus |
+| PrimaryDarken | `#4A48CC` | Gradient end, hover |
+| PrimaryLighten | `#E4E4FF` | Subtle accents, hover borders |
 | Secondary | `#0D0D18` | Off-black; `section-dark`, strong text |
 | Background | `#FFFFFF` | Page background |
 | BackgroundGray | `#F1F2F8` | Alternating sections, inert fills |
@@ -114,7 +119,7 @@ per brand (§1a); all other tokens are shared.
 | Success | `#2EA04B` | Stock OK, free shipping |
 | Warning | `#FF9F0A` | Low stock |
 | Error | `#FF3B30` | Errors, destructive actions |
-| Info | `#3A4DD1` | Informational (same as Primary) |
+| Info | `#6260FF` | Informational (same as Primary) |
 | Divider | `#DCDDE6` | Borders, separators |
 | DividerLight | `#E8E9F0` | Hairline rows |
 

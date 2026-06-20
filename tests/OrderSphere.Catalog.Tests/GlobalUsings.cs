@@ -5,5 +5,6 @@ global using OrderSphere.BuildingBlocks.ValueObjects;
 global using OrderSphere.Catalog.Application.Abstractions;
 global using OrderSphere.Catalog.Domain.Entities;
 global using OrderSphere.Catalog.Domain.Errors;
+global using OrderSphere.Catalog.Infrastructure.Blob;
 global using OrderSphere.Catalog.Infrastructure.Search;
 global using Xunit;

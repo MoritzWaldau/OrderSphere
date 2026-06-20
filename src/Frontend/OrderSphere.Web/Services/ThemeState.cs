@@ -11,7 +11,8 @@ public sealed record BrandDefinition(
     string Name,
     string Primary,
     string PrimaryDarken,
-    string PrimaryLighten);
+    string PrimaryLighten,
+    string PrimaryContrastText = "#FFFFFF");
 
 /// <summary>
 /// Holds the active MudBlazor theme, the active brand, and the dark-mode flag.
@@ -23,39 +24,42 @@ public sealed class ThemeState
     /// <summary>Available brands. Indigo is the default and the original "Flat &amp; Focused" identity.</summary>
     public static readonly IReadOnlyList<BrandDefinition> Brands =
     [
-        new("indigo", "Indigo", "#3A4DD1", "#2B3BB8", "#6A7AE8"),
-        new("green", "Grün", "#1F9D57", "#177A43", "#54C07E"),
-        new("red", "Rot", "#D92D4B", "#B71F3A", "#EA5E76"),
+        new("electric", "Electric", "#6260FF", "#4A48CC", "#E4E4FF"),
+        new("lime",     "Lime",     "#9FE870", "#163300", "#C4F5A7", "#163300"),
+        new("sage",     "Sage",     "#BDD9D7", "#03363D", "#D8EDEC", "#03363D"),
+        new("royal",    "Royal",    "#3447AA", "#253592", "#FBEAEB"),
+        new("solar",    "Solar",    "#FCDB32", "#141D38", "#FEF08A", "#141D38"),
+        new("mint",     "Mint",     "#34E0A1", "#000000", "#87EEC8", "#000000"),
     ];
 
-    private static readonly string[] FontFamily =
+    private static readonly string[] _fontFamily =
     [
         "Space Grotesk", "Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif",
     ];
 
-    private static readonly string[] MonoFamily =
+    private static readonly string[] _monoFamily =
     [
         "JetBrains Mono", "ui-monospace", "monospace",
     ];
 
-    private static readonly LayoutProperties SharedLayout = new()
+    private static readonly LayoutProperties _sharedLayout = new()
     {
         DefaultBorderRadius = "12px",
         AppbarHeight = "72px",
     };
 
-    private static readonly Typography SharedTypography = new()
+    private static readonly Typography _sharedTypography = new()
     {
         Default = new DefaultTypography
         {
-            FontFamily = FontFamily,
+            FontFamily = _fontFamily,
             FontSize = "0.9375rem",
             FontWeight = "400",
             LineHeight = "1.6",
         },
         H1 = new H1Typography
         {
-            FontFamily = FontFamily,
+            FontFamily = _fontFamily,
             FontSize = "3rem",
             FontWeight = "600",
             LineHeight = "1.05",
@@ -63,7 +67,7 @@ public sealed class ThemeState
         },
         H2 = new H2Typography
         {
-            FontFamily = FontFamily,
+            FontFamily = _fontFamily,
             FontSize = "2.25rem",
             FontWeight = "600",
             LineHeight = "1.1",
@@ -71,20 +75,20 @@ public sealed class ThemeState
         },
         H3 = new H3Typography
         {
-            FontFamily = FontFamily,
+            FontFamily = _fontFamily,
             FontSize = "1.875rem",
             FontWeight = "600",
             LetterSpacing = "-0.015em",
         },
         H4 = new H4Typography
         {
-            FontFamily = FontFamily,
+            FontFamily = _fontFamily,
             FontSize = "1.5rem",
             FontWeight = "600",
             LetterSpacing = "-0.01em",
         },
-        H5 = new H5Typography { FontFamily = FontFamily, FontSize = "1.25rem", FontWeight = "600" },
-        H6 = new H6Typography { FontFamily = FontFamily, FontSize = "1.0625rem", FontWeight = "600" },
+        H5 = new H5Typography { FontFamily = _fontFamily, FontSize = "1.25rem", FontWeight = "600" },
+        H6 = new H6Typography { FontFamily = _fontFamily, FontSize = "1.0625rem", FontWeight = "600" },
         Button = new ButtonTypography
         {
             FontSize = "0.9375rem",
@@ -130,14 +134,14 @@ public sealed class ThemeState
     {
         PaletteLight = BuildLight(b),
         PaletteDark = BuildDark(b),
-        LayoutProperties = SharedLayout,
-        Typography = SharedTypography,
+        LayoutProperties = _sharedLayout,
+        Typography = _sharedTypography,
     };
 
     private static PaletteLight BuildLight(BrandDefinition b) => new()
     {
         Primary = b.Primary,
-        PrimaryContrastText = "#FFFFFF",
+        PrimaryContrastText = b.PrimaryContrastText,
         PrimaryDarken = b.PrimaryDarken,
         PrimaryLighten = b.PrimaryLighten,
         Secondary = "#0D0D18",
@@ -165,7 +169,7 @@ public sealed class ThemeState
     private static PaletteDark BuildDark(BrandDefinition b) => new()
     {
         Primary = b.Primary,
-        PrimaryContrastText = "#FFFFFF",
+        PrimaryContrastText = b.PrimaryContrastText,
         PrimaryDarken = b.PrimaryDarken,
         PrimaryLighten = b.PrimaryLighten,
         Secondary = "#EEEEF4",

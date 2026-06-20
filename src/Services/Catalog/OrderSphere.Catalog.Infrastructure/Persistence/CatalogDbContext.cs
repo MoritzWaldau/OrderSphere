@@ -11,6 +11,7 @@ public sealed class CatalogDbContext(
 {
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Brand> Brands => Set<Brand>();
     public DbSet<ProductReview> Reviews => Set<ProductReview>();
     public DbSet<StockReservation> StockReservations => Set<StockReservation>();
 
@@ -36,6 +37,7 @@ public sealed class CatalogDbContext(
     {
         configurationBuilder.Properties<ProductId>().HaveConversion<ProductIdConverter>();
         configurationBuilder.Properties<CategoryId>().HaveConversion<CategoryIdConverter>();
+        configurationBuilder.Properties<BrandId>().HaveConversion<BrandIdConverter>();
         configurationBuilder.Properties<ReviewId>().HaveConversion<ReviewIdConverter>();
         configurationBuilder.Properties<CustomerId>().HaveConversion<CustomerIdConverter>();
         configurationBuilder.Properties<ReservationId>().HaveConversion<ReservationIdConverter>();

@@ -50,6 +50,47 @@ public sealed class CreateProductCommandHandlerTests
         result.Error.Should().Be(CategoryErrors.NotFound);
     }
 
+    // ── Brand not found ─────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_BrandNotFound_ReturnsBrandNotFoundError()
+    {
+        var cat = MakeCategory(CategoryA);
+        var products = new List<Product>().BuildMockDbSet();
+        var categories = new List<Category> { cat }.BuildMockDbSet();
+        var brands = new List<Brand>().BuildMockDbSet();
+        var ctx = Substitute.For<ICatalogDbContext>();
+        ctx.Products.Returns(products);
+        ctx.Categories.Returns(categories);
+        ctx.Brands.Returns(brands);
+
+        var command = ValidCommand() with { BrandId = BrandId.New() };
+        var result = await CreateHandler(ctx).Handle(command, default);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(BrandErrors.NotFound);
+    }
+
+    [Fact]
+    public async Task Handle_ExistingBrand_ReturnsSuccess()
+    {
+        var cat = MakeCategory(CategoryA);
+        var brand = new Brand("Apple");
+        var products = new List<Product>().BuildMockDbSet();
+        var categories = new List<Category> { cat }.BuildMockDbSet();
+        var brands = new List<Brand> { brand }.BuildMockDbSet();
+        var ctx = Substitute.For<ICatalogDbContext>();
+        ctx.Products.Returns(products);
+        ctx.Categories.Returns(categories);
+        ctx.Brands.Returns(brands);
+
+        var command = ValidCommand() with { BrandId = brand.Id };
+        var result = await CreateHandler(ctx).Handle(command, default);
+
+        result.IsSuccess.Should().BeTrue();
+        ctx.Products.Received(1).Add(Arg.Is<Product>(p => p.BrandId == brand.Id));
+    }
+
     // ── Happy path ──────────────────────────────────────────────────────────────
 
     [Fact]

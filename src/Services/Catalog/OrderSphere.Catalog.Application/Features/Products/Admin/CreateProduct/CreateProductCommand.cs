@@ -9,4 +9,5 @@ public sealed record CreateProductCommand(
     int Stock,
     CategoryId CategoryId,
     string SKU,
-    string? ImageUrl) : ICommand<Result<Guid>>;
+    string? ImageUrl,
+    BrandId? BrandId = null) : ICommand<Result<Guid>>;

@@ -1,10 +1,7 @@
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
-using OrderSphere.Catalog.Application.Abstractions;
-using OrderSphere.Catalog.Domain.Entities;
 
 namespace OrderSphere.Catalog.Infrastructure.Search;
 
@@ -35,6 +32,7 @@ public sealed class AzureAiProductSearchIndex(
             // means it should not be searchable, so remove it from the index.
             var product = await context.Products
                 .Include(p => p.Category)
+                .Include(p => p.Brand)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == ProductId.From(productId), ct);
 
@@ -131,6 +129,7 @@ public sealed class AzureAiProductSearchIndex(
 
         var products = await context.Products
             .Include(p => p.Category)
+            .Include(p => p.Brand)
             .AsNoTracking()
             .ToListAsync(ct);
 
@@ -151,7 +150,8 @@ public sealed class AzureAiProductSearchIndex(
     private async Task<SearchDocument> BuildDocumentAsync(Product product, CancellationToken ct)
     {
         var categoryName = product.Category?.Name ?? string.Empty;
-        var vector = await EmbedAsync($"{product.Name}\n{categoryName}\n{product.Description}", ct);
+        var brandName = product.Brand?.Name ?? string.Empty;
+        var vector = await EmbedAsync($"{product.Name}\n{brandName}\n{categoryName}\n{product.Description}", ct);
 
         return new SearchDocument
         {
@@ -159,6 +159,7 @@ public sealed class AzureAiProductSearchIndex(
             ["name"] = product.Name,
             ["description"] = product.Description,
             ["categoryName"] = categoryName,
+            ["brandName"] = brandName,
             ["price"] = (double)product.Price.Amount,
             ["isActive"] = product.IsActive,
             [ProductSearchClients.VectorFieldName] = vector,

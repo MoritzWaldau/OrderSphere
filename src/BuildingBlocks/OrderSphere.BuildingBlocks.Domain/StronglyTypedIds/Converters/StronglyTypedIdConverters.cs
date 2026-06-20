@@ -28,6 +28,11 @@ public sealed class CategoryIdConverter : ValueConverter<CategoryId, Guid>
     public CategoryIdConverter() : base(id => id.Value, v => new CategoryId(v)) { }
 }
 
+public sealed class BrandIdConverter : ValueConverter<BrandId, Guid>
+{
+    public BrandIdConverter() : base(id => id.Value, v => new BrandId(v)) { }
+}
+
 public sealed class CartIdConverter : ValueConverter<CartId, Guid>
 {
     public CartIdConverter() : base(id => id.Value, v => new CartId(v)) { }

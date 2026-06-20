@@ -9,10 +9,13 @@ public sealed class GetAllProductsAdminQueryHandler(ICatalogDbContext context)
         {
             var products = await context.Products
                 .Include(p => p.Category)
+                .Include(p => p.Brand)
                 .OrderBy(p => p.Name)
                 .Select(p => new AdminProductDto(
                     p.Id.Value, p.Name, p.Slug, p.Description, p.Price, p.Stock,
-                    p.CategoryId.Value, p.Category!.Name, p.SKU, p.IsActive, p.CreatedAt, p.UpdatedAt))
+                    p.CategoryId.Value, p.Category!.Name, p.SKU, p.IsActive, p.CreatedAt, p.UpdatedAt,
+                    p.Brand != null ? (Guid?)p.Brand.Id.Value : null,
+                    p.Brand != null ? p.Brand.Name : null))
                 .ToListAsync(ct);
 
             return Result<IEnumerable<AdminProductDto>>.Success(products);

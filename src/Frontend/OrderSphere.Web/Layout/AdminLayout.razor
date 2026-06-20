@@ -21,7 +21,12 @@
         </MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Inherit"
                    StartIcon="@Icons.Material.Outlined.Logout"
-                   OnClick="HandleLogout">
+                   OnClick="HandleLogout"
+                   Disabled="_isLoggingOut">
+            @if (_isLoggingOut)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-1" />
+            }
             Abmelden
         </MudButton>
     </MudAppBar>
@@ -67,10 +72,13 @@
 
 @code {
     private bool _drawerOpen = true;
+    private bool _isLoggingOut;
+
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
 
     private async Task HandleLogout()
     {
+        _isLoggingOut = true;
         try { await Http.PostAsync("/bff/logout", content: null); } catch { }
         Navigation.NavigateTo("/", forceLoad: true);
     }

@@ -20,6 +20,7 @@ public static class EndpointMappingExtensions
         v1.MapOrderEndpoints();
         v1.MapCheckoutEndpoints();
         v1.MapCouponEndpoints();
+        v1.MapSagaEndpoints();
 
         app.MapGroup("internal")
             .MapInternalPurchaseEndpoints();

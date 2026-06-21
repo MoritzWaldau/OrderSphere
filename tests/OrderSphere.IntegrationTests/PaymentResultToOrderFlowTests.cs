@@ -135,7 +135,7 @@ public sealed class PaymentResultToOrderFlowTests : IDisposable
         inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(false);
 
         await using var ctx = NewContext();
-        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, Catalog(), CancellationToken.None);
+        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, Catalog(), deliveryCount: 1, CancellationToken.None);
         await ctx.SaveChangesAsync();
 
         outcome.Should().Be(PaymentResultProcessor.PaymentResultOutcome.Processed);
@@ -173,7 +173,7 @@ public sealed class PaymentResultToOrderFlowTests : IDisposable
         inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(false);
 
         await using var ctx = NewContext();
-        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, Catalog(), CancellationToken.None);
+        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, Catalog(), deliveryCount: 1, CancellationToken.None);
         await ctx.SaveChangesAsync();
 
         outcome.Should().Be(PaymentResultProcessor.PaymentResultOutcome.Processed);
@@ -201,7 +201,7 @@ public sealed class PaymentResultToOrderFlowTests : IDisposable
         inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(true);
 
         await using var ctx = NewContext();
-        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, Catalog(), CancellationToken.None);
+        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, Catalog(), deliveryCount: 1, CancellationToken.None);
 
         outcome.Should().Be(PaymentResultProcessor.PaymentResultOutcome.AlreadyProcessed);
 
@@ -219,7 +219,7 @@ public sealed class PaymentResultToOrderFlowTests : IDisposable
         inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(false);
 
         await using var ctx = NewContext();
-        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, Catalog(), CancellationToken.None);
+        var outcome = await NewProcessor().ProcessPaymentResultAsync(evt, ctx, inbox, Catalog(), deliveryCount: 1, CancellationToken.None);
 
         outcome.Should().Be(PaymentResultProcessor.PaymentResultOutcome.OrderNotFound);
     }

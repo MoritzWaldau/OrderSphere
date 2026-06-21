@@ -189,7 +189,7 @@ var orderingWorker = builder.AddProject<Projects.OrderSphere_Ordering_Worker>("o
     .WithReference(orderingDb)
     .WithReference(serviceBus)
     .WithReference(catalog)
-    .WaitFor(orderingDb)
+    .WaitFor(ordering)
     .WaitFor(serviceBus)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
     .WithEnvironment("Oidc__Audience", OidcAudience)

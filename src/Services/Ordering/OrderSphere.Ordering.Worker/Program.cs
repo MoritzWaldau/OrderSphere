@@ -1,6 +1,5 @@
 using MediatR;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.Ordering.Application.Abstractions;
@@ -46,12 +45,6 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Progr
 builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
 
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-    scope.ServiceProvider.GetRequiredService<OrderingDbContext>().Database.Migrate();
-}
-
 // Liveness/readiness endpoints (/health, /alive, /version) for container probes.
 app.MapDefaultEndpoints();
 

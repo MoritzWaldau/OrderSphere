@@ -38,7 +38,7 @@ jobs:
       - name: Build
         run: dotnet build OrderSphere.slnx --no-restore --configuration Release
 
-      - name: Test (with coverage; 70% branch gate from .runsettings)
+      - name: Test (with coverage; line-rate gate enforced below, not in .runsettings)
         run: >
           dotnet test OrderSphere.slnx --no-build --configuration Release
           --settings .runsettings
@@ -61,6 +61,28 @@ jobs:
       - name: Write coverage into the job summary
         if: ${{ !cancelled() }}
         run: cat ./CoverageReport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+
+      # Real, enforcing coverage gate. The collector's <Threshold> in
+      # .runsettings does not fail the run, so the gate lives here.
+      # Staging ladder toward the 60% goal — raise MIN_LINE as phases land:
+      #   Phase 0: 40   Phase 1: 48   Phase 2: 50   Phase 3: 55   Phase 4: 58   → 60
+      # Phase 4 (Catalog admin/internal/review endpoints + Ordering checkout/internal)
+      # measured 58.8% line. The final ~1.2 points to 60% sit in the Blazor Web project
+      # (the large remaining anchor) and the worker/processor loops. The gate is
+      # line-rate; branch (~38%) is reported but not enforced.
+      - name: Coverage gate (line-rate)
+        if: ${{ !cancelled() }}
+        env:
+          MIN_LINE: "58"
+        run: |
+          python3 - <<'PY'
+          import os, sys, xml.etree.ElementTree as ET
+          rate = float(ET.parse("CoverageReport/Cobertura.xml").getroot().get("line-rate"))
+          pct, floor = rate * 100, float(os.environ["MIN_LINE"])
+          print(f"Line coverage: {pct:.1f}%  (gate: {floor:.0f}%)")
+          if pct + 1e-9 < floor:
+              sys.exit(f"::error::Line coverage {pct:.1f}% is below the {floor:.0f}% gate.")
+          PY
 
       - name: Publish test results as a check
         uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0

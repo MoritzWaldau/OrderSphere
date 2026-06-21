@@ -1,4 +1,3 @@
-using System.Net.Http;
 using OrderSphere.Basket.Infrastructure.CatalogClient;
 
 namespace OrderSphere.Basket.Tests.Infrastructure;

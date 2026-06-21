@@ -31,7 +31,12 @@ internal sealed class TestAuthHandler(
         if (!Request.Headers.TryGetValue(SubHeader, out var sub) || string.IsNullOrWhiteSpace(sub))
             return Task.FromResult(AuthenticateResult.NoResult());
 
-        var claims = new List<Claim> { new("sub", sub!), new("name", "Test User") };
+        var claims = new List<Claim>
+        {
+            new("sub", sub!),
+            new("name", "Test User"),
+            new("email", "test-user@example.com"),
+        };
 
         if (Request.Headers.TryGetValue(RolesHeader, out var roles))
         {

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using Xunit;
 
@@ -137,5 +138,51 @@ public sealed class OrderingApiTests : IClassFixture<OrderingApiFactory>
 
         // Unknown code maps to a NotFound/BadRequest failure, never a success.
         response.IsSuccessStatusCode.Should().BeFalse();
+    }
+
+    // ── Checkout ──────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Checkout_challenges_anonymous_with_401()
+    {
+        var response = await _factory.CreateClient().PostAsJsonAsync("api/v1/checkout", CheckoutBody());
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Checkout_accepts_a_cart_and_returns_a_correlation_id()
+    {
+        var response = await Client(sub: "auth0|checkout").PostAsJsonAsync("api/v1/checkout", CheckoutBody());
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        doc.RootElement.GetProperty("correlationId").GetGuid().Should().NotBeEmpty();
+    }
+
+    private static object CheckoutBody() => new
+    {
+        shippingAddress = new
+        {
+            firstName = "Erika",
+            lastName = "Mustermann",
+            street = "Hauptstraße 1",
+            city = "Berlin",
+            postalCode = "10115",
+            country = "Deutschland",
+        },
+        paymentMethod = "CreditCard",
+    };
+
+    // ── Internal purchase check (consumed by Catalog review eligibility) ───────────
+
+    [Fact]
+    public async Task Internal_purchase_check_is_reachable_without_auth_and_reports_false()
+    {
+        var response = await _factory.CreateClient().GetAsync(
+            $"internal/customers/{Guid.NewGuid()}/purchased/{Guid.NewGuid()}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await response.Content.ReadAsStringAsync()).Should().Be("false");
     }
 }

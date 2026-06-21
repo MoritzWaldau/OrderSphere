@@ -89,7 +89,8 @@ Umgesetzt auf Branch `chore/coverage-phase0`:
    eingearbeitet. Nach jedem Phasenabschluss neu erzeugen und `MIN_LINE` nachziehen.
 
 Gate-Verlauf: Phase 0 `MIN_LINE=40` (Ist 42,9%) → Phase 1 `MIN_LINE=48` (Ist 50,5%) →
-Phase 2 `MIN_LINE=50` (Ist 50,7%) → Phase 3 `MIN_LINE=55` (Ist 56,4%).
+Phase 2 `MIN_LINE=50` (Ist 50,7%) → Phase 3 `MIN_LINE=55` (Ist 56,4%) →
+Phase 4 `MIN_LINE=58` (Ist 58,8%).
 
 ## Phase 1 — Ergebnis (abgeschlossen)
 
@@ -194,23 +195,53 @@ Bewusst ausgelassen: **Advisory.Api** (Foundry-/AI-Streaming-gebunden, bereits ~
 Service die externen-Client-orchestrierenden Flows (Ordering-Checkout — durch die bestehenden
 Flow-Tests gedeckt) und die meisten Catalog-Admin-Write-Endpoints (Entity-Seeding-Aufwand).
 
-## Phase 4 — Puffer (nur falls 60% sonst knapp verfehlt)
+## Phase 4 — Catalog-Admin + Ordering-Checkout (abgeschlossen)
 
-- **Web (Blazor)**: bUnit-Komponententests (11 Files vorhanden, 53 Razor-Komponenten).
-  Hoher Aufwand pro Prozentpunkt — bevorzugt ausklammern.
+13 weitere API-Integrationstests auf dem bestehenden Harness. **Gesamt-Line 56,4% → 58,8%**,
+Branch 36,6% → 38,1%. Gate auf `MIN_LINE=58` angehoben.
+
+| Assembly | nach Phase 3 | nach Phase 4 |
+|---|---:|---:|
+| Catalog.Api | 32,4% | 52,5% |
+| Ordering.Api | 71,0% | 74,4% |
+
+Abgedeckt:
+
+- **Catalog-Admin-CRUD** (Brand/Category/Product create→update→delete, `GetById`), Reindex-
+  Search-Disabled-Pfad (`SearchUnavailable` → 400), **interne Service-zu-Service-Endpoints**
+  (Produkt-Lesen/Stock-Decrement/Restore, Reservierungs-Saga reserve→confirm→release inkl.
+  Insufficient-Stock-Conflict), **öffentliche Produkt-Pfade** (Slug, Batch, Stock) und der
+  authentifizierte **Review-Flow** (`IOrderingClient` als Kauf-Verifikation gestubbt).
+- **Ordering-Checkout** (`POST /checkout` Happy-Path mit gestubbten Catalog-/Basket-Clients und
+  Service-Bus-Publisher → 200 mit `CorrelationId`; 401 anonym) und der interne Kauf-Check.
+
+## Phase 5 — Rest auf 60% (offen, höherer Aufwand)
+
+Die verbleibenden ~1,2 Punkte liegen außerhalb der Minimal-API-Oberflächen:
+
+- **Web (Blazor)**: größter verbleibender Anker (15,3%, ~2.000 coverable Lines). bUnit-
+  Komponententests — hoher Aufwand pro Prozentpunkt, in der ursprünglichen Planung bewusst
+  ausgeklammert.
+- **Worker/Processors**: `Notification.Worker` (34,6%), `Payment.Worker` (31,6%),
+  `Ordering.Worker` (51%) — testbar nach dem Muster der bestehenden Flow-Tests.
 - **Bff / Gateways**: Endpoint-/YARP-Konfiguration via `WebApplicationFactory`.
+- Nicht sinnvoll per Unit-Test: `Catalog.Api` gRPC-Service (benötigt gRPC-Client),
+  `Advisory.Api` (Foundry-/Streaming-gebunden).
 
 ## Erwartung
 
-| Nach Phase | Erwartete Gesamt-Coverage |
-|---|---|
-| 1 | ~35–40% |
-| 2 | ~50–55% |
-| 3 | ~60%+ |
-| 4 | Puffer |
+| Nach Phase | Erwartung | Ist |
+|---|---|---:|
+| 1 | ~35–40% | 50,5% |
+| 2 | ~50–55% | 50,7% |
+| 3 | ~60%+ | 56,4% |
+| 4 | Puffer | 58,8% |
+| 5 | 60% | offen |
 
-Phase 1 + 2 tragen den Großteil, weil dort die größte ungetestete Logikmasse liegt und beide
-auf vorhandene Test-Patterns aufsetzen. Phase 3 schließt auf das Ziel auf.
+Phase 1 + 2 trugen die Logik-Schichten (Application/Domain/Infrastructure). Phase 3 + 4 deckten
+die `*.Api`-Oberflächen breit ab (`WebApplicationFactory`), blieben aber unter den optimistischen
+Schätzungen, weil der messbare Nenner durch das Booten der vollständigen Hosts (Program/Config/
+Auth-Wiring) gewachsen ist. Die letzten ~1,2 Punkte auf 60% erfordern Web/Worker (Phase 5).
 
 ## Reihenfolge der Umsetzung
 

@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using NSubstitute;
 using OrderSphere.Catalog.Api;
+using OrderSphere.Catalog.Application.Abstractions;
 using OrderSphere.Catalog.Infrastructure.Persistence;
 using StackExchange.Redis;
 
@@ -18,6 +20,15 @@ namespace OrderSphere.IntegrationTests.Api;
 /// </summary>
 public sealed class CatalogApiFactory : WebApplicationFactory<ApiMarker>
 {
+    /// <summary>Stubs the cross-service purchase check; review creation treats every customer as a verified purchaser.</summary>
+    public IOrderingClient OrderingClient { get; } = Substitute.For<IOrderingClient>();
+
+    public CatalogApiFactory()
+    {
+        OrderingClient.HasPurchasedAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(true);
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
@@ -32,6 +43,9 @@ public sealed class CatalogApiFactory : WebApplicationFactory<ApiMarker>
             // Drop the eagerly-connected Redis registrations; HybridCache falls back to its L1 store.
             services.RemoveAll<IConnectionMultiplexer>();
             services.RemoveAll<IDistributedCache>();
+
+            services.RemoveAll<IOrderingClient>();
+            services.AddSingleton(OrderingClient);
         });
     }
 }

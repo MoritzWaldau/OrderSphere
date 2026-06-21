@@ -65,15 +65,15 @@ jobs:
       # Real, enforcing coverage gate. The collector's <Threshold> in
       # .runsettings does not fail the run, so the gate lives here.
       # Staging ladder toward the 60% goal — raise MIN_LINE as phases land:
-      #   Phase 0: 40   Phase 1: 48   Phase 2: 50   Phase 3: 55   → 60
-      # Phase 3 (WebApplicationFactory API integration tests across the six request
-      # services) measured 56.4% line. Branch coverage dipped to ~37% because booting
-      # the full hosts pulled branchy startup/config wiring into the denominator; the
-      # gate is line-rate, so this does not affect enforcement.
+      #   Phase 0: 40   Phase 1: 48   Phase 2: 50   Phase 3: 55   Phase 4: 58   → 60
+      # Phase 4 (Catalog admin/internal/review endpoints + Ordering checkout/internal)
+      # measured 58.8% line. The final ~1.2 points to 60% sit in the Blazor Web project
+      # (the large remaining anchor) and the worker/processor loops. The gate is
+      # line-rate; branch (~38%) is reported but not enforced.
       - name: Coverage gate (line-rate)
         if: ${{ !cancelled() }}
         env:
-          MIN_LINE: "55"
+          MIN_LINE: "58"
         run: |
           python3 - <<'PY'
           import os, sys, xml.etree.ElementTree as ET

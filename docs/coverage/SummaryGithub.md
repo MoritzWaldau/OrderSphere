@@ -3,19 +3,19 @@
 
 |||
 |:---|:---|
-| Generated on: | 20.06.2026 - 22:16:47 |
-| Coverage date: | 01.06.2026 - 19:05:45 - 20.06.2026 - 22:16:39 |
+| Generated on: | 20.06.2026 - 23:20:56 |
+| Coverage date: | 01.06.2026 - 19:05:45 - 20.06.2026 - 23:20:46 |
 | Parser: | MultiReport (47x Cobertura) |
 | Assemblies: | 35 |
 | Classes: | 514 |
 | Files: | 434 |
-| **Line coverage:** | 56.4% (5224 of 9257) |
-| Covered lines: | 5224 |
-| Uncovered lines: | 4033 |
+| **Line coverage:** | 58.7% (5443 of 9257) |
+| Covered lines: | 5443 |
+| Uncovered lines: | 3814 |
 | Coverable lines: | 9257 |
 | Total lines: | 21525 |
-| **Branch coverage:** | 36.5% (709 of 1939) |
-| Covered branches: | 709 |
+| **Branch coverage:** | 38.1% (739 of 1939) |
+| Covered branches: | 739 |
 | Total branches: | 1939 |
 | **Method coverage:** | [Feature is only available for sponsors](https://reportgenerator.io/pro) |
 
@@ -111,11 +111,11 @@
 |OrderSphere.Basket.Infrastructure.Persistence.DesignTimeBasketDbContextFact<br/>ory|0%||
 
 </details>
-<details><summary>OrderSphere.BuildingBlocks - 75.9%</summary>
+<details><summary>OrderSphere.BuildingBlocks - 76.7%</summary>
 
 |**Name**|**Line**|**Branch**|
 |:---|---:|---:|
-|**OrderSphere.BuildingBlocks**|**75.9%**|**82.1%**|
+|**OrderSphere.BuildingBlocks**|**76.7%**|**82.1%**|
 |OrderSphere.BuildingBlocks.Abstraction.AuditableEntity`1|100%||
 |OrderSphere.BuildingBlocks.Abstraction.NullPublisher|75%||
 |OrderSphere.BuildingBlocks.Behaviors.DomainEventLoggingHandler`1|50%||
@@ -128,13 +128,13 @@
 |OrderSphere.BuildingBlocks.Primitives.Result|81.8%|75%|
 |OrderSphere.BuildingBlocks.Primitives.Result`1|100%|100%|
 |OrderSphere.BuildingBlocks.Security.SecurityAuditEvent|0%||
-|OrderSphere.BuildingBlocks.StronglyTypedIds.BrandId|25%||
+|OrderSphere.BuildingBlocks.StronglyTypedIds.BrandId|50%||
 |OrderSphere.BuildingBlocks.StronglyTypedIds.BrandIdConverter|100%||
 |OrderSphere.BuildingBlocks.StronglyTypedIds.CartId|50%||
 |OrderSphere.BuildingBlocks.StronglyTypedIds.CartIdConverter|100%||
 |OrderSphere.BuildingBlocks.StronglyTypedIds.CartItemId|25%||
 |OrderSphere.BuildingBlocks.StronglyTypedIds.CartItemIdConverter|100%||
-|OrderSphere.BuildingBlocks.StronglyTypedIds.CategoryId|25%||
+|OrderSphere.BuildingBlocks.StronglyTypedIds.CategoryId|50%||
 |OrderSphere.BuildingBlocks.StronglyTypedIds.CategoryIdConverter|100%||
 |OrderSphere.BuildingBlocks.StronglyTypedIds.CouponId|50%||
 |OrderSphere.BuildingBlocks.StronglyTypedIds.CouponIdConverter|100%||
@@ -191,11 +191,11 @@
 |OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.ServiceCollectionExtens<br/>ions|71.4%||
 
 </details>
-<details><summary>OrderSphere.Catalog.Api - 32.4%</summary>
+<details><summary>OrderSphere.Catalog.Api - 52.5%</summary>
 
 |**Name**|**Line**|**Branch**|
 |:---|---:|---:|
-|**OrderSphere.Catalog.Api**|**32.4%**|**3.7%**|
+|**OrderSphere.Catalog.Api**|**52.5%**|**20.4%**|
 |OrderSphere.Catalog.Api.BackgroundServices.BlobContainerInitializer|0%|0%|
 |OrderSphere.Catalog.Api.BackgroundServices.CatalogDataSeeder|0%|0%|
 |OrderSphere.Catalog.Api.BackgroundServices.CatalogSearchInitializer|0%|0%|
@@ -207,26 +207,26 @@
 |OrderSphere.Catalog.Api.Configuration.ConfigureSwaggerOptions|0%|0%|
 |OrderSphere.Catalog.Api.Configuration.RateLimitingExtensions|100%||
 |OrderSphere.Catalog.Api.Configuration.SwaggerExtensions|30.7%||
-|OrderSphere.Catalog.Api.Endpoints.Admin.BrandEndpoints|48.1%||
-|OrderSphere.Catalog.Api.Endpoints.Admin.CategoryEndpoints|48.1%||
-|OrderSphere.Catalog.Api.Endpoints.Admin.ProductEndpoints|45.6%|0%|
+|OrderSphere.Catalog.Api.Endpoints.Admin.BrandEndpoints|88.8%||
+|OrderSphere.Catalog.Api.Endpoints.Admin.CategoryEndpoints|88.8%||
+|OrderSphere.Catalog.Api.Endpoints.Admin.ProductEndpoints|87.7%|33.3%|
 |OrderSphere.Catalog.Api.Endpoints.Admin.ReviewEndpoints|53.8%||
 |OrderSphere.Catalog.Api.Endpoints.EndpointMappingExtensions|100%||
-|OrderSphere.Catalog.Api.Endpoints.Internal.ProductEndpoints|12%|0%|
-|OrderSphere.Catalog.Api.Endpoints.Internal.ReservationEndpoints|6.6%|0%|
+|OrderSphere.Catalog.Api.Endpoints.Internal.ProductEndpoints|96%|58.3%|
+|OrderSphere.Catalog.Api.Endpoints.Internal.ReservationEndpoints|93.3%|77.2%|
 |OrderSphere.Catalog.Api.Endpoints.Public.BrandEndpoints|100%||
 |OrderSphere.Catalog.Api.Endpoints.Public.CategoryEndpoints|100%||
-|OrderSphere.Catalog.Api.Endpoints.Public.ProductEndpoints|56.4%|25%|
-|OrderSphere.Catalog.Api.Endpoints.Public.ReviewEndpoints|44.4%|0%|
+|OrderSphere.Catalog.Api.Endpoints.Public.ProductEndpoints|100%|50%|
+|OrderSphere.Catalog.Api.Endpoints.Public.ReviewEndpoints|94.4%|50%|
 |OrderSphere.Catalog.Api.Grpc.CatalogGrpcService|0%|0%|
 |Program|92.8%|50%|
 
 </details>
-<details><summary>OrderSphere.Catalog.Application - 86.2%</summary>
+<details><summary>OrderSphere.Catalog.Application - 87.6%</summary>
 
 |**Name**|**Line**|**Branch**|
 |:---|---:|---:|
-|**OrderSphere.Catalog.Application**|**86.2%**|**76.3%**|
+|**OrderSphere.Catalog.Application**|**87.6%**|**76.3%**|
 |OrderSphere.Catalog.Application.Abstractions.ProductSearchCriteria|100%||
 |OrderSphere.Catalog.Application.Caching.CatalogCache|100%||
 |OrderSphere.Catalog.Application.DependencyInjection|75%||
@@ -234,7 +234,7 @@
 |OrderSphere.Catalog.Application.DTOs.Admin.AdminBrandDto|100%||
 |OrderSphere.Catalog.Application.DTOs.Admin.AdminCategoryDto|100%||
 |OrderSphere.Catalog.Application.DTOs.Admin.AdminProductDto|100%||
-|OrderSphere.Catalog.Application.DTOs.Admin.AdminProductInput|0%||
+|OrderSphere.Catalog.Application.DTOs.Admin.AdminProductInput|83.3%||
 |OrderSphere.Catalog.Application.DTOs.Public.BrandDto|100%||
 |OrderSphere.Catalog.Application.DTOs.Public.CategoryDto|100%||
 |OrderSphere.Catalog.Application.DTOs.Public.ProductDto|100%||
@@ -281,28 +281,28 @@
 |OrderSphere.Catalog.Application.Features.Reviews.RatingSummaryUpdater|100%|100%|
 
 </details>
-<details><summary>OrderSphere.Catalog.Domain - 93.9%</summary>
+<details><summary>OrderSphere.Catalog.Domain - 97.9%</summary>
 
 |**Name**|**Line**|**Branch**|
 |:---|---:|---:|
-|**OrderSphere.Catalog.Domain**|**93.9%**|**100%**|
+|**OrderSphere.Catalog.Domain**|**97.9%**|**100%**|
 |OrderSphere.Catalog.Domain.DomainEvents.ProductStockDecreasedDomainEvent|100%||
-|OrderSphere.Catalog.Domain.Entities.Brand|90%||
-|OrderSphere.Catalog.Domain.Entities.Category|76.4%||
+|OrderSphere.Catalog.Domain.Entities.Brand|95%||
+|OrderSphere.Catalog.Domain.Entities.Category|100%||
 |OrderSphere.Catalog.Domain.Entities.Product|98.3%|100%|
 |OrderSphere.Catalog.Domain.Entities.ProductReview|94.1%|100%|
-|OrderSphere.Catalog.Domain.Entities.StockReservation|91.6%|100%|
+|OrderSphere.Catalog.Domain.Entities.StockReservation|100%|100%|
 |OrderSphere.Catalog.Domain.Errors.BrandErrors|100%||
 |OrderSphere.Catalog.Domain.Errors.CategoryErrors|100%||
 |OrderSphere.Catalog.Domain.Errors.ProductErrors|100%||
 |OrderSphere.Catalog.Domain.Errors.ReviewErrors|100%||
 
 </details>
-<details><summary>OrderSphere.Catalog.Infrastructure - 52.8%</summary>
+<details><summary>OrderSphere.Catalog.Infrastructure - 53.1%</summary>
 
 |**Name**|**Line**|**Branch**|
 |:---|---:|---:|
-|**OrderSphere.Catalog.Infrastructure**|**52.8%**|**37.2%**|
+|**OrderSphere.Catalog.Infrastructure**|**53.1%**|**37.2%**|
 |OrderSphere.Catalog.Infrastructure.Blob.AzureBlobStorageService|0%||
 |OrderSphere.Catalog.Infrastructure.Blob.BlobStorageClients|37.5%|54.5%|
 |OrderSphere.Catalog.Infrastructure.Blob.DisabledBlobStorageService|100%||
@@ -313,7 +313,7 @@
 |OrderSphere.Catalog.Infrastructure.EntityConfigurations.ProductReviewConfig<br/>uration|100%||
 |OrderSphere.Catalog.Infrastructure.EntityConfigurations.StockReservationCon<br/>figuration|100%||
 |OrderSphere.Catalog.Infrastructure.OrderingClient.HttpOrderingClient|100%|100%|
-|OrderSphere.Catalog.Infrastructure.Persistence.CatalogDbContext|96%|100%|
+|OrderSphere.Catalog.Infrastructure.Persistence.CatalogDbContext|100%|100%|
 |OrderSphere.Catalog.Infrastructure.Persistence.DesignTimeCatalogDbContextFa<br/>ctory|0%||
 |OrderSphere.Catalog.Infrastructure.Search.AzureAiProductSearchIndex|0%|0%|
 |OrderSphere.Catalog.Infrastructure.Search.DisabledProductSearchIndex|100%||
@@ -356,31 +356,31 @@
 |Program|0%|0%|
 
 </details>
-<details><summary>OrderSphere.Ordering.Api - 71%</summary>
+<details><summary>OrderSphere.Ordering.Api - 74.4%</summary>
 
 |**Name**|**Line**|**Branch**|
 |:---|---:|---:|
-|**OrderSphere.Ordering.Api**|**71%**|**59.3%**|
+|**OrderSphere.Ordering.Api**|**74.4%**|**59.3%**|
 |OrderSphere.Ordering.Api.Authorization.OrderOwnerOrStaffHandler|100%|100%|
 |OrderSphere.Ordering.Api.Configuration.ApiVersioningExtensions|100%||
 |OrderSphere.Ordering.Api.Endpoints.CheckoutEndpoints|100%||
 |OrderSphere.Ordering.Api.Endpoints.CouponEndpoints|70.8%||
 |OrderSphere.Ordering.Api.Endpoints.EndpointMappingExtensions|100%||
-|OrderSphere.Ordering.Api.Endpoints.Internal.PurchaseEndpoints|20%||
+|OrderSphere.Ordering.Api.Endpoints.Internal.PurchaseEndpoints|100%||
 |OrderSphere.Ordering.Api.Endpoints.OrderEndpoints|94.3%|25%|
-|OrderSphere.Ordering.Api.Models.CheckoutRequest|0%||
+|OrderSphere.Ordering.Api.Models.CheckoutRequest|100%||
 |Program|0%|0%|
 |Program|95.3%|50%|
 
 </details>
-<details><summary>OrderSphere.Ordering.Application - 87.3%</summary>
+<details><summary>OrderSphere.Ordering.Application - 89.4%</summary>
 
 |**Name**|**Line**|**Branch**|
 |:---|---:|---:|
-|**OrderSphere.Ordering.Application**|**87.3%**|**95.5%**|
+|**OrderSphere.Ordering.Application**|**89.4%**|**95.5%**|
 |OrderSphere.Ordering.Application.Features.Checkout.CheckoutCartCommand|100%||
 |OrderSphere.Ordering.Application.Features.Checkout.CheckoutCartCommandHandl<br/>er|96.6%|90.9%|
-|OrderSphere.Ordering.Application.Features.Checkout.CheckoutCartCommandValid<br/>ator|0%||
+|OrderSphere.Ordering.Application.Features.Checkout.CheckoutCartCommandValid<br/>ator|100%||
 |OrderSphere.Ordering.Application.Features.Coupon.Admin.CreateCoupon.CreateC<br/>ouponCommand|100%||
 |OrderSphere.Ordering.Application.Features.Coupon.Admin.CreateCoupon.CreateC<br/>ouponCommandHandler|100%|100%|
 |OrderSphere.Ordering.Application.Features.Coupon.Admin.CreateCoupon.CreateC<br/>ouponCommandValidator|100%||
@@ -558,11 +558,11 @@
 
 |**Name**|**Line**|**Branch**|
 |:---|---:|---:|
-|**OrderSphere.UserProfile.Api**|**64.1%**|**22.2%**|
+|**OrderSphere.UserProfile.Api**|**64.1%**|**19.4%**|
 |OrderSphere.UserProfile.Api.Configuration.ApiVersioningExtensions|100%||
 |OrderSphere.UserProfile.Api.Endpoints.AdminProfileEndpoints|70%||
 |OrderSphere.UserProfile.Api.Endpoints.EndpointMappingExtensions|100%||
-|OrderSphere.UserProfile.Api.Endpoints.ProfileEndpoints|44.7%|18.7%|
+|OrderSphere.UserProfile.Api.Endpoints.ProfileEndpoints|44.7%|15.6%|
 |Program|87.5%|50%|
 
 </details>

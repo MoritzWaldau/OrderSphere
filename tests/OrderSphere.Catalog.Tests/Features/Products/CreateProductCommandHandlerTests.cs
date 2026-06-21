@@ -1,5 +1,6 @@
 using MockQueryable.NSubstitute;
 using OrderSphere.Catalog.Application.Features.Products.Admin.CreateProduct;
+using OrderSphere.Catalog.Tests.Helpers;
 
 namespace OrderSphere.Catalog.Tests.Features.Products;
 
@@ -51,7 +52,7 @@ public sealed class CreateProductCommandHandlerTests
     [Fact]
     public async Task Handle_BrandNotFound_ReturnsBrandNotFoundError()
     {
-        var cat = MakeCategory(CategoryA);
+        var cat = CatalogEntityFactory.MakeCategory(CategoryA);
         var products = new List<Product>().BuildMockDbSet();
         var categories = new List<Category> { cat }.BuildMockDbSet();
         var brands = new List<Brand>().BuildMockDbSet();
@@ -70,7 +71,7 @@ public sealed class CreateProductCommandHandlerTests
     [Fact]
     public async Task Handle_ExistingBrand_ReturnsSuccess()
     {
-        var cat = MakeCategory(CategoryA);
+        var cat = CatalogEntityFactory.MakeCategory(CategoryA);
         var brand = new Brand("Apple");
         var products = new List<Product>().BuildMockDbSet();
         var categories = new List<Category> { cat }.BuildMockDbSet();
@@ -91,7 +92,7 @@ public sealed class CreateProductCommandHandlerTests
     [Fact]
     public async Task Handle_ValidCommand_ReturnsSuccessWithNonEmptyGuid()
     {
-        var cat = MakeCategory(CategoryA);
+        var cat = CatalogEntityFactory.MakeCategory(CategoryA);
         var products = new List<Product>().BuildMockDbSet();
         var categories = new List<Category> { cat }.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
@@ -107,7 +108,7 @@ public sealed class CreateProductCommandHandlerTests
     [Fact]
     public async Task Handle_ValidCommand_CallsSaveChanges()
     {
-        var cat = MakeCategory(CategoryA);
+        var cat = CatalogEntityFactory.MakeCategory(CategoryA);
         var products = new List<Product>().BuildMockDbSet();
         var categories = new List<Category> { cat }.BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
@@ -119,12 +120,4 @@ public sealed class CreateProductCommandHandlerTests
         await ctx.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-
-    /// <summary>Creates a Category with a controlled Id for query matching.</summary>
-    private static Category MakeCategory(CategoryId id)
-    {
-        var cat = new Category("Electronics");
-        cat.Id = id;
-        return cat;
-    }
 }

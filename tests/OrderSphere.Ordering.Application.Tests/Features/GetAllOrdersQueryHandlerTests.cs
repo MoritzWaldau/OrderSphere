@@ -43,7 +43,7 @@ public sealed class GetAllOrdersQueryHandlerTests
 
 
     [Fact]
-    public async Task Handle_StatusFilter_ReturnsonlyMatchingOrders()
+    public async Task Handle_StatusFilter_ReturnsOnlyMatchingOrders()
     {
         var created = CreateOrder();
         var paid = CreateOrder(OrderStatus.Paid);

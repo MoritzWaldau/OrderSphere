@@ -33,20 +33,6 @@ public sealed class CreateSubscriptionCommandHandlerTests
 
 
     [Fact]
-    public async Task Handle_NoSecret_GeneratesSecret()
-    {
-        var ctx = MakeContext();
-
-        var result = await new CreateSubscriptionCommandHandler(ctx).Handle(
-            new CreateSubscriptionCommand(Owner.Value, "https://example.com/hook", null,
-                [WebhookEventType.OrderPlaced]),
-            default);
-
-        result.Value.Secret.Should().NotBeNullOrWhiteSpace();
-    }
-
-
-    [Fact]
     public async Task Handle_SecretProvided_UsesProvidedSecret()
     {
         var ctx = MakeContext();

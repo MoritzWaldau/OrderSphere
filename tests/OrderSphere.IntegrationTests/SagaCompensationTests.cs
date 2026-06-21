@@ -67,12 +67,27 @@ public sealed class SagaCompensationTests : IDisposable
             Substitute.For<IServiceScopeFactory>(),
             NullLogger<PaymentRefundProcessor>.Instance);
 
-    // Confirm always fails; release succeeds (mirrors a reservation reclaimed by the TTL sweeper).
-    private static ICatalogClient FailingConfirmCatalog()
+    // Confirm fails transiently (catalog unavailable / 5xx — ErrorType.Failure); release succeeds.
+    // A transient failure must be retried, never auto-compensated.
+    private static ICatalogClient TransientConfirmFailureCatalog()
     {
         var catalog = Substitute.For<ICatalogClient>();
         catalog.ConfirmReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result.Failure(new Error("Catalog.Confirm", "Reservation gone."))));
+            .Returns(Task.FromResult(Result.Failure(new Error("Catalog.Unavailable", "Catalog service unavailable."))));
+        catalog.ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+        return catalog;
+    }
+
+    // Confirm returns a genuine 409 conflict (stock can no longer cover the reservation —
+    // ErrorType.Conflict); release succeeds (mirrors a reservation reclaimed by the TTL sweeper).
+    // A conflict is non-recoverable and must compensate with a refund.
+    private static ICatalogClient ConflictConfirmCatalog()
+    {
+        var catalog = Substitute.For<ICatalogClient>();
+        catalog.ConfirmReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Failure(
+                new Error("Catalog.ConfirmReservation", "Reservation confirm conflict.", ErrorType.Conflict))));
         catalog.ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Success()));
         return catalog;
@@ -119,7 +134,7 @@ public sealed class SagaCompensationTests : IDisposable
     };
 
     [Fact]
-    public async Task Confirm_failure_below_attempt_budget_throws_and_leaves_saga_pending()
+    public async Task Transient_confirm_failure_throws_and_leaves_saga_pending_even_past_the_old_budget()
     {
         var (orderId, correlationId) = await SeedOrderAsync();
         var evt = SucceededEvent(orderId, correlationId);
@@ -128,8 +143,10 @@ public sealed class SagaCompensationTests : IDisposable
         inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(false);
 
         await using var ctx = NewContext();
+        // A high delivery count proves the regression guard: a transient confirm failure is always
+        // retried and never auto-refunds a captured payment, regardless of how often it redelivers.
         var act = async () => await NewPaymentResultProcessor()
-            .ProcessPaymentResultAsync(evt, ctx, inbox, FailingConfirmCatalog(), deliveryCount: 1, CancellationToken.None);
+            .ProcessPaymentResultAsync(evt, ctx, inbox, TransientConfirmFailureCatalog(), deliveryCount: 5, CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
 
@@ -141,7 +158,7 @@ public sealed class SagaCompensationTests : IDisposable
     }
 
     [Fact]
-    public async Task Confirm_failure_at_attempt_budget_compensates_and_requests_refund()
+    public async Task Confirm_conflict_compensates_and_requests_refund()
     {
         var (orderId, correlationId) = await SeedOrderAsync();
         var evt = SucceededEvent(orderId, correlationId);
@@ -151,7 +168,7 @@ public sealed class SagaCompensationTests : IDisposable
 
         await using var ctx = NewContext();
         var outcome = await NewPaymentResultProcessor()
-            .ProcessPaymentResultAsync(evt, ctx, inbox, FailingConfirmCatalog(), deliveryCount: 3, CancellationToken.None);
+            .ProcessPaymentResultAsync(evt, ctx, inbox, ConflictConfirmCatalog(), deliveryCount: 1, CancellationToken.None);
         await ctx.SaveChangesAsync();
 
         outcome.Should().Be(PaymentResultProcessor.PaymentResultOutcome.Processed);
@@ -191,7 +208,7 @@ public sealed class SagaCompensationTests : IDisposable
         await using (var ctx = NewContext())
         {
             await NewPaymentResultProcessor()
-                .ProcessPaymentResultAsync(paid, ctx, inbox, FailingConfirmCatalog(), deliveryCount: 3, CancellationToken.None);
+                .ProcessPaymentResultAsync(paid, ctx, inbox, ConflictConfirmCatalog(), deliveryCount: 1, CancellationToken.None);
             await ctx.SaveChangesAsync();
         }
 

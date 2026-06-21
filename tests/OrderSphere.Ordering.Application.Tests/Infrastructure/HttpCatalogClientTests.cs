@@ -156,6 +156,31 @@ public sealed class HttpCatalogClientTests
             .Should().Be($"/internal/reservations/{correlationId}/confirm");
     }
 
+    [Fact]
+    public async Task ConfirmReservation_ReturnsConflict_OnHttp409()
+    {
+        var (client, _) = Build(HttpStatusCode.Conflict);
+
+        var result = await client.ConfirmReservationAsync(Guid.NewGuid());
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Catalog.ConfirmReservation");
+        result.Error.Type.Should().Be(ErrorType.Conflict);
+    }
+
+    [Fact]
+    public async Task ConfirmReservation_ReturnsTransientFailure_OnHttp503()
+    {
+        var (client, _) = Build(HttpStatusCode.ServiceUnavailable);
+
+        var result = await client.ConfirmReservationAsync(Guid.NewGuid());
+
+        // A non-409 failure must not be a conflict — the caller retries instead of refunding.
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Catalog.Unavailable");
+        result.Error.Type.Should().NotBe(ErrorType.Conflict);
+    }
+
     // ── ReleaseReservationAsync ───────────────────────────────────────────────────
 
     [Fact]

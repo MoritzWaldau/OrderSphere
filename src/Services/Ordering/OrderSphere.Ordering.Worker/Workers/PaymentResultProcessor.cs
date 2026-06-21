@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
+using OrderSphere.BuildingBlocks.Primitives;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Entities;
@@ -19,13 +20,6 @@ public sealed class PaymentResultProcessor(
     ILogger<PaymentResultProcessor> logger) : BackgroundService
 {
     private const string QueueName = "payment-results";
-
-    /// <summary>
-    /// Delivery attempts a reservation-confirm failure is retried (via Service Bus redelivery)
-    /// before the saga compensates with a refund. Kept below the queue's MaxDeliveryCount (5)
-    /// so the message is handled and completed rather than dead-lettered.
-    /// </summary>
-    private const int MaxConfirmAttempts = 3;
 
     private ServiceBusProcessor? _processor;
 
@@ -134,13 +128,15 @@ public sealed class PaymentResultProcessor(
             var confirm = await catalogClient.ConfirmReservationAsync(order.CorrelationId, ct);
             if (confirm.IsFailure)
             {
-                // Retry via Service Bus redelivery while the delivery budget lasts (transient
-                // failures recover). Once exhausted, the payment is captured but confirmation is
-                // unrecoverable — compensate deterministically with a refund instead of looping
-                // to the dead-letter queue and leaving the payment captured.
-                if (deliveryCount < MaxConfirmAttempts)
+                // Distinguish transient from non-recoverable failure so a network blip never
+                // refunds an already-captured payment. A transient failure (catalog unavailable,
+                // 5xx) is retried via Service Bus redelivery; a persistent outage escalates to the
+                // dead-letter queue for operator intervention rather than auto-compensating. Only a
+                // genuine 409 conflict (on-hand stock can no longer cover the reservation) is
+                // non-recoverable — compensate deterministically with a refund.
+                if (confirm.Error.Type != ErrorType.Conflict)
                     throw new InvalidOperationException(
-                        $"Reservation confirm failed (attempt {deliveryCount}) for order {order.Id} (correlation {order.CorrelationId}): {confirm.Error.Code}");
+                        $"Reservation confirm failed transiently (delivery {deliveryCount}) for order {order.Id} (correlation {order.CorrelationId}): {confirm.Error.Code}");
 
                 return await CompensateConfirmationFailureAsync(evt, order, saga, catalogClient, context, inboxStore, ct);
             }
@@ -241,7 +237,7 @@ public sealed class PaymentResultProcessor(
         IInboxStore inboxStore,
         CancellationToken ct)
     {
-        var reason = $"Reservation confirm failed after {MaxConfirmAttempts} attempts; refunding payment.";
+        var reason = "Reservation confirm conflict (stock can no longer cover the reservation); refunding payment.";
 
         order.Cancel();
         saga?.MarkCompensationPending(reason);

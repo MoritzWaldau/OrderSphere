@@ -123,9 +123,16 @@ public sealed class HttpCatalogClient(HttpClient httpClient, ILogger<HttpCatalog
         try
         {
             var response = await httpClient.PostAsync($"/internal/reservations/{correlationId}/confirm", null, ct);
-            return response.IsSuccessStatusCode
-                ? Result.Success()
-                : Result.Failure(new Error("Catalog.ConfirmReservation", "Reservation confirm failed."));
+            if (response.IsSuccessStatusCode)
+                return Result.Success();
+
+            // A 409 is a genuine, non-recoverable business conflict (on-hand stock can no longer
+            // cover the reservation): retrying cannot succeed, so the caller compensates. Any other
+            // status (5xx, 408, …) is transient and must be retried — it must never be mistaken for
+            // a confirm that "can't succeed", which would refund an already-captured payment.
+            return response.StatusCode == System.Net.HttpStatusCode.Conflict
+                ? Result.Failure(new Error("Catalog.ConfirmReservation", "Reservation confirm conflict.", ErrorType.Conflict))
+                : Result.Failure(new Error("Catalog.Unavailable", "Catalog service unavailable."));
         }
         catch (Exception ex)
         {

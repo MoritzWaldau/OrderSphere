@@ -39,7 +39,6 @@ public sealed class HttpOrderingClientTests
         return (new HttpOrderingClient(http, Substitute.For<ILogger<HttpOrderingClient>>()), handler);
     }
 
-    // ── HasPurchasedAsync ─────────────────────────────────────────────────────────
 
     [Fact]
     public async Task HasPurchased_ReturnsTrue_WhenServerRespondsTrue()

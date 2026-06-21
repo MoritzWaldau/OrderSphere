@@ -17,7 +17,6 @@ public sealed class AddAddressCommandHandlerTests
     private static AddAddressCommand ValidCommand(string sub, bool setAsDefault = false) => new(
         sub, "Home", "Alice", "Smith", "Hauptstr. 1", "Berlin", "10115", "DE", setAsDefault);
 
-    // ── Profile not found ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProfileNotFound_ReturnsProfileNotFoundError()
@@ -30,7 +29,6 @@ public sealed class AddAddressCommandHandlerTests
         result.Error.Should().Be(UserProfileErrors.ProfileNotFound);
     }
 
-    // ── Address limit ─────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_TenAddressesAlready_ReturnsAddressLimitExceededError()
@@ -52,7 +50,6 @@ public sealed class AddAddressCommandHandlerTests
         result.Error.Should().Be(UserProfileErrors.AddressLimitExceeded);
     }
 
-    // ── Happy path ────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ValidCommand_AddsAddressAndReturnsDto()

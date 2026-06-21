@@ -25,7 +25,6 @@ public sealed class GetAllOrdersQueryHandlerTests
     private static GetAllOrdersQueryHandler CreateHandler(IOrderingDbContext ctx) =>
         new(ctx, Substitute.For<ILogger<GetAllOrdersQueryHandler>>());
 
-    // ── No filter — returns all non-deleted ──────────────────────────────────────
 
     [Fact]
     public async Task Handle_NoFilter_ReturnsAllOrders()
@@ -42,7 +41,6 @@ public sealed class GetAllOrdersQueryHandlerTests
         result.Value.Should().HaveCount(2);
     }
 
-    // ── Status filter applied ────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_StatusFilter_ReturnsonlyMatchingOrders()
@@ -59,7 +57,6 @@ public sealed class GetAllOrdersQueryHandlerTests
         result.Value.Should().ContainSingle(o => o.Status == OrderStatus.Paid);
     }
 
-    // ── Deleted orders excluded ──────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_DeletedOrders_NotReturned()

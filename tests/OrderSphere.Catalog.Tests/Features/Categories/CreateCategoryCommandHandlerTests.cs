@@ -7,7 +7,6 @@ public sealed class CreateCategoryCommandHandlerTests
 {
     private static CreateCategoryCommandHandler CreateHandler(ICatalogDbContext ctx) => new(ctx);
 
-    // ── Happy path ──────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ValidCommand_ReturnsSuccessWithNonEmptyGuid()

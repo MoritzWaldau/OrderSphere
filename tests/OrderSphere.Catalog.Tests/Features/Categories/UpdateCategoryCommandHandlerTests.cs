@@ -10,7 +10,6 @@ public sealed class UpdateCategoryCommandHandlerTests
 
     private static UpdateCategoryCommandHandler CreateHandler(ICatalogDbContext ctx) => new(ctx);
 
-    // ── Category not found ───────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CategoryNotFound_ReturnsNotFoundError()
@@ -26,7 +25,6 @@ public sealed class UpdateCategoryCommandHandlerTests
         result.Error.Should().Be(CategoryErrors.NotFound);
     }
 
-    // ── Deleted category not returned ────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CategoryIsDeleted_ReturnsNotFoundError()
@@ -44,7 +42,6 @@ public sealed class UpdateCategoryCommandHandlerTests
         result.IsFailure.Should().BeTrue();
     }
 
-    // ── IsActive = true ──────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ExistingCategory_IsActive_ActivatesCategory()
@@ -61,7 +58,6 @@ public sealed class UpdateCategoryCommandHandlerTests
         cat.IsActive.Should().BeTrue();
     }
 
-    // ── IsActive = false ─────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ExistingCategory_IsNotActive_DeactivatesCategory()
@@ -107,7 +103,6 @@ public sealed class UpdateCategoryCommandHandlerTests
         await ctx.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────────────────
 
     private static Category MakeCategory(CategoryId id, bool active = true)
     {

@@ -4,7 +4,6 @@ namespace OrderSphere.Basket.Tests.Features;
 
 public sealed class AddToCartCommandHandlerTests
 {
-    // ── Shared test data ────────────────────────────────────────────────────────
 
     private static readonly CustomerId Customer = CustomerId.New();
     private static readonly ProductId ProductA = ProductId.New();
@@ -25,7 +24,6 @@ public sealed class AddToCartCommandHandlerTests
         return new AddToCartCommandHandler(ctx, catalogClient, logger);
     }
 
-    // ── Product not found in Catalog ────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProductNotFoundInCatalog_ReturnsProductNotFoundError()
@@ -41,7 +39,6 @@ public sealed class AddToCartCommandHandlerTests
         result.Error.Should().Be(ProductErrors.ProductNotFoundError);
     }
 
-    // ── Insufficient stock ──────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_InsufficientStock_ReturnsInsufficientStockError()
@@ -57,7 +54,6 @@ public sealed class AddToCartCommandHandlerTests
         result.Error.Should().Be(ProductErrors.InsufficientStockError);
     }
 
-    // ── New cart created ────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_NoExistingCart_CreatesNewCartWithItem()
@@ -76,7 +72,6 @@ public sealed class AddToCartCommandHandlerTests
         cart!.Items.Should().ContainSingle(i => i.ProductId == ProductA);
     }
 
-    // ── Existing cart updated ────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ExistingCart_IncreasesQuantity()
@@ -101,7 +96,6 @@ public sealed class AddToCartCommandHandlerTests
         reloaded!.Items.Single(i => i.ProductId == ProductA).Quantity.Value.Should().Be(5);
     }
 
-    // ── Kumulative Stock-Prüfung ────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ExistingCartExceedsStockCumulatively_ReturnsInsufficientStockError()
@@ -125,7 +119,6 @@ public sealed class AddToCartCommandHandlerTests
         result.Error.Should().Be(ProductErrors.InsufficientStockError);
     }
 
-    // ── Exception path — propagates when catalog client throws ──────────────────
 
     [Fact]
     public async Task Handle_CatalogClientThrows_PropagatesException()

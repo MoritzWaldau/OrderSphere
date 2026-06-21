@@ -14,7 +14,6 @@ public sealed class UpdatePreferencesCommandHandlerTests
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
         => new(ctx);
 
-    // ── Profile not found ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProfileNotFound_ReturnsProfileNotFoundError()
@@ -29,7 +28,6 @@ public sealed class UpdatePreferencesCommandHandlerTests
         result.Error.Should().Be(UserProfileErrors.ProfileNotFound);
     }
 
-    // ── DarkMode enabled ──────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_DarkModeEnabled_PersistsTrueValue()
@@ -49,7 +47,6 @@ public sealed class UpdatePreferencesCommandHandlerTests
         stored.DarkModeEnabled.Should().BeTrue();
     }
 
-    // ── DarkMode disabled ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_DarkModeDisabled_PersistsFalseValue()

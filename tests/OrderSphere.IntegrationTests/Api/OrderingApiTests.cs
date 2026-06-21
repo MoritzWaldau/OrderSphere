@@ -29,7 +29,6 @@ public sealed class OrderingApiTests : IClassFixture<OrderingApiFactory>
         return client;
     }
 
-    // ── Customer order endpoints ──────────────────────────────────────────────────
 
     [Fact]
     public async Task Orders_list_challenges_anonymous_with_401()
@@ -64,7 +63,6 @@ public sealed class OrderingApiTests : IClassFixture<OrderingApiFactory>
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
-    // ── Staff / admin order endpoints ─────────────────────────────────────────────
 
     [Fact]
     public async Task Admin_orders_forbids_a_plain_customer()
@@ -101,7 +99,6 @@ public sealed class OrderingApiTests : IClassFixture<OrderingApiFactory>
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
-    // ── Saga observability endpoint ───────────────────────────────────────────────
 
     [Fact]
     public async Task Saga_endpoint_forbids_a_plain_customer()
@@ -145,7 +142,6 @@ public sealed class OrderingApiTests : IClassFixture<OrderingApiFactory>
         await context.SaveChangesAsync();
     }
 
-    // ── Coupon endpoints ──────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Coupon_admin_create_then_list_roundtrips()
@@ -187,7 +183,6 @@ public sealed class OrderingApiTests : IClassFixture<OrderingApiFactory>
         response.IsSuccessStatusCode.Should().BeFalse();
     }
 
-    // ── Checkout ──────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Checkout_challenges_anonymous_with_401()
@@ -221,7 +216,6 @@ public sealed class OrderingApiTests : IClassFixture<OrderingApiFactory>
         paymentMethod = "CreditCard",
     };
 
-    // ── Internal purchase check (consumed by Catalog review eligibility) ───────────
 
     [Fact]
     public async Task Internal_purchase_check_is_reachable_without_auth_and_reports_false()

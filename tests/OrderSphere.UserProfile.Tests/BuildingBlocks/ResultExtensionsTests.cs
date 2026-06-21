@@ -9,7 +9,6 @@ public sealed class ResultExtensionsTests
 {
     private static readonly Error SomeError = new("test.error", "test error");
 
-    // ── Match<T, TResult> — success branch ───────────────────────────────────
 
     [Fact]
     public void Match_SuccessResult_InvokesOnSuccessAndReturnsValue()
@@ -23,7 +22,6 @@ public sealed class ResultExtensionsTests
         output.Should().Be(84);
     }
 
-    // ── Match<T, TResult> — failure branch ───────────────────────────────────
 
     [Fact]
     public void Match_FailureResult_InvokesOnFailureAndReturnsValue()
@@ -37,7 +35,6 @@ public sealed class ResultExtensionsTests
         output.Should().Be(SomeError.Code.Length);
     }
 
-    // ── Match<T> (Action overload) — success branch ───────────────────────────
 
     [Fact]
     public void MatchAction_SuccessResult_InvokesOnSuccessCallback()
@@ -54,7 +51,6 @@ public sealed class ResultExtensionsTests
         failureCalled.Should().BeFalse();
     }
 
-    // ── Match<T> (Action overload) — failure branch ───────────────────────────
 
     [Fact]
     public void MatchAction_FailureResult_InvokesOnFailureCallback()

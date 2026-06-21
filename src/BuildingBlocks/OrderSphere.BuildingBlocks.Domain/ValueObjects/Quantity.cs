@@ -16,13 +16,11 @@ public readonly record struct Quantity
         Value = value;
     }
 
-    // ── Factory helpers ──────────────────────────────────────────────────────
 
     public static Quantity Of(int value) => new(value);
 
     public static readonly Quantity Zero = new(0);
 
-    // ── Arithmetic operators ─────────────────────────────────────────────────
 
     /// <summary>Adds <paramref name="amount"/> units. Result must be non-negative.</summary>
     public static Quantity operator +(Quantity q, int amount) => new(q.Value + amount);
@@ -30,7 +28,6 @@ public readonly record struct Quantity
     /// <summary>Subtracts <paramref name="amount"/> units. Result must be non-negative.</summary>
     public static Quantity operator -(Quantity q, int amount) => new(q.Value - amount);
 
-    // ── Implicit conversion ──────────────────────────────────────────────────
 
     /// <summary>
     /// Allows <see cref="Quantity"/> to flow transparently into <see langword="int"/>

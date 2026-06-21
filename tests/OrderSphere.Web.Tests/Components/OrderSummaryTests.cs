@@ -4,7 +4,6 @@ namespace OrderSphere.Web.Tests.Components;
 
 public sealed class OrderSummaryTests : BunitBase
 {
-    // ── Discount row ─────────────────────────────────────────────────────────────
 
     [Fact]
     public void DiscountRow_Hidden_WhenDiscountIsZero()
@@ -31,7 +30,6 @@ public sealed class OrderSummaryTests : BunitBase
         cut.Markup.Should().Contain("−");
     }
 
-    // ── Shipping row ─────────────────────────────────────────────────────────────
 
     [Fact]
     public void ShippingFreeText_Shown_WhenShippingCostIsZero()
@@ -58,7 +56,6 @@ public sealed class OrderSummaryTests : BunitBase
         cut.Markup.Should().Contain(Formatting.Currency(4.99m));
     }
 
-    // ── Total ────────────────────────────────────────────────────────────────────
 
     [Fact]
     public void Total_Equals_SubtotalMinusDiscountPlusShippingCost()
@@ -74,7 +71,6 @@ public sealed class OrderSummaryTests : BunitBase
         cut.Markup.Should().Contain(Formatting.Currency(94.99m));
     }
 
-    // ── Line items ───────────────────────────────────────────────────────────────
 
     [Fact]
     public void LineItems_Hidden_WhenShowLineItemsIsFalse()

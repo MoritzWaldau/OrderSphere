@@ -4,7 +4,6 @@ namespace OrderSphere.Ordering.Application.Tests.Features;
 
 public sealed class UpdateOrderStatusCommandHandlerTests
 {
-    // ── Shared test data ────────────────────────────────────────────────────────
 
     private static readonly Address Addr = new("Max", "Muster", "Hauptstr. 1", "Berlin", "10115", "DE");
     private static readonly CustomerId Customer = CustomerId.New();
@@ -18,7 +17,6 @@ public sealed class UpdateOrderStatusCommandHandlerTests
     private static UpdateOrderStatusCommandHandler CreateHandler(IOrderingDbContext ctx) =>
         new(ctx, Substitute.For<ILogger<UpdateOrderStatusCommandHandler>>());
 
-    // ── Order not found ──────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_OrderNotFound_ReturnsOrderNotFoundError()
@@ -34,7 +32,6 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         result.Error.Should().Be(OrderErrors.OrderNotFoundError);
     }
 
-    // ── Shipped transition ───────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ShippedStatus_OrderInPaidState_ReturnsSuccess()
@@ -55,7 +52,6 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         order.Status.Should().Be(OrderStatus.Shipped);
     }
 
-    // ── Delivered transition ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_DeliveredStatus_OrderInShippedState_ReturnsSuccess()
@@ -77,7 +73,6 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         order.Status.Should().Be(OrderStatus.Delivered);
     }
 
-    // ── Cancelled always fails ───────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CancelledStatus_ReturnsInvalidStatusTransitionError()
@@ -96,7 +91,6 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         result.Error.Should().Be(OrderErrors.InvalidStatusTransition);
     }
 
-    // ── Default / unknown status ─────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_UnknownStatus_ReturnsInvalidStatusTransitionError()
@@ -115,7 +109,6 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         result.Error.Should().Be(OrderErrors.InvalidStatusTransition);
     }
 
-    // ── Invalid transition (domain throws) ──────────────────────────────────────
 
     [Fact]
     public async Task Handle_ShippedStatus_OrderInCreatedState_ReturnsInvalidTransitionError()
@@ -135,7 +128,6 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         result.Error.Should().Be(OrderErrors.InvalidStatusTransition);
     }
 
-    // ── SaveChanges called on success ────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_SuccessfulTransition_SavesChanges()
@@ -153,7 +145,6 @@ public sealed class UpdateOrderStatusCommandHandlerTests
         await ctx.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    // ── Outer exception → UnknownError ───────────────────────────────────────────
 
     [Fact]
     public async Task Handle_SaveChangesThrows_ReturnsUnknownError()

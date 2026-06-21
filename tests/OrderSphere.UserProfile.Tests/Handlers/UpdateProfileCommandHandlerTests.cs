@@ -13,7 +13,6 @@ public sealed class UpdateProfileCommandHandlerTests
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
         => new(ctx);
 
-    // ── Profile not found ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProfileNotFound_ReturnsProfileNotFoundError()
@@ -27,7 +26,6 @@ public sealed class UpdateProfileCommandHandlerTests
         result.Error.Should().Be(UserProfileErrors.ProfileNotFound);
     }
 
-    // ── Happy path ────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProfileExists_UpdatesDisplayNameAndEmail()

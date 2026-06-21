@@ -10,7 +10,6 @@ namespace OrderSphere.UserProfile.Tests.Handlers;
 
 public sealed class AdminQueryHandlerTests
 {
-    // ── GetAllUsers ───────────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetAllUsers_ReturnsProfilesOrderedByDisplayNameWithAddressCount()
@@ -32,7 +31,6 @@ public sealed class AdminQueryHandlerTests
         result.Value.Single(u => u.Subject == "sub-zoe").AddressCount.Should().Be(1);
     }
 
-    // ── GetUserById ───────────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetUserById_ProfileExists_ReturnsProfileDto()

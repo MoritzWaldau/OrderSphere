@@ -26,7 +26,6 @@ namespace OrderSphere.Bff.Tests;
 public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
     : IClassFixture<BffWebApplicationFactory>
 {
-    // ── AntiforgeryEndpointFilter on /bff/logout ─────────────────────────────
     // These tests exercise the endpoint-level filter and are independent of the
     // /api/** reverse-proxy CSRF middleware.
 
@@ -88,7 +87,6 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
         response.StatusCode.Should().NotBe(HttpStatusCode.Forbidden);
     }
 
-    // ── Safe methods bypass the CSRF middleware ───────────────────────────────
 
     [Fact]
     public async Task Get_ToApi_IsNotBlockedByCsrfMiddleware()
@@ -108,7 +106,6 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
             because: "GET is a safe method; the CSRF middleware must not reject it");
     }
 
-    // ── Unauthenticated mutations receive an auth challenge, not a CSRF error ──
 
     [Fact]
     public async Task Post_ToApi_UnauthenticatedRequest_GetsAuthChallenge_NotCsrf403()
@@ -135,7 +132,6 @@ public sealed class AntiforgeryTests(BffWebApplicationFactory factory)
             because: "the BFF returns 401 for unauthenticated /api/** mutations instead of an OIDC redirect");
     }
 
-    // ── Smoke: generic CSRF middleware error body is distinguishable ──────────
 
     [Fact]
     public async Task CsrfErrorBodies_AreDistinguishable()

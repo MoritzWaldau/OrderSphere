@@ -10,7 +10,6 @@ public sealed class ClearCartCommandHandlerTests
     private static ClearCartCommandHandler CreateHandler(BasketDbContext ctx) =>
         new(ctx);
 
-    // ── Warenkorb nicht vorhanden ───────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CartNotFound_ReturnsCartNotFoundError()
@@ -23,7 +22,6 @@ public sealed class ClearCartCommandHandlerTests
         result.Error.Should().Be(CartErrors.CartNotFoundError);
     }
 
-    // ── Items werden entfernt ───────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CartWithItems_RemovesAllItems()

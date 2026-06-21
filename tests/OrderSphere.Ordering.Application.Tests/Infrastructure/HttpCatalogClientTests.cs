@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using OrderSphere.Ordering.Infrastructure.CatalogClient;
 
 namespace OrderSphere.Ordering.Application.Tests.Infrastructure;
@@ -13,7 +13,6 @@ public sealed class HttpCatalogClientTests
         return (new HttpCatalogClient(http, Substitute.For<ILogger<HttpCatalogClient>>()), handler);
     }
 
-    // ── GetProductByIdAsync ───────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetProductById_ReturnsProduct_OnSuccess()
@@ -41,7 +40,6 @@ public sealed class HttpCatalogClientTests
         result.Error.Code.Should().Be("Catalog.ProductNotFound");
     }
 
-    // ── GetProductNamesByIdsAsync ─────────────────────────────────────────────────
 
     [Fact]
     public async Task GetProductNames_EmptyList_SkipsHttpCall_ReturnsEmpty()
@@ -69,7 +67,6 @@ public sealed class HttpCatalogClientTests
         query.Should().Contain($"ids={ids[0]}").And.Contain($"ids={ids[1]}");
     }
 
-    // ── DecrementStockAsync ───────────────────────────────────────────────────────
 
     [Fact]
     public async Task DecrementStock_UsesCorrectEndpoint_OnSuccess()
@@ -96,7 +93,6 @@ public sealed class HttpCatalogClientTests
         result.Error.Code.Should().Be("Catalog.StockDecrement");
     }
 
-    // ── RestoreStockAsync ─────────────────────────────────────────────────────────
 
     [Fact]
     public async Task RestoreStock_UsesCorrectEndpoint_OnSuccess()
@@ -112,7 +108,6 @@ public sealed class HttpCatalogClientTests
             .Should().Be($"/internal/products/{productId}/restore-stock");
     }
 
-    // ── ReserveStockAsync ─────────────────────────────────────────────────────────
 
     [Fact]
     public async Task ReserveStock_ReturnsSuccess_OnOk()
@@ -140,7 +135,6 @@ public sealed class HttpCatalogClientTests
         result.Error.Type.Should().Be(ErrorType.Conflict);
     }
 
-    // ── ConfirmReservationAsync ───────────────────────────────────────────────────
 
     [Fact]
     public async Task ConfirmReservation_UsesCorrectEndpoint()
@@ -156,7 +150,6 @@ public sealed class HttpCatalogClientTests
             .Should().Be($"/internal/reservations/{correlationId}/confirm");
     }
 
-    // ── ReleaseReservationAsync ───────────────────────────────────────────────────
 
     [Fact]
     public async Task ReleaseReservation_UsesCorrectEndpoint()
@@ -172,3 +165,4 @@ public sealed class HttpCatalogClientTests
             .Should().Be($"/internal/reservations/{correlationId}/release");
     }
 }
+

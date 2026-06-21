@@ -25,10 +25,8 @@ namespace OrderSphere.Ordering.Checkout.Tests;
 /// </summary>
 public sealed class CheckoutCartCommandHandlerTests
 {
-    // ── Stub error (contents irrelevant — handler never inspects the upstream error) ──
     private static readonly Error AnyError = new("stub.error", "stub");
 
-    // ── Fixed test data ───────────────────────────────────────────────────────
 
     private static readonly Guid CustomerId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
     private static readonly Guid ProductId1 = Guid.Parse("11111111-1111-1111-1111-111111111111");
@@ -52,7 +50,6 @@ public sealed class CheckoutCartCommandHandlerTests
     private static CatalogProductInfo Product(Guid id, int stock = 10) =>
         new(id, $"Product-{id:N}", 19.99m, stock, true);
 
-    // ── SUT factory ──────────────────────────────────────────────────────────
 
     private readonly ICatalogClient _catalog = Substitute.For<ICatalogClient>();
     private readonly IBasketClient _basket = Substitute.For<IBasketClient>();
@@ -72,7 +69,6 @@ public sealed class CheckoutCartCommandHandlerTests
         _catalog.ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
                 .Returns(Result.Success());
 
-    // ── Cart retrieval failures ───────────────────────────────────────────────
 
     [Fact]
     public async Task CartNotFound_ReturnsCartNotFoundError()
@@ -100,7 +96,6 @@ public sealed class CheckoutCartCommandHandlerTests
         await _catalog.DidNotReceive().GetProductByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
-    // ── Product resolution phase (read-only, no reservation yet) ──────────────
 
     [Fact]
     public async Task ProductNotFound_ReturnsProductNotFoundError_NoReservation()
@@ -123,7 +118,6 @@ public sealed class CheckoutCartCommandHandlerTests
                       .ReserveStockAsync(Arg.Any<Guid>(), Arg.Any<IReadOnlyList<ReservationItem>>(), Arg.Any<CancellationToken>());
     }
 
-    // ── Reservation phase ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task ReservationFails_ReturnsInsufficientStock_NoRelease()
@@ -148,7 +142,6 @@ public sealed class CheckoutCartCommandHandlerTests
         await _bus.DidNotReceive().PublishCheckoutCartEventAsync(Arg.Any<CheckoutCartEvent>(), Arg.Any<CancellationToken>());
     }
 
-    // ── Service Bus publish failure releases the reservation ──────────────────
 
     [Fact]
     public async Task ServiceBusPublishFails_ReleasesReservation()
@@ -176,7 +169,6 @@ public sealed class CheckoutCartCommandHandlerTests
         await _basket.DidNotReceive().ClearCartItemsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
-    // ── Cart-clear failure is non-fatal ───────────────────────────────────────
 
     [Fact]
     public async Task CartClearFails_ReturnsSuccess_NoRelease()
@@ -202,7 +194,6 @@ public sealed class CheckoutCartCommandHandlerTests
         await _catalog.DidNotReceive().ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
-    // ── Happy path ────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task HappyPath_TwoItems_ReservesAndReturnsCorrelationId_AndClearsCart()
@@ -238,7 +229,6 @@ public sealed class CheckoutCartCommandHandlerTests
         await _catalog.DidNotReceive().ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
-    // ── Idempotency guard ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task DuplicateIdempotencyKey_ReturnsCachedCorrelationId_WithoutReprocessing()

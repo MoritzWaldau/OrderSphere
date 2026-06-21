@@ -46,7 +46,6 @@ public static class BackchannelLogoutEndpoint
         ILogger<Program> logger,
         CancellationToken ct)
     {
-        // ── 1. Parse form body ───────────────────────────────────────────────
         if (!request.HasFormContentType)
         {
             logger.LogWarning("Back-channel logout request missing form content type.");
@@ -62,7 +61,6 @@ public static class BackchannelLogoutEndpoint
             return Results.BadRequest("Missing logout_token.");
         }
 
-        // ── 2. Fetch JWKS from Auth0 (cached by IConfigurationManager) ───
         var authority = config["Oidc:Authority"]!;
         var clientId = config["Oidc:ClientId"] ?? "web-bff";
 
@@ -78,7 +76,6 @@ public static class BackchannelLogoutEndpoint
                 title: "OIDC configuration unavailable.");
         }
 
-        // ── 3. Validate JWT signature + standard claims ──────────────────────
         var handler = new JsonWebTokenHandler { MapInboundClaims = false };
         var validationParams = new TokenValidationParameters
         {
@@ -118,7 +115,6 @@ public static class BackchannelLogoutEndpoint
 
         var claims = validationResult.Claims;
 
-        // ── 4. Check OIDC back-channel logout spec requirements ───────────────
         // MUST contain the events claim with the backchannel-logout event.
         if (!claims.TryGetValue("events", out var eventsObj)
             || eventsObj?.ToString()?.Contains(BackchannelLogoutEvent) != true)
@@ -151,7 +147,6 @@ public static class BackchannelLogoutEndpoint
             SessionId: sid,
             IpAddress: request.HttpContext.Connection.RemoteIpAddress?.ToString()));
 
-        // ── 5. Look up session key via sid index ─────────────────────────────
         if (ticketStore is not RedisTicketStore redisStore)
         {
             logger.LogError("ITicketStore is not RedisTicketStore; cannot look up session by sid.");
@@ -166,7 +161,6 @@ public static class BackchannelLogoutEndpoint
             return Results.Ok();
         }
 
-        // ── 6. Revoke the session ─────────────────────────────────────────────
         await ticketStore.RemoveAsync(sessionKey);
 
         auditLogger.Log(new SecurityAuditEvent(

@@ -10,7 +10,6 @@ public sealed class DeleteCategoryCommandHandlerTests
 
     private static DeleteCategoryCommandHandler CreateHandler(ICatalogDbContext ctx) => new(ctx);
 
-    // ── Category not found ───────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CategoryNotFound_ReturnsNotFoundError()
@@ -27,7 +26,6 @@ public sealed class DeleteCategoryCommandHandlerTests
         result.Error.Should().Be(CategoryErrors.NotFound);
     }
 
-    // ── Category has active products ─────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CategoryHasProducts_ReturnsHasProductsError()
@@ -48,7 +46,6 @@ public sealed class DeleteCategoryCommandHandlerTests
         result.Error.Should().Be(CategoryErrors.HasProducts);
     }
 
-    // ── Happy path ──────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CategoryWithNoProducts_SetsIsDeletedTrue()
@@ -81,7 +78,6 @@ public sealed class DeleteCategoryCommandHandlerTests
         await ctx.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────────────────
 
     private static Category MakeCategory(CategoryId id)
     {

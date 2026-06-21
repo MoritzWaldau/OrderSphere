@@ -24,7 +24,6 @@ public sealed class CatalogApiTests : IClassFixture<CatalogApiFactory>
         return client;
     }
 
-    // ── Public (anonymous) browse ─────────────────────────────────────────────────
 
     [Fact]
     public async Task Products_listing_is_anonymous_and_returns_a_paged_result()
@@ -58,7 +57,6 @@ public sealed class CatalogApiTests : IClassFixture<CatalogApiFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
-    // ── Admin policy gate ─────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Admin_products_challenges_anonymous_with_401()

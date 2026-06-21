@@ -12,7 +12,6 @@ public sealed class EnsureProfileCommandHandlerTests
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
         => new(ctx);
 
-    // ── Profile does not exist ────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProfileDoesNotExist_CreatesProfile()
@@ -52,7 +51,6 @@ public sealed class EnsureProfileCommandHandlerTests
         profile.CreatedAt.Should().NotBe(default);
     }
 
-    // ── Profile already exists ────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProfileAlreadyExists_ReturnsExistingProfile()

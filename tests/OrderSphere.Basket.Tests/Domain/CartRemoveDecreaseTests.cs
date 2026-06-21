@@ -21,7 +21,6 @@ public sealed class CartRemoveDecreaseTests
         return cart;
     }
 
-    // ── RemoveItem ──────────────────────────────────────────────────────────────
 
     [Fact]
     public void RemoveItem_ExistingProduct_RemovesItemFromList()
@@ -78,7 +77,6 @@ public sealed class CartRemoveDecreaseTests
         cart.Items.Should().ContainSingle(x => x.ProductId == Product2);
     }
 
-    // ── DecreaseItem ────────────────────────────────────────────────────────────
 
     [Fact]
     public void DecreaseItem_ExistingProduct_DecreasesQuantity()

@@ -14,7 +14,6 @@ public sealed class DeleteProductCommandHandlerTests
     private static DeleteProductCommandHandler CreateHandler(ICatalogDbContext ctx)
         => new(ctx, DisabledProductSearchIndex.Instance);
 
-    // ── Product not found ────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProductNotFound_ReturnsNotFoundError()
@@ -29,7 +28,6 @@ public sealed class DeleteProductCommandHandlerTests
         result.Error.Should().Be(ProductErrors.NotFound);
     }
 
-    // ── Already soft-deleted ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProductAlreadyDeleted_ReturnsNotFoundError()
@@ -49,7 +47,6 @@ public sealed class DeleteProductCommandHandlerTests
         result.IsFailure.Should().BeTrue();
     }
 
-    // ── Happy path ──────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ExistingProduct_SetsIsDeletedTrue()
@@ -78,7 +75,6 @@ public sealed class DeleteProductCommandHandlerTests
         await ctx.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────────────────
 
     private static Product MakeProduct(ProductId id)
     {

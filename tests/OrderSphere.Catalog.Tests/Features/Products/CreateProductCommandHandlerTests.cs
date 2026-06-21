@@ -5,7 +5,6 @@ namespace OrderSphere.Catalog.Tests.Features.Products;
 
 public sealed class CreateProductCommandHandlerTests
 {
-    // ── Shared test data ────────────────────────────────────────────────────────
 
     private static readonly CategoryId CategoryA = CategoryId.New();
 
@@ -15,7 +14,6 @@ public sealed class CreateProductCommandHandlerTests
     private static CreateProductCommandHandler CreateHandler(ICatalogDbContext ctx)
         => new(ctx, DisabledProductSearchIndex.Instance);
 
-    // ── SKU already exists ──────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_SkuAlreadyExists_ReturnsSkuAlreadyExistsError()
@@ -33,7 +31,6 @@ public sealed class CreateProductCommandHandlerTests
         result.Error.Should().Be(ProductErrors.SkuAlreadyExists);
     }
 
-    // ── Category not found ──────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CategoryNotFound_ReturnsCategoryNotFoundError()
@@ -50,7 +47,6 @@ public sealed class CreateProductCommandHandlerTests
         result.Error.Should().Be(CategoryErrors.NotFound);
     }
 
-    // ── Brand not found ─────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_BrandNotFound_ReturnsBrandNotFoundError()
@@ -91,7 +87,6 @@ public sealed class CreateProductCommandHandlerTests
         ctx.Products.Received(1).Add(Arg.Is<Product>(p => p.BrandId == brand.Id));
     }
 
-    // ── Happy path ──────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ValidCommand_ReturnsSuccessWithNonEmptyGuid()
@@ -124,7 +119,6 @@ public sealed class CreateProductCommandHandlerTests
         await ctx.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────────────────
 
     /// <summary>Creates a Category with a controlled Id for query matching.</summary>
     private static Category MakeCategory(CategoryId id)

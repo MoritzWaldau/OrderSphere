@@ -28,7 +28,6 @@ public sealed class ModerateReviewCommandHandlerTests
         return (new ModerateReviewCommandHandler(ctx), ctx);
     }
 
-    // ── Not found ─────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ReviewNotFound_ReturnsFailure()
@@ -41,7 +40,6 @@ public sealed class ModerateReviewCommandHandlerTests
         result.Error.Should().Be(ReviewErrors.NotFound);
     }
 
-    // ── Approve ───────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_Approve_SetsStatusApproved_AndSaves()
@@ -59,7 +57,6 @@ public sealed class ModerateReviewCommandHandlerTests
         await ctx.Received().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    // ── Reject ────────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_Reject_SetsStatusRejected_AndSaves()

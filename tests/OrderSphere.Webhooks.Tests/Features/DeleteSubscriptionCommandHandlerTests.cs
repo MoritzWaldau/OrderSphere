@@ -11,7 +11,6 @@ public sealed class DeleteSubscriptionCommandHandlerTests
     private static WebhookSubscription CreateSubscription(CustomerId? owner = null) =>
         new(owner ?? Owner, "https://example.com/hook", "secret", [WebhookEventType.OrderPlaced]);
 
-    // ── Subscription not found returns failure ──────────────────────────────────
 
     [Fact]
     public async Task Handle_SubscriptionNotFound_ReturnsNotFound()
@@ -27,7 +26,6 @@ public sealed class DeleteSubscriptionCommandHandlerTests
         result.Error.Should().Be(WebhookErrors.NotFound);
     }
 
-    // ── Cannot delete another customer's subscription ───────────────────────────
 
     [Fact]
     public async Task Handle_DifferentCustomer_ReturnsNotFound()
@@ -44,7 +42,6 @@ public sealed class DeleteSubscriptionCommandHandlerTests
         result.Error.Should().Be(WebhookErrors.NotFound);
     }
 
-    // ── Already soft-deleted subscription not visible ────────────────────────────
 
     [Fact]
     public async Task Handle_AlreadyDeleted_ReturnsNotFound()
@@ -62,8 +59,6 @@ public sealed class DeleteSubscriptionCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(WebhookErrors.NotFound);
     }
-
-    // ── Happy path ───────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ValidRequest_SoftDeletesAndReturnsSuccess()

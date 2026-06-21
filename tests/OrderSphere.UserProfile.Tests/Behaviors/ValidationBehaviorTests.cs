@@ -7,7 +7,6 @@ using Xunit;
 
 namespace OrderSphere.UserProfile.Tests.Behaviors;
 
-// ── Minimal request types used only by these tests ────────────────────────────
 
 /// <summary>Command whose response is the non-generic <see cref="Result"/>.</summary>
 public sealed record VoidCommand(string Value) : IRequest<Result>;
@@ -18,7 +17,6 @@ public sealed record DtoCommand(string Value) : IRequest<Result<string>>;
 /// <summary>Command whose response is a plain string (non-Result fallback path).</summary>
 public sealed record PlainCommand(string Value) : IRequest<string>;
 
-// ── Validators ────────────────────────────────────────────────────────────────
 
 public sealed class VoidCommandValidator : AbstractValidator<VoidCommand>
 {
@@ -35,7 +33,6 @@ public sealed class PlainCommandValidator : AbstractValidator<PlainCommand>
     public PlainCommandValidator() => RuleFor(x => x.Value).NotEmpty();
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
 
 /// <summary>
 /// Covers all three code paths inside <see cref="ValidationBehavior{TRequest,TResponse}"/>:
@@ -49,7 +46,6 @@ public sealed class PlainCommandValidator : AbstractValidator<PlainCommand>
 /// </summary>
 public sealed class ValidationBehaviorTests
 {
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     /// <summary>
     /// A next delegate that records whether it was invoked.
@@ -65,7 +61,6 @@ public sealed class ValidationBehaviorTests
             _ => { WasCalled = true; return Task.FromResult(_returnValue); };
     }
 
-    // ── No validators registered ──────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_NoValidators_InvokesNext()
@@ -78,7 +73,6 @@ public sealed class ValidationBehaviorTests
         tracker.WasCalled.Should().BeTrue();
     }
 
-    // ── Validation passes ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ValidationPasses_InvokesNext()
@@ -91,7 +85,6 @@ public sealed class ValidationBehaviorTests
         tracker.WasCalled.Should().BeTrue();
     }
 
-    // ── Validation fails — non-generic Result path ────────────────────────────
 
     [Fact]
     public async Task Handle_ValidationFails_NonGenericResult_ReturnsFailureWithoutThrowing()
@@ -116,7 +109,6 @@ public sealed class ValidationBehaviorTests
         result.Error.Code.Should().Be("Validation.Invalid");
     }
 
-    // ── Validation fails — generic Result<T> path (reflection) ───────────────
 
     [Fact]
     public async Task Handle_ValidationFails_GenericResultT_ReturnsFailureWithoutThrowing()
@@ -153,7 +145,6 @@ public sealed class ValidationBehaviorTests
               .Should().Throw<InvalidOperationException>("failure result has no value");
     }
 
-    // ── Validation fails — non-Result fallback path ───────────────────────────
 
     [Fact]
     public async Task Handle_ValidationFails_NonResultResponseType_ThrowsValidationException()
@@ -165,7 +156,6 @@ public sealed class ValidationBehaviorTests
                       .Should().ThrowAsync<ValidationException>();
     }
 
-    // ── Failure message contains field-level description ─────────────────────
 
     [Fact]
     public async Task Handle_ValidationFails_ErrorDescriptionContainsValidatorMessage()

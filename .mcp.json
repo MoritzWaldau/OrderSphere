@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "ordersphere-mcp": {
+      "type": "http",
+      "url": "https://localhost:7309/mcp"
+    }
+  }
+}

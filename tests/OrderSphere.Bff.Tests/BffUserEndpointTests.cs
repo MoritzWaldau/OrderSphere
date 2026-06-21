@@ -15,7 +15,6 @@ namespace OrderSphere.Bff.Tests;
 public sealed class BffUserEndpointTests(BffWebApplicationFactory factory)
     : IClassFixture<BffWebApplicationFactory>
 {
-    // ── Unauthenticated state ────────────────────────────────────────────────
 
     [Fact]
     public async Task Get_WhenUnauthenticated_Returns200()
@@ -115,7 +114,6 @@ public sealed class BffUserEndpointTests(BffWebApplicationFactory factory)
         body.GetProperty("onboardingComplete").GetBoolean().Should().BeFalse();
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
 
     private static WebApplicationFactoryClientOptions NoRedirects() =>
         new() { AllowAutoRedirect = false };

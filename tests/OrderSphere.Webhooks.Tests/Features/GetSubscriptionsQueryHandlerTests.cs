@@ -11,7 +11,6 @@ public sealed class GetSubscriptionsQueryHandlerTests
     private static WebhookSubscription CreateSubscription(CustomerId? owner = null) =>
         new(owner ?? Owner, "https://example.com/hook", "secret", [WebhookEventType.OrderPlaced]);
 
-    // ── Returns only the caller's subscriptions ─────────────────────────────────
 
     [Fact]
     public async Task Handle_ReturnsOnlyCallerSubscriptions()
@@ -31,7 +30,6 @@ public sealed class GetSubscriptionsQueryHandlerTests
         result.Value[0].Id.Should().Be(own.Id.Value);
     }
 
-    // ── Soft-deleted subscriptions are excluded ─────────────────────────────────
 
     [Fact]
     public async Task Handle_ExcludesSoftDeletedSubscriptions()
@@ -52,7 +50,6 @@ public sealed class GetSubscriptionsQueryHandlerTests
         result.Value.Should().HaveCount(1);
     }
 
-    // ── Empty list is a success ──────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_NoSubscriptions_ReturnsEmptySuccess()

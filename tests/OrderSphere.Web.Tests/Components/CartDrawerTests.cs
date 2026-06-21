@@ -17,7 +17,6 @@ public sealed class CartDrawerTests : BunitBase
         return client;
     }
 
-    // ── Empty state ──────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task EmptyCart_ShowsEmptyMessage()
@@ -42,7 +41,6 @@ public sealed class CartDrawerTests : BunitBase
         cut.Markup.Should().NotContain("Cart.ToCheckout");
     }
 
-    // ── Items ────────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task CartWithItems_ShowsProductName()
@@ -69,7 +67,6 @@ public sealed class CartDrawerTests : BunitBase
         cut.Markup.Should().Contain(Formatting.Currency(30m));
     }
 
-    // ── Navigation ───────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task GoToCheckout_NavigatesToCheckoutAndClosesDrawer()

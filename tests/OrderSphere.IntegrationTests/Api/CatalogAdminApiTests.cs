@@ -55,7 +55,6 @@ public sealed class CatalogAdminApiTests : IClassFixture<CatalogApiFactory>
             isActive = true,
         }));
 
-    // ── Admin CRUD ────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Brand_crud_roundtrip()
@@ -126,7 +125,6 @@ public sealed class CatalogAdminApiTests : IClassFixture<CatalogApiFactory>
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-    // ── Internal service-to-service endpoints ─────────────────────────────────────
 
     [Fact]
     public async Task Internal_product_endpoints_read_and_adjust_stock()
@@ -189,7 +187,6 @@ public sealed class CatalogAdminApiTests : IClassFixture<CatalogApiFactory>
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
-    // ── Public product reads + stock adjustment ───────────────────────────────────
 
     [Fact]
     public async Task Public_product_reads_by_slug_batch_and_stock_adjustment()
@@ -216,7 +213,6 @@ public sealed class CatalogAdminApiTests : IClassFixture<CatalogApiFactory>
         restore.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
-    // ── Reviews ───────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Review_create_then_list_for_a_purchased_product()

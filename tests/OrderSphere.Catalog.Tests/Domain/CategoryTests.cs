@@ -4,7 +4,6 @@ namespace OrderSphere.Catalog.Tests.Domain;
 
 public sealed class CategoryTests
 {
-    // ── Construction ────────────────────────────────────────────────────────────
 
     [Fact]
     public void Constructor_SetsNameAndDescription()
@@ -39,7 +38,6 @@ public sealed class CategoryTests
         category.Description.Should().BeEmpty();
     }
 
-    // ── Activate / Deactivate ───────────────────────────────────────────────────
 
     [Fact]
     public void Deactivate_SetsIsActiveFalse()
@@ -72,7 +70,6 @@ public sealed class CategoryTests
         category.IsActive.Should().BeTrue();
     }
 
-    // ── UpdateDetails ───────────────────────────────────────────────────────────
 
     [Fact]
     public void UpdateDetails_ChangesNameAndDescription()
@@ -95,7 +92,6 @@ public sealed class CategoryTests
         category.Description.Should().BeEmpty();
     }
 
-    // ── Delete ──────────────────────────────────────────────────────────────────
 
     [Fact]
     public void Delete_SetsIsDeletedTrue()

@@ -14,7 +14,6 @@ public sealed class PaymentRecordTests
     private static PaymentRecord CreateRecord()
         => new(Order, 99.99m, "EUR", "CreditCard", "test@example.com", Guid.NewGuid());
 
-    // ── Construction ────────────────────────────────────────────────────────────
 
     [Fact]
     public void Constructor_SetsStatusPending()
@@ -24,7 +23,6 @@ public sealed class PaymentRecordTests
         record.Status.Should().Be(PaymentStatus.Pending);
     }
 
-    // ── MarkAuthorized ──────────────────────────────────────────────────────────
 
     [Fact]
     public void MarkAuthorized_SetsStatusAuthorized()
@@ -50,7 +48,6 @@ public sealed class PaymentRecordTests
             .Which.TransactionId.Should().Be("TXN-001");
     }
 
-    // ── MarkCaptured ────────────────────────────────────────────────────────────
 
     [Fact]
     public void MarkCaptured_SetsStatusCaptured()
@@ -77,7 +74,6 @@ public sealed class PaymentRecordTests
             .Which.Should().BeOfType<PaymentCapturedDomainEvent>();
     }
 
-    // ── MarkFailed ──────────────────────────────────────────────────────────────
 
     [Fact]
     public void MarkFailed_SetsStatusFailed()
@@ -103,7 +99,6 @@ public sealed class PaymentRecordTests
             .Which.Reason.Should().Be("Insufficient funds");
     }
 
-    // ── MarkRefunded ────────────────────────────────────────────────────────────
 
     [Fact]
     public void MarkRefunded_SetsStatusRefunded()
@@ -129,7 +124,6 @@ public sealed class PaymentRecordTests
         record.PopDomainEvents().Should().BeEmpty();
     }
 
-    // ── DomainEvent payload ─────────────────────────────────────────────────────
 
     [Fact]
     public void MarkAuthorized_EventContainsOrderId()

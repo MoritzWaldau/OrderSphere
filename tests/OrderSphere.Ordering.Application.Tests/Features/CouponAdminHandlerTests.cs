@@ -12,7 +12,6 @@ public sealed class CouponAdminHandlerTests
     private static Coupon NewCoupon(string code = "SAVE10")
         => new(code, DiscountType.Flat, 10m, null, null, null, null, true);
 
-    // ── CreateCoupon ─────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task CreateCoupon_NewCode_PersistsNormalizedUppercaseCode()
@@ -41,7 +40,6 @@ public sealed class CouponAdminHandlerTests
         result.Error.Should().Be(CouponErrors.CodeExists);
     }
 
-    // ── UpdateCoupon ─────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task UpdateCoupon_Unknown_ReturnsNotFound()
@@ -73,7 +71,6 @@ public sealed class CouponAdminHandlerTests
         updated.IsActive.Should().BeFalse();
     }
 
-    // ── DeactivateCoupon ─────────────────────────────────────────────────────────
 
     [Fact]
     public async Task DeactivateCoupon_Unknown_ReturnsNotFound()
@@ -100,7 +97,6 @@ public sealed class CouponAdminHandlerTests
         (await ctx.Coupons.SingleAsync(c => c.Id == coupon.Id)).IsActive.Should().BeFalse();
     }
 
-    // ── GetAllCoupons ────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetAllCoupons_ReturnsAllOrderedByCode_WithMappedFields()

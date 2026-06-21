@@ -11,7 +11,6 @@ public sealed class CreateSubscriptionCommandValidatorTests
         WebhookEventType[]? events = null) =>
         new(Guid.NewGuid(), url, null, events ?? [WebhookEventType.OrderPlaced]);
 
-    // ── URL validation ───────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Validate_EmptyUrl_Fails()
@@ -41,7 +40,6 @@ public sealed class CreateSubscriptionCommandValidatorTests
         result.IsValid.Should().BeTrue();
     }
 
-    // ── Events validation ─────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Validate_EmptyEvents_Fails()

@@ -26,7 +26,6 @@ public sealed class Money : IEquatable<Money>
         Currency = currency.ToUpperInvariant();
     }
 
-    // ── Factory helpers ──────────────────────────────────────────────────────
 
     /// <summary>Creates a <see cref="Money"/> instance using EUR as the default currency.</summary>
     public static Money Of(decimal amount, string currency = "EUR") => new(amount, currency);
@@ -34,7 +33,6 @@ public sealed class Money : IEquatable<Money>
     /// <summary>Returns a zero-amount <see cref="Money"/> in the given currency.</summary>
     public static Money Zero(string currency = "EUR") => new(0m, currency);
 
-    // ── Implicit conversion ──────────────────────────────────────────────────
 
     /// <summary>
     /// Allows <see cref="Money"/> to flow transparently into <see cref="decimal"/>
@@ -42,7 +40,6 @@ public sealed class Money : IEquatable<Money>
     /// </summary>
     public static implicit operator decimal(Money money) => money.Amount;
 
-    // ── Equality ─────────────────────────────────────────────────────────────
 
     public bool Equals(Money? other) =>
         other is not null && Amount == other.Amount && Currency == other.Currency;

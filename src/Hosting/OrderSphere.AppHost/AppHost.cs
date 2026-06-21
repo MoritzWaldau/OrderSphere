@@ -2,7 +2,6 @@ using Azure.Provisioning.Search;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-// ── Secret parameters ─────────────────────────────────────────────────────────
 // In development: populate via dotnet user-secrets set "Parameters:<name>" "<value>" --project src/OrderSphere.AppHost
 // In production: values are resolved from Azure Key Vault by azd / Aspire provisioning.
 var bffClientSecret = builder.AddParameter("bff-client-secret", secret: true);
@@ -24,7 +23,6 @@ var foundryDeployment = builder.Configuration["Foundry:Deployment"] ?? "gpt-4o-m
 // Embedding model for catalog hybrid search; same Foundry endpoint, separate deployment.
 var foundryEmbeddingDeployment = builder.Configuration["Foundry:EmbeddingDeployment"] ?? "text-embedding-3-small";
 
-// ── Azure Key Vault ───────────────────────────────────────────────────────────
 // Provisioned by azd in non-dev environments. Parameters above are backed by
 // Key Vault secrets at deployment time; no code change required in service projects.
 builder.AddAzureKeyVault("ordersphere-kv");
@@ -303,7 +301,6 @@ var bff = builder.AddProject<Projects.OrderSphere_Bff>("ordersphere-bff")
     .WithEnvironment("Oidc__ClientId", "B70xhPsEf7EBrKbpZiUZHoXmBIATbrDO")
     .WithEnvironment("Oidc__ClientSecret", bffClientSecret);
 
-// ── Application Insights ──────────────────────────────────────────────────────
 // Provisioned only in Azure (publish mode / azd up). Locally, OTEL signals flow
 // to the Aspire dashboard via the OTLP exporter — no Azure connection required.
 // WithReference injects APPLICATIONINSIGHTS_CONNECTION_STRING so the Azure Monitor

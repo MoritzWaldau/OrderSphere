@@ -18,8 +18,6 @@ public sealed class UpdateAddressCommandHandlerTests
         sub, addressId, "Work", "Alice", "Smith",
         "New Street 5", "Hamburg", "20099", "DE");
 
-    // ── Profile not found ─────────────────────────────────────────────────────
-
     [Fact]
     public async Task Handle_ProfileNotFound_ReturnsProfileNotFoundError()
     {
@@ -32,8 +30,6 @@ public sealed class UpdateAddressCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(UserProfileErrors.ProfileNotFound);
     }
-
-    // ── Address not found ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_AddressNotFound_ReturnsAddressNotFoundError()
@@ -49,8 +45,6 @@ public sealed class UpdateAddressCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(UserProfileErrors.AddressNotFound);
     }
-
-    // ── Happy path — address updated ──────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ValidCommand_UpdatesAddressAndReturnsDto()
@@ -77,8 +71,6 @@ public sealed class UpdateAddressCommandHandlerTests
         result.Value.Street.Should().Be("New Street 5");
         result.Value.Label.Should().Be("Work");
     }
-
-    // ── Persistence verified ──────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ValidCommand_PersistsChangesToDatabase()

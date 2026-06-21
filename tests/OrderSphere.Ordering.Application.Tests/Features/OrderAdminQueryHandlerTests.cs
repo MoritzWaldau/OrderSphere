@@ -17,7 +17,6 @@ public sealed class OrderAdminQueryHandlerTests
         return o;
     }
 
-    // ── GetOrderByIdAdmin ────────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetOrderByIdAdmin_Unknown_ReturnsNotFound()
@@ -46,7 +45,6 @@ public sealed class OrderAdminQueryHandlerTests
         result.Value.Id.Should().Be(order.Id.Value);
     }
 
-    // ── GetOrderStats ────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetOrderStats_NoOrders_ReturnsZeroedStats()

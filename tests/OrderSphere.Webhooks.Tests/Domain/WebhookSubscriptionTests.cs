@@ -7,7 +7,6 @@ public sealed class WebhookSubscriptionTests
     private static WebhookSubscription CreateSubscription(params WebhookEventType[] eventTypes) =>
         new(Owner, "https://example.com/hook", "secret", eventTypes);
 
-    // ── Construction ────────────────────────────────────────────────────────────
 
     [Fact]
     public void Constructor_IsActiveByDefault()
@@ -26,7 +25,6 @@ public sealed class WebhookSubscriptionTests
         sub.Url.Should().Be("https://example.com/hook");
     }
 
-    // ── GetEventTypes ────────────────────────────────────────────────────────────
 
     [Fact]
     public void GetEventTypes_EmptyEvents_ReturnsEmptyList()
@@ -64,7 +62,6 @@ public sealed class WebhookSubscriptionTests
         types.Should().Contain(WebhookEventType.OrderStatusChanged);
     }
 
-    // ── ListensTo ────────────────────────────────────────────────────────────────
 
     [Fact]
     public void ListensTo_SubscribedEventType_ReturnsTrue()
@@ -90,7 +87,6 @@ public sealed class WebhookSubscriptionTests
         sub.ListensTo(WebhookEventType.OrderPlaced).Should().BeFalse();
     }
 
-    // ── Activate / Deactivate ────────────────────────────────────────────────────
 
     [Fact]
     public void Deactivate_SetsIsActiveFalse()
@@ -113,7 +109,6 @@ public sealed class WebhookSubscriptionTests
         sub.IsActive.Should().BeTrue();
     }
 
-    // ── Update ───────────────────────────────────────────────────────────────────
 
     [Fact]
     public void Update_ChangesUrlSecretAndEvents()
@@ -139,7 +134,6 @@ public sealed class WebhookSubscriptionTests
         sub.ListensTo(WebhookEventType.OrderPlaced).Should().BeFalse();
     }
 
-    // ── Delete ───────────────────────────────────────────────────────────────────
 
     [Fact]
     public void Delete_SetsIsDeletedTrue()

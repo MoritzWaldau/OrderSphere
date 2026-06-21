@@ -10,7 +10,6 @@ public sealed class GetCartInternalQueryHandlerTests
     private static GetCartInternalQueryHandler CreateHandler(BasketDbContext ctx) =>
         new(ctx);
 
-    // ── Warenkorb nicht vorhanden → 404 ────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CartNotFound_ReturnsCartNotFoundError()
@@ -23,7 +22,6 @@ public sealed class GetCartInternalQueryHandlerTests
         result.Error.Should().Be(CartErrors.CartNotFoundError);
     }
 
-    // ── Warenkorb vorhanden → Items ohne Preis und Name ────────────────────────
 
     [Fact]
     public async Task Handle_CartExists_ReturnsCartDtoWithEmptyNameAndZeroPrice()

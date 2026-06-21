@@ -11,7 +11,6 @@ public sealed class DecreaseCartItemQuantityCommandHandlerTests
     private static DecreaseCartItemQuantityCommandHandler CreateHandler(BasketDbContext ctx) =>
         new(ctx);
 
-    // ── Cart not found ──────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CartNotFound_ReturnsCartNotFoundError()
@@ -24,7 +23,6 @@ public sealed class DecreaseCartItemQuantityCommandHandlerTests
         result.Error.Should().Be(CartErrors.CartNotFoundError);
     }
 
-    // ── Item not in cart ─────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ItemNotInCart_ReturnsItemNotFoundError()
@@ -38,7 +36,6 @@ public sealed class DecreaseCartItemQuantityCommandHandlerTests
         result.Error.Should().Be(CartErrors.ItemNotFoundError);
     }
 
-    // ── Happy path — quantity decreases ─────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ItemWithMultipleQty_DecreasesQuantityByOne()
@@ -55,7 +52,6 @@ public sealed class DecreaseCartItemQuantityCommandHandlerTests
         cart!.Items.Single(i => i.ProductId == Product1).Quantity.Value.Should().Be(2);
     }
 
-    // ── Happy path — quantity hits zero, cart deleted ────────────────────────────
 
     [Fact]
     public async Task Handle_ItemQtyOne_ItemRemovedAndCartDeleted()
@@ -71,7 +67,6 @@ public sealed class DecreaseCartItemQuantityCommandHandlerTests
         cart.Should().BeNull();
     }
 
-    // ── Happy path — one item removed, another remains ──────────────────────────
 
     [Fact]
     public async Task Handle_ItemQtyOne_OtherItemStillInCart()
@@ -89,7 +84,6 @@ public sealed class DecreaseCartItemQuantityCommandHandlerTests
         cart!.Items.Should().ContainSingle(i => i.ProductId == Product2);
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────────────────
 
     private static async Task SeedCart(BasketDbContext ctx, params (ProductId pid, int qty)[] items)
     {

@@ -11,7 +11,6 @@ namespace OrderSphere.Domain.Tests.Aggregates;
 
 public sealed class OrderTests
 {
-    // ── Shared test data ────────────────────────────────────────────────────────
 
     private static readonly CustomerId Customer = CustomerId.New();
     private static readonly Address Addr = new("Max", "Muster", "Hauptstr. 1", "Berlin", "10115", "DE");
@@ -23,7 +22,6 @@ public sealed class OrderTests
         return new Order(Customer, Addr, PaymentMethod.CreditCard, defaultItems, Correlation);
     }
 
-    // ── Construction ────────────────────────────────────────────────────────────
 
     [Fact]
     public void Constructor_ValidInputs_SetsStatusCreated()
@@ -93,7 +91,6 @@ public sealed class OrderTests
         @event.CustomerId.Should().Be(Customer);
     }
 
-    // ── Confirm ─────────────────────────────────────────────────────────────────
 
     [Fact]
     public void Confirm_SetsStatusPaid()
@@ -119,7 +116,6 @@ public sealed class OrderTests
         events.Should().ContainSingle().Which.Should().BeOfType<OrderConfirmedDomainEvent>();
     }
 
-    // ── MarkShipped ─────────────────────────────────────────────────────────────
 
     [Fact]
     public void MarkShipped_FromPaid_SetsStatusShipped()
@@ -157,7 +153,6 @@ public sealed class OrderTests
             .Which.Should().BeOfType<OrderShippedDomainEvent>();
     }
 
-    // ── MarkDelivered ───────────────────────────────────────────────────────────
 
     [Fact]
     public void MarkDelivered_FromShipped_SetsStatusDelivered()
@@ -198,7 +193,6 @@ public sealed class OrderTests
             .Which.Should().BeOfType<OrderDeliveredDomainEvent>();
     }
 
-    // ── Cancel ──────────────────────────────────────────────────────────────────
 
     [Fact]
     public void Cancel_FromCreated_SetsStatusCancelled()
@@ -246,7 +240,6 @@ public sealed class OrderTests
             .Which.Should().BeOfType<OrderCancelledDomainEvent>();
     }
 
-    // ── PopDomainEvents ─────────────────────────────────────────────────────────
 
     [Fact]
     public void PopDomainEvents_CalledTwice_SecondCallReturnsEmpty()

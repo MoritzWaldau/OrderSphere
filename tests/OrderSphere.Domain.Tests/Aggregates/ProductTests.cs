@@ -14,7 +14,6 @@ public sealed class ProductTests
     private static Product CreateProduct(int stock = 10)
         => new("Widget", "A test widget", Money.Of(9.99m), stock, DefaultCategory, "WDG-001");
 
-    // ── RemoveFromStock ─────────────────────────────────────────────────────────
 
     [Fact]
     public void RemoveFromStock_SufficientStock_DecreasesStock()
@@ -72,7 +71,6 @@ public sealed class ProductTests
         product.PopDomainEvents().Should().BeEmpty();
     }
 
-    // ── AddToStock ──────────────────────────────────────────────────────────────
 
     [Fact]
     public void AddToStock_IncreasesStock()
@@ -84,7 +82,6 @@ public sealed class ProductTests
         product.Stock.Should().Be(15);
     }
 
-    // ── Activate / Deactivate ───────────────────────────────────────────────────
 
     [Fact]
     public void Activate_SetsIsActiveTrue()
@@ -132,7 +129,6 @@ public sealed class ProductTests
             .Which.Should().BeOfType<ProductDeactivatedDomainEvent>();
     }
 
-    // ── UpdateDetails ───────────────────────────────────────────────────────────
 
     [Fact]
     public void UpdateDetails_ChangesName()

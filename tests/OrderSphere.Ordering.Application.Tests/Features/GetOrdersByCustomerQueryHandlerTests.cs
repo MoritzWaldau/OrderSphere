@@ -20,7 +20,6 @@ public sealed class GetOrdersByCustomerQueryHandlerTests
     private static GetOrdersByCustomerQueryHandler CreateHandler(IOrderingDbContext ctx) =>
         new(ctx, Substitute.For<ILogger<GetOrdersByCustomerQueryHandler>>());
 
-    // ── No orders for customer → empty list ─────────────────────────────────────
 
     [Fact]
     public async Task Handle_NoOrders_ReturnsEmptyList()
@@ -35,7 +34,6 @@ public sealed class GetOrdersByCustomerQueryHandlerTests
         result.Value.Should().BeEmpty();
     }
 
-    // ── Deleted orders excluded ──────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_DeletedOrders_NotReturned()
@@ -53,7 +51,6 @@ public sealed class GetOrdersByCustomerQueryHandlerTests
         result.Value.Should().BeEmpty();
     }
 
-    // ── Orders for other customer not returned ───────────────────────────────────
 
     [Fact]
     public async Task Handle_OrdersBelongingToOtherCustomer_NotReturned()
@@ -69,7 +66,6 @@ public sealed class GetOrdersByCustomerQueryHandlerTests
         result.Value.Should().BeEmpty();
     }
 
-    // ── Happy path ───────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_TwoOrdersForCustomer_ReturnsBoth()

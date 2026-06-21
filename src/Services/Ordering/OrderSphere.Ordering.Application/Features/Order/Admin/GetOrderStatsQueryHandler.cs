@@ -22,7 +22,6 @@ public sealed class GetOrderStatsQueryHandler(
         {
             var todayUtc = DateTime.UtcNow.Date;
 
-            // ── Scalar counts ────────────────────────────────────────────────────────
             var totalOrders = await context.Orders
                 .AsNoTracking()
                 .CountAsync(cancellationToken);
@@ -41,7 +40,6 @@ public sealed class GetOrderStatsQueryHandler(
                 .Distinct()
                 .CountAsync(cancellationToken);
 
-            // ── Revenue aggregation ──────────────────────────────────────────────────
             // Price is a ComplexProperty → i.Price.Amount maps to the "price" column.
             // Quantity uses ValueConverter<Quantity,int> → (int)i.Quantity maps to the
             // "quantity" column; the Convert node is a no-op over the already-int column.
@@ -57,7 +55,6 @@ public sealed class GetOrderStatsQueryHandler(
                 .SelectMany(o => o.Items)
                 .SumAsync(i => i.Price.Amount * (int)i.Quantity, cancellationToken);
 
-            // ── Recent orders (top 5) ────────────────────────────────────────────────
             // o.Items.Sum(...) inside Select translates to a correlated subquery.
             // o.Status.ToString() and o.Id.Value are not SQL-translatable; they are
             // resolved after materialisation.

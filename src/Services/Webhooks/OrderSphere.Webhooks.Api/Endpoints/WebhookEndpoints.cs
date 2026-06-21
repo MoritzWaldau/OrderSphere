@@ -138,7 +138,6 @@ public static class WebhookEndpoints
     }
 }
 
-// ── Request models ────────────────────────────────────────────────────────────
 
 public sealed record CreateSubscriptionRequest(
     string Url,

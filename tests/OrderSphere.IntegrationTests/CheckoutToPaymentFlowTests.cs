@@ -39,7 +39,6 @@ public sealed class CheckoutToPaymentFlowTests
     private static readonly Guid KeyboardId = Guid.Parse("22222222-2222-2222-2222-222222222222");
     private static readonly Guid CableId = Guid.Parse("33333333-3333-3333-3333-333333333333");
 
-    // --- Stage 1: checkout handler wiring ----------------------------------------------------
 
     private sealed class CapturingPublisher : IOrderingServiceBusPublisher
     {
@@ -96,7 +95,6 @@ public sealed class CheckoutToPaymentFlowTests
         ICheckoutIdempotencyStore idempotency) =>
         new(catalog, basket, publisher, idempotency, NullLogger<CheckoutCartCommandHandler>.Instance);
 
-    // --- Stage 2: worker wiring --------------------------------------------------------------
 
     private static OrderingDbContext NewContext()
     {
@@ -133,7 +131,6 @@ public sealed class CheckoutToPaymentFlowTests
             Items = e.Items.Select(i => new OrderItemDto(i.ProductId, i.ProductName, i.Quantity, i.Price)).ToList()
         };
 
-    // --- Tests -------------------------------------------------------------------------------
 
     [Fact]
     public async Task Checkout_publishes_event_that_worker_turns_into_order_and_payment_request()

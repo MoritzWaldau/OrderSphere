@@ -13,7 +13,6 @@ public sealed class HttpBasketClientTests
         return (new HttpBasketClient(http, Substitute.For<ILogger<HttpBasketClient>>()), handler);
     }
 
-    // ── GetCartAsync ──────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetCart_ReturnsCart_OnSuccess()
@@ -43,7 +42,6 @@ public sealed class HttpBasketClientTests
         result.Error.Code.Should().Be("Basket.CartNotFound");
     }
 
-    // ── ClearCartItemsAsync ───────────────────────────────────────────────────────
 
     [Fact]
     public async Task ClearCart_UsesDeleteAndCorrectEndpoint()
@@ -70,3 +68,4 @@ public sealed class HttpBasketClientTests
         result.Error.Code.Should().Be("Basket.ClearFailed");
     }
 }
+

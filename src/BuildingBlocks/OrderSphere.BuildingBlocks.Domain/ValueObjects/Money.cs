@@ -1,4 +1,4 @@
-﻿namespace OrderSphere.BuildingBlocks.ValueObjects;
+namespace OrderSphere.BuildingBlocks.ValueObjects;
 
 /// <summary>
 /// Value object representing an amount in a specific currency.
@@ -55,4 +55,3 @@ public sealed class Money : IEquatable<Money>
     public override string ToString() =>
         string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:F2} {1}", Amount, Currency);
 }
-

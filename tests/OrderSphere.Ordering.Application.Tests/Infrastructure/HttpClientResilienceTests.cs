@@ -1,4 +1,4 @@
-﻿using OrderSphere.Ordering.Infrastructure.CatalogClient;
+using OrderSphere.Ordering.Infrastructure.CatalogClient;
 
 namespace OrderSphere.Ordering.Application.Tests.Infrastructure;
 

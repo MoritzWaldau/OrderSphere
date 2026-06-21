@@ -21,7 +21,6 @@ public sealed class ValidateCouponQueryHandlerTests
         return new ValidateCouponQueryHandler(ctx, Substitute.For<ILogger<ValidateCouponQueryHandler>>());
     }
 
-    // ── Code required ────────────────────────────────────────────────────────────
 
     [Theory]
     [InlineData("")]
@@ -35,7 +34,6 @@ public sealed class ValidateCouponQueryHandlerTests
         result.Error.Should().Be(CouponErrors.CodeRequired);
     }
 
-    // ── Code not found ───────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_UnknownCode_ReturnsInvalidCodeError()
@@ -46,7 +44,6 @@ public sealed class ValidateCouponQueryHandlerTests
         result.Error.Should().Be(CouponErrors.InvalidCode);
     }
 
-    // ── Minimum subtotal not reached ─────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_Summer15_SubtotalBelowMinimum_ReturnsInvalidCouponDto()
@@ -59,7 +56,6 @@ public sealed class ValidateCouponQueryHandlerTests
         result.Value.DiscountAmount.Should().Be(0m);
     }
 
-    // ── Happy path — flat discount ────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_Welcome10_ValidSubtotal_ReturnsDiscount10()
@@ -71,7 +67,6 @@ public sealed class ValidateCouponQueryHandlerTests
         result.Value.DiscountAmount.Should().Be(10m);
     }
 
-    // ── Happy path — discount capped at subtotal ──────────────────────────────────
 
     [Fact]
     public async Task Handle_Welcome10_SubtotalLessThanDiscount_CappsAtSubtotal()
@@ -83,7 +78,6 @@ public sealed class ValidateCouponQueryHandlerTests
         result.Value.DiscountAmount.Should().Be(8m);
     }
 
-    // ── Case insensitivity ────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_LowercaseCode_ResolvesCaseInsensitively()
@@ -94,7 +88,6 @@ public sealed class ValidateCouponQueryHandlerTests
         result.Value.IsValid.Should().BeTrue();
     }
 
-    // ── SUMMER15 happy path ──────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_Summer15_SubtotalAboveMinimum_ReturnsDiscount15()

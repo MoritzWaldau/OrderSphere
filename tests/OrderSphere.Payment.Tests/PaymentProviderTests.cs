@@ -74,7 +74,6 @@ public sealed class PaymentProviderTests
     public async Task Refund_ReturnsSuccess(IPaymentProvider provider)
         => (await provider.RefundAsync("txn-123", 49.99m)).IsSuccess.Should().BeTrue();
 
-    // ── PaymentProviderFactory ────────────────────────────────────────────────────
 
     private static PaymentProviderFactory BuildFactory() =>
         new([CreditCard(), Invoice(), PayPal()]);

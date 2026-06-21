@@ -10,7 +10,6 @@ public sealed class ActivateDeactivateCommandHandlerTests
     private static WebhookSubscription CreateSubscription() =>
         new(Owner, "https://example.com/hook", "secret", [WebhookEventType.OrderPlaced]);
 
-    // ── Activate: not found ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task Activate_SubscriptionNotFound_ReturnsNotFound()
@@ -26,7 +25,6 @@ public sealed class ActivateDeactivateCommandHandlerTests
         result.Error.Should().Be(WebhookErrors.NotFound);
     }
 
-    // ── Activate: sets IsActive = true ──────────────────────────────────────────
 
     [Fact]
     public async Task Activate_DeactivatedSubscription_SetsIsActiveTrue()
@@ -45,7 +43,6 @@ public sealed class ActivateDeactivateCommandHandlerTests
         sub.IsActive.Should().BeTrue();
     }
 
-    // ── Deactivate: not found ───────────────────────────────────────────────────
 
     [Fact]
     public async Task Deactivate_SubscriptionNotFound_ReturnsNotFound()
@@ -61,7 +58,6 @@ public sealed class ActivateDeactivateCommandHandlerTests
         result.Error.Should().Be(WebhookErrors.NotFound);
     }
 
-    // ── Deactivate: sets IsActive = false ───────────────────────────────────────
 
     [Fact]
     public async Task Deactivate_ActiveSubscription_SetsIsActiveFalse()

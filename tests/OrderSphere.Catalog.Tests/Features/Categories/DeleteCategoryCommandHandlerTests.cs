@@ -1,5 +1,6 @@
 using MockQueryable.NSubstitute;
 using OrderSphere.Catalog.Application.Features.Categories.Admin.DeleteCategory;
+using OrderSphere.Catalog.Tests.Helpers;
 
 namespace OrderSphere.Catalog.Tests.Features.Categories;
 
@@ -10,7 +11,6 @@ public sealed class DeleteCategoryCommandHandlerTests
 
     private static DeleteCategoryCommandHandler CreateHandler(ICatalogDbContext ctx) => new(ctx);
 
-    // ── Category not found ───────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CategoryNotFound_ReturnsNotFoundError()
@@ -27,12 +27,11 @@ public sealed class DeleteCategoryCommandHandlerTests
         result.Error.Should().Be(CategoryErrors.NotFound);
     }
 
-    // ── Category has active products ─────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CategoryHasProducts_ReturnsHasProductsError()
     {
-        var cat = MakeCategory(CategoryA);
+        var cat = CatalogEntityFactory.MakeCategory(CategoryA);
         var product = new Product("Widget", "desc", Money.Of(9.99m), 5, CategoryA, "SKU-001");
         product.Id = ProductA;
 
@@ -48,12 +47,11 @@ public sealed class DeleteCategoryCommandHandlerTests
         result.Error.Should().Be(CategoryErrors.HasProducts);
     }
 
-    // ── Happy path ──────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CategoryWithNoProducts_SetsIsDeletedTrue()
     {
-        var cat = MakeCategory(CategoryA);
+        var cat = CatalogEntityFactory.MakeCategory(CategoryA);
         var categories = new List<Category> { cat }.BuildMockDbSet();
         var products = new List<Product>().BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
@@ -69,7 +67,7 @@ public sealed class DeleteCategoryCommandHandlerTests
     [Fact]
     public async Task Handle_CategoryWithNoProducts_CallsSaveChanges()
     {
-        var cat = MakeCategory(CategoryA);
+        var cat = CatalogEntityFactory.MakeCategory(CategoryA);
         var categories = new List<Category> { cat }.BuildMockDbSet();
         var products = new List<Product>().BuildMockDbSet();
         var ctx = Substitute.For<ICatalogDbContext>();
@@ -81,12 +79,4 @@ public sealed class DeleteCategoryCommandHandlerTests
         await ctx.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────────────────
-
-    private static Category MakeCategory(CategoryId id)
-    {
-        var cat = new Category("Electronics");
-        cat.Id = id;
-        return cat;
-    }
 }

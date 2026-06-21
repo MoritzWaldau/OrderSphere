@@ -5,7 +5,6 @@ public sealed class WebhookDeliveryTests
     private static WebhookDelivery CreateDelivery() =>
         new(WebhookSubscriptionId.New(), "OrderPlaced", Guid.NewGuid(), """{"orderId":"test"}""");
 
-    // ── Construction ────────────────────────────────────────────────────────────
 
     [Fact]
     public void Constructor_SetsPendingStatus()
@@ -16,7 +15,6 @@ public sealed class WebhookDeliveryTests
         delivery.AttemptCount.Should().Be(0);
     }
 
-    // ── RecordSuccess ───────────────────────────────────────────────────────────
 
     [Fact]
     public void RecordSuccess_SetsStatusSucceeded()
@@ -50,7 +48,6 @@ public sealed class WebhookDeliveryTests
         delivery.NextRetryAt.Should().BeNull();
     }
 
-    // ── RecordFailure — below max attempts ──────────────────────────────────────
 
     [Fact]
     public void RecordFailure_Attempt1_SetsRetryWithBackoff10s()
@@ -111,7 +108,6 @@ public sealed class WebhookDeliveryTests
         delivery.Status.Should().Be(DeliveryStatus.Pending);
     }
 
-    // ── RecordFailure — at max attempts (5) ─────────────────────────────────────
 
     [Fact]
     public void RecordFailure_Attempt5_SetsStatusFailedAndNullsRetry()
@@ -127,7 +123,6 @@ public sealed class WebhookDeliveryTests
         delivery.NextRetryAt.Should().BeNull();
     }
 
-    // ── Error message truncation ─────────────────────────────────────────────────
 
     [Fact]
     public void RecordFailure_ErrorOver1024Chars_TruncatesTo1024()

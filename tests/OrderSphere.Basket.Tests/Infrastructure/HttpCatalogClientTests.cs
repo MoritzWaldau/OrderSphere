@@ -16,7 +16,6 @@ public sealed class HttpCatalogClientTests
     private static CatalogProductInfo MakeInfo(Guid id) =>
         new(id, "Widget", 9.99m, 10, true);
 
-    // ── GetProductByIdAsync ───────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetProductById_ReturnsProduct_OnSuccess()
@@ -42,7 +41,6 @@ public sealed class HttpCatalogClientTests
         result.Error.Code.Should().Be("Catalog.ProductNotFound");
     }
 
-    // ── GetProductInfosByIdsAsync ─────────────────────────────────────────────────
 
     [Fact]
     public async Task GetProductInfos_EmptyList_SkipsHttpCall_ReturnsEmpty()

@@ -11,7 +11,6 @@ public sealed class RemoveFromCartCommandHandlerTests
     private static RemoveFromCartCommandHandler CreateHandler(BasketDbContext ctx) =>
         new(ctx);
 
-    // ── Cart not found ──────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CartNotFound_ReturnsCartNotFoundError()
@@ -24,7 +23,6 @@ public sealed class RemoveFromCartCommandHandlerTests
         result.Error.Should().Be(CartErrors.CartNotFoundError);
     }
 
-    // ── Item not found ───────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ItemNotInCart_ReturnsItemNotFoundError()
@@ -38,7 +36,6 @@ public sealed class RemoveFromCartCommandHandlerTests
         result.Error.Should().Be(CartErrors.ItemNotFoundError);
     }
 
-    // ── Happy path — item removed, cart still has items ─────────────────────────
 
     [Fact]
     public async Task Handle_RemovingOneOfTwoItems_CartStillExists()
@@ -55,7 +52,6 @@ public sealed class RemoveFromCartCommandHandlerTests
         cart!.Items.Should().ContainSingle(i => i.ProductId == Product2);
     }
 
-    // ── Happy path — last item removed, cart deleted ─────────────────────────────
 
     [Fact]
     public async Task Handle_RemovingLastItem_CartIsDeleted()
@@ -70,7 +66,6 @@ public sealed class RemoveFromCartCommandHandlerTests
         cart.Should().BeNull();
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────────────────
 
     private static async Task SeedCart(BasketDbContext ctx, params (ProductId pid, int qty)[] items)
     {

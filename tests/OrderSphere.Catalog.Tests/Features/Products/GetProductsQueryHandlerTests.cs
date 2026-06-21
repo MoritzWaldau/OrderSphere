@@ -35,7 +35,6 @@ public sealed class GetProductsQueryHandlerTests
         return p;
     }
 
-    // ── Search term ─────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_SearchTerm_MatchesNameCaseInsensitive()
@@ -63,7 +62,6 @@ public sealed class GetProductsQueryHandlerTests
         result.Value.Items.Should().ContainSingle(p => p.Name == "X1");
     }
 
-    // ── Category ────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CategoryName_FiltersExactCaseInsensitive()
@@ -77,7 +75,6 @@ public sealed class GetProductsQueryHandlerTests
         result.Value.Items.Should().ContainSingle(p => p.Name == "Winter Jacket");
     }
 
-    // ── Price range ─────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_PriceRange_FiltersInclusive()
@@ -92,7 +89,6 @@ public sealed class GetProductsQueryHandlerTests
         result.Value.Items.Should().ContainSingle(p => p.Name == "Mid");
     }
 
-    // ── No filters: unchanged default behavior ──────────────────────────────────
 
     [Fact]
     public async Task Handle_NoFilters_ReturnsAllActiveProducts()

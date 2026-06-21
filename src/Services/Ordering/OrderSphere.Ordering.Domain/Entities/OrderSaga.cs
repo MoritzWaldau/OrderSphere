@@ -20,7 +20,6 @@ public class OrderSaga
     public DateTime? PaymentRequestedAt { get; private set; }
     public DateTime? CompletedAt { get; private set; }
 
-    /// <summary>Last failure reason recorded on the saga (e.g. payment failure). Null on the happy path.</summary>
     public string? LastError { get; private set; }
 
     private OrderSaga() { }

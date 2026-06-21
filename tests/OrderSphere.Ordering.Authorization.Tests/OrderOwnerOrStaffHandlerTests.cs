@@ -51,7 +51,6 @@ public sealed class OrderOwnerOrStaffHandlerTests
 
     private readonly IAuthorizationHandler _handler = new OrderOwnerOrStaffHandler();
 
-    // ── Owner ─────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Owner_Succeeds()
@@ -98,7 +97,6 @@ public sealed class OrderOwnerOrStaffHandlerTests
         context.HasSucceeded.Should().BeFalse();
     }
 
-    // ── Staff roles ───────────────────────────────────────────────────────────
 
     [Theory]
     [InlineData("csr")]
@@ -138,7 +136,6 @@ public sealed class OrderOwnerOrStaffHandlerTests
         context.HasSucceeded.Should().BeTrue();
     }
 
-    // ── Owner + staff combination ─────────────────────────────────────────────
 
     [Fact]
     public async Task OwnerWithStaffRole_Succeeds()
@@ -151,7 +148,6 @@ public sealed class OrderOwnerOrStaffHandlerTests
         context.HasSucceeded.Should().BeTrue();
     }
 
-    // ── Unauthenticated ───────────────────────────────────────────────────────
 
     [Fact]
     public async Task UnauthenticatedUser_DoesNotSucceed()
@@ -165,7 +161,6 @@ public sealed class OrderOwnerOrStaffHandlerTests
         context.HasSucceeded.Should().BeFalse();
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static ClaimsPrincipal BuildUser(string? sub, params string[] roles)
     {

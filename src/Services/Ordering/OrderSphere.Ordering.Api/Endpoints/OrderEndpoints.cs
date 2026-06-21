@@ -14,7 +14,6 @@ public static class OrderEndpoints
 {
     public static void MapOrderEndpoints(this RouteGroupBuilder v1)
     {
-        // ── Customer endpoints ────────────────────────────────────────────────
         var customer = v1.MapGroup("orders").RequireAuthorization();
 
         customer.MapGet("/",
@@ -66,7 +65,6 @@ public static class OrderEndpoints
                 return Results.Ok(result.Value);
             });
 
-        // ── Admin / staff endpoints ───────────────────────────────────────────
         // Read operations: any staff role (csr, order-manager, admin).
         var staffRead = v1.MapGroup("admin/orders")
                            .RequireAuthorization(AuthorizationPolicies.Staff);

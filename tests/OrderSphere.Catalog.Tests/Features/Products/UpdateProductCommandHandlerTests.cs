@@ -14,7 +14,6 @@ public sealed class UpdateProductCommandHandlerTests
     private static UpdateProductCommandHandler CreateHandler(ICatalogDbContext ctx)
         => new(ctx, DisabledProductSearchIndex.Instance);
 
-    // ── Product not found ────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProductNotFound_ReturnsNotFoundError()
@@ -29,7 +28,6 @@ public sealed class UpdateProductCommandHandlerTests
         result.Error.Should().Be(ProductErrors.NotFound);
     }
 
-    // ── Happy path — IsActive = true ────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ExistingProduct_IsActive_ActivatesProduct()
@@ -45,7 +43,6 @@ public sealed class UpdateProductCommandHandlerTests
         product.IsActive.Should().BeTrue();
     }
 
-    // ── Happy path — IsActive = false ───────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ExistingProduct_IsNotActive_DeactivatesProduct()
@@ -88,7 +85,6 @@ public sealed class UpdateProductCommandHandlerTests
         await ctx.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────────────────
 
     private static Product MakeProduct(ProductId id, bool active = true)
     {

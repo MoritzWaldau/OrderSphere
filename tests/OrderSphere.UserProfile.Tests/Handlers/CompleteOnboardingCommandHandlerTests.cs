@@ -13,7 +13,6 @@ public sealed class CompleteOnboardingCommandHandlerTests
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
         => new(ctx);
 
-    // ── Profile not found ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProfileNotFound_ReturnsNotFoundError()
@@ -27,7 +26,6 @@ public sealed class CompleteOnboardingCommandHandlerTests
         result.Error.Should().Be(UserProfileErrors.ProfileNotFound);
     }
 
-    // ── Incomplete profile ────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_EmptyDisplayName_ReturnsOnboardingIncompleteError()
@@ -43,7 +41,6 @@ public sealed class CompleteOnboardingCommandHandlerTests
         result.Error.Should().Be(UserProfileErrors.OnboardingIncomplete);
     }
 
-    // ── Happy path — address is now optional ─────────────────────────────────
 
     [Fact]
     public async Task Handle_ValidDisplayNameNoAddress_SetsIsOnboardingComplete()

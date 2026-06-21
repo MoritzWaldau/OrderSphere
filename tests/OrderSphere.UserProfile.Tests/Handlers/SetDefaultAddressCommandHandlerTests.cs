@@ -14,7 +14,6 @@ public sealed class SetDefaultAddressCommandHandlerTests
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
         => new(ctx);
 
-    // ── Profile not found ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProfileNotFound_ReturnsProfileNotFoundError()
@@ -28,7 +27,6 @@ public sealed class SetDefaultAddressCommandHandlerTests
         result.Error.Should().Be(UserProfileErrors.ProfileNotFound);
     }
 
-    // ── Address not found ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_AddressNotFound_ReturnsAddressNotFoundError()
@@ -46,7 +44,6 @@ public sealed class SetDefaultAddressCommandHandlerTests
         result.Error.Should().Be(UserProfileErrors.AddressNotFound);
     }
 
-    // ── Happy path ────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ValidAddressId_ReturnsSuccess()

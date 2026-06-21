@@ -18,7 +18,6 @@ public sealed class GetCartQueryHandlerTests
     private static CatalogProductInfo ProductInfo(string name = "Widget", decimal price = 9.99m) =>
         new(ProductA.Value, name, price, Stock: 10, IsActive: true);
 
-    // ── No cart → 200 with empty items ─────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CartNotFound_ReturnsEmptyCartDto()
@@ -32,7 +31,6 @@ public sealed class GetCartQueryHandlerTests
         result.Value.CustomerId.Should().Be(Customer.Value);
     }
 
-    // ── Catalog infos call fails — returns fallback name and zero price ─────────
 
     [Fact]
     public async Task Handle_CatalogInfosFails_ReturnsCartDtoWithFallbackValues()
@@ -55,7 +53,6 @@ public sealed class GetCartQueryHandlerTests
             i.ProductName == "Unknown Product" && i.Price == 0m);
     }
 
-    // ── Happy path — name and price filled from Catalog ─────────────────────────
 
     [Fact]
     public async Task Handle_CartExists_ReturnsCartDtoWithNameAndPrice()
@@ -82,7 +79,6 @@ public sealed class GetCartQueryHandlerTests
             i.ProductName == "Super Widget" && i.Price == 19.99m && i.Quantity == 3);
     }
 
-    // ── Exception path — propagates when catalog client throws ──────────────────
 
     [Fact]
     public async Task Handle_CatalogClientThrows_PropagatesException()

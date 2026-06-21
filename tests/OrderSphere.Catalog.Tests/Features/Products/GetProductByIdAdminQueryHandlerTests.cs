@@ -11,7 +11,6 @@ public sealed class GetProductByIdAdminQueryHandlerTests
 
     private static GetProductByIdAdminQueryHandler CreateHandler(ICatalogDbContext ctx) => new(ctx);
 
-    // ── Product not found ────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProductNotFound_ReturnsNotFoundError()
@@ -26,7 +25,6 @@ public sealed class GetProductByIdAdminQueryHandlerTests
         result.Error.Should().Be(ProductErrors.NotFound);
     }
 
-    // ── Deleted product not returned ─────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProductIsDeleted_ReturnsNotFoundError()
@@ -43,7 +41,6 @@ public sealed class GetProductByIdAdminQueryHandlerTests
         result.IsFailure.Should().BeTrue();
     }
 
-    // ── Happy path ──────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ExistingProduct_ReturnsAdminProductDto()
@@ -60,7 +57,6 @@ public sealed class GetProductByIdAdminQueryHandlerTests
         result.Value.Name.Should().Be("Widget");
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────────────────
 
     private static Product MakeProduct(ProductId id)
     {

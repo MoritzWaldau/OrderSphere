@@ -19,7 +19,6 @@ public sealed class GetOrderByIdQueryHandlerTests
     private static GetOrderByIdQueryHandler CreateHandler(IOrderingDbContext ctx) =>
         new(ctx, Substitute.For<ILogger<GetOrderByIdQueryHandler>>());
 
-    // ── Order not found ──────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_OrderNotFound_ReturnsOrderNotFoundError()
@@ -34,7 +33,6 @@ public sealed class GetOrderByIdQueryHandlerTests
         result.Error.Should().Be(OrderErrors.OrderNotFoundError);
     }
 
-    // ── Soft-deleted order not returned ─────────────────────────────────────────
 
     [Fact]
     public async Task Handle_OrderIsDeleted_ReturnsOrderNotFoundError()
@@ -52,7 +50,6 @@ public sealed class GetOrderByIdQueryHandlerTests
         result.Error.Should().Be(OrderErrors.OrderNotFoundError);
     }
 
-    // ── Happy path ───────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_OrderExists_ReturnsOrderDto()

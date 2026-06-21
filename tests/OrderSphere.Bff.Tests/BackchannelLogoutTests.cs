@@ -19,7 +19,6 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
     private const string BackchannelLogoutEvent =
         "http://schemas.openid.net/event/backchannel-logout";
 
-    // ── Request format validation ────────────────────────────────────────────
 
     [Fact]
     public async Task Post_WithoutFormContentType_Returns400()
@@ -52,7 +51,6 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-    // ── JWT signature validation ──────────────────────────────────────────────
 
     [Fact]
     public async Task Post_WithTamperedToken_Returns400()
@@ -78,7 +76,6 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-    // ── OIDC spec claim validation ────────────────────────────────────────────
 
     [Fact]
     public async Task Post_WithNonceClaim_Returns400()
@@ -115,7 +112,6 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
-    // ── Session revocation ────────────────────────────────────────────────────
 
     [Fact]
     public async Task Post_WithValidToken_NoMatchingSession_Returns200()
@@ -154,7 +150,6 @@ public sealed class BackchannelLogoutTests(BffWebApplicationFactory factory)
         remaining.Should().BeNull("the back-channel logout endpoint must revoke the session");
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
 
     private static Task<HttpResponseMessage> PostLogoutTokenAsync(
         HttpClient client, string logoutToken)

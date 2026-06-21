@@ -18,7 +18,6 @@ public sealed class CartTests
     private static CartItem Item(ProductId productId, int qty = 1)
         => new(productId, Quantity.Of(qty));
 
-    // ── Construction ────────────────────────────────────────────────────────────
 
     [Fact]
     public void Constructor_SetsCustomerId()
@@ -36,7 +35,6 @@ public sealed class CartTests
         cart.Items.Should().BeEmpty();
     }
 
-    // ── AddItem — new product ────────────────────────────────────────────────────
 
     [Fact]
     public void AddItem_NewProduct_AddsToItemsList()
@@ -61,7 +59,6 @@ public sealed class CartTests
             .Which.Quantity.Value.Should().Be(3);
     }
 
-    // ── AddItem — existing product (increase) ───────────────────────────────────
 
     [Fact]
     public void AddItem_ExistingProduct_IncreasesQuantity()
@@ -98,7 +95,6 @@ public sealed class CartTests
         cart.Items.Should().HaveCount(2);
     }
 
-    // ── Domain event payload ─────────────────────────────────────────────────────
 
     [Fact]
     public void AddItem_DomainEvent_ContainsCartAndProductId()

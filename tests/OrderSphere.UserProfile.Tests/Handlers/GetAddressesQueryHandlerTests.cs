@@ -13,7 +13,6 @@ public sealed class GetAddressesQueryHandlerTests
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
         => new(ctx);
 
-    // ── Profile not found ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProfileNotFound_ReturnsProfileNotFoundError()
@@ -27,7 +26,6 @@ public sealed class GetAddressesQueryHandlerTests
         result.Error.Should().Be(UserProfileErrors.ProfileNotFound);
     }
 
-    // ── Profile with no addresses ─────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProfileHasNoAddresses_ReturnsEmptyList()
@@ -43,7 +41,6 @@ public sealed class GetAddressesQueryHandlerTests
         result.Value.Should().BeEmpty();
     }
 
-    // ── Happy path — addresses returned ──────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProfileHasTwoAddresses_ReturnsBoth()

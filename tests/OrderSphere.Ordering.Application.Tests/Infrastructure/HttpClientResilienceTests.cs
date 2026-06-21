@@ -17,7 +17,6 @@ public sealed class HttpClientResilienceTests
         new(new HttpClient(new ThrowingHttpHandler()) { BaseAddress = new Uri("http://basket") },
             Substitute.For<ILogger<HttpBasketClient>>());
 
-    // ── HttpCatalogClient ─────────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetProductById_TransportError_ReturnsUnavailable()
@@ -62,7 +61,6 @@ public sealed class HttpClientResilienceTests
         => (await Catalog().ReleaseReservationAsync(Guid.NewGuid()))
             .Error.Code.Should().Be("Catalog.Unavailable");
 
-    // ── HttpBasketClient ──────────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetCart_TransportError_ReturnsUnavailable()
@@ -78,3 +76,4 @@ public sealed class HttpClientResilienceTests
         => (await Basket().ClearCartItemsAsync(Guid.NewGuid()))
             .Error.Code.Should().Be("Basket.Unavailable");
 }
+

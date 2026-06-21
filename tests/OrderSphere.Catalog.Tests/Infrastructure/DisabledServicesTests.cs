@@ -6,7 +6,6 @@ namespace OrderSphere.Catalog.Tests.Infrastructure;
 /// </summary>
 public sealed class DisabledServicesTests
 {
-    // ── DisabledBlobStorageService ────────────────────────────────────────────────
 
     [Fact]
     public void DisabledBlob_IsDisabled()
@@ -28,7 +27,6 @@ public sealed class DisabledServicesTests
         => (await DisabledBlobStorageService.Instance.GetSasUrlAsync("image.png"))
             .Should().BeEmpty();
 
-    // ── DisabledProductSearchIndex ────────────────────────────────────────────────
 
     [Fact]
     public void DisabledSearch_IsDisabled()

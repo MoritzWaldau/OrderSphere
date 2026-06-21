@@ -4,7 +4,6 @@ namespace OrderSphere.Ordering.Application.Tests.Features;
 
 public sealed class CancelOrderCommandHandlerTests
 {
-    // ── Shared helpers ───────────────────────────────────────────────────────────
 
     private static readonly Address Addr = new("Max", "Muster", "Hauptstr. 1", "Berlin", "10115", "DE");
     private static readonly CustomerId Customer = CustomerId.New();
@@ -29,7 +28,6 @@ public sealed class CancelOrderCommandHandlerTests
         return new(ctx, catalog, Substitute.For<ILogger<CancelOrderCommandHandler>>());
     }
 
-    // ── Order not found ──────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_OrderNotFound_ReturnsOrderNotFoundError()
@@ -44,7 +42,6 @@ public sealed class CancelOrderCommandHandlerTests
         result.Error.Should().Be(OrderErrors.OrderNotFoundError);
     }
 
-    // ── Cancel from invalid state (Delivered) ────────────────────────────────────
 
     [Fact]
     public async Task Handle_OrderDelivered_ReturnsInvalidStatusTransitionError()
@@ -61,7 +58,6 @@ public sealed class CancelOrderCommandHandlerTests
         result.Error.Should().Be(OrderErrors.InvalidStatusTransition);
     }
 
-    // ── Happy path (Created state) ──────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_OrderInCreatedState_ReleasesReservation_CancelsSuccessfully()
@@ -108,7 +104,6 @@ public sealed class CancelOrderCommandHandlerTests
         await catalog.DidNotReceive().ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
-    // ── Compensation fails — still completes (logged, not a failure) ─────────────
 
     [Fact]
     public async Task Handle_StockRestoreFails_StillReturnsSuccess()
@@ -129,7 +124,6 @@ public sealed class CancelOrderCommandHandlerTests
         await ctx.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    // ── Outer exception → UnknownError ─────────────────────────────────────────
 
     [Fact]
     public async Task Handle_SaveChangesThrows_ReturnsUnknownError()

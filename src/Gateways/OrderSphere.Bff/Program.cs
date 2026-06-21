@@ -12,7 +12,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-// ── Configuration ────────────────────────────────────────────────────────────
 var oidcAuthority = builder.Configuration["Oidc:Authority"]
     ?? throw new InvalidOperationException("Oidc:Authority is not configured.");
 var oidcClientId = builder.Configuration["Oidc:ClientId"] ?? "web-bff";
@@ -22,14 +21,11 @@ var oidcClientSecret = builder.Configuration["Oidc:ClientSecret"]
 var isProduction = !builder.Environment.IsDevelopment()
                 && !builder.Environment.IsEnvironment("Testing");
 
-// ── Session (Redis DataProtection + SignalR backplane) ───────────────────────
 await builder.AddBffSessionAsync();
 
-// ── Azure Service Bus (realtime notifications) ───────────────────────────────
 builder.AddAzureServiceBusClient("azure-service-bus");
 builder.Services.AddHostedService<RealtimeNotificationProcessor>();
 
-// ── Antiforgery ───────────────────────────────────────────────────────────────
 builder.Services.AddAntiforgery(opts =>
 {
     opts.HeaderName = "X-XSRF-TOKEN";
@@ -41,24 +37,19 @@ builder.Services.AddAntiforgery(opts =>
         : CookieSecurePolicy.SameAsRequest;
 });
 
-// ── Authentication & Authorization ───────────────────────────────────────────
 builder.AddBffAuthentication(oidcAuthority, oidcClientId, oidcClientSecret, isProduction);
 
-// ── UserProfile status client (onboarding check for /bff/user) ───────────────
 builder.Services.AddHttpClient("userprofile-status", c =>
     c.BaseAddress = new Uri("https://ordersphere-userprofile"))
     .AddServiceDiscovery();
 
-// ── Reverse proxy ─────────────────────────────────────────────────────────────
 builder.AddBffProxy();
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
-// ── Security headers ──────────────────────────────────────────────────────────
 app.Use(async (ctx, next) =>
 {
     ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
@@ -82,7 +73,6 @@ app.Use(async (ctx, next) =>
     await next();
 });
 
-// ── Static files (Blazor WASM) ───────────────────────────────────────────────
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
@@ -90,7 +80,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseOrderSphereRequestLogging();
 
-// ── BFF endpoints ─────────────────────────────────────────────────────────────
 app.MapGet("/bff/login", (HttpContext ctx, string? returnUrl) =>
 {
     var redirect = string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl;
@@ -173,7 +162,6 @@ if (app.Environment.IsDevelopment())
 
 BackchannelLogoutEndpoint.Map(app);
 
-// ── Antiforgery middleware for /api/* mutations ───────────────────────────────
 app.Use(async (ctx, next) =>
 {
     if (ctx.Request.Path.StartsWithSegments("/api") &&
@@ -208,7 +196,6 @@ app.Use(async (ctx, next) =>
     await next();
 });
 
-// ── SignalR hub ───────────────────────────────────────────────────────────
 app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.MapReverseProxy().RequireAuthorization("BffUserPolicy");

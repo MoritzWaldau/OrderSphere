@@ -18,7 +18,6 @@ public sealed class GetOrderByCorrelationIdQueryHandlerTests
     private static GetOrderByCorrelationIdQueryHandler CreateHandler(IOrderingDbContext ctx) =>
         new(ctx, Substitute.For<ILogger<GetOrderByCorrelationIdQueryHandler>>());
 
-    // ── Order not yet persisted → returns Success(null) ─────────────────────────
 
     [Fact]
     public async Task Handle_OrderNotFound_ReturnsSuccessWithNullValue()
@@ -33,7 +32,6 @@ public sealed class GetOrderByCorrelationIdQueryHandlerTests
         result.Value.Should().BeNull();
     }
 
-    // ── Happy path ───────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_OrderExists_ReturnsOrderDto()

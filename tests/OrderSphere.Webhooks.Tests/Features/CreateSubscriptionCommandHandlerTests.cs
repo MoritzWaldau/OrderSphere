@@ -15,7 +15,6 @@ public sealed class CreateSubscriptionCommandHandlerTests
         return ctx;
     }
 
-    // ── Creates subscription and returns id + secret ────────────────────────────
 
     [Fact]
     public async Task Handle_ValidRequest_ReturnsCreatedDto()
@@ -32,22 +31,6 @@ public sealed class CreateSubscriptionCommandHandlerTests
         result.Value.Secret.Should().NotBeNullOrWhiteSpace();
     }
 
-    // ── Auto-generates secret when none provided ─────────────────────────────────
-
-    [Fact]
-    public async Task Handle_NoSecret_GeneratesSecret()
-    {
-        var ctx = MakeContext();
-
-        var result = await new CreateSubscriptionCommandHandler(ctx).Handle(
-            new CreateSubscriptionCommand(Owner.Value, "https://example.com/hook", null,
-                [WebhookEventType.OrderPlaced]),
-            default);
-
-        result.Value.Secret.Should().NotBeNullOrWhiteSpace();
-    }
-
-    // ── Uses provided secret when supplied ──────────────────────────────────────
 
     [Fact]
     public async Task Handle_SecretProvided_UsesProvidedSecret()

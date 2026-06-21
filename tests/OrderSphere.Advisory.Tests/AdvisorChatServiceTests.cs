@@ -17,7 +17,6 @@ public sealed class AdvisorChatServiceTests
     private const string Sub = "user-1";
     private const string ConversationId = "conv-1";
 
-    // ── Helpers ─────────────────────────────────────────────────────────────────
 
     private static IHttpContextAccessor Accessor(bool authenticated)
     {
@@ -69,7 +68,6 @@ public sealed class AdvisorChatServiceTests
             .Where(e => e.Kind == AdvisorStreamEventKind.Text)
             .Select(e => e.Text));
 
-    // ── Not configured ──────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Stream_WithoutFoundryConfig_YieldsFriendlyMessage_AndDoesNotPersist()
@@ -83,7 +81,6 @@ public sealed class AdvisorChatServiceTests
         await db.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    // ── Happy path: persistence ─────────────────────────────────────────────────
 
     [Fact]
     public async Task Stream_AuthenticatedTurn_StreamsText_AndPersistsTranscript()
@@ -124,7 +121,6 @@ public sealed class AdvisorChatServiceTests
         await db.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    // ── Resilience ──────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Stream_CorruptStoredSession_StartsFresh_InsteadOfFailing()
@@ -174,7 +170,6 @@ public sealed class AdvisorChatServiceTests
         await db.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    // ── Tool activity ───────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Stream_FunctionCall_EmitsToolEvent_WithGermanLabel()

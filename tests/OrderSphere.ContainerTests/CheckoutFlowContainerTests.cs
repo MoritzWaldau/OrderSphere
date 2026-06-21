@@ -17,7 +17,6 @@ namespace OrderSphere.ContainerTests;
 /// the outbox/inbox, and the workers consuming end to end.
 ///
 /// A CheckoutCartIntegrationEvent published directly to the 'orders' queue (no upstream stock
-/// reservation) follows the happy path: confirm on a missing reservation is a successful no-op,
 /// so the saga reaches Confirmed.
 /// </summary>
 [Trait("Category", "Container")]

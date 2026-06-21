@@ -13,7 +13,6 @@ public static class CouponEndpoints
 {
     public static void MapCouponEndpoints(this RouteGroupBuilder v1)
     {
-        // ── Customer: validate a code against a subtotal (checkout UI) ────────────
         v1.MapGet("coupons/validate",
             async (string code, decimal subtotal, IMediator mediator, CancellationToken ct) =>
             {
@@ -21,7 +20,6 @@ public static class CouponEndpoints
                 return result.ToHttpResult();
             }).RequireAuthorization();
 
-        // ── Admin: coupon management ──────────────────────────────────────────────
         var admin = v1.MapGroup("admin/coupons").RequireAuthorization(AuthorizationPolicies.Admin);
 
         admin.MapGet("/",

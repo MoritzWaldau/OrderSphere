@@ -13,7 +13,6 @@ public sealed class CouponTests
     private static Coupon Flat(decimal value, decimal? min = null, bool active = true) =>
         new("SAVE", DiscountType.Flat, value, min, null, null, null, active);
 
-    // ── Construction ──────────────────────────────────────────────────────────────
 
     [Fact]
     public void Constructor_NormalizesCodeToUpperCase()
@@ -23,7 +22,6 @@ public sealed class CouponTests
         coupon.RedeemedCount.Should().Be(0);
     }
 
-    // ── Flat discount ───────────────────────────────────────────────────────────────
 
     [Fact]
     public void CalculateDiscount_Flat_ReturnsFixedAmount()
@@ -43,7 +41,6 @@ public sealed class CouponTests
         result.Value.Should().Be(8m);
     }
 
-    // ── Percentage discount ───────────────────────────────────────────────────────
 
     [Fact]
     public void CalculateDiscount_Percentage_ComputesAndRounds()
@@ -56,7 +53,6 @@ public sealed class CouponTests
         result.Value.Should().Be(20.00m); // 10% of 199.99 = 19.999 → 20.00
     }
 
-    // ── Eligibility failures ──────────────────────────────────────────────────────
 
     [Fact]
     public void CalculateDiscount_BelowMinSubtotal_Fails()
@@ -110,7 +106,6 @@ public sealed class CouponTests
         result.Error.Should().Be(CouponErrors.UsageLimitReached);
     }
 
-    // ── Redemption ────────────────────────────────────────────────────────────────
 
     [Fact]
     public void Redeem_IncrementsCount_UntilLimit()

@@ -22,7 +22,6 @@ public sealed class GetReviewsForProductQueryHandlerTests
         return review;
     }
 
-    // ── Happy path ─────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ReturnsApprovedReviewsForProduct()
@@ -37,7 +36,6 @@ public sealed class GetReviewsForProductQueryHandlerTests
         result.Value.Should().ContainSingle(r => r.Id == approved.Id.Value);
     }
 
-    // ── Filtering ──────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ExcludesRejectedReviews()

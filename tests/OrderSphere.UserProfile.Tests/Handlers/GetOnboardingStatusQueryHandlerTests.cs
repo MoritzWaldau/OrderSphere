@@ -13,7 +13,6 @@ public sealed class GetOnboardingStatusQueryHandlerTests
         OrderSphere.UserProfile.Infrastructure.Persistence.UserProfileDbContext ctx)
         => new(ctx);
 
-    // ── Profile not found ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_ProfileNotFound_ReturnsNotFoundError()
@@ -27,7 +26,6 @@ public sealed class GetOnboardingStatusQueryHandlerTests
         result.Error.Should().Be(UserProfileErrors.ProfileNotFound);
     }
 
-    // ── Status false ──────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_NewProfile_ReturnsFalse()
@@ -43,7 +41,6 @@ public sealed class GetOnboardingStatusQueryHandlerTests
         result.Value.Should().BeFalse();
     }
 
-    // ── Status true ───────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_CompletedProfile_ReturnsTrue()

@@ -22,7 +22,6 @@ public sealed class ProductCardTests : BunitBase
             avgRating,
             reviewCount);
 
-    // ── Content ──────────────────────────────────────────────────────────────────
 
     [Fact]
     public void ProductName_RenderedInMarkup()
@@ -40,7 +39,6 @@ public sealed class ProductCardTests : BunitBase
         cut.Markup.Should().Contain("19");
     }
 
-    // ── Sold-out state ────────────────────────────────────────────────────────────
 
     [Fact]
     public void SoldOutChip_Shown_WhenStockIsZero()
@@ -58,7 +56,6 @@ public sealed class ProductCardTests : BunitBase
         cut.Markup.Should().NotContain("Common.SoldOut");
     }
 
-    // ── Star rating visibility ────────────────────────────────────────────────────
 
     [Fact]
     public void StarRating_Shown_WhenReviewCountGreaterThanZero()
@@ -79,7 +76,6 @@ public sealed class ProductCardTests : BunitBase
         cut.Markup.Should().NotContain("Reviews.RatingAria");
     }
 
-    // ── Callbacks ────────────────────────────────────────────────────────────────
 
     [Fact]
     public void OnOpen_Invoked_WhenCardClicked()

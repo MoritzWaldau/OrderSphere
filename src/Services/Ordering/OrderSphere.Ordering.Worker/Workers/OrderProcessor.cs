@@ -158,6 +158,12 @@ public sealed class OrderProcessor(
                         nameof(PaymentRequestedIntegrationEvent),
                         JsonSerializer.Serialize(paymentEvent));
 
+                    // Saga read-model: order created + payment requested are committed together,
+                    // so the saga starts at PaymentRequested. Written in the same transaction.
+                    var saga = OrderSaga.Start(evt.CorrelationId, order.Id.Value);
+                    saga.MarkPaymentRequested();
+                    await context.OrderSagas.AddAsync(saga, ct);
+
                     await context.CommitAsync(ct);
 
                     logger.LogInformation(
@@ -165,6 +171,7 @@ public sealed class OrderProcessor(
                         order.Id, order.CustomerId, evt.CorrelationId);
 
                     OrderingMetrics.OrdersPlaced.Add(1);
+                    OrderingMetrics.RecordSagaTransition(nameof(SagaState.PaymentRequested));
 
                     return ProcessResult.Ok();
                 }

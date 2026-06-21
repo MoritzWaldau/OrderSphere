@@ -24,6 +24,7 @@ public static class DependencyInjection
 
         // Outbox
         services.AddScoped<IOutboxEventHandler, PaymentProcessedEventHandler>();
+        services.AddScoped<IOutboxEventHandler, PaymentRefundedEventHandler>();
         services.AddOutboxProcessing<PaymentDbContext>();
 
         services.AddSingleton<IPaymentProvider, InvoicePaymentProvider>();

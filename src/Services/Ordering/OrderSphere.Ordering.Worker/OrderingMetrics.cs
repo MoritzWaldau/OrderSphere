@@ -24,4 +24,13 @@ internal static class OrderingMetrics
         "ordersphere.orders.cancelled",
         unit: "{order}",
         description: "Orders cancelled after a failed payment.");
+
+    public static readonly Counter<long> SagaTransitions = Meter.CreateCounter<long>(
+        "ordersphere.saga.transitions",
+        unit: "{transition}",
+        description: "Order saga state transitions, tagged with the target state.");
+
+    /// <summary>Records a saga transition, tagged with the target state for breakdown in dashboards.</summary>
+    public static void RecordSagaTransition(string state)
+        => SagaTransitions.Add(1, new KeyValuePair<string, object?>("state", state));
 }

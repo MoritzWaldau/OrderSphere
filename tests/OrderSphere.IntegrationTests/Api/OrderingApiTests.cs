@@ -2,6 +2,9 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using OrderSphere.Ordering.Domain.Entities;
+using OrderSphere.Ordering.Infrastructure.Persistence;
 using Xunit;
 
 namespace OrderSphere.IntegrationTests.Api;
@@ -96,6 +99,50 @@ public sealed class OrderingApiTests : IClassFixture<OrderingApiFactory>
             .PutAsJsonAsync($"api/v1/admin/orders/{Guid.NewGuid()}/status", body);
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    // ── Saga observability endpoint ───────────────────────────────────────────────
+
+    [Fact]
+    public async Task Saga_endpoint_forbids_a_plain_customer()
+    {
+        var response = await Client(sub: "auth0|plain").GetAsync($"api/v1/admin/sagas/{Guid.NewGuid()}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task Saga_endpoint_returns_404_for_unknown_correlation()
+    {
+        var response = await Client(sub: "auth0|csr", roles: "csr")
+            .GetAsync($"api/v1/admin/sagas/{Guid.NewGuid()}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Saga_endpoint_returns_projection_for_staff()
+    {
+        var correlationId = Guid.NewGuid();
+        await SeedSagaAsync(correlationId);
+
+        var response = await Client(sub: "auth0|csr", roles: "csr")
+            .GetAsync($"api/v1/admin/sagas/{correlationId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        doc.RootElement.GetProperty("correlationId").GetGuid().Should().Be(correlationId);
+        doc.RootElement.GetProperty("state").GetString().Should().Be("PaymentRequested");
+    }
+
+    private async Task SeedSagaAsync(Guid correlationId)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
+        var saga = OrderSaga.Start(correlationId, Guid.NewGuid());
+        saga.MarkPaymentRequested();
+        context.OrderSagas.Add(saga);
+        await context.SaveChangesAsync();
     }
 
     // ── Coupon endpoints ──────────────────────────────────────────────────────────

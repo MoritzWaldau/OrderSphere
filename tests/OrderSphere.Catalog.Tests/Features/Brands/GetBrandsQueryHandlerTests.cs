@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using OrderSphere.Catalog.Application.Features.Brands.Public.GetBrands;
 using OrderSphere.Catalog.Tests.Helpers;
 

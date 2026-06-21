@@ -1,9 +1,7 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
 using OrderSphere.Webhooks.Application.DTOs;
-using OrderSphere.Webhooks.Application.Features.Subscriptions.CreateSubscription;
 using Xunit;
 
 namespace OrderSphere.IntegrationTests.Api;

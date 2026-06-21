@@ -6,6 +6,8 @@ using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Application.Abstractions;
+using OrderSphere.Ordering.Domain.Entities;
+using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Services;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 
@@ -17,6 +19,14 @@ public sealed class PaymentResultProcessor(
     ILogger<PaymentResultProcessor> logger) : BackgroundService
 {
     private const string QueueName = "payment-results";
+
+    /// <summary>
+    /// Delivery attempts a reservation-confirm failure is retried (via Service Bus redelivery)
+    /// before the saga compensates with a refund. Kept below the queue's MaxDeliveryCount (5)
+    /// so the message is handled and completed rather than dead-lettered.
+    /// </summary>
+    private const int MaxConfirmAttempts = 3;
+
     private ServiceBusProcessor? _processor;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -68,7 +78,8 @@ public sealed class PaymentResultProcessor(
             var inboxStore = scope.ServiceProvider.GetRequiredService<IInboxStore>();
             var catalogClient = scope.ServiceProvider.GetRequiredService<ICatalogClient>();
 
-            var outcome = await ProcessPaymentResultAsync(evt, context, inboxStore, catalogClient, args.CancellationToken);
+            var outcome = await ProcessPaymentResultAsync(
+                evt, context, inboxStore, catalogClient, (int)args.Message.DeliveryCount, args.CancellationToken);
 
             if (outcome == PaymentResultOutcome.OrderNotFound)
             {
@@ -93,6 +104,7 @@ public sealed class PaymentResultProcessor(
         OrderingDbContext context,
         IInboxStore inboxStore,
         ICatalogClient catalogClient,
+        int deliveryCount,
         CancellationToken ct)
     {
         if (await inboxStore.HasBeenProcessedAsync(evt.Id, ct))
@@ -110,6 +122,10 @@ public sealed class PaymentResultProcessor(
             return PaymentResultOutcome.OrderNotFound;
         }
 
+        // Saga read-model: advanced in the same transaction as the order state change below.
+        // Tracked, so the SaveChanges inside MarkAsProcessedAsync persists it atomically.
+        var saga = await context.OrderSagas.FirstOrDefaultAsync(s => s.CorrelationId == evt.CorrelationId, ct);
+
         if (evt.Succeeded)
         {
             // Confirm the stock reservation (decrements on-hand stock) before persisting the
@@ -117,18 +133,31 @@ public sealed class PaymentResultProcessor(
             // rather than leaving stock reserved-but-uncommitted for a paid order.
             var confirm = await catalogClient.ConfirmReservationAsync(order.CorrelationId, ct);
             if (confirm.IsFailure)
-                throw new InvalidOperationException(
-                    $"Reservation confirm failed for order {order.Id} (correlation {order.CorrelationId}): {confirm.Error.Code}");
+            {
+                // Retry via Service Bus redelivery while the delivery budget lasts (transient
+                // failures recover). Once exhausted, the payment is captured but confirmation is
+                // unrecoverable — compensate deterministically with a refund instead of looping
+                // to the dead-letter queue and leaving the payment captured.
+                if (deliveryCount < MaxConfirmAttempts)
+                    throw new InvalidOperationException(
+                        $"Reservation confirm failed (attempt {deliveryCount}) for order {order.Id} (correlation {order.CorrelationId}): {confirm.Error.Code}");
+
+                return await CompensateConfirmationFailureAsync(evt, order, saga, catalogClient, context, inboxStore, ct);
+            }
 
             order.Confirm(TrackingNumberGenerator.Generate());
+            saga?.MarkConfirmed();
             OrderingMetrics.OrdersConfirmed.Add(1);
+            OrderingMetrics.RecordSagaTransition(nameof(SagaState.Confirmed));
             logger.LogInformation("Order {OrderId} confirmed after payment. TrackingNumber: {TrackingNumber}",
                 order.Id, order.TrackingNumber);
         }
         else
         {
             order.Cancel();
+            saga?.MarkCancelled(evt.FailureReason);
             OrderingMetrics.OrdersCancelled.Add(1);
+            OrderingMetrics.RecordSagaTransition(nameof(SagaState.Cancelled));
             logger.LogWarning("Order {OrderId} cancelled due to payment failure: {Reason}",
                 order.Id, evt.FailureReason);
 
@@ -192,6 +221,80 @@ public sealed class PaymentResultProcessor(
             }));
 
         // One SaveChangesAsync: order state + outbox rows + inbox mark — all atomic.
+        await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(PaymentProcessedIntegrationEvent), ct);
+
+        return PaymentResultOutcome.Processed;
+    }
+
+    /// <summary>
+    /// Compensates a captured-but-unconfirmable order: cancels the order, releases the reservation
+    /// (best-effort), advances the saga to <see cref="SagaState.CompensationPending"/>, and queues an
+    /// <see cref="OrderConfirmationFailedIntegrationEvent"/> so Payment refunds the capture. All writes
+    /// commit atomically with the inbox mark in the single SaveChanges inside MarkAsProcessedAsync.
+    /// </summary>
+    private async Task<PaymentResultOutcome> CompensateConfirmationFailureAsync(
+        PaymentProcessedIntegrationEvent evt,
+        Order order,
+        OrderSaga? saga,
+        ICatalogClient catalogClient,
+        OrderingDbContext context,
+        IInboxStore inboxStore,
+        CancellationToken ct)
+    {
+        var reason = $"Reservation confirm failed after {MaxConfirmAttempts} attempts; refunding payment.";
+
+        order.Cancel();
+        saga?.MarkCompensationPending(reason);
+        OrderingMetrics.OrdersCancelled.Add(1);
+        OrderingMetrics.RecordSagaTransition(nameof(SagaState.CompensationPending));
+        logger.LogError(
+            "Order {OrderId} confirmation failed after payment was captured; requesting refund. CorrelationId: {CorrelationId}",
+            order.Id, evt.CorrelationId);
+
+        // Release the reservation that was never committed (best-effort; the TTL sweeper backstops).
+        var release = await catalogClient.ReleaseReservationAsync(order.CorrelationId, ct);
+        if (release.IsFailure)
+            logger.LogWarning("Reservation release failed for order {OrderId}; TTL sweeper will reclaim it.",
+                order.Id);
+
+        var amount = order.Items.Sum(i => i.Price * i.Quantity) - order.DiscountAmount + order.ShippingCost;
+
+        context.AddOutboxMessage(
+            nameof(OrderConfirmationFailedIntegrationEvent),
+            JsonSerializer.Serialize(new OrderConfirmationFailedIntegrationEvent
+            {
+                CorrelationId = evt.CorrelationId,
+                OrderId = order.Id.Value,
+                Amount = amount,
+                Currency = "EUR",
+                Reason = reason,
+                CustomerEmail = evt.CustomerEmail,
+                PaymentMethod = evt.PaymentMethod
+            }));
+
+        context.AddOutboxMessage(
+            nameof(RealtimeNotificationEvent),
+            JsonSerializer.Serialize(new RealtimeNotificationEvent
+            {
+                CorrelationId = evt.CorrelationId,
+                UserId = order.CustomerId.ToString(),
+                Type = "OrderCancelled",
+                Title = "Order Cancelled",
+                Message = "Your payment is being refunded because your order could not be completed.",
+                OrderId = order.Id.Value
+            }));
+
+        context.AddOutboxMessage(
+            nameof(OrderStatusChangedIntegrationEvent),
+            JsonSerializer.Serialize(new OrderStatusChangedIntegrationEvent
+            {
+                CorrelationId = evt.CorrelationId,
+                OrderId = order.Id.Value,
+                PreviousStatus = "Pending",
+                NewStatus = "Cancelled",
+                CustomerEmail = evt.CustomerEmail
+            }));
+
         await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(PaymentProcessedIntegrationEvent), ct);
 
         return PaymentResultOutcome.Processed;

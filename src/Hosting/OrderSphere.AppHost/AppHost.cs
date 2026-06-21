@@ -88,6 +88,20 @@ serviceBus.AddServiceBusQueue("realtime-notifications")
         cfg.MaxDeliveryCount = 5;
     });
 
+// Saga compensation loop: Ordering → Payment (refund a captured-but-unconfirmable order),
+// Payment → Ordering (refund confirmed → saga terminal).
+serviceBus.AddServiceBusQueue("order-confirmation-failed")
+    .WithProperties(cfg =>
+    {
+        cfg.MaxDeliveryCount = 5;
+    });
+
+serviceBus.AddServiceBusQueue("payment-refunds")
+    .WithProperties(cfg =>
+    {
+        cfg.MaxDeliveryCount = 5;
+    });
+
 serviceBus.AddServiceBusQueue("webhook-events")
     .WithProperties(cfg =>
     {

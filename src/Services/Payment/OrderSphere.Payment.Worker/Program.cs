@@ -15,6 +15,7 @@ builder.AddAzureServiceBusClient("azure-service-bus");
 builder.Services.AddAzureServiceBusEventBus(); // Required by OutboxDispatcher → PaymentProcessedEventHandler
 builder.Services.AddPaymentInfrastructure(builder.Configuration);
 builder.Services.AddHostedService<PaymentProcessor>();
+builder.Services.AddHostedService<OrderConfirmationFailedProcessor>();
 
 builder.Services.AddPaymentApplication();
 

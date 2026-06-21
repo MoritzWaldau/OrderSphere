@@ -33,7 +33,7 @@
        InformationalVersion ab. VersionSuffix (z. B. -rc.1) bleibt per Build-Flag
        ergänzbar, ohne den Prefix zu ändern. -->
   <PropertyGroup>
-    <VersionPrefix>1.0.3</VersionPrefix>
+    <VersionPrefix>1.0.4</VersionPrefix>
     <Product>OrderSphere</Product>
     <Company>OrderSphere</Company>
     <!-- Vermeidet den +<sha>-Suffix in der InformationalVersion. -->

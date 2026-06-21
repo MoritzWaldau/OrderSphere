@@ -31,8 +31,32 @@ Run from the repository root:
 | One test project | `dotnet test tests/OrderSphere.Domain.Tests` |
 | Single test by name | `dotnet test --filter "FullyQualifiedName~CheckoutCart"` |
 
-CI additionally enforces a 70% branch-coverage gate, CodeQL, dependency review, and a
+CI additionally enforces a staged **line-coverage gate** (the `Coverage gate` step in
+[ci.yml](.github/workflows/ci.yml) parses the Cobertura report and fails below `MIN_LINE`;
+see [docs/test-coverage-plan.md](docs/test-coverage-plan.md)), CodeQL, dependency review, and a
 vulnerable-package scan. A pull request must pass these before merge.
+
+## Git hooks
+
+A versioned pre-commit hook in [.githooks/](.githooks) verifies formatting of staged C# files
+(`dotnet format … --verify-no-changes`, excluding migrations) so commits stay clean. Enable it
+once per clone:
+
+```sh
+git config core.hooksPath .githooks
+```
+
+The hook is intentionally formatting-only to keep commits fast; heavier static-analysis gates
+run in CI.
+
+## Local MCP server (Claude Code)
+
+[.mcp.json](.mcp.json) registers the advisory MCP server (`OrderSphere.Mcp.Server`) so its
+read-only tools can be exercised directly from Claude Code. It points at the server's local
+HTTPS profile (`https://localhost:7309/mcp`). The tools call the API Gateway, so a local run is
+required first — start the stack via Aspire (`dotnet run --project src/Hosting/OrderSphere.AppHost`)
+or run the MCP server and gateway standalone. Public catalog tools work anonymously; user-scoped
+tools require a forwarded bearer token.
 
 ## Commit messages
 

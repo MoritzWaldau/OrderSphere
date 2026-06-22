@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
-using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 using OrderSphere.Ordering.Worker.Workers;
 using Xunit;

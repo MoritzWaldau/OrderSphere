@@ -18,6 +18,7 @@ public static class EndpointMappingExtensions
             .MapToApiVersion(1.0);
 
         v1.MapOrderEndpoints();
+        v1.MapOrderHistoryEndpoints();
         v1.MapCheckoutEndpoints();
         v1.MapCouponEndpoints();
         v1.MapSagaEndpoints();

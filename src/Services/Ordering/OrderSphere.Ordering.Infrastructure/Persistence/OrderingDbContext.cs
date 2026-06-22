@@ -23,6 +23,7 @@ public sealed class OrderingDbContext(
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Coupon> Coupons => Set<Coupon>();
     public DbSet<OrderSaga> OrderSagas => Set<OrderSaga>();
+    public DbSet<OrderHistoryEntry> OrderHistory => Set<OrderHistoryEntry>();
     internal DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     public void AddOutboxMessage(string type, string content)

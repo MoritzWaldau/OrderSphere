@@ -7,7 +7,11 @@ namespace OrderSphere.Ordering.Infrastructure.Outbox;
 
 internal sealed class OrderStatusChangedEventHandler(IEventBus eventBus) : IOutboxEventHandler
 {
-    private const string QueueName = "webhook-events";
+    // Fan-out targets. Service Bus uses point-to-point queues here (no topic), so each
+    // consumer needs its own queue: the webhook fan-out worker and the order-history
+    // read-model projector both consume this event independently.
+    private const string WebhookQueue = "webhook-events";
+    private const string OrderHistoryQueue = "order-history";
 
     public string EventType => nameof(OrderStatusChangedIntegrationEvent);
 
@@ -17,6 +21,10 @@ internal sealed class OrderStatusChangedEventHandler(IEventBus eventBus) : IOutb
             ?? throw new InvalidOperationException(
                 $"Failed to deserialize payload as {nameof(OrderStatusChangedIntegrationEvent)}.");
 
-        await eventBus.PublishAsync(evt, QueueName, ct);
+        // At-least-once with idempotent consumers (inbox dedupe). If the second publish fails,
+        // the outbox retries the whole handler and the first queue receives a duplicate, which
+        // its consumer's inbox check discards.
+        await eventBus.PublishAsync(evt, WebhookQueue, ct);
+        await eventBus.PublishAsync(evt, OrderHistoryQueue, ct);
     }
 }

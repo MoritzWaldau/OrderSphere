@@ -10,6 +10,7 @@ using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Entities;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Services;
+using OrderSphere.Ordering.Infrastructure.EventSourcing;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 
 namespace OrderSphere.Ordering.Worker.Workers;
@@ -107,9 +108,8 @@ public sealed class PaymentResultProcessor(
             return PaymentResultOutcome.AlreadyProcessed;
         }
 
-        var order = await context.Orders
-            .Include(o => o.Items)
-            .FirstOrDefaultAsync(o => o.Id == OrderId.From(evt.OrderId), ct);
+        var eventStore = new OrderEventStore(context);
+        var order = await eventStore.LoadAsync(OrderId.From(evt.OrderId), ct);
 
         if (order is null)
         {
@@ -138,7 +138,7 @@ public sealed class PaymentResultProcessor(
                     throw new InvalidOperationException(
                         $"Reservation confirm failed transiently (delivery {deliveryCount}) for order {order.Id} (correlation {order.CorrelationId}): {confirm.Error.Code}");
 
-                return await CompensateConfirmationFailureAsync(evt, order, saga, catalogClient, context, inboxStore, ct);
+                return await CompensateConfirmationFailureAsync(evt, order, saga, catalogClient, context, eventStore, inboxStore, ct);
             }
 
             order.Confirm(TrackingNumberGenerator.Generate());
@@ -216,7 +216,9 @@ public sealed class PaymentResultProcessor(
                 CustomerEmail = evt.CustomerEmail
             }));
 
-        // One SaveChangesAsync: order state + outbox rows + inbox mark — all atomic.
+        // Stage the new order events and their read projection, then commit everything in one
+        // SaveChangesAsync: event stream + projection + outbox rows + inbox mark — all atomic.
+        await eventStore.AppendAsync(order, ct);
         await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(PaymentProcessedIntegrationEvent), ct);
 
         return PaymentResultOutcome.Processed;
@@ -234,6 +236,7 @@ public sealed class PaymentResultProcessor(
         OrderSaga? saga,
         ICatalogClient catalogClient,
         OrderingDbContext context,
+        OrderEventStore eventStore,
         IInboxStore inboxStore,
         CancellationToken ct)
     {
@@ -291,6 +294,7 @@ public sealed class PaymentResultProcessor(
                 CustomerEmail = evt.CustomerEmail
             }));
 
+        await eventStore.AppendAsync(order, ct);
         await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(PaymentProcessedIntegrationEvent), ct);
 
         return PaymentResultOutcome.Processed;

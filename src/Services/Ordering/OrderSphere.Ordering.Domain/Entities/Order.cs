@@ -1,42 +1,53 @@
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
-using OrderSphere.Ordering.Domain.DomainEvents;
+using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Ordering.Domain.Enums;
+using OrderSphere.Ordering.Domain.OrderEvents;
 using OrderSphere.Ordering.Domain.ValueObjects;
 
 namespace OrderSphere.Ordering.Domain.Entities;
 
-public class Order : AuditableEntity<OrderId>, IAggregateRoot
+/// <summary>
+/// The order write aggregate, event-sourced. State is never persisted directly: every mutation
+/// raises an <see cref="IOrderEvent"/> that is appended to the order's stream and folded back into
+/// memory on load. The read side (<c>OrderView</c>) is a projection of this stream.
+/// </summary>
+/// <remarks>
+/// Identity (<see cref="Id"/>) lives outside the payloads — it is the stream key in the event
+/// store, so it is supplied on rehydration rather than carried by <see cref="OrderCreated"/>.
+/// <see cref="Version"/> counts the events folded so far (committed + uncommitted) and drives the
+/// store's optimistic-concurrency check on append.
+/// </remarks>
+public sealed class Order : IAggregateRoot
 {
+    public OrderId Id { get; private set; }
     public CustomerId CustomerId { get; private set; }
-    public Address ShippingAddress { get; private set; }
+    public Address ShippingAddress { get; private set; } = null!;
     public OrderStatus Status { get; private set; } = OrderStatus.Created;
     public PaymentMethod PaymentMethod { get; private set; }
     public string? TrackingNumber { get; private set; }
     public Guid CorrelationId { get; private set; }
-
-    /// <summary>Applied coupon code, or null when no coupon was used.</summary>
     public string? CouponCode { get; private set; }
-
-    /// <summary>Discount applied to the order subtotal, in EUR. Zero when no coupon was used.</summary>
     public decimal DiscountAmount { get; private set; }
-
-    /// <summary>Shipping cost added to the order total, in EUR. Set once during order processing.</summary>
     public decimal ShippingCost { get; private set; }
 
     private readonly List<OrderItem> _items = [];
     public IReadOnlyCollection<OrderItem> Items => _items;
 
-    private readonly List<OrderStatusHistory> _statusHistory = [];
-    public IReadOnlyCollection<OrderStatusHistory> StatusHistory => _statusHistory;
+    /// <summary>Number of events folded into this aggregate (committed plus not-yet-appended).</summary>
+    public int Version { get; private set; }
+
+    private readonly List<IOrderEvent> _uncommitted = [];
+    public IReadOnlyList<IOrderEvent> UncommittedEvents => _uncommitted;
 
     private Order()
     {
+        Id = OrderId.Empty;
         CustomerId = CustomerId.Empty;
-        ShippingAddress = null!;
     }
 
-    public Order(
+    /// <summary>Places a new order, raising <see cref="OrderCreated"/>.</summary>
+    public static Order Create(
         CustomerId customerId,
         Address shippingAddress,
         PaymentMethod paymentMethod,
@@ -49,35 +60,41 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
         if (itemList.Count == 0)
             throw new ArgumentException("An order must contain at least one item.", nameof(items));
 
-        Id = OrderId.New();
-        CustomerId = customerId;
-        ShippingAddress = shippingAddress;
-        PaymentMethod = paymentMethod;
-        _items.AddRange(itemList);
-        Status = OrderStatus.Created;
-        CorrelationId = correlationId;
+        var order = new Order { Id = OrderId.New() };
+        order.Raise(new OrderCreated(
+            customerId.Value,
+            new OrderAddressData(
+                shippingAddress.FirstName, shippingAddress.LastName, shippingAddress.Street,
+                shippingAddress.City, shippingAddress.PostalCode, shippingAddress.Country),
+            (int)paymentMethod,
+            itemList.Select(i => new OrderLineData(i.ProductId.Value, i.ProductName, i.Quantity, i.Price)).ToList(),
+            correlationId,
+            DateTime.UtcNow));
+        return order;
+    }
 
-        AppendStatus(OrderStatus.Created);
-        RaiseDomainEvent(new OrderCreatedDomainEvent(Id, CustomerId, CorrelationId));
+    /// <summary>Rebuilds an aggregate by folding its persisted event stream in order.</summary>
+    public static Order Rehydrate(OrderId id, IEnumerable<IOrderEvent> events)
+    {
+        var order = new Order { Id = id };
+        foreach (var @event in events)
+        {
+            order.Apply(@event);
+            order.Version++;
+        }
+        return order;
     }
 
     /// <summary>Records a redeemed coupon and its discount. Set once during order creation.</summary>
     public void ApplyDiscount(string couponCode, decimal amount)
-    {
-        CouponCode = couponCode;
-        DiscountAmount = amount;
-    }
+        => Raise(new CouponApplied(couponCode, amount, DateTime.UtcNow));
 
     /// <summary>Records the calculated shipping cost. Set once during order processing.</summary>
-    public void SetShippingCost(decimal amount) => ShippingCost = amount;
+    public void SetShippingCost(decimal amount)
+        => Raise(new ShippingCostSet(amount, DateTime.UtcNow));
 
     public void Confirm(string trackingNumber)
-    {
-        TrackingNumber = trackingNumber;
-        Status = OrderStatus.Paid;
-        AppendStatus(OrderStatus.Paid);
-        RaiseDomainEvent(new OrderConfirmedDomainEvent(Id, trackingNumber));
-    }
+        => Raise(new OrderConfirmed(trackingNumber, DateTime.UtcNow));
 
     public void MarkShipped()
     {
@@ -85,9 +102,7 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
             throw new InvalidOperationException(
                 $"Order can only be marked as shipped when status is Paid (current: {Status}).");
 
-        Status = OrderStatus.Shipped;
-        AppendStatus(OrderStatus.Shipped);
-        RaiseDomainEvent(new OrderShippedDomainEvent(Id));
+        Raise(new OrderShipped(DateTime.UtcNow));
     }
 
     public void MarkDelivered()
@@ -96,9 +111,7 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
             throw new InvalidOperationException(
                 $"Order can only be marked as delivered when status is Shipped (current: {Status}).");
 
-        Status = OrderStatus.Delivered;
-        AppendStatus(OrderStatus.Delivered);
-        RaiseDomainEvent(new OrderDeliveredDomainEvent(Id));
+        Raise(new OrderDelivered(DateTime.UtcNow));
     }
 
     public void Cancel()
@@ -107,11 +120,54 @@ public class Order : AuditableEntity<OrderId>, IAggregateRoot
             throw new InvalidOperationException(
                 $"Order in status {Status} cannot be cancelled.");
 
-        Status = OrderStatus.Cancelled;
-        AppendStatus(OrderStatus.Cancelled);
-        RaiseDomainEvent(new OrderCancelledDomainEvent(Id));
+        Raise(new OrderCancelled(DateTime.UtcNow));
     }
 
-    private void AppendStatus(OrderStatus status, string? note = null)
-        => _statusHistory.Add(new OrderStatusHistory(status, DateTime.UtcNow, note));
+    /// <summary>Clears the uncommitted buffer once the store has persisted the events.</summary>
+    public void MarkEventsCommitted() => _uncommitted.Clear();
+
+    private void Raise(IOrderEvent @event)
+    {
+        Apply(@event);
+        _uncommitted.Add(@event);
+        Version++;
+    }
+
+    private void Apply(IOrderEvent @event)
+    {
+        switch (@event)
+        {
+            case OrderCreated e:
+                CustomerId = CustomerId.From(e.CustomerId);
+                ShippingAddress = new Address(
+                    e.ShippingAddress.FirstName, e.ShippingAddress.LastName, e.ShippingAddress.Street,
+                    e.ShippingAddress.City, e.ShippingAddress.PostalCode, e.ShippingAddress.Country);
+                PaymentMethod = (PaymentMethod)e.PaymentMethod;
+                CorrelationId = e.CorrelationId;
+                _items.AddRange(e.Items.Select(i =>
+                    new OrderItem(ProductId.From(i.ProductId), i.ProductName, Quantity.Of(i.Quantity), Money.Of(i.Price))));
+                Status = OrderStatus.Created;
+                break;
+            case CouponApplied e:
+                CouponCode = e.CouponCode;
+                DiscountAmount = e.DiscountAmount;
+                break;
+            case ShippingCostSet e:
+                ShippingCost = e.Amount;
+                break;
+            case OrderConfirmed e:
+                TrackingNumber = e.TrackingNumber;
+                Status = OrderStatus.Paid;
+                break;
+            case OrderShipped:
+                Status = OrderStatus.Shipped;
+                break;
+            case OrderDelivered:
+                Status = OrderStatus.Delivered;
+                break;
+            case OrderCancelled:
+                Status = OrderStatus.Cancelled;
+                break;
+        }
+    }
 }

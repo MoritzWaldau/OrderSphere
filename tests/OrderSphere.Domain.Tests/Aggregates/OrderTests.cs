@@ -1,9 +1,9 @@
 using FluentAssertions;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.BuildingBlocks.ValueObjects;
-using OrderSphere.Ordering.Domain.DomainEvents;
 using OrderSphere.Ordering.Domain.Entities;
 using OrderSphere.Ordering.Domain.Enums;
+using OrderSphere.Ordering.Domain.OrderEvents;
 using OrderSphere.Ordering.Domain.ValueObjects;
 using Xunit;
 
@@ -11,7 +11,6 @@ namespace OrderSphere.Domain.Tests.Aggregates;
 
 public sealed class OrderTests
 {
-
     private static readonly CustomerId Customer = CustomerId.New();
     private static readonly Address Addr = new("Max", "Muster", "Hauptstr. 1", "Berlin", "10115", "DE");
     private static readonly Guid Correlation = Guid.NewGuid();
@@ -19,51 +18,36 @@ public sealed class OrderTests
     private static Order CreateOrder(IEnumerable<OrderItem>? items = null)
     {
         var defaultItems = items ?? [new OrderItem(ProductId.New(), "Widget", Quantity.Of(2), Money.Of(5m))];
-        return new Order(Customer, Addr, PaymentMethod.CreditCard, defaultItems, Correlation);
+        return Order.Create(Customer, Addr, PaymentMethod.CreditCard, defaultItems, Correlation);
     }
 
-
     [Fact]
-    public void Constructor_ValidInputs_SetsStatusCreated()
+    public void Create_SetsStatusCreated_AndAssignsId()
     {
         var order = CreateOrder();
 
         order.Status.Should().Be(OrderStatus.Created);
+        order.Id.Should().NotBe(OrderId.Empty);
     }
 
     [Fact]
-    public void Constructor_AppendsCreatedStatusHistory()
+    public void Create_RaisesSingleOrderCreatedEvent_CarryingFullState()
     {
         var order = CreateOrder();
 
-        order.StatusHistory.Should().ContainSingle()
-            .Which.Status.Should().Be(OrderStatus.Created);
+        order.UncommittedEvents.Should().ContainSingle()
+            .Which.Should().BeOfType<OrderCreated>();
+
+        var created = order.UncommittedEvents.OfType<OrderCreated>().Single();
+        created.CorrelationId.Should().Be(Correlation);
+        created.CustomerId.Should().Be(Customer.Value);
+        created.PaymentMethod.Should().Be((int)PaymentMethod.CreditCard);
+        created.Items.Should().ContainSingle();
+        created.ShippingAddress.City.Should().Be("Berlin");
     }
 
     [Fact]
-    public void StatusTransitions_AppendTimelineEntries_InOrder()
-    {
-        var order = CreateOrder();
-        order.Confirm("TRACK-1");
-        order.MarkShipped();
-        order.MarkDelivered();
-
-        order.StatusHistory.Select(h => h.Status).Should()
-            .Equal(OrderStatus.Created, OrderStatus.Paid, OrderStatus.Shipped, OrderStatus.Delivered);
-    }
-
-    [Fact]
-    public void SetShippingCost_SetsValue()
-    {
-        var order = CreateOrder();
-
-        order.SetShippingCost(4.99m);
-
-        order.ShippingCost.Should().Be(4.99m);
-    }
-
-    [Fact]
-    public void Constructor_EmptyItems_Throws()
+    public void Create_EmptyItems_Throws()
     {
         var act = () => CreateOrder([]);
 
@@ -71,62 +55,50 @@ public sealed class OrderTests
     }
 
     [Fact]
-    public void Constructor_RaisesOrderCreatedDomainEvent()
+    public void ApplyDiscount_RaisesCouponApplied_AndUpdatesState()
     {
         var order = CreateOrder();
 
-        var events = order.PopDomainEvents();
+        order.ApplyDiscount("SAVE10", 3.50m);
 
-        events.Should().ContainSingle()
-            .Which.Should().BeOfType<OrderCreatedDomainEvent>();
+        order.CouponCode.Should().Be("SAVE10");
+        order.DiscountAmount.Should().Be(3.50m);
+        order.UncommittedEvents.OfType<CouponApplied>().Should().ContainSingle();
     }
 
     [Fact]
-    public void Constructor_CreatedEvent_HasCorrectCorrelationId()
+    public void SetShippingCost_RaisesShippingCostSet_AndUpdatesState()
     {
         var order = CreateOrder();
-        var @event = order.PopDomainEvents().OfType<OrderCreatedDomainEvent>().Single();
 
-        @event.CorrelationId.Should().Be(Correlation);
-        @event.CustomerId.Should().Be(Customer);
+        order.SetShippingCost(4.99m);
+
+        order.ShippingCost.Should().Be(4.99m);
+        order.UncommittedEvents.OfType<ShippingCostSet>().Should().ContainSingle();
     }
 
-
     [Fact]
-    public void Confirm_SetsStatusPaid()
+    public void Confirm_SetsStatusPaid_AndRaisesOrderConfirmed()
     {
         var order = CreateOrder();
-        order.PopDomainEvents(); // drain constructor event
 
         order.Confirm("TRACK-001");
 
         order.Status.Should().Be(OrderStatus.Paid);
         order.TrackingNumber.Should().Be("TRACK-001");
+        order.UncommittedEvents.OfType<OrderConfirmed>().Should().ContainSingle();
     }
-
-    [Fact]
-    public void Confirm_RaisesOrderConfirmedDomainEvent()
-    {
-        var order = CreateOrder();
-        order.PopDomainEvents();
-
-        order.Confirm("TRACK-001");
-
-        var events = order.PopDomainEvents();
-        events.Should().ContainSingle().Which.Should().BeOfType<OrderConfirmedDomainEvent>();
-    }
-
 
     [Fact]
     public void MarkShipped_FromPaid_SetsStatusShipped()
     {
         var order = CreateOrder();
-        order.PopDomainEvents();
         order.Confirm("T");
 
         order.MarkShipped();
 
         order.Status.Should().Be(OrderStatus.Shipped);
+        order.UncommittedEvents.OfType<OrderShipped>().Should().ContainSingle();
     }
 
     [Fact]
@@ -140,25 +112,9 @@ public sealed class OrderTests
     }
 
     [Fact]
-    public void MarkShipped_RaisesOrderShippedDomainEvent()
-    {
-        var order = CreateOrder();
-        order.PopDomainEvents();
-        order.Confirm("T");
-        order.PopDomainEvents();
-
-        order.MarkShipped();
-
-        order.PopDomainEvents().Should().ContainSingle()
-            .Which.Should().BeOfType<OrderShippedDomainEvent>();
-    }
-
-
-    [Fact]
     public void MarkDelivered_FromShipped_SetsStatusDelivered()
     {
         var order = CreateOrder();
-        order.PopDomainEvents();
         order.Confirm("T");
         order.MarkShipped();
 
@@ -179,22 +135,6 @@ public sealed class OrderTests
     }
 
     [Fact]
-    public void MarkDelivered_RaisesOrderDeliveredDomainEvent()
-    {
-        var order = CreateOrder();
-        order.PopDomainEvents();
-        order.Confirm("T");
-        order.MarkShipped();
-        order.PopDomainEvents();
-
-        order.MarkDelivered();
-
-        order.PopDomainEvents().Should().ContainSingle()
-            .Which.Should().BeOfType<OrderDeliveredDomainEvent>();
-    }
-
-
-    [Fact]
     public void Cancel_FromCreated_SetsStatusCancelled()
     {
         var order = CreateOrder();
@@ -202,6 +142,7 @@ public sealed class OrderTests
         order.Cancel();
 
         order.Status.Should().Be(OrderStatus.Cancelled);
+        order.UncommittedEvents.OfType<OrderCancelled>().Should().ContainSingle();
     }
 
     [Fact]
@@ -229,26 +170,51 @@ public sealed class OrderTests
     }
 
     [Fact]
-    public void Cancel_RaisesOrderCancelledDomainEvent()
+    public void Version_CountsAllAppliedEvents()
     {
-        var order = CreateOrder();
-        order.PopDomainEvents();
+        var order = CreateOrder();   // OrderCreated
+        order.SetShippingCost(4.99m); // ShippingCostSet
+        order.Confirm("T");           // OrderConfirmed
 
-        order.Cancel();
-
-        order.PopDomainEvents().Should().ContainSingle()
-            .Which.Should().BeOfType<OrderCancelledDomainEvent>();
+        order.Version.Should().Be(3);
+        order.UncommittedEvents.Should().HaveCount(3);
     }
 
-
     [Fact]
-    public void PopDomainEvents_CalledTwice_SecondCallReturnsEmpty()
+    public void MarkEventsCommitted_ClearsUncommitted_ButKeepsVersionAndState()
     {
         var order = CreateOrder();
-        order.PopDomainEvents(); // drain
+        order.Confirm("T");
 
-        var second = order.PopDomainEvents();
+        order.MarkEventsCommitted();
 
-        second.Should().BeEmpty();
+        order.UncommittedEvents.Should().BeEmpty();
+        order.Version.Should().Be(2);
+        order.Status.Should().Be(OrderStatus.Paid);
+    }
+
+    [Fact]
+    public void Rehydrate_FromStream_ReproducesStateAndVersion_WithNoUncommittedEvents()
+    {
+        // Build a stream the way the store would persist it, then fold it back.
+        var source = CreateOrder();
+        source.ApplyDiscount("SAVE10", 3.50m);
+        source.SetShippingCost(4.99m);
+        source.Confirm("TRACK-9");
+        source.MarkShipped();
+        var stream = source.UncommittedEvents.ToList();
+
+        var rebuilt = Order.Rehydrate(source.Id, stream);
+
+        rebuilt.Id.Should().Be(source.Id);
+        rebuilt.Status.Should().Be(OrderStatus.Shipped);
+        rebuilt.TrackingNumber.Should().Be("TRACK-9");
+        rebuilt.CouponCode.Should().Be("SAVE10");
+        rebuilt.DiscountAmount.Should().Be(3.50m);
+        rebuilt.ShippingCost.Should().Be(4.99m);
+        rebuilt.CorrelationId.Should().Be(Correlation);
+        rebuilt.Items.Should().ContainSingle();
+        rebuilt.Version.Should().Be(stream.Count);
+        rebuilt.UncommittedEvents.Should().BeEmpty();
     }
 }

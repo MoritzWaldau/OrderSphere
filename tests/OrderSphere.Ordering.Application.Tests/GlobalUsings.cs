@@ -10,5 +10,6 @@ global using OrderSphere.Ordering.Application.Abstractions;
 global using OrderSphere.Ordering.Domain.Entities;
 global using OrderSphere.Ordering.Domain.Enums;
 global using OrderSphere.Ordering.Domain.Errors;
+global using OrderSphere.Ordering.Domain.ReadModels;
 global using OrderSphere.Ordering.Domain.ValueObjects;
 global using Xunit;

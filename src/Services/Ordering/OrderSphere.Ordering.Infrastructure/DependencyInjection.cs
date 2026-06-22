@@ -5,6 +5,7 @@ using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.BuildingBlocks.EventBus.Outbox;
 using OrderSphere.Ordering.Application.Abstractions;
+using OrderSphere.Ordering.Infrastructure.EventSourcing;
 using OrderSphere.Ordering.Infrastructure.Outbox;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 using OrderSphere.Ordering.Infrastructure.ServiceBus;
@@ -18,6 +19,10 @@ public static class DependencyInjection
         IHostEnvironment environment)
     {
         services.AddScoped<IOrderingDbContext>(sp => sp.GetRequiredService<OrderingDbContext>());
+
+        // Event-sourced order aggregate: load rebuilds from the stream, append stages events plus
+        // the synchronous read projection into the same unit of work as the caller's outbox/inbox.
+        services.AddScoped<IOrderEventStore, OrderEventStore>();
 
         // Shipping rate (flat rate, waived above a free-shipping threshold).
         services.AddSingleton<IShippingRateProvider, Shipping.FlatRateShippingProvider>();

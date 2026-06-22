@@ -8,12 +8,10 @@ public sealed class GetOrderByIdQueryHandlerTests
     private static readonly Address Addr = new("Max", "Muster", "Hauptstr. 1", "Berlin", "10115", "DE");
     private static readonly CustomerId Customer = CustomerId.New();
 
-    private static Order CreateOrder()
+    private static OrderView CreateOrder()
     {
         var items = new[] { new OrderItem(ProductId.New(), "Widget", Quantity.Of(1), Money.Of(10m)) };
-        var o = new Order(Customer, Addr, PaymentMethod.CreditCard, items, Guid.NewGuid());
-        o.PopDomainEvents();
-        return o;
+        return OrderView.Create(OrderId.New(), Customer, Addr, PaymentMethod.CreditCard, Guid.NewGuid(), items, DateTime.UtcNow);
     }
 
     private static GetOrderByIdQueryHandler CreateHandler(IOrderingDbContext ctx) =>
@@ -23,7 +21,7 @@ public sealed class GetOrderByIdQueryHandlerTests
     [Fact]
     public async Task Handle_OrderNotFound_ReturnsOrderNotFoundError()
     {
-        var orders = new List<Order>().BuildMockDbSet();
+        var orders = new List<OrderView>().BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -55,7 +53,7 @@ public sealed class GetOrderByIdQueryHandlerTests
     public async Task Handle_OrderExists_ReturnsOrderDto()
     {
         var order = CreateOrder();
-        var orders = new List<Order> { order }.BuildMockDbSet();
+        var orders = new List<OrderView> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 

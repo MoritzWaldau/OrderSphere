@@ -4,163 +4,122 @@ namespace OrderSphere.Ordering.Application.Tests.Features;
 
 public sealed class UpdateOrderStatusCommandHandlerTests
 {
-
     private static readonly Address Addr = new("Max", "Muster", "Hauptstr. 1", "Berlin", "10115", "DE");
     private static readonly CustomerId Customer = CustomerId.New();
 
     private static Order CreateOrder()
     {
         var items = new[] { new OrderItem(ProductId.New(), "Widget", Quantity.Of(2), Money.Of(5m)) };
-        return new Order(Customer, Addr, PaymentMethod.CreditCard, items, Guid.NewGuid());
+        return Order.Create(Customer, Addr, PaymentMethod.CreditCard, items, Guid.NewGuid());
     }
 
-    private static UpdateOrderStatusCommandHandler CreateHandler(IOrderingDbContext ctx) =>
-        new(ctx, Substitute.For<ILogger<UpdateOrderStatusCommandHandler>>());
-
+    private static (UpdateOrderStatusCommandHandler Handler, IOrderingDbContext Ctx, IOrderEventStore Store) CreateHandler(Order? loaded)
+    {
+        var ctx = Substitute.For<IOrderingDbContext>();
+        var store = Substitute.For<IOrderEventStore>();
+        store.LoadAsync(Arg.Any<OrderId>(), Arg.Any<CancellationToken>()).Returns(loaded);
+        var handler = new UpdateOrderStatusCommandHandler(ctx, store, Substitute.For<ILogger<UpdateOrderStatusCommandHandler>>());
+        return (handler, ctx, store);
+    }
 
     [Fact]
     public async Task Handle_OrderNotFound_ReturnsOrderNotFoundError()
     {
-        var orders = new List<Order>().BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
+        var (handler, _, _) = CreateHandler(loaded: null);
 
-        var result = await CreateHandler(ctx).Handle(
-            new(Guid.NewGuid(), OrderStatus.Shipped), default);
+        var result = await handler.Handle(new(Guid.NewGuid(), OrderStatus.Shipped), default);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(OrderErrors.OrderNotFoundError);
     }
 
-
     [Fact]
     public async Task Handle_ShippedStatus_OrderInPaidState_ReturnsSuccess()
     {
         var order = CreateOrder();
-        var orderId = order.Id;
         order.Confirm("TRACK-001");
-        order.PopDomainEvents();
+        var (handler, _, _) = CreateHandler(order);
 
-        var orders = new List<Order> { order }.BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
-
-        var result = await CreateHandler(ctx).Handle(
-            new(orderId.Value, OrderStatus.Shipped), default);
+        var result = await handler.Handle(new(order.Id.Value, OrderStatus.Shipped), default);
 
         result.IsSuccess.Should().BeTrue();
         order.Status.Should().Be(OrderStatus.Shipped);
     }
 
-
     [Fact]
     public async Task Handle_DeliveredStatus_OrderInShippedState_ReturnsSuccess()
     {
         var order = CreateOrder();
-        var orderId = order.Id;
         order.Confirm("TRACK-001");
         order.MarkShipped();
-        order.PopDomainEvents();
+        var (handler, _, _) = CreateHandler(order);
 
-        var orders = new List<Order> { order }.BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
-
-        var result = await CreateHandler(ctx).Handle(
-            new(orderId.Value, OrderStatus.Delivered), default);
+        var result = await handler.Handle(new(order.Id.Value, OrderStatus.Delivered), default);
 
         result.IsSuccess.Should().BeTrue();
         order.Status.Should().Be(OrderStatus.Delivered);
     }
 
-
     [Fact]
     public async Task Handle_CancelledStatus_ReturnsInvalidStatusTransitionError()
     {
         var order = CreateOrder();
-        var orderId = order.Id;
+        var (handler, _, _) = CreateHandler(order);
 
-        var orders = new List<Order> { order }.BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
-
-        var result = await CreateHandler(ctx).Handle(
-            new(orderId.Value, OrderStatus.Cancelled), default);
+        var result = await handler.Handle(new(order.Id.Value, OrderStatus.Cancelled), default);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(OrderErrors.InvalidStatusTransition);
     }
-
 
     [Fact]
     public async Task Handle_UnknownStatus_ReturnsInvalidStatusTransitionError()
     {
         var order = CreateOrder();
-        var orderId = order.Id;
+        var (handler, _, _) = CreateHandler(order);
 
-        var orders = new List<Order> { order }.BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
-
-        var result = await CreateHandler(ctx).Handle(
-            new(orderId.Value, (OrderStatus)99), default);
+        var result = await handler.Handle(new(order.Id.Value, (OrderStatus)99), default);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(OrderErrors.InvalidStatusTransition);
     }
-
 
     [Fact]
     public async Task Handle_ShippedStatus_OrderInCreatedState_ReturnsInvalidTransitionError()
     {
-        // Order is in Created state — MarkShipped should throw InvalidOperationException
+        // Order is in Created state — MarkShipped should throw InvalidOperationException.
         var order = CreateOrder();
-        var orderId = order.Id;
+        var (handler, _, _) = CreateHandler(order);
 
-        var orders = new List<Order> { order }.BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
-
-        var result = await CreateHandler(ctx).Handle(
-            new(orderId.Value, OrderStatus.Shipped), default);
+        var result = await handler.Handle(new(order.Id.Value, OrderStatus.Shipped), default);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(OrderErrors.InvalidStatusTransition);
     }
 
-
     [Fact]
-    public async Task Handle_SuccessfulTransition_SavesChanges()
+    public async Task Handle_SuccessfulTransition_AppendsAndSavesChanges()
     {
         var order = CreateOrder();
-        var orderId = order.Id;
         order.Confirm("TRACK-001");
+        var (handler, ctx, store) = CreateHandler(order);
 
-        var orders = new List<Order> { order }.BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
+        await handler.Handle(new(order.Id.Value, OrderStatus.Shipped), default);
 
-        await CreateHandler(ctx).Handle(new(orderId.Value, OrderStatus.Shipped), default);
-
+        await store.Received(1).AppendAsync(order, Arg.Any<CancellationToken>());
         await ctx.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
-
 
     [Fact]
     public async Task Handle_SaveChangesThrows_ReturnsUnknownError()
     {
         var order = CreateOrder();
-        var orderId = order.Id;
         order.Confirm("TRACK-001");
-
-        var orders = new List<Order> { order }.BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
+        var (handler, ctx, _) = CreateHandler(order);
         ctx.SaveChangesAsync(Arg.Any<CancellationToken>())
            .ThrowsAsync(new InvalidOperationException("db error"));
 
-        var result = await CreateHandler(ctx).Handle(
-            new(orderId.Value, OrderStatus.Shipped), default);
+        var result = await handler.Handle(new(order.Id.Value, OrderStatus.Shipped), default);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(OrderErrors.UnknownError);

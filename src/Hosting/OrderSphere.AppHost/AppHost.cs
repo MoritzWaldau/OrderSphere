@@ -106,6 +106,14 @@ serviceBus.AddServiceBusQueue("webhook-events")
         cfg.MaxDeliveryCount = 5;
     });
 
+// Order-history read-model projection (A3 — CQRS materialised view). Fanned out from the
+// Ordering outbox alongside webhook-events; consumed by the OrderHistoryProjector worker.
+serviceBus.AddServiceBusQueue("order-history")
+    .WithProperties(cfg =>
+    {
+        cfg.MaxDeliveryCount = 5;
+    });
+
 var redis = builder.AddAzureManagedRedis("redis")
     .RunAsContainer(c => c.WithLifetime(ContainerLifetime.Persistent));
 

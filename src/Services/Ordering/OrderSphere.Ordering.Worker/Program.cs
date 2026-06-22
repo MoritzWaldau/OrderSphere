@@ -41,6 +41,7 @@ builder.Services.AddHttpClient<ICatalogClient, HttpCatalogClient>(client =>
 builder.Services.AddHostedService<OrderProcessor>();
 builder.Services.AddHostedService<PaymentResultProcessor>();
 builder.Services.AddHostedService<PaymentRefundProcessor>();
+builder.Services.AddHostedService<OrderHistoryProjector>();
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));

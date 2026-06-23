@@ -31,6 +31,25 @@ public sealed class CatalogGrpcService(ICatalogDbContext context) : CatalogServi
         return p is null ? new GetProductResponse { Found = false } : MapProduct(p);
     }
 
+    public override async Task<GetProductsResponse> GetProducts(GetProductsRequest request, ServerCallContext ctx)
+    {
+        var typedIds = request.ProductIds
+            .Select(s => Guid.TryParse(s, out var g) ? (ProductId?)ProductId.From(g) : null)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .ToList();
+
+        var products = await context.Products
+            .Include(x => x.Category)
+            .AsNoTracking()
+            .Where(p => typedIds.Contains(p.Id))
+            .ToListAsync(ctx.CancellationToken);
+
+        var response = new GetProductsResponse();
+        response.Products.AddRange(products.Select(MapProduct));
+        return response;
+    }
+
     public override async Task<CheckStockResponse> CheckStock(CheckStockRequest request, ServerCallContext ctx)
     {
         if (!Guid.TryParse(request.ProductId, out var id))

@@ -3,9 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OrderSphere.Basket.Api.Configuration;
 using OrderSphere.Basket.Api.Endpoints;
 using OrderSphere.Basket.Application;
-using OrderSphere.Basket.Application.Abstractions;
 using OrderSphere.Basket.Infrastructure;
-using OrderSphere.Basket.Infrastructure.CatalogClient;
 using OrderSphere.Basket.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,13 +14,9 @@ builder.AddOrderSphereSwagger("OrderSphere Basket API");
 builder.AddBasketInfrastructure();
 builder.Services.AddBasketApplication();
 
-// HTTP client for Catalog service (stock verification)
-builder.Services.AddHttpClient<ICatalogClient, HttpCatalogClient>(client =>
-{
-    var catalogUrl = builder.Configuration["Services:Catalog:BaseUrl"]
-        ?? "https://ordersphere-catalog";
-    client.BaseAddress = new Uri(catalogUrl);
-}).AddClientCredentialsHandler();
+// gRPC client for Catalog service (internal stock checks). Internal Catalog endpoints are
+// network-protected (no auth), so no client-credentials handler is attached.
+builder.AddCatalogGrpcClient();
 
 // Health checks
 var basketConnectionString = builder.Configuration.GetConnectionString("basket-db") ?? "";

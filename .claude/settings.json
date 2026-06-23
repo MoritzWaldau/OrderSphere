@@ -1,0 +1,7 @@
+{
+  "enabledPlugins": {
+    "playwright@claude-plugins-official": false,
+    "stripe@claude-plugins-official": false,
+    "code-simplifier@claude-plugins-official": false
+  }
+}

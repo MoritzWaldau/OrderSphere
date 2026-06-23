@@ -1,7 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OrderSphere.Basket.Application.Abstractions;
+using OrderSphere.Basket.Infrastructure.CatalogClient;
 using OrderSphere.Basket.Infrastructure.Persistence;
+using OrderSphere.Catalog.V1;
 
 namespace OrderSphere.Basket.Infrastructure;
 
@@ -16,6 +18,26 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<IBasketDbContext>(sp =>
             sp.GetRequiredService<BasketDbContext>());
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers the gRPC-backed <see cref="ICatalogClient"/> for internal stock checks (A5).
+    /// The standard resilience and service-discovery handlers from ServiceDefaults'
+    /// <c>ConfigureHttpClientDefaults</c> apply to the generated channel automatically.
+    /// </summary>
+    public static IHostApplicationBuilder AddCatalogGrpcClient(this IHostApplicationBuilder builder)
+    {
+        var catalogUrl = builder.Configuration["Services:Catalog:BaseUrl"]
+            ?? "https://ordersphere-catalog";
+
+        builder.Services.AddGrpcClient<CatalogService.CatalogServiceClient>(options =>
+        {
+            options.Address = new Uri(catalogUrl);
+        });
+
+        builder.Services.AddScoped<ICatalogClient, GrpcCatalogClient>();
 
         return builder;
     }

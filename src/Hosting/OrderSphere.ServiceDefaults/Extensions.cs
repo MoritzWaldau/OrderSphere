@@ -121,8 +121,8 @@ public static class Extensions
                             && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath)
                             && !context.Request.Path.StartsWithSegments(VersionEndpointPath)
                     )
-                    // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
-                    //.AddGrpcClientInstrumentation()
+                    // Client spans for internal gRPC calls (e.g. Basket→Catalog stock checks).
+                    .AddGrpcClientInstrumentation()
                     .AddHttpClientInstrumentation();
             });
 

@@ -6,6 +6,7 @@ using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Application.Models;
 using OrderSphere.Ordering.Domain.Errors;
+using OrderSphere.Ordering.Domain.ReadModels;
 
 namespace OrderSphere.Ordering.Application.Features.Order;
 
@@ -46,7 +47,7 @@ public sealed class GetOrdersByCustomerQueryHandler(
         }
     }
 
-    internal static OrderDto ToDto(Domain.Entities.Order o)
+    internal static OrderDto ToDto(OrderView o)
     {
         var subtotal = o.Items.Sum(i => i.Price * i.Quantity);
         return new(

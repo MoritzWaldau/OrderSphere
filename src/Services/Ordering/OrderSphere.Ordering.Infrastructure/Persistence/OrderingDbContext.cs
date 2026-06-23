@@ -11,6 +11,8 @@ using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Entities;
+using OrderSphere.Ordering.Domain.ReadModels;
+using OrderSphere.Ordering.Infrastructure.EventSourcing;
 
 namespace OrderSphere.Ordering.Infrastructure.Persistence;
 
@@ -19,10 +21,12 @@ public sealed class OrderingDbContext(
     IPublisher publisher)
     : DbContext(options), IOrderingDbContext
 {
-    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderView> Orders => Set<OrderView>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    internal DbSet<OrderEventRecord> OrderEvents => Set<OrderEventRecord>();
     public DbSet<Coupon> Coupons => Set<Coupon>();
     public DbSet<OrderSaga> OrderSagas => Set<OrderSaga>();
+    public DbSet<OrderHistoryEntry> OrderHistory => Set<OrderHistoryEntry>();
     internal DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     public void AddOutboxMessage(string type, string content)

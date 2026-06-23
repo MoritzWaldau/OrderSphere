@@ -5,15 +5,15 @@ namespace OrderSphere.Ordering.Application.Tests.Features;
 
 public sealed class OrderAdminQueryHandlerTests
 {
-    private static Order CreateOrder(decimal price = 10m, bool paid = false)
+    private static OrderView CreateOrder(decimal price = 10m, bool paid = false)
     {
         // A fresh Address per order: it is an owned entity and cannot be shared between owners.
         var addr = new Address("Max", "Muster", "Str. 1", "Berlin", "10115", "DE");
         var items = new[] { new OrderItem(ProductId.New(), "Item", Quantity.Of(1), Money.Of(price)) };
-        var o = new Order(CustomerId.New(), addr, PaymentMethod.CreditCard, items, Guid.NewGuid());
+        var now = DateTime.UtcNow;
+        var o = OrderView.Create(OrderId.New(), CustomerId.New(), addr, PaymentMethod.CreditCard, Guid.NewGuid(), items, now);
         if (paid)
-            o.Confirm("TRK-001");
-        o.PopDomainEvents();
+            o.Confirm("TRK-001", now);
         return o;
     }
 

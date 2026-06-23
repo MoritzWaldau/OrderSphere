@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
@@ -13,6 +12,7 @@ public sealed record UpdateOrderStatusCommand(Guid OrderId, OrderStatus NewStatu
 
 public sealed class UpdateOrderStatusCommandHandler(
     IOrderingDbContext context,
+    IOrderEventStore eventStore,
     ILogger<UpdateOrderStatusCommandHandler> logger
 ) : ICommandHandler<UpdateOrderStatusCommand, Result>
 {
@@ -20,8 +20,7 @@ public sealed class UpdateOrderStatusCommandHandler(
     {
         try
         {
-            var order = await context.Orders
-                .FirstOrDefaultAsync(o => o.Id == OrderId.From(request.OrderId), cancellationToken);
+            var order = await eventStore.LoadAsync(OrderId.From(request.OrderId), cancellationToken);
 
             if (order is null)
                 return Result.Failure(OrderErrors.OrderNotFoundError);
@@ -47,6 +46,7 @@ public sealed class UpdateOrderStatusCommandHandler(
                 return Result.Failure(OrderErrors.InvalidStatusTransition);
             }
 
+            await eventStore.AppendAsync(order, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Order {OrderId} status updated to {NewStatus}", order.Id, request.NewStatus);

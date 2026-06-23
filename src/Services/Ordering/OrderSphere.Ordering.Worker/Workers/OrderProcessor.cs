@@ -9,6 +9,7 @@ using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Entities;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.ValueObjects;
+using OrderSphere.Ordering.Infrastructure.EventSourcing;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 
 namespace OrderSphere.Ordering.Worker.Workers;
@@ -127,7 +128,7 @@ public sealed class OrderProcessor(
                     var shippingAddress = new Address(addr.FirstName, addr.LastName, addr.Street, addr.City, addr.PostalCode, addr.Country);
                     var paymentMethod = Enum.Parse<PaymentMethod>(evt.PaymentMethod);
 
-                    var order = new Order(
+                    var order = Order.Create(
                         CustomerId.From(evt.CustomerId),
                         shippingAddress,
                         paymentMethod,
@@ -142,7 +143,9 @@ public sealed class OrderProcessor(
                     var shipping = shippingRateProvider.Calculate(subtotal);
                     order.SetShippingCost(shipping);
 
-                    await context.Orders.AddAsync(order, ct);
+                    // Persist the aggregate as its event stream and stage the read projection.
+                    // The CorrelationId unique index on the projection still guards duplicates.
+                    await new OrderEventStore(context).AppendAsync(order, ct);
 
                     var paymentEvent = new PaymentRequestedIntegrationEvent
                     {

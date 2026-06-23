@@ -74,13 +74,51 @@ xUnit + FluentAssertions (NSubstitute for mocking; EF Core in-memory, or SQLite 
 | Cart | Basket | Add/remove/decrease items; validates stock via Catalog HTTP client |
 | Product | Catalog | CRUD + public slug/id lookups; Redis hybrid caching on reads |
 | Category | Catalog | Hierarchy management; products reference categories by ID |
-| Order | Ordering | Placement, retrieval, status transitions (Created → Paid → Shipped → Delivered / Cancelled) |
+| Order | Ordering | Placement, retrieval, status transitions (Created → Paid → Shipped → Delivered / Cancelled). Event-sourced write model — see [Ordering write model](#ordering-write-model-event-sourced) |
 | Checkout | Ordering | Cart-to-order flow: fetches cart + decrements stock synchronously, then publishes `CheckoutCartIntegrationEvent` to Service Bus |
 | Coupon | Ordering | `ValidateCoupon` query; hardcoded codes `WELCOME10`, `SUMMER15` |
 | Payment | Payment | `PaymentRecord` created by Worker on `payment-requests` queue; status: Pending → Authorized → Captured / Failed |
 | Webhooks | Webhooks | Outbound webhook dispatch triggered by integration events |
 | Notification | Notification | Order confirmation email on `OrderPlacedIntegrationEvent` |
 | UserProfile | UserProfile | Customer profile data |
+
+## Ordering write model (event-sourced)
+
+The `Order` aggregate is event-sourced: its state is never persisted directly. Every mutation
+raises an `IOrderEvent` (`OrderCreated`, `CouponApplied`, `ShippingCostSet`, `OrderConfirmed`,
+`OrderShipped`, `OrderDelivered`, `OrderCancelled`) that is appended to the order's stream in
+`order_events`. Loading rebuilds the aggregate by folding the stream in version order. This is a
+deliberately scoped island — only the Order aggregate is event-sourced; every other aggregate
+remains state-based.
+
+- **Stream & concurrency.** `order_events` has a composite primary key `(StreamId, Version)`,
+  where `Version` is a gap-free 1-based sequence per order. The key doubles as the optimistic
+  concurrency guard: two writers appending the same next version collide on insert, surfacing as a
+  unique-constraint violation the caller treats as a lost race (`OrderProcessor` already handles
+  this idempotently).
+- **Serialization.** Events are stored as JSON with an explicit type discriminator
+  (`OrderEventSerializer`), so the stream is decoupled from CLR namespace/assembly moves. Payloads
+  are primitive (`Guid`/`string`/`int`/`decimal`) rather than value objects, keeping the stored
+  contract stable across value-object refactors.
+- **Read projection.** The read side is unchanged: the same `orders`, `order_items`, and
+  `order_status_history` tables, now populated by the `OrderView` projection. `IOrderEventStore`
+  stages the new events **and** the projection into the change tracker without saving; the caller's
+  single `SaveChanges` commits the stream, the projection, and any outbox/inbox rows in one
+  transaction, so reads are synchronously consistent with the write side. All order queries and the
+  A3 `order-history` read-model are untouched.
+- **Touchpoints.** `OrderProcessor`, `PaymentResultProcessor` (including confirmation-failure
+  compensation), `UpdateOrderStatusCommandHandler`, and `CancelOrderCommandHandler` load and append
+  through `IOrderEventStore`.
+
+```mermaid
+flowchart LR
+    cmd[Command / integration event] --> load[IOrderEventStore.LoadAsync]
+    load --> fold[Fold order_events stream into Order]
+    fold --> mutate[Aggregate method raises IOrderEvent]
+    mutate --> append[AppendAsync: stage event rows + OrderView projection]
+    append --> save[SaveChanges: stream + projection + outbox/inbox]
+    save --> read[(orders / order_items / order_status_history)]
+```
 
 ## AI advisory agent + MCP server
 

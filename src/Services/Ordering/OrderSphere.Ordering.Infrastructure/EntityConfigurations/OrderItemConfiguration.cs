@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OrderSphere.Ordering.Domain.Entities;
+using OrderSphere.Ordering.Domain.ReadModels;
 
 namespace OrderSphere.Ordering.Infrastructure.EntityConfigurations;
 
@@ -29,7 +30,7 @@ public sealed class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
              .HasDefaultValue("EUR");
         });
 
-        builder.HasOne<Order>()
+        builder.HasOne<OrderView>()
             .WithMany(o => o.Items)
             .HasForeignKey("OrderId")
             .IsRequired()

@@ -8,17 +8,17 @@ public sealed class GetAllOrdersQueryHandlerTests
     private static readonly Address Addr = new("Max", "Muster", "Str. 1", "Berlin", "10115", "DE");
     private static readonly CustomerId Customer = CustomerId.New();
 
-    private static Order CreateOrder(OrderStatus? advanceTo = null)
+    private static OrderView CreateOrder(OrderStatus? advanceTo = null)
     {
         var items = new[] { new OrderItem(ProductId.New(), "Item", Quantity.Of(1), Money.Of(10m)) };
-        var o = new Order(Customer, Addr, PaymentMethod.CreditCard, items, Guid.NewGuid());
+        var now = DateTime.UtcNow;
+        var o = OrderView.Create(OrderId.New(), Customer, Addr, PaymentMethod.CreditCard, Guid.NewGuid(), items, now);
         if (advanceTo == OrderStatus.Paid || advanceTo == OrderStatus.Shipped || advanceTo == OrderStatus.Delivered)
-            o.Confirm("TRK-001");
+            o.Confirm("TRK-001", now);
         if (advanceTo == OrderStatus.Shipped || advanceTo == OrderStatus.Delivered)
-            o.MarkShipped();
+            o.MarkShipped(now);
         if (advanceTo == OrderStatus.Delivered)
-            o.MarkDelivered();
-        o.PopDomainEvents();
+            o.MarkDelivered(now);
         return o;
     }
 
@@ -31,7 +31,7 @@ public sealed class GetAllOrdersQueryHandlerTests
     {
         var o1 = CreateOrder();
         var o2 = CreateOrder(OrderStatus.Paid);
-        var orders = new List<Order> { o1, o2 }.BuildMockDbSet();
+        var orders = new List<OrderView> { o1, o2 }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -47,7 +47,7 @@ public sealed class GetAllOrdersQueryHandlerTests
     {
         var created = CreateOrder();
         var paid = CreateOrder(OrderStatus.Paid);
-        var orders = new List<Order> { created, paid }.BuildMockDbSet();
+        var orders = new List<OrderView> { created, paid }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 

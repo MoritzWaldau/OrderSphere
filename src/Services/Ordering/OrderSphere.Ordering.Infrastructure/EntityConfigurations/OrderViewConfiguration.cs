@@ -1,12 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using OrderSphere.Ordering.Domain.Entities;
+using OrderSphere.Ordering.Domain.ReadModels;
 
 namespace OrderSphere.Ordering.Infrastructure.EntityConfigurations;
 
-public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
+/// <summary>
+/// Maps the <see cref="OrderView"/> read projection to the order tables. The schema is identical
+/// to the pre-event-sourcing aggregate mapping — the read side is unchanged, only its writer is.
+/// </summary>
+public sealed class OrderViewConfiguration : IEntityTypeConfiguration<OrderView>
 {
-    public void Configure(EntityTypeBuilder<Order> builder)
+    public void Configure(EntityTypeBuilder<OrderView> builder)
     {
         builder.ToTable("orders");
         builder.HasKey(o => o.Id);

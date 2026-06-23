@@ -4,76 +4,66 @@ namespace OrderSphere.Ordering.Application.Tests.Features;
 
 public sealed class CancelOrderCommandHandlerTests
 {
-
     private static readonly Address Addr = new("Max", "Muster", "Hauptstr. 1", "Berlin", "10115", "DE");
     private static readonly CustomerId Customer = CustomerId.New();
 
     private static Order CreateOrder(bool paid = false, bool delivered = false, bool cancelled = false)
     {
         var items = new[] { new OrderItem(ProductId.New(), "Widget", Quantity.Of(2), Money.Of(5m)) };
-        var o = new Order(Customer, Addr, PaymentMethod.CreditCard, items, Guid.NewGuid());
+        var o = Order.Create(Customer, Addr, PaymentMethod.CreditCard, items, Guid.NewGuid());
         if (paid || delivered || cancelled) o.Confirm("TRACK-001");
         if (delivered) o.MarkShipped();
         if (delivered) o.MarkDelivered();
         if (cancelled) o.Cancel();
-        o.PopDomainEvents();
         return o;
     }
 
-    private static CancelOrderCommandHandler CreateHandler(
-        IOrderingDbContext ctx,
+    private static (CancelOrderCommandHandler Handler, IOrderingDbContext Ctx, IOrderEventStore Store) CreateHandler(
+        Order? loaded,
         ICatalogClient? catalog = null)
     {
         catalog ??= Substitute.For<ICatalogClient>();
-        return new(ctx, catalog, Substitute.For<ILogger<CancelOrderCommandHandler>>());
+        var ctx = Substitute.For<IOrderingDbContext>();
+        var store = Substitute.For<IOrderEventStore>();
+        store.LoadAsync(Arg.Any<OrderId>(), Arg.Any<CancellationToken>()).Returns(loaded);
+        var handler = new CancelOrderCommandHandler(ctx, store, catalog, Substitute.For<ILogger<CancelOrderCommandHandler>>());
+        return (handler, ctx, store);
     }
-
 
     [Fact]
     public async Task Handle_OrderNotFound_ReturnsOrderNotFoundError()
     {
-        var orders = new List<Order>().BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
+        var (handler, _, _) = CreateHandler(loaded: null);
 
-        var result = await CreateHandler(ctx).Handle(new(Guid.NewGuid()), default);
+        var result = await handler.Handle(new(Guid.NewGuid()), default);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(OrderErrors.OrderNotFoundError);
     }
 
-
     [Fact]
     public async Task Handle_OrderDelivered_ReturnsInvalidStatusTransitionError()
     {
         var order = CreateOrder(delivered: true);
-        var orderId = order.Id;
-        var orders = new List<Order> { order }.BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
+        var (handler, _, _) = CreateHandler(order);
 
-        var result = await CreateHandler(ctx).Handle(new(orderId.Value), default);
+        var result = await handler.Handle(new(order.Id.Value), default);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(OrderErrors.InvalidStatusTransition);
     }
-
 
     [Fact]
     public async Task Handle_OrderInCreatedState_ReleasesReservation_CancelsSuccessfully()
     {
         // Created → stock was only reserved (not decremented), so the hold is released.
         var order = CreateOrder();
-        var orderId = order.Id;
-        var orders = new List<Order> { order }.BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
-
         var catalog = Substitute.For<ICatalogClient>();
         catalog.ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
                .Returns(Result.Success());
+        var (handler, ctx, _) = CreateHandler(order, catalog);
 
-        var result = await CreateHandler(ctx, catalog).Handle(new(orderId.Value), default);
+        var result = await handler.Handle(new(order.Id.Value), default);
 
         result.IsSuccess.Should().BeTrue();
         order.Status.Should().Be(OrderStatus.Cancelled);
@@ -87,16 +77,12 @@ public sealed class CancelOrderCommandHandlerTests
     {
         // Paid → the reservation was confirmed (on-hand stock decremented), so it is restored.
         var order = CreateOrder(paid: true);
-        var orderId = order.Id;
-        var orders = new List<Order> { order }.BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
-
         var catalog = Substitute.For<ICatalogClient>();
         catalog.RestoreStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
                .Returns(Result.Success());
+        var (handler, _, _) = CreateHandler(order, catalog);
 
-        var result = await CreateHandler(ctx, catalog).Handle(new(orderId.Value), default);
+        var result = await handler.Handle(new(order.Id.Value), default);
 
         result.IsSuccess.Should().BeTrue();
         order.Status.Should().Be(OrderStatus.Cancelled);
@@ -104,43 +90,33 @@ public sealed class CancelOrderCommandHandlerTests
         await catalog.DidNotReceive().ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
-
     [Fact]
     public async Task Handle_StockRestoreFails_StillReturnsSuccess()
     {
         var order = CreateOrder(paid: true);
-        var orderId = order.Id;
-        var orders = new List<Order> { order }.BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
-
         var catalog = Substitute.For<ICatalogClient>();
         catalog.RestoreStockAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
                .Returns(Result.Failure(new Error("catalog.error", "stock error")));
+        var (handler, ctx, _) = CreateHandler(order, catalog);
 
-        var result = await CreateHandler(ctx, catalog).Handle(new(orderId.Value), default);
+        var result = await handler.Handle(new(order.Id.Value), default);
 
         result.IsSuccess.Should().BeTrue();
         await ctx.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-
     [Fact]
     public async Task Handle_SaveChangesThrows_ReturnsUnknownError()
     {
         var order = CreateOrder();
-        var orderId = order.Id;
-        var orders = new List<Order> { order }.BuildMockDbSet();
-        var ctx = Substitute.For<IOrderingDbContext>();
-        ctx.Orders.Returns(orders);
-        ctx.SaveChangesAsync(Arg.Any<CancellationToken>())
-           .ThrowsAsync(new InvalidOperationException("db error"));
-
         var catalog = Substitute.For<ICatalogClient>();
         catalog.ReleaseReservationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
                .Returns(Result.Success());
+        var (handler, ctx, _) = CreateHandler(order, catalog);
+        ctx.SaveChangesAsync(Arg.Any<CancellationToken>())
+           .ThrowsAsync(new InvalidOperationException("db error"));
 
-        var result = await CreateHandler(ctx, catalog).Handle(new(orderId.Value), default);
+        var result = await handler.Handle(new(order.Id.Value), default);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(OrderErrors.UnknownError);

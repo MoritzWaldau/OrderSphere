@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OrderSphere.Ordering.Infrastructure.Persistence;
@@ -12,9 +13,11 @@ using OrderSphere.Ordering.Infrastructure.Persistence;
 namespace OrderSphere.Ordering.Infrastructure.Migrations
 {
     [DbContext(typeof(OrderingDbContext))]
-    partial class OrderingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260622161110_AddOrderHistoryReadModel")]
+    partial class AddOrderHistoryReadModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -170,6 +173,56 @@ namespace OrderSphere.Ordering.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("OrderSphere.Ordering.Domain.Entities.Order", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CouponCode")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("PaymentMethod")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("ShippingCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TrackingNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CorrelationId")
+                        .IsUnique();
+
+                    b.ToTable("orders", (string)null);
+                });
+
             modelBuilder.Entity("OrderSphere.Ordering.Domain.Entities.OrderHistoryEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -299,93 +352,7 @@ namespace OrderSphere.Ordering.Infrastructure.Migrations
                     b.ToTable("order_sagas", (string)null);
                 });
 
-            modelBuilder.Entity("OrderSphere.Ordering.Domain.ReadModels.OrderView", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CorrelationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CouponCode")
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("CustomerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("DiscountAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("PaymentMethod")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("ShippingCost")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("TrackingNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CorrelationId")
-                        .IsUnique();
-
-                    b.ToTable("orders", (string)null);
-                });
-
-            modelBuilder.Entity("OrderSphere.Ordering.Infrastructure.EventSourcing.OrderEventRecord", b =>
-                {
-                    b.Property<Guid>("StreamId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Version")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("EventType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime>("OccurredAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Payload")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("StreamId", "Version");
-
-                    b.HasIndex("OccurredAt");
-
-                    b.ToTable("order_events", (string)null);
-                });
-
-            modelBuilder.Entity("OrderSphere.Ordering.Domain.Entities.OrderItem", b =>
-                {
-                    b.HasOne("OrderSphere.Ordering.Domain.ReadModels.OrderView", null)
-                        .WithMany("Items")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("OrderSphere.Ordering.Domain.ReadModels.OrderView", b =>
+            modelBuilder.Entity("OrderSphere.Ordering.Domain.Entities.Order", b =>
                 {
                     b.OwnsMany("OrderSphere.Ordering.Domain.Entities.OrderStatusHistory", "StatusHistory", b1 =>
                         {
@@ -417,7 +384,7 @@ namespace OrderSphere.Ordering.Infrastructure.Migrations
 
                     b.OwnsOne("OrderSphere.Ordering.Domain.ValueObjects.Address", "ShippingAddress", b1 =>
                         {
-                            b1.Property<Guid>("OrderViewId")
+                            b1.Property<Guid>("OrderId")
                                 .HasColumnType("uuid");
 
                             b1.Property<string>("City")
@@ -450,12 +417,12 @@ namespace OrderSphere.Ordering.Infrastructure.Migrations
                                 .HasColumnType("text")
                                 .HasColumnName("shipping_street");
 
-                            b1.HasKey("OrderViewId");
+                            b1.HasKey("OrderId");
 
                             b1.ToTable("orders");
 
                             b1.WithOwner()
-                                .HasForeignKey("OrderViewId");
+                                .HasForeignKey("OrderId");
                         });
 
                     b.Navigation("ShippingAddress")
@@ -464,7 +431,16 @@ namespace OrderSphere.Ordering.Infrastructure.Migrations
                     b.Navigation("StatusHistory");
                 });
 
-            modelBuilder.Entity("OrderSphere.Ordering.Domain.ReadModels.OrderView", b =>
+            modelBuilder.Entity("OrderSphere.Ordering.Domain.Entities.OrderItem", b =>
+                {
+                    b.HasOne("OrderSphere.Ordering.Domain.Entities.Order", null)
+                        .WithMany("Items")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("OrderSphere.Ordering.Domain.Entities.Order", b =>
                 {
                     b.Navigation("Items");
                 });

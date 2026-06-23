@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
@@ -13,6 +12,7 @@ public sealed record CancelOrderCommand(Guid OrderId) : ICommand<Result>;
 
 public sealed class CancelOrderCommandHandler(
     IOrderingDbContext context,
+    IOrderEventStore eventStore,
     ICatalogClient catalogClient,
     ILogger<CancelOrderCommandHandler> logger
 ) : ICommandHandler<CancelOrderCommand, Result>
@@ -21,9 +21,7 @@ public sealed class CancelOrderCommandHandler(
     {
         try
         {
-            var order = await context.Orders
-                .Include(o => o.Items)
-                .FirstOrDefaultAsync(o => o.Id == OrderId.From(request.OrderId), cancellationToken);
+            var order = await eventStore.LoadAsync(OrderId.From(request.OrderId), cancellationToken);
 
             if (order is null)
                 return Result.Failure(OrderErrors.OrderNotFoundError);
@@ -56,7 +54,7 @@ public sealed class CancelOrderCommandHandler(
                     logger.LogWarning("Reservation release failed for order {OrderId} during cancellation; TTL sweeper will reclaim it.", order.Id);
             }
 
-            context.Orders.Update(order);
+            await eventStore.AppendAsync(order, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Order {OrderId} cancelled. Stock compensation: {Mode}.",

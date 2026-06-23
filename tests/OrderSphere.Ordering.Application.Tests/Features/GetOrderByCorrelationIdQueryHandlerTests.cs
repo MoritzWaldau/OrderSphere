@@ -7,12 +7,10 @@ public sealed class GetOrderByCorrelationIdQueryHandlerTests
     private static readonly Address Addr = new("Max", "Muster", "Str. 1", "Berlin", "10115", "DE");
     private static readonly CustomerId Customer = CustomerId.New();
 
-    private static Order CreateOrder(Guid correlationId)
+    private static OrderView CreateOrder(Guid correlationId)
     {
         var items = new[] { new OrderItem(ProductId.New(), "Item", Quantity.Of(1), Money.Of(10m)) };
-        var o = new Order(Customer, Addr, PaymentMethod.CreditCard, items, correlationId);
-        o.PopDomainEvents();
-        return o;
+        return OrderView.Create(OrderId.New(), Customer, Addr, PaymentMethod.CreditCard, correlationId, items, DateTime.UtcNow);
     }
 
     private static GetOrderByCorrelationIdQueryHandler CreateHandler(IOrderingDbContext ctx) =>
@@ -22,7 +20,7 @@ public sealed class GetOrderByCorrelationIdQueryHandlerTests
     [Fact]
     public async Task Handle_OrderNotFound_ReturnsSuccessWithNullValue()
     {
-        var orders = new List<Order>().BuildMockDbSet();
+        var orders = new List<OrderView>().BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 
@@ -38,7 +36,7 @@ public sealed class GetOrderByCorrelationIdQueryHandlerTests
     {
         var correlationId = Guid.NewGuid();
         var order = CreateOrder(correlationId);
-        var orders = new List<Order> { order }.BuildMockDbSet();
+        var orders = new List<OrderView> { order }.BuildMockDbSet();
         var ctx = Substitute.For<IOrderingDbContext>();
         ctx.Orders.Returns(orders);
 

@@ -29,6 +29,8 @@ public interface IOrderSphereGateway
     Task<CartDto?> GetMyCartAsync(CancellationToken ct = default);
 
     Task<PaymentDto?> GetPaymentByOrderAsync(Guid orderId, CancellationToken ct = default);
+
+    Task<CartMutationResult> AddToCartAsync(Guid productId, int quantity, CancellationToken ct = default);
 }
 
 public sealed class OrderSphereGateway(HttpClient http) : IOrderSphereGateway
@@ -109,5 +111,18 @@ public sealed class OrderSphereGateway(HttpClient http) : IOrderSphereGateway
         return response.StatusCode == HttpStatusCode.OK
             ? await response.Content.ReadFromJsonAsync<PaymentDto>(ct)
             : null;
+    }
+
+    public async Task<CartMutationResult> AddToCartAsync(Guid productId, int quantity, CancellationToken ct = default)
+    {
+        var response = await http.PostAsJsonAsync("/api/v1/cart/add", new { productId, quantity }, ct);
+        return response.StatusCode switch
+        {
+            HttpStatusCode.NoContent => new CartMutationResult(true, null),
+            HttpStatusCode.Unauthorized => new CartMutationResult(false, "auth"),
+            HttpStatusCode.NotFound => new CartMutationResult(false, "product_not_found"),
+            HttpStatusCode.Conflict => new CartMutationResult(false, "insufficient_stock"),
+            _ => new CartMutationResult(false, "error")
+        };
     }
 }

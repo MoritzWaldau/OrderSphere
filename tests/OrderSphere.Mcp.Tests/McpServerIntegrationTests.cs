@@ -28,18 +28,19 @@ public sealed class McpServerIntegrationTests(McpServerFactory factory)
         names.Should().Contain(["search_products", "get_product", "list_categories"]);
         names.Should().Contain(["get_my_orders", "get_my_cart", "get_payment_status",
             "list_my_addresses", "get_my_profile", "validate_coupon"]);
+        names.Should().Contain("add_to_cart");
     }
 
     [Fact]
-    public async Task ListTools_AnnotatesEveryToolAsReadOnly()
+    public async Task ListTools_AnnotatesReadOnlyToolsCorrectly()
     {
         await using var client = await CreateClientAsync();
 
         var tools = await client.ListToolsAsync();
+        var readOnlyTools = tools.Where(t => t.Name != "add_to_cart").ToList();
 
-        // External clients rely on these hints to decide whether a tool is safe
-        // to call without confirmation — every tool on this server is read-only.
-        tools.Should().AllSatisfy(t =>
+        // All read-only tools must carry the expected hints.
+        readOnlyTools.Should().AllSatisfy(t =>
         {
             var annotations = t.ProtocolTool.Annotations;
             annotations.Should().NotBeNull($"tool '{t.Name}' must carry annotations");
@@ -48,6 +49,13 @@ public sealed class McpServerIntegrationTests(McpServerFactory factory)
             annotations.IdempotentHint.Should().BeTrue();
             annotations.OpenWorldHint.Should().BeFalse();
         });
+
+        // add_to_cart is the only non-read-only tool.
+        var writeAnnotations = tools.Single(t => t.Name == "add_to_cart").ProtocolTool.Annotations;
+        writeAnnotations.Should().NotBeNull();
+        writeAnnotations!.ReadOnlyHint.Should().BeFalse();
+        writeAnnotations.DestructiveHint.Should().BeFalse();
+        writeAnnotations.IdempotentHint.Should().BeFalse();
     }
 
     [Fact]
@@ -104,6 +112,12 @@ public sealed class McpServerFactory : WebApplicationFactory<Program>
 
         gateway.GetCategoriesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(new PagedResult<CategoryDto>([], 0, 1, 50));
+
+        gateway.GetProductBySlugAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns((ProductDto?)null);
+
+        gateway.AddToCartAsync(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(new CartMutationResult(true, null));
 
         return gateway;
     }

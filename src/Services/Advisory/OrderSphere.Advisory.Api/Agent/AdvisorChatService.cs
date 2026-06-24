@@ -40,6 +40,15 @@ public sealed class AdvisorChatService(
         - Wenn ein Tool keine Daten liefert (z. B. weil der Nutzer nicht angemeldet
           ist), sage das offen und biete an, was ohne Anmeldung möglich ist.
         - Gib keine internen IDs oder technischen Fehlermeldungen an den Kunden weiter!
+
+        Warenkorb-Aktion (add_to_cart):
+        - Wenn der Nutzer ein Produkt in den Warenkorb legen möchte, rufe add_to_cart
+          mit confirmed=false auf. Das Tool gibt ein JSON-Objekt mit dem Feld "__confirm__" zurück.
+          Gib dieses JSON-Objekt WORTGENAU als deine einzige Antwort aus — kein weiterer Text.
+        - Wenn der Nutzer bestätigt hat (Nachricht beginnt mit "Bestätigt:"), rufe add_to_cart
+          mit denselben Argumenten und confirmed=true auf und teile das Ergebnis mit.
+        - Wenn der Nutzer abbricht (Nachricht enthält "Abbrechen"), führe keine Aktion durch
+          und bestätige die Ablehnung kurz.
         """;
 
     private const string NotConfiguredMessage =
@@ -111,6 +120,13 @@ public sealed class AdvisorChatService(
             var failed = false;
             string? lastToolLabel = null;
 
+            // Text chunks are buffered until we can determine whether the model is
+            // emitting a raw confirmation_required JSON payload (starts with {"__confirm__")
+            // or normal prose. Once 14 chars are accumulated (enough to check the prefix),
+            // normal chunks are flushed immediately; confirmation chunks stay buffered.
+            var textBuffer = new List<string>();
+            bool? isConfirmPayload = null;
+
             // yield is illegal inside a catch block, so the stream is consumed via the
             // enumerator with MoveNextAsync guarded individually.
             await using var updates = agent
@@ -155,7 +171,27 @@ public sealed class AdvisorChatService(
                 if (!string.IsNullOrEmpty(update.Text))
                 {
                     assistant.Append(update.Text);
-                    yield return AdvisorStreamEvent.OfText(update.Text);
+
+                    if (isConfirmPayload is null)
+                    {
+                        textBuffer.Add(update.Text);
+                        var accumulated = string.Concat(textBuffer).TrimStart();
+                        if (accumulated.Length >= 14)
+                        {
+                            isConfirmPayload = accumulated.StartsWith("{\"__confirm__\"", StringComparison.Ordinal);
+                            if (isConfirmPayload == false)
+                            {
+                                foreach (var chunk in textBuffer)
+                                    yield return AdvisorStreamEvent.OfText(chunk);
+                                textBuffer.Clear();
+                            }
+                        }
+                    }
+                    else if (isConfirmPayload == false)
+                    {
+                        yield return AdvisorStreamEvent.OfText(update.Text);
+                    }
+                    // isConfirmPayload == true: keep buffering until stream ends
                 }
             }
 
@@ -164,6 +200,18 @@ public sealed class AdvisorChatService(
                 // The turn did not complete; do not persist a half-finished exchange.
                 yield return AdvisorStreamEvent.OfText(TurnFailedMessage);
                 yield break;
+            }
+
+            // Flush anything buffered but never reaching the detection threshold (very
+            // short responses), or emit the single confirmation event.
+            if (isConfirmPayload == true)
+            {
+                yield return AdvisorStreamEvent.OfConfirm(string.Concat(textBuffer));
+            }
+            else if (textBuffer.Count > 0)
+            {
+                foreach (var chunk in textBuffer)
+                    yield return AdvisorStreamEvent.OfText(chunk);
             }
 
             if (customerSub is not null)
@@ -194,6 +242,7 @@ public sealed class AdvisorChatService(
         "get_payment_status" => "Prüfe den Zahlungsstatus",
         "get_my_profile" => "Rufe dein Profil ab",
         "list_my_addresses" => "Rufe deine Adressen ab",
+        "add_to_cart" => "Lege in den Warenkorb",
         _ => "Rufe Informationen ab"
     };
 

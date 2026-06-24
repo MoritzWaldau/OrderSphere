@@ -76,3 +76,5 @@ public sealed record AddressDto(
     string PostalCode,
     string Country,
     bool IsDefault);
+
+public sealed record CartMutationResult(bool Success, string? Error);

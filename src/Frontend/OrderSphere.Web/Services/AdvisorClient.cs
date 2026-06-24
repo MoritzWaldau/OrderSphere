@@ -15,10 +15,21 @@ public enum AdvisorStreamItemKind
     Text,
 
     // A status notice that the agent is using a tool; Text is a display label.
-    Tool
+    Tool,
+
+    // A write-action requires customer confirmation. Text is the raw JSON payload.
+    Confirm
 }
 
 public sealed record AdvisorStreamItem(AdvisorStreamItemKind Kind, string Text);
+
+// Deserialized from the confirmation_required JSON payload produced by add_to_cart.
+public sealed record AdvisorConfirmPayload(
+    string Slug,
+    int Quantity,
+    string ProductName,
+    decimal UnitPrice,
+    string Summary);
 
 public interface IAdvisorClient
 {
@@ -104,9 +115,12 @@ public sealed class AdvisorClient(IHttpClientFactory factory) : IAdvisorClient
                 yield break;
             }
 
-            yield return eventName == "tool"
-                ? new AdvisorStreamItem(AdvisorStreamItemKind.Tool, data)
-                : new AdvisorStreamItem(AdvisorStreamItemKind.Text, data);
+            yield return eventName switch
+            {
+                "tool" => new AdvisorStreamItem(AdvisorStreamItemKind.Tool, data),
+                "confirm" => new AdvisorStreamItem(AdvisorStreamItemKind.Confirm, data),
+                _ => new AdvisorStreamItem(AdvisorStreamItemKind.Text, data)
+            };
         }
     }
 }

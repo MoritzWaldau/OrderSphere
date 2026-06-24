@@ -37,9 +37,12 @@ public static class ChatEndpoints
             await foreach (var evt in chat.StreamAsync(conversationId, request.Message, ct))
             {
                 var payload = evt.Text.Replace("\r", string.Empty).Replace("\n", "\ndata: ");
-                var frame = evt.Kind == AdvisorStreamEventKind.Tool
-                    ? $"event: tool\ndata: {payload}\n\n"
-                    : $"data: {payload}\n\n";
+                var frame = evt.Kind switch
+                {
+                    AdvisorStreamEventKind.Tool => $"event: tool\ndata: {payload}\n\n",
+                    AdvisorStreamEventKind.Confirm => $"event: confirm\ndata: {payload}\n\n",
+                    _ => $"data: {payload}\n\n"
+                };
                 await http.Response.WriteAsync(frame, ct);
                 await http.Response.Body.FlushAsync(ct);
             }

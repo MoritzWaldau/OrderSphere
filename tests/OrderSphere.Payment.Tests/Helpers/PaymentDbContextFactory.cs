@@ -1,7 +1,7 @@
+using MediatR;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
-using MediatR;
 using OrderSphere.Payment.Infrastructure.Persistence;
 
 namespace OrderSphere.Payment.Tests.Helpers;

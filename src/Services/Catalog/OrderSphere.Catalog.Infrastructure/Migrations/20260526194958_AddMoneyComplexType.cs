@@ -1,40 +1,39 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace OrderSphere.Catalog.Infrastructure.Migrations
+namespace OrderSphere.Catalog.Infrastructure.Migrations;
+
+/// <inheritdoc />
+public partial class AddMoneyComplexType : Migration
 {
     /// <inheritdoc />
-    public partial class AddMoneyComplexType : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.RenameColumn(
-                name: "Price",
-                table: "products",
-                newName: "price");
+        migrationBuilder.RenameColumn(
+            name: "Price",
+            table: "products",
+            newName: "price");
 
-            migrationBuilder.AddColumn<string>(
-                name: "price_currency",
-                table: "products",
-                type: "character varying(3)",
-                maxLength: 3,
-                nullable: false,
-                defaultValue: "EUR");
-        }
+        migrationBuilder.AddColumn<string>(
+            name: "price_currency",
+            table: "products",
+            type: "character varying(3)",
+            maxLength: 3,
+            nullable: false,
+            defaultValue: "EUR");
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "price_currency",
-                table: "products");
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropColumn(
+            name: "price_currency",
+            table: "products");
 
-            migrationBuilder.RenameColumn(
-                name: "price",
-                table: "products",
-                newName: "Price");
-        }
+        migrationBuilder.RenameColumn(
+            name: "price",
+            table: "products",
+            newName: "Price");
     }
 }

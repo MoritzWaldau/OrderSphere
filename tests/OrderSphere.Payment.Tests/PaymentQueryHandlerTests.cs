@@ -1,7 +1,4 @@
 using FluentAssertions;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using NSubstitute;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Payment.Application.Features.Payments;
 using OrderSphere.Payment.Domain.Entities;

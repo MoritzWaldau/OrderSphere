@@ -160,6 +160,9 @@
   <data name="Language.Label" xml:space="preserve">
     <value>Sprache</value>
   </data>
+  <data name="Currency.Label" xml:space="preserve">
+    <value>Währung</value>
+  </data>
   <data name="Common.AddToCart" xml:space="preserve">
     <value>In den Warenkorb</value>
   </data>

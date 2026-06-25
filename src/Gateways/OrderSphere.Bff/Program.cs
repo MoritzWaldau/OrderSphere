@@ -43,6 +43,9 @@ builder.Services.AddHttpClient("userprofile-status", c =>
     c.BaseAddress = new Uri("https://ordersphere-userprofile"))
     .AddServiceDiscovery();
 
+// Static exchange-rate table (base EUR) for presentation-only currency conversion in the client.
+builder.Services.AddExchangeRates(builder.Configuration);
+
 builder.AddBffProxy();
 
 
@@ -152,6 +155,16 @@ app.MapGet("/bff/user", async (HttpContext ctx, IAntiforgery antiforgery) =>
         xsrfToken = tokens.RequestToken,
     });
 });
+
+// Presentation-only currency conversion: the client fetches the base currency and the
+// per-currency rate table once, then converts amounts locally for display. Anonymous GET.
+app.MapGet("/bff/exchange-rates",
+    (OrderSphere.BuildingBlocks.ExchangeRates.IExchangeRateProvider provider) =>
+        Results.Ok(new
+        {
+            baseCurrency = provider.BaseCurrency,
+            rates = provider.GetRates(),
+        }));
 
 if (app.Environment.IsDevelopment())
 {

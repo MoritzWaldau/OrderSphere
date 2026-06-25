@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Http.Resilience;
@@ -84,6 +85,23 @@ var culture = new CultureInfo(SupportedCultures.Normalize(stored));
 CultureInfo.DefaultThreadCurrentCulture = culture;
 CultureInfo.DefaultThreadCurrentUICulture = culture;
 
+// Apply the user's stored display currency before the first render. The rate table is fetched
+// once from the BFF; conversion is presentation-only. Any failure falls back to the base currency.
+var storedCurrency = SupportedCurrencies.Normalize(
+    await js.InvokeAsync<string?>("localStorage.getItem", SupportedCurrencies.StorageKey));
+try
+{
+    using var ratesHttp = new HttpClient { BaseAddress = apiBaseAddress };
+    var table = await ratesHttp.GetFromJsonAsync<ExchangeRatesResponse>("bff/exchange-rates");
+    var rate = table?.Rates is { } rates && rates.TryGetValue(storedCurrency, out var r) ? r : 1m;
+    Formatting.SetDisplayCurrency(storedCurrency, rate);
+}
+catch
+{
+    // BFF unreachable or no rate table — render in the base currency (rate 1).
+    Formatting.SetDisplayCurrency(SupportedCurrencies.Default, 1m);
+}
+
 await host.RunAsync();
 
 // Resilience pipeline for the "api" client: retry idempotent GETs on server errors,
@@ -117,3 +135,6 @@ static void ConfigureResilience(ResiliencePipelineBuilder<HttpResponseMessage> p
 
     pipeline.AddTimeout(TimeSpan.FromSeconds(30));
 }
+
+// Shape of GET /bff/exchange-rates: base currency plus rate-per-base for every supported currency.
+internal sealed record ExchangeRatesResponse(string BaseCurrency, Dictionary<string, decimal> Rates);

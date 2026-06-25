@@ -8,7 +8,7 @@ internal static class PaymentRecordMappings
         payment.Id.Value,
         payment.OrderId.Value,
         payment.Amount,
-        payment.Currency,
+        payment.Amount.Currency,
         payment.PaymentMethod,
         payment.Status.ToString(),
         payment.TransactionId,

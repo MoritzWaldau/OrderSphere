@@ -41,6 +41,46 @@ public sealed class Money : IEquatable<Money>
     public static implicit operator decimal(Money money) => money.Amount;
 
 
+    /// <summary>Adds two amounts of the same currency.</summary>
+    public static Money operator +(Money left, Money right) =>
+        new(left.Amount + EnsureSameCurrency(left, right).Amount, left.Currency);
+
+    /// <summary>Subtracts two amounts of the same currency. The result must not go negative.</summary>
+    public static Money operator -(Money left, Money right) =>
+        new(left.Amount - EnsureSameCurrency(left, right).Amount, left.Currency);
+
+    /// <summary>Scales an amount by an integer factor (e.g. unit price × quantity).</summary>
+    public static Money operator *(Money money, int factor) => new(money.Amount * factor, money.Currency);
+
+    /// <summary>Scales an amount by a decimal factor.</summary>
+    public static Money operator *(Money money, decimal factor) => new(money.Amount * factor, money.Currency);
+
+    /// <summary>
+    /// Converts this amount to <paramref name="targetCurrency"/> using <paramref name="rate"/>
+    /// (units of target currency per one unit of this currency). Pure: the caller supplies the
+    /// rate, so this method carries no dependency on a rate source. The result is rounded to two
+    /// decimal places. Converting to the same currency with rate 1 is a no-op.
+    /// </summary>
+    public Money ConvertTo(string targetCurrency, decimal rate)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(rate, nameof(rate));
+        var converted = Math.Round(Amount * rate, 2, MidpointRounding.AwayFromZero);
+        return new Money(converted, targetCurrency);
+    }
+
+    /// <summary>
+    /// Guards against silently combining different currencies — a programmer error, not a
+    /// business condition, so it throws rather than returning a <c>Result</c> failure.
+    /// </summary>
+    private static Money EnsureSameCurrency(Money left, Money right)
+    {
+        if (left.Currency != right.Currency)
+            throw new InvalidOperationException(
+                $"Cannot operate on amounts of different currencies: {left.Currency} and {right.Currency}.");
+        return right;
+    }
+
+
     public bool Equals(Money? other) =>
         other is not null && Amount == other.Amount && Currency == other.Currency;
 

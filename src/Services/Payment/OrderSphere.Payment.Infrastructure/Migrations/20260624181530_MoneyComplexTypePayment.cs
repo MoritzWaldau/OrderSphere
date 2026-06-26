@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace OrderSphere.Payment.Infrastructure.Migrations;
 
 /// <inheritdoc />
-public partial class SyncModelSnapshot : Migration
+public partial class MoneyComplexTypePayment : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)

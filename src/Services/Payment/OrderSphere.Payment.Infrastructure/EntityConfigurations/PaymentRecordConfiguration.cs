@@ -16,8 +16,18 @@ internal sealed class PaymentRecordConfiguration : IEntityTypeConfiguration<Paym
         builder.HasIndex(p => p.OrderId).IsUnique();
         builder.HasIndex(p => p.CorrelationId);
 
-        builder.Property(p => p.Amount).HasPrecision(18, 2);
-        builder.Property(p => p.Currency).HasMaxLength(3);
+        // Money mapped onto the existing "Amount"/"Currency" columns — no schema change.
+        builder.ComplexProperty(p => p.Amount, b =>
+        {
+            b.Property(m => m.Amount)
+             .HasColumnName("Amount")
+             .HasPrecision(18, 2)
+             .IsRequired();
+            b.Property(m => m.Currency)
+             .HasColumnName("Currency")
+             .HasMaxLength(3)
+             .IsRequired();
+        });
         builder.Property(p => p.PaymentMethod).HasMaxLength(50);
         builder.Property(p => p.CustomerEmail).HasMaxLength(256);
         builder.Property(p => p.TransactionId).HasMaxLength(256);

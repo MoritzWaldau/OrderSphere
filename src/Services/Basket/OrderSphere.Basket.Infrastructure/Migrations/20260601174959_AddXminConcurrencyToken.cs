@@ -1,20 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace OrderSphere.Basket.Infrastructure.Migrations
+namespace OrderSphere.Basket.Infrastructure.Migrations;
+
+/// <inheritdoc />
+public partial class AddXminConcurrencyToken : Migration
 {
     /// <inheritdoc />
-    public partial class AddXminConcurrencyToken : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            // xmin is a PostgreSQL system column present on every row — no DDL required.
-        }
+        // xmin is a PostgreSQL system column present on every row — no DDL required.
+    }
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-        }
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
     }
 }

@@ -1,29 +1,28 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace OrderSphere.Ordering.Infrastructure.Migrations
+namespace OrderSphere.Ordering.Infrastructure.Migrations;
+
+/// <inheritdoc />
+public partial class AddOutboxTraceParent : Migration
 {
     /// <inheritdoc />
-    public partial class AddOutboxTraceParent : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<string>(
-                name: "TraceParent",
-                table: "outbox_messages",
-                type: "character varying(55)",
-                maxLength: 55,
-                nullable: true);
-        }
+        migrationBuilder.AddColumn<string>(
+            name: "TraceParent",
+            table: "outbox_messages",
+            type: "character varying(55)",
+            maxLength: 55,
+            nullable: true);
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "TraceParent",
-                table: "outbox_messages");
-        }
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropColumn(
+            name: "TraceParent",
+            table: "outbox_messages");
     }
 }

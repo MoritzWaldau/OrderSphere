@@ -1,5 +1,6 @@
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
+using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Payment.Domain.DomainEvents;
 using OrderSphere.Payment.Domain.Enums;
 
@@ -8,8 +9,9 @@ namespace OrderSphere.Payment.Domain.Entities;
 public class PaymentRecord : AuditableEntity<PaymentId>, IAggregateRoot
 {
     public OrderId OrderId { get; private set; }
-    public decimal Amount { get; private set; }
-    public string Currency { get; private set; } = "EUR";
+
+    /// <summary>The charged amount and its currency as a single value object.</summary>
+    public Money Amount { get; private set; } = null!;
     public string PaymentMethod { get; private set; } = "";
     public string CustomerEmail { get; private set; } = "";
     public PaymentStatus Status { get; private set; } = PaymentStatus.Pending;
@@ -32,8 +34,7 @@ public class PaymentRecord : AuditableEntity<PaymentId>, IAggregateRoot
     {
         Id = PaymentId.New();
         OrderId = orderId;
-        Amount = amount;
-        Currency = currency;
+        Amount = Money.Of(amount, currency);
         PaymentMethod = paymentMethod;
         CustomerEmail = customerEmail;
         CorrelationId = correlationId;

@@ -1,22 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace OrderSphere.Webhooks.Infrastructure.Migrations
+namespace OrderSphere.Webhooks.Infrastructure.Migrations;
+
+/// <inheritdoc />
+public partial class SyncModelSnapshot : Migration
 {
     /// <inheritdoc />
-    public partial class SyncModelSnapshot : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
 
-        }
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
 
-        }
     }
 }

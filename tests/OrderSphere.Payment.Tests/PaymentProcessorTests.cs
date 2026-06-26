@@ -1,6 +1,5 @@
 using Azure.Messaging.ServiceBus;
 using FluentAssertions;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -22,13 +21,7 @@ public sealed class PaymentProcessorTests
 {
     private const string Method = "creditcard";
 
-    private static PaymentDbContext NewContext()
-    {
-        var options = new DbContextOptionsBuilder<PaymentDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        return new PaymentDbContext(options, Substitute.For<IPublisher>());
-    }
+    private static PaymentDbContext NewContext() => Helpers.PaymentDbContextFactory.Create();
 
     private static PaymentProcessor NewProcessor(bool bypassProviders = false)
         => new(

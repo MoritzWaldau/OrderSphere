@@ -1,7 +1,4 @@
 using FluentAssertions;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using NSubstitute;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Payment.Application.Features.Payments;
 using OrderSphere.Payment.Domain.Entities;
@@ -13,13 +10,7 @@ namespace OrderSphere.Payment.Tests;
 
 public sealed class PaymentQueryHandlerTests
 {
-    private static PaymentDbContext NewContext()
-    {
-        var options = new DbContextOptionsBuilder<PaymentDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        return new PaymentDbContext(options, Substitute.For<IPublisher>());
-    }
+    private static PaymentDbContext NewContext() => Helpers.PaymentDbContextFactory.Create();
 
     private static PaymentRecord NewRecord(Guid orderId, Action<PaymentRecord>? mutate = null)
     {

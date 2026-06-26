@@ -22,4 +22,7 @@ public sealed class DisabledProductSearchIndex : IProductSearchIndex
     public Task EnsureSeededAsync(CancellationToken ct) => Task.CompletedTask;
 
     public Task<int> ReindexAllAsync(CancellationToken ct) => Task.FromResult(0);
+
+    public Task<IReadOnlyList<Guid>> FindSimilarAsync(string productText, Guid excludeId, int limit, CancellationToken ct)
+        => Task.FromResult<IReadOnlyList<Guid>>([]);
 }

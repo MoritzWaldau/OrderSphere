@@ -31,6 +31,8 @@ public interface IOrderSphereGateway
     Task<PaymentDto?> GetPaymentByOrderAsync(Guid orderId, CancellationToken ct = default);
 
     Task<CartMutationResult> AddToCartAsync(Guid productId, int quantity, CancellationToken ct = default);
+
+    Task<IReadOnlyList<ProductDto>> GetSimilarProductsAsync(string slug, int limit = 5, CancellationToken ct = default);
 }
 
 public sealed class OrderSphereGateway(HttpClient http) : IOrderSphereGateway
@@ -111,6 +113,15 @@ public sealed class OrderSphereGateway(HttpClient http) : IOrderSphereGateway
         return response.StatusCode == HttpStatusCode.OK
             ? await response.Content.ReadFromJsonAsync<PaymentDto>(ct)
             : null;
+    }
+
+    public async Task<IReadOnlyList<ProductDto>> GetSimilarProductsAsync(string slug, int limit = 5, CancellationToken ct = default)
+    {
+        var response = await http.GetAsync(
+            $"/api/v1/products/{Uri.EscapeDataString(slug)}/similar?limit={limit}", ct);
+        return response.StatusCode == HttpStatusCode.OK
+            ? await response.Content.ReadFromJsonAsync<List<ProductDto>>(ct) ?? []
+            : [];
     }
 
     public async Task<CartMutationResult> AddToCartAsync(Guid productId, int quantity, CancellationToken ct = default)

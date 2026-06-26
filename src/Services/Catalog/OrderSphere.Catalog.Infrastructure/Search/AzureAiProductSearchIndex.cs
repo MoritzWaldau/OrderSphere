@@ -172,6 +172,53 @@ public sealed class AzureAiProductSearchIndex(
         return embedding.Value.ToFloats().ToArray();
     }
 
+    public async Task<IReadOnlyList<Guid>> FindSimilarAsync(string productText, Guid excludeId, int limit, CancellationToken ct)
+    {
+        if (!clients.IsEnabled)
+            return [];
+
+        try
+        {
+            var vector = await EmbedAsync(productText, ct);
+            var options = new SearchOptions
+            {
+                Size = limit,
+                Filter = $"id ne '{excludeId}'",
+                VectorSearch = new VectorSearchOptions
+                {
+                    Queries =
+                    {
+                        new VectorizedQuery(vector)
+                        {
+                            KNearestNeighborsCount = limit + 1,
+                            Fields = { ProductSearchClients.VectorFieldName },
+                        },
+                    },
+                },
+            };
+            options.Select.Add("id");
+
+            var response = await clients.SearchClient!.SearchAsync<SearchDocument>(null, options, ct);
+
+            var ids = new List<Guid>();
+            await foreach (var result in response.Value.GetResultsAsync())
+            {
+                if (result.Document.TryGetValue("id", out var raw)
+                    && Guid.TryParse(raw?.ToString(), out var id))
+                {
+                    ids.Add(id);
+                }
+            }
+
+            return ids;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(ex, "Failed to find similar products (excluded: {ProductId}).", excludeId);
+            return [];
+        }
+    }
+
     // OData filter. Only active products are searchable; category/price narrow further.
     private static string BuildFilter(ProductSearchCriteria criteria)
     {

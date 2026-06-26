@@ -39,6 +39,13 @@ public interface IProductSearchIndex
 
     /// <summary>Ensures the index exists and reindexes every product. Returns the number indexed.</summary>
     Task<int> ReindexAllAsync(CancellationToken ct);
+
+    /// <summary>
+    /// Returns the ids of up to <paramref name="limit"/> products most similar to
+    /// <paramref name="productText"/>, excluding <paramref name="excludeId"/>.
+    /// Returns an empty list when the index is not enabled or on failure.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> FindSimilarAsync(string productText, Guid excludeId, int limit, CancellationToken ct);
 }
 
 /// <summary>Inputs for a product search. Filters are applied inside the index.</summary>

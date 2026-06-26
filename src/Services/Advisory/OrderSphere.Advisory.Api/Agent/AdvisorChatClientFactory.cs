@@ -18,12 +18,14 @@ public interface IAdvisorChatClientFactory
 // Per-user state (MCP tools, session) lives on the agent, not on the chat client.
 //
 // Pipeline order matters (first = outermost):
-//   1. UseChatReducer  — trims history once per turn, BEFORE the function-invocation
+//   1. ObservabilityChatClient — wraps a full turn so it can aggregate per-turn cost
+//      and quality metrics (tokens, tool success, latency) over the whole tool loop.
+//   2. UseChatReducer  — trims history once per turn, BEFORE the function-invocation
 //      loop. MessageCountingChatReducer drops function call/result messages; if it
 //      ran inside the loop it would strip the in-flight tool exchange.
-//   2. UseFunctionInvocation — runs the tool-call loop. Because the pipeline already
+//   3. UseFunctionInvocation — runs the tool-call loop. Because the pipeline already
 //      contains a FunctionInvokingChatClient, ChatClientAgent will not add another.
-//   3. UseOpenTelemetry — innermost, so every model round-trip inside the loop is
+//   4. UseOpenTelemetry — innermost, so every model round-trip inside the loop is
 //      captured as its own GenAI span (model, latency, token usage).
 public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
 {
@@ -51,7 +53,7 @@ public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
             // alternative is a hand-rolled trimming DelegatingChatClient with identical
             // semantics; accepting the experimental surface is the smaller risk.
 #pragma warning disable MEAI001
-            return new AzureOpenAIClient(new Uri(endpoint), new DefaultAzureCredential())
+            IChatClient pipeline = new AzureOpenAIClient(new Uri(endpoint), new DefaultAzureCredential())
                 .GetChatClient(deployment)
                 .AsIChatClient()
                 .AsBuilder()
@@ -60,6 +62,9 @@ public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
                 .UseOpenTelemetry(loggerFactory, TelemetrySourceName)
                 .Build();
 #pragma warning restore MEAI001
+
+            // Outermost: aggregate cost/quality metrics across the full turn.
+            return new ObservabilityChatClient(pipeline);
         });
     }
 

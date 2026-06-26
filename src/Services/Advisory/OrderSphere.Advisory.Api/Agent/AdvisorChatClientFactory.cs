@@ -2,6 +2,9 @@ using Azure.AI.ContentSafety;
 using Azure.AI.OpenAI;
 using Azure.Identity;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Caching.Hybrid;
+using OpenAI.Embeddings;
+using OrderSphere.BuildingBlocks.Diagnostics;
 
 namespace OrderSphere.Advisory.Api.Agent;
 
@@ -36,7 +39,10 @@ public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
 
     private readonly Lazy<IChatClient?> _client;
 
-    public FoundryChatClientFactory(IConfiguration configuration, ILoggerFactory loggerFactory)
+    public FoundryChatClientFactory(
+        IConfiguration configuration,
+        ILoggerFactory loggerFactory,
+        HybridCache hybridCache)
     {
         _client = new Lazy<IChatClient?>(() =>
         {
@@ -47,6 +53,8 @@ public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
             }
 
             var deployment = configuration["Foundry:Deployment"] ?? "gpt-4o-mini";
+            var credential = new DefaultAzureCredential();
+            var azureClient = new AzureOpenAIClient(new Uri(endpoint), credential);
 
             // MEAI001: the chat-reducer API is marked experimental in MEAI 10.x. The
             // alternative is a hand-rolled trimming DelegatingChatClient with identical
@@ -92,4 +100,11 @@ public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
     }
 
     public IChatClient? GetChatClient() => _client.Value;
+
+    private static async Task<ReadOnlyMemory<float>> EmbedAsync(
+        EmbeddingClient client, string text, CancellationToken ct)
+    {
+        var result = await client.GenerateEmbeddingAsync(text, cancellationToken: ct);
+        return result.Value.ToFloats();
+    }
 }

@@ -23,4 +23,14 @@ public static class ApplicationDiagnostics
         "ordersphere.mediatr.request.duration",
         unit: "ms",
         description: "MediatR request handler duration.");
+
+    /// <summary>Advisory agent semantic cache hits.</summary>
+    public static readonly Counter<long> AdvisorCacheHits = Meter.CreateCounter<long>(
+        "ordersphere.advisor.cache.hits",
+        description: "Number of advisory turns served from the semantic cache.");
+
+    /// <summary>Advisory agent semantic cache misses (query forwarded to Foundry).</summary>
+    public static readonly Counter<long> AdvisorCacheMisses = Meter.CreateCounter<long>(
+        "ordersphere.advisor.cache.misses",
+        description: "Number of advisory turns that bypassed the semantic cache.");
 }

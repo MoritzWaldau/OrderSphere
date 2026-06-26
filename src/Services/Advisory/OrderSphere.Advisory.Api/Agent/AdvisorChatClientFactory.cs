@@ -1,3 +1,4 @@
+using Azure.AI.ContentSafety;
 using Azure.AI.OpenAI;
 using Azure.Identity;
 using Microsoft.Extensions.AI;
@@ -21,12 +22,12 @@ public interface IAdvisorChatClientFactory
 // Per-user state (MCP tools, session) lives on the agent, not on the chat client.
 //
 // Pipeline order (outermost → innermost):
-//   1. SemanticCacheChatClient — serves identical/similar questions from cache
-//      before any model round-trip. Enabled when Foundry:Endpoint is set.
-//   2. UseChatReducer          — trims history once per turn, BEFORE the function-
-//      invocation loop. Runs inside the cache decorator so trimming is transparent.
-//   3. UseFunctionInvocation   — runs the tool-call loop.
-//   4. UseOpenTelemetry        — innermost, captures every model round-trip as its
+//   0. ContentSafetyChatClient  — blocks unsafe inputs before any model round-trip.
+//      Wired only when ContentSafety:Endpoint is configured (graceful-degradation).
+//   1. UseChatReducer           — trims history once per turn, BEFORE the function-
+//      invocation loop. Runs inside ContentSafety so history trimming is transparent.
+//   2. UseFunctionInvocation    — runs the tool-call loop.
+//   3. UseOpenTelemetry         — innermost, captures every model round-trip as its
 //      own GenAI span (model, latency, token usage).
 public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
 {
@@ -59,7 +60,7 @@ public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
             // alternative is a hand-rolled trimming DelegatingChatClient with identical
             // semantics; accepting the experimental surface is the smaller risk.
 #pragma warning disable MEAI001
-            IChatClient pipeline = azureClient
+            IChatClient pipeline = new AzureOpenAIClient(new Uri(endpoint), new DefaultAzureCredential())
                 .GetChatClient(deployment)
                 .AsIChatClient()
                 .AsBuilder()
@@ -69,20 +70,33 @@ public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
                 .Build();
 #pragma warning restore MEAI001
 
-            var embeddingDeployment = configuration["Foundry:EmbeddingDeployment"] ?? "text-embedding-3-small";
-            var embeddingClient = azureClient.GetEmbeddingClient(embeddingDeployment);
-            var threshold = configuration.GetValue<float?>("SemanticCache:Threshold") ?? 0.92f;
-
-            pipeline = new SemanticCacheChatClient(
-                pipeline,
-                (text, ct) => EmbedAsync(embeddingClient, text, ct),
-                hybridCache,
-                ApplicationDiagnostics.AdvisorCacheHits,
-                ApplicationDiagnostics.AdvisorCacheMisses,
-                threshold);
+            var safetyEndpoint = configuration["ContentSafety:Endpoint"];
+            if (!string.IsNullOrWhiteSpace(safetyEndpoint))
+            {
+                var threshold = configuration.GetValue<int?>("ContentSafety:SeverityThreshold") ?? 4;
+                var safetyClient = new ContentSafetyClient(
+                    new Uri(safetyEndpoint), new DefaultAzureCredential());
+                pipeline = new ContentSafetyChatClient(
+                    pipeline,
+                    (text, ct) => IsBlockedBySafetyAsync(safetyClient, text, threshold, ct));
+            }
 
             return pipeline;
         });
+    }
+
+    private static async Task<bool> IsBlockedBySafetyAsync(
+        ContentSafetyClient safety, string text, int threshold, CancellationToken ct)
+    {
+        try
+        {
+            var result = (await safety.AnalyzeTextAsync(new AnalyzeTextOptions(text), ct)).Value;
+            return result.CategoriesAnalysis.Any(a => a.Severity >= threshold);
+        }
+        catch
+        {
+            return false; // fail open: unavailable safety service must not block requests
+        }
     }
 
     public IChatClient? GetChatClient() => _client.Value;

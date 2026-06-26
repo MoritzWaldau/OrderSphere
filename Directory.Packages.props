@@ -91,5 +91,8 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.9" />
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
     <PackageVersion Include="ReportGenerator" Version="5.4.4" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation" Version="10.7.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Quality" Version="10.7.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Reporting" Version="10.7.0" />
   </ItemGroup>
 </Project>

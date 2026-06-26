@@ -37,7 +37,13 @@ These are the rules that are not derivable by reading existing code. For everyth
 
 ## UI and styling
 
-All visual, theming, MudBlazor, and CSS rules live in [`docs/ui-conventions.md`](docs/ui-conventions.md). Do not duplicate them here. When making UI changes, read that file first.
+All visual, theming, MudBlazor, and CSS rules live in [`docs/ui-conventions.md`](docs/ui-conventions.md). A path-scoped rule in `.claude/rules/ui.md` loads this automatically when `.razor` files are touched.
+
+## Navigation discipline
+
+Before reading files to answer "who calls X" or "where is Y implemented", use the `cwm-roslyn-navigator` MCP tools (`find_references`, `find_implementations`, `get_type_hierarchy`, `find_callers`) — they answer symbol questions without loading files into context.
+
+For broad codebase investigations (spanning more than 3–4 files), use an Explore subagent so the read overhead stays in the subagent's context, not the main session. For multi-step tasks requiring planning, use Plan mode before implementation.
 
 ## Commands
 

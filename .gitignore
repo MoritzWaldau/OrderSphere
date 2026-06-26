@@ -388,3 +388,6 @@ TestResults/
 TestResults_*/
 CoverageReport/
 CoverageReport_*/
+
+# Playwright MCP screenshots and snapshots
+.playwright-mcp/

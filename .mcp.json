@@ -1,8 +1,16 @@
 {
   "mcpServers": {
-    "ordersphere-mcp": {
-      "type": "http",
-      "url": "https://localhost:7309/mcp"
+    "aspire": {
+      "command": "aspire",
+      "args": ["agent", "mcp"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "${ORDERSPHERE_PG_READONLY}"]
     }
   }
 }

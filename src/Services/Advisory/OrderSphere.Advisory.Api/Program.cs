@@ -11,6 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.AddOrderSphereSwagger("OrderSphere Advisory API");
 
+// Redis distributed lock — guards ConversationCleanupService against double-execution at scale.
+// Must precede AddAdvisoryInfrastructure which registers the cleanup hosted service.
+await builder.AddOrderSphereRedisAsync();
+builder.Services.AddOrderSphereDistributedLocking();
+
 // EF Core persistence for conversation history (advisory-db).
 builder.AddAdvisoryInfrastructure();
 

@@ -4,11 +4,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OrderSphere.Advisory.Application.Abstractions;
+using OrderSphere.BuildingBlocks.Locking;
 
 namespace OrderSphere.Advisory.Infrastructure.Cleanup;
 
 public sealed class ConversationCleanupService(
     IServiceScopeFactory scopeFactory,
+    IDistributedLock distributedLock,
     IConfiguration configuration,
     ILogger<ConversationCleanupService> logger) : BackgroundService
 {
@@ -37,6 +39,11 @@ public sealed class ConversationCleanupService(
 
     private async Task CleanupAsync(CancellationToken ct)
     {
+        await using var handle = await distributedLock.TryAcquireAsync(
+            "advisory:conversation-cleanup", _pollingInterval, ct);
+        if (handle is null)
+            return;
+
         var retentionDays = configuration.GetValue("Advisor:ConversationRetentionDays", 90);
         var cutoff = DateTime.UtcNow.AddDays(-retentionDays);
         var now = DateTime.UtcNow;

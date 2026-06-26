@@ -18,6 +18,11 @@ builder.AddAzureServiceBusClient("azure-service-bus");
 // EventBus abstraction
 builder.Services.AddAzureServiceBusEventBus();
 
+// Redis distributed lock — must precede AddOrderingOutboxProcessing so the
+// Redis implementation takes precedence over the NullDistributedLock fallback.
+await builder.AddOrderSphereRedisAsync();
+builder.Services.AddOrderSphereDistributedLocking();
+
 // EF Core — Aspire injects connection string via "ordering-db"
 builder.AddNpgsqlDbContext<OrderingDbContext>("ordering-db", settings =>
 {

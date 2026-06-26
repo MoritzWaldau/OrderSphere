@@ -3,15 +3,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.EventBus.Outbox;
+using OrderSphere.BuildingBlocks.Locking;
 
 namespace OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Outbox;
 
 public sealed class OutboxDispatcher<TContext>(
     IServiceScopeFactory scopeFactory,
+    IDistributedLock distributedLock,
     ILogger<OutboxDispatcher<TContext>> logger) : BackgroundService
     where TContext : DbContext
 {
     private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan LockTtl = TimeSpan.FromSeconds(30);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -24,6 +27,11 @@ public sealed class OutboxDispatcher<TContext>(
 
     private async Task ProcessPendingAsync(CancellationToken ct)
     {
+        var lockKey = $"outbox-dispatch:{typeof(TContext).Name}";
+        await using var handle = await distributedLock.TryAcquireAsync(lockKey, LockTtl, ct);
+        if (handle is null)
+            return;
+
         try
         {
             await using var scope = scopeFactory.CreateAsyncScope();

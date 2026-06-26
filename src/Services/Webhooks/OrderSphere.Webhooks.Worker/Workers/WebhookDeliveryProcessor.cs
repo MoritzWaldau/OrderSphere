@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Locking;
 using OrderSphere.Webhooks.Domain.Enums;
 using OrderSphere.Webhooks.Infrastructure.Persistence;
 
@@ -22,6 +23,7 @@ namespace OrderSphere.Webhooks.Worker.Workers;
 public sealed class WebhookDeliveryProcessor(
     IServiceScopeFactory scopeFactory,
     IHttpClientFactory httpClientFactory,
+    IDistributedLock distributedLock,
     ILogger<WebhookDeliveryProcessor> logger) : BackgroundService
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(5);
@@ -50,6 +52,11 @@ public sealed class WebhookDeliveryProcessor(
 
     private async Task<int> ProcessPendingDeliveriesAsync(CancellationToken ct)
     {
+        await using var handle = await distributedLock.TryAcquireAsync(
+            "webhooks:delivery", PollInterval * 10, ct);
+        if (handle is null)
+            return 0;
+
         using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<WebhooksDbContext>();
 

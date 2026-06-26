@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
@@ -34,6 +37,8 @@
          StockReservation whose quantity exceeds on-hand stock, written via CatalogDbContext. -->
     <ProjectReference Include="..\..\src\Services\Catalog\OrderSphere.Catalog.Infrastructure\OrderSphere.Catalog.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\BuildingBlocks\OrderSphere.BuildingBlocks.Contracts\OrderSphere.BuildingBlocks.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\OrderSphere.BuildingBlocks.Domain\OrderSphere.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\src\Hosting\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

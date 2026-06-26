@@ -13,6 +13,12 @@ builder.AddNpgsqlDbContext<PaymentDbContext>("payment-db");
 builder.AddAzureServiceBusClient("azure-service-bus");
 
 builder.Services.AddAzureServiceBusEventBus(); // Required by OutboxDispatcher → PaymentProcessedEventHandler
+
+// Redis distributed lock — must precede AddPaymentInfrastructure (which calls AddOutboxProcessing)
+// so the Redis implementation takes precedence over the NullDistributedLock fallback.
+await builder.AddOrderSphereRedisAsync();
+builder.Services.AddOrderSphereDistributedLocking();
+
 builder.Services.AddPaymentInfrastructure(builder.Configuration);
 builder.Services.AddHostedService<PaymentProcessor>();
 builder.Services.AddHostedService<OrderConfirmationFailedProcessor>();

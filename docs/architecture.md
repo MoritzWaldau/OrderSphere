@@ -120,6 +120,74 @@ flowchart LR
     save --> read[(orders / order_items / order_status_history)]
 ```
 
+## Distributed locking / leader-election
+
+Background jobs that poll a database table or perform scheduled maintenance (outbox dispatchers,
+reservation sweeper, webhook delivery, conversation cleanup) must not double-execute when a
+service scales to multiple replicas. A6 introduces a Redis-backed lease mechanism so that among
+N running instances exactly one acts as leader for each job at any time.
+
+### Primitive
+
+**Abstraction** — `IDistributedLock` + `IDistributedLockHandle` in
+`BuildingBlocks.Domain/Locking/` (`OrderSphere.BuildingBlocks.Locking` namespace). Disposable
+handle pattern: acquire returns a handle or `null` (no blocking); disposing the handle releases
+the lease.
+
+**Implementation** — `RedisDistributedLock` in `ServiceDefaults/DistributedLockExtensions.cs`.
+Registration: `builder.Services.AddOrderSphereDistributedLocking()`, called after
+`AddOrderSphereRedisAsync()`.
+
+Protocol:
+- **Acquire:** `SET lock:{resource} {token} NX PX {ttlMs}` — atomic, single round-trip.
+- **Release:** Lua compare-and-delete ensures only the token holder can delete the key, so a
+  slow instance whose lease expired cannot release a lease re-taken by another instance.
+- **Auto-renew:** a background loop issues a token-checked `PEXPIRE` at half-TTL to keep the
+  lease alive for long-running work cycles.
+
+`NullDistributedLock` (always-acquire no-op) is registered by `AddOutboxProcessing<TContext>`
+via `TryAddSingleton` as a fallback for single-instance or test deployments.
+
+### Protected jobs
+
+| Job | Service | Lock key | TTL |
+|---|---|---|---|
+| `OutboxDispatcher<TContext>` | Ordering (Api + Worker), Payment (Api + Worker) | `outbox-dispatch:{DbContextName}` | 30 s |
+| `OutboxCleanupService<TContext>` | Same | `outbox-cleanup:{DbContextName}` | 5 min |
+| `ReservationSweeper` | Catalog.Api | `catalog:reservation-sweep` | 1 min (= sweep interval) |
+| `WebhookDeliveryProcessor` | Webhooks.Worker | `webhooks:delivery` | 50 s (= 10× poll interval) |
+| `ConversationCleanupService` | Advisory.Api | `advisory:conversation-cleanup` | 24 h (= sweep interval) |
+
+**Not locked — by design:** Azure Service Bus queue consumers (`OrderProcessor`,
+`PaymentProcessor`, `PaymentResultProcessor`, etc.). These use the competing-consumers pattern
+with inbox idempotency; locking would throttle message throughput with no correctness benefit.
+
+### Leader-election sequence
+
+```mermaid
+sequenceDiagram
+    participant R1 as Replica 1
+    participant R2 as Replica 2
+    participant Redis
+
+    R1->>Redis: SET lock:outbox-dispatch NX PX 30000 token=A
+    Redis-->>R1: OK (acquired)
+    R2->>Redis: SET lock:outbox-dispatch NX PX 30000 token=B
+    Redis-->>R2: null (already held)
+    Note over R2: returns early — skips this cycle
+    R1->>Redis: renew PEXPIRE token=A (half-TTL loop)
+    R1->>Redis: DEL lock:outbox-dispatch if token=A (Lua)
+    Redis-->>R1: OK (released)
+    R2->>Redis: SET lock:outbox-dispatch NX PX 30000 token=B
+    Redis-->>R2: OK (acquired — next leader)
+```
+
+### Observability
+
+- `ordersphere.lock.acquired` (counter, tag: `resource`) — incremented each successful acquire.
+- `ordersphere.lock.contended` (counter, tag: `resource`) — incremented when another instance
+  holds the lease (visible in the Aspire dashboard via OTLP).
+
 ## AI advisory agent + MCP server
 
 A customer-advisory chat agent, deliberately split into two independently deployable

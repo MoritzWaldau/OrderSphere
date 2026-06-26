@@ -5,6 +5,7 @@ using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Catalog.Application.Abstractions;
 using OrderSphere.Catalog.Application.Features.Products.Public.GetProductBySlug;
 using OrderSphere.Catalog.Application.Features.Products.Public.GetProducts;
+using OrderSphere.Catalog.Application.Features.Products.Public.GetSimilarProducts;
 using OrderSphere.ServiceDefaults;
 
 namespace OrderSphere.Catalog.Api.Endpoints.Public;
@@ -23,6 +24,10 @@ public static class ProductEndpoints
 
         group.MapGet("/{slug}", GetProductBySlug)
             .WithName("GetProductBySlug")
+            .WithTags("Products");
+
+        group.MapGet("/{slug}/similar", GetSimilarProducts)
+            .WithName("GetSimilarProducts")
             .WithTags("Products");
 
         group.MapPost("/{id:guid}/stock/decrement", DecrementStock)
@@ -88,6 +93,13 @@ public static class ProductEndpoints
         string slug, IMediator mediator, CancellationToken ct)
     {
         var result = await mediator.Send(new GetProductBySlugQuery(slug), ct);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetSimilarProducts(
+        string slug, [FromQuery] int limit, IMediator mediator, CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetSimilarProductsQuery(slug, limit == 0 ? 5 : limit), ct);
         return result.ToHttpResult();
     }
 

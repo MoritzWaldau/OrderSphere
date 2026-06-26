@@ -11,6 +11,7 @@
     <!-- JwtBearer is provided via ServiceDefaults → FrameworkReference Microsoft.AspNetCore.App -->
     <PackageReference Include="Asp.Versioning.Http" />
     <PackageReference Include="Azure.AI.OpenAI" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
     <PackageReference Include="ModelContextProtocol" />

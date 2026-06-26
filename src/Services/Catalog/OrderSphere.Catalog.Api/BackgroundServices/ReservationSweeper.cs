@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Locking;
 using OrderSphere.Catalog.Domain.Enums;
 using OrderSphere.Catalog.Infrastructure.Persistence;
 
@@ -10,6 +11,7 @@ namespace OrderSphere.Catalog.Api.BackgroundServices;
 /// </summary>
 public sealed class ReservationSweeper(
     IServiceScopeFactory scopeFactory,
+    IDistributedLock distributedLock,
     ILogger<ReservationSweeper> logger) : BackgroundService
 {
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(1);
@@ -38,6 +40,11 @@ public sealed class ReservationSweeper(
 
     private async Task SweepAsync(CancellationToken ct)
     {
+        await using var handle = await distributedLock.TryAcquireAsync(
+            "catalog:reservation-sweep", Interval, ct);
+        if (handle is null)
+            return;
+
         await using var scope = scopeFactory.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
 

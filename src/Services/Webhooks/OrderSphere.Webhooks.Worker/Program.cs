@@ -7,6 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
+// Redis distributed lock — guards WebhookDeliveryProcessor against double-delivery at scale.
+await builder.AddOrderSphereRedisAsync();
+builder.Services.AddOrderSphereDistributedLocking();
+
 builder.AddWebhooksInfrastructure();
 builder.Services.AddWebhooksApplication();
 

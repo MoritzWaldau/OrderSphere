@@ -16,6 +16,8 @@ builder.AddServiceDefaults();
 
 // Redis distributed cache (Entra ID auth against Azure Managed Redis) — L2 for HybridCache.
 await builder.AddOrderSphereRedisAsync();
+// Leader-election lock so ReservationSweeper runs on exactly one Catalog replica.
+builder.Services.AddOrderSphereDistributedLocking();
 
 // Domain layers
 builder.AddCatalogInfrastructure();          // EF Core, ICatalogDbContext, HybridCache

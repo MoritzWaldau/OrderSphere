@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OrderSphere.BuildingBlocks.Domain\OrderSphere.BuildingBlocks.csproj" />
     <ProjectReference Include="..\OrderSphere.BuildingBlocks.EventBus\OrderSphere.BuildingBlocks.EventBus.csproj" />
   </ItemGroup>
 

@@ -4,11 +4,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OrderSphere.BuildingBlocks.EventBus.Outbox;
+using OrderSphere.BuildingBlocks.Locking;
 
 namespace OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Outbox;
 
 public sealed class OutboxCleanupService<TContext>(
     IServiceScopeFactory scopeFactory,
+    IDistributedLock distributedLock,
     ILogger<OutboxCleanupService<TContext>> logger,
     IConfiguration configuration) : BackgroundService
     where TContext : DbContext
@@ -27,6 +29,11 @@ public sealed class OutboxCleanupService<TContext>(
 
     private async Task CleanupAsync(CancellationToken ct)
     {
+        var lockKey = $"outbox-cleanup:{typeof(TContext).Name}";
+        await using var handle = await distributedLock.TryAcquireAsync(lockKey, TimeSpan.FromMinutes(5), ct);
+        if (handle is null)
+            return;
+
         try
         {
             var retentionDays = configuration.GetValue("Outbox:RetentionDays", 7);

@@ -371,8 +371,13 @@ FodyWeavers.xsd
 # Claude Code – per-developer permission overrides (not shared)
 .claude/settings.local.json
 
-# Claude Code – skills live in ~/.claude/skills (global), not in the repo
-.claude/skills/
+# Claude Code – skills live in ~/.claude/skills (global) and are not repo artifacts.
+# Exception: project-authored skills (ordersphere-scaffold) are committed so all
+# developers get them automatically. Per-developer or plugin-installed skills are
+# excluded via the wildcard below.
+.claude/skills/*
+!.claude/skills/ordersphere-scaffold
+!.claude/skills/ordersphere-scaffold/**
 
 # Claude Code – graphify skill output (generated on demand, not source)
 graphify-out/

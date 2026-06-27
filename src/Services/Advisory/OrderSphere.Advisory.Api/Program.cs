@@ -16,6 +16,9 @@ builder.AddOrderSphereSwagger("OrderSphere Advisory API");
 await builder.AddOrderSphereRedisAsync();
 builder.Services.AddOrderSphereDistributedLocking();
 
+// HybridCache (L1=in-process, L2=Redis) — backing store for the semantic LLM cache.
+builder.Services.AddHybridCache();
+
 // EF Core persistence for conversation history (advisory-db).
 builder.AddAdvisoryInfrastructure();
 

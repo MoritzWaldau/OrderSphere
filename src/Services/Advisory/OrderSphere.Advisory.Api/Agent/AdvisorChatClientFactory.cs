@@ -1,6 +1,9 @@
+using Azure.AI.ContentSafety;
 using Azure.AI.OpenAI;
 using Azure.Identity;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Caching.Hybrid;
+using OpenAI.Embeddings;
 
 namespace OrderSphere.Advisory.Api.Agent;
 
@@ -17,16 +20,17 @@ public interface IAdvisorChatClientFactory
 // and thread-safe, so the whole pipeline is built once and shared across requests.
 // Per-user state (MCP tools, session) lives on the agent, not on the chat client.
 //
-// Pipeline order matters (first = outermost):
-//   1. ObservabilityChatClient — wraps a full turn so it can aggregate per-turn cost
-//      and quality metrics (tokens, tool success, latency) over the whole tool loop.
-//   2. UseChatReducer  — trims history once per turn, BEFORE the function-invocation
-//      loop. MessageCountingChatReducer drops function call/result messages; if it
-//      ran inside the loop it would strip the in-flight tool exchange.
-//   3. UseFunctionInvocation — runs the tool-call loop. Because the pipeline already
-//      contains a FunctionInvokingChatClient, ChatClientAgent will not add another.
-//   4. UseOpenTelemetry — innermost, so every model round-trip inside the loop is
-//      captured as its own GenAI span (model, latency, token usage).
+// Pipeline order (outermost → innermost):
+//   0. ContentSafetyChatClient  — blocks unsafe inputs before any model round-trip.
+//      Wired only when ContentSafety:Endpoint is configured (graceful-degradation).
+//   1. ObservabilityChatClient  — records per-turn cost and quality metrics (tokens,
+//      tool success rate, latency). Runs inside ContentSafety so blocked requests are
+//      not counted as model turns.
+//   2. UseChatReducer           — trims history once per turn, BEFORE the function-
+//      invocation loop. Runs inside ObservabilityChatClient so trimming is transparent.
+//   3. UseFunctionInvocation    — runs the tool-call loop.
+//   4. UseOpenTelemetry         — innermost, captures every model round-trip as its
+//      own GenAI span (model, latency, token usage).
 public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
 {
     public const string TelemetrySourceName = "OrderSphere.Advisory.Agent";
@@ -37,7 +41,10 @@ public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
 
     private readonly Lazy<IChatClient?> _client;
 
-    public FoundryChatClientFactory(IConfiguration configuration, ILoggerFactory loggerFactory)
+    public FoundryChatClientFactory(
+        IConfiguration configuration,
+        ILoggerFactory loggerFactory,
+        HybridCache hybridCache)
     {
         _client = new Lazy<IChatClient?>(() =>
         {
@@ -48,6 +55,8 @@ public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
             }
 
             var deployment = configuration["Foundry:Deployment"] ?? "gpt-4o-mini";
+            var credential = new DefaultAzureCredential();
+            var azureClient = new AzureOpenAIClient(new Uri(endpoint), credential);
 
             // MEAI001: the chat-reducer API is marked experimental in MEAI 10.x. The
             // alternative is a hand-rolled trimming DelegatingChatClient with identical
@@ -63,10 +72,45 @@ public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
                 .Build();
 #pragma warning restore MEAI001
 
-            // Outermost: aggregate cost/quality metrics across the full turn.
-            return new ObservabilityChatClient(pipeline);
+            // Observability wraps the inner pipeline: only model-backed turns are counted;
+            // future cache hits (SemanticCacheChatClient, not yet wired here) bypass it.
+            pipeline = new ObservabilityChatClient(pipeline);
+
+            var safetyEndpoint = configuration["ContentSafety:Endpoint"];
+            if (!string.IsNullOrWhiteSpace(safetyEndpoint))
+            {
+                var threshold = configuration.GetValue<int?>("ContentSafety:SeverityThreshold") ?? 4;
+                var safetyClient = new ContentSafetyClient(
+                    new Uri(safetyEndpoint), new DefaultAzureCredential());
+                pipeline = new ContentSafetyChatClient(
+                    pipeline,
+                    (text, ct) => IsBlockedBySafetyAsync(safetyClient, text, threshold, ct));
+            }
+
+            return pipeline;
         });
     }
 
+    private static async Task<bool> IsBlockedBySafetyAsync(
+        ContentSafetyClient safety, string text, int threshold, CancellationToken ct)
+    {
+        try
+        {
+            var result = (await safety.AnalyzeTextAsync(new AnalyzeTextOptions(text), ct)).Value;
+            return result.CategoriesAnalysis.Any(a => a.Severity >= threshold);
+        }
+        catch
+        {
+            return false; // fail open: unavailable safety service must not block requests
+        }
+    }
+
     public IChatClient? GetChatClient() => _client.Value;
+
+    private static async Task<ReadOnlyMemory<float>> EmbedAsync(
+        EmbeddingClient client, string text, CancellationToken ct)
+    {
+        var result = await client.GenerateEmbeddingAsync(text, cancellationToken: ct);
+        return result.Value.ToFloats();
+    }
 }

@@ -40,6 +40,9 @@ public sealed class AdvisorChatService(
         - Wenn ein Tool keine Daten liefert (z. B. weil der Nutzer nicht angemeldet
           ist), sage das offen und biete an, was ohne Anmeldung möglich ist.
         - Gib keine internen IDs oder technischen Fehlermeldungen an den Kunden weiter!
+        - Erwähne nur Produkte, die du tatsächlich über ein Tool abgerufen hast.
+          Das System zeigt dem Nutzer automatisch Links zu den abgerufenen Produkten —
+          du musst URLs oder Slugs nicht selbst ausgeben.
 
         Warenkorb-Aktion (add_to_cart):
         - Wenn der Nutzer ein Produkt in den Warenkorb legen möchte, rufe add_to_cart
@@ -119,6 +122,8 @@ public sealed class AdvisorChatService(
             var assistant = new StringBuilder();
             var failed = false;
             string? lastToolLabel = null;
+            var toolCallNames = new Dictionary<string, string>(); // callId → tool name
+            var citations = new List<ProductCitation>();
 
             // Text chunks are buffered until we can determine whether the model is
             // emitting a raw confirmation_required JSON payload (starts with {"__confirm__")
@@ -160,12 +165,19 @@ public sealed class AdvisorChatService(
 
                 foreach (var call in update.Contents.OfType<FunctionCallContent>())
                 {
+                    toolCallNames[call.CallId] = call.Name;
                     var label = ToolLabel(call.Name);
                     if (label != lastToolLabel)
                     {
                         lastToolLabel = label;
                         yield return AdvisorStreamEvent.OfTool(label);
                     }
+                }
+
+                foreach (var result in update.Contents.OfType<FunctionResultContent>())
+                {
+                    if (toolCallNames.TryGetValue(result.CallId, out var toolName))
+                        citations.AddRange(ExtractProductCitations(toolName, result.Result?.ToString()));
                 }
 
                 if (!string.IsNullOrEmpty(update.Text))
@@ -214,6 +226,15 @@ public sealed class AdvisorChatService(
                     yield return AdvisorStreamEvent.OfText(chunk);
             }
 
+            // Emit deduplicated product citations for this turn (after all text tokens).
+            var distinctCitations = citations
+                .DistinctBy(c => c.Slug)
+                .Where(c => c.Slug.Length > 0)
+                .ToList();
+            if (distinctCitations.Count > 0)
+                yield return AdvisorStreamEvent.OfCitation(
+                    JsonSerializer.Serialize(distinctCitations, CamelCaseJson));
+
             if (customerSub is not null)
             {
                 await PersistTurnAsync(agent, session, conversation, customerSub, conversationId,
@@ -229,11 +250,14 @@ public sealed class AdvisorChatService(
         }
     }
 
+    private static readonly JsonSerializerOptions CamelCaseJson = new(JsonSerializerDefaults.Web);
+
     // User-facing German labels for tool activity shown in the chat UI.
     private static string ToolLabel(string toolName) => toolName switch
     {
         "search_products" => "Durchsuche den Katalog",
         "get_product" => "Rufe Produktdetails ab",
+        "get_similar_products" => "Suche ähnliche Produkte",
         "list_categories" => "Lade Kategorien",
         "get_my_orders" => "Rufe deine Bestellungen ab",
         "get_order_status" => "Prüfe den Bestellstatus",
@@ -245,6 +269,49 @@ public sealed class AdvisorChatService(
         "add_to_cart" => "Lege in den Warenkorb",
         _ => "Rufe Informationen ab"
     };
+
+    private static IReadOnlyList<ProductCitation> ExtractProductCitations(string toolName, string? rawJson)
+    {
+        if (rawJson is null) return [];
+        try
+        {
+            using var doc = JsonDocument.Parse(rawJson);
+            var root = doc.RootElement;
+            return toolName switch
+            {
+                "search_products" when root.TryGetProperty("products", out var products)
+                    => CollectCitations(products.EnumerateArray()),
+                "get_similar_products" when root.TryGetProperty("results", out var results)
+                    => CollectCitations(results.EnumerateArray()),
+                "get_product" when root.ValueKind == JsonValueKind.Object
+                    => TryCitation(root) is { } c ? [c] : [],
+                _ => []
+            };
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
+    private static IReadOnlyList<ProductCitation> CollectCitations(
+        JsonElement.ArrayEnumerator items)
+    {
+        var result = new List<ProductCitation>();
+        foreach (var item in items)
+            if (TryCitation(item) is { } c)
+                result.Add(c);
+        return result;
+    }
+
+    private static ProductCitation? TryCitation(JsonElement el)
+    {
+        var slug = el.TryGetProperty("slug", out var s) ? s.GetString() : null;
+        var name = el.TryGetProperty("name", out var n) ? n.GetString() : null;
+        return !string.IsNullOrEmpty(slug) && !string.IsNullOrEmpty(name)
+            ? new ProductCitation(slug, name)
+            : null;
+    }
 
     private async Task<AgentSession> RehydrateOrCreateSessionAsync(
         AIAgent agent, Conversation? conversation, CancellationToken ct)
@@ -329,3 +396,6 @@ public sealed class AdvisorChatService(
     private string? ResolveCustomerSub()
         => CustomerContext.ResolveSub(httpContextAccessor.HttpContext?.User);
 }
+
+/// <summary>A product referenced by a tool result in an advisory turn.</summary>
+public sealed record ProductCitation(string Slug, string Name);

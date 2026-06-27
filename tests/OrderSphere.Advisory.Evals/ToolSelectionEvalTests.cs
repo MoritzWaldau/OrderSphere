@@ -27,7 +27,7 @@ public sealed class ToolSelectionEvalTests
         ["get_my_cart", "Schaue in deinen Warenkorb"],
         ["get_my_orders", "Rufe deine Bestellungen ab"],
         ["add_to_cart", "Lege in den Warenkorb"],
-        ["get_similar_products", "Rufe Informationen ab"],
+        ["get_similar_products", "Suche ähnliche Produkte"],
     ];
 
     [Theory]

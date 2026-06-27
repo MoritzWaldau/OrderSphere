@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+    <UserSecretsId>76b4d6e1-3e52-4e3a-8e18-c5eb9060e407</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

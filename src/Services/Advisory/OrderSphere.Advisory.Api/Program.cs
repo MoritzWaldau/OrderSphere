@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using OrderSphere.Advisory.Api.Agent;
 using OrderSphere.Advisory.Api.Configuration;
 using OrderSphere.Advisory.Api.Endpoints;
+using OrderSphere.Advisory.Api.Voice;
 using OrderSphere.Advisory.Infrastructure;
 using OrderSphere.Advisory.Infrastructure.Persistence;
 
@@ -45,6 +46,9 @@ builder.Services.AddOpenTelemetry()
 
 // Scoped: the chat service depends on the per-request DbContext.
 builder.Services.AddScoped<AdvisorChatService>();
+
+// Singleton: SpeechService holds a cached AAD token; disabled gracefully without Speech:Region.
+builder.Services.AddSingleton<SpeechService>();
 
 var app = builder.Build();
 

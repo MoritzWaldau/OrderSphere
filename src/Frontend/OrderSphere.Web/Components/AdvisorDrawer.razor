@@ -3,6 +3,7 @@
 @inject IAdvisorClient Advisor
 @inject ILogger<AdvisorDrawer> Logger
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <MudDrawer @bind-Open="IsOpen"
            Anchor="Anchor.Right"
@@ -78,6 +79,15 @@
                                       Class="surface-card pa-3"
                                       Style="@(m.IsUser ? "align-self:flex-end;max-width:85%;background:var(--mud-palette-primary);color:#fff;" : "align-self:flex-start;max-width:85%;")">
                                 <MudText Typo="Typo.body2" Style="white-space:pre-wrap;overflow-wrap:anywhere;">@m.Text</MudText>
+                                @if (!m.IsUser && !string.IsNullOrEmpty(m.Text))
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Outlined.VolumeUp"
+                                                   Size="Size.Small"
+                                                   Color="Color.Default"
+                                                   title="Vorlesen"
+                                                   Style="margin-top:2px;padding:2px;"
+                                                   OnClick="@(() => SpeakAsync(m.Text))" />
+                                }
                                 @if (!m.IsUser && m.Citations is { Count: > 0 })
                                 {
                                     <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;">
@@ -130,6 +140,12 @@
                               OnKeyDown="OnKeyDown"
                               Disabled="_busy"
                               Style="flex:1;" />
+                <MudIconButton Icon="@(_recording ? Icons.Material.Filled.MicOff : Icons.Material.Filled.Mic)"
+                               Color="@(_recording ? Color.Error : Color.Default)"
+                               OnClick="ToggleRecordingAsync"
+                               Disabled="_busy && !_recording"
+                               title="@(_recording ? "Aufnahme beenden" : "Spracheingabe")"
+                               Style="@(_recording ? "animation:pulse 1s ease-in-out infinite;" : string.Empty)" />
                 <MudIconButton Icon="@Icons.Material.Filled.Send"
                                Color="Color.Primary"
                                OnClick="SendAsync"
@@ -159,6 +175,7 @@
     private bool _busy;
     private bool _showHistory;
     private bool _loadingHistory;
+    private bool _recording;
     private CancellationTokenSource? _cts;
 
     private static readonly JsonSerializerOptions JsonOpts = new(JsonSerializerDefaults.Web);
@@ -319,6 +336,61 @@
     {
         IsOpenChanged.InvokeAsync(false);
         Nav.NavigateTo($"/products/{slug}");
+    }
+
+    private async Task ToggleRecordingAsync()
+    {
+        if (_recording)
+        {
+            _recording = false;
+            StateHasChanged();
+            try
+            {
+                var wavBytes = await JS.InvokeAsync<byte[]>("advisorVoice.stopRecording");
+                if (wavBytes is { Length: > 44 })
+                {
+                    var text = await Advisor.TranscribeAsync(wavBytes);
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        _input = text;
+                        StateHasChanged();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Voice transcription failed");
+            }
+        }
+        else
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("advisorVoice.startRecording");
+                _recording = true;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Could not start recording — microphone access denied");
+            }
+        }
+    }
+
+    private async Task SpeakAsync(string text)
+    {
+        try
+        {
+            var audio = await Advisor.SynthesizeAsync(text);
+            if (audio is { Length: > 0 })
+            {
+                var base64 = Convert.ToBase64String(audio);
+                await JS.InvokeVoidAsync("advisorVoice.playAudio", base64);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Voice synthesis failed");
+        }
     }
 
     private void Close() => IsOpenChanged.InvokeAsync(false);

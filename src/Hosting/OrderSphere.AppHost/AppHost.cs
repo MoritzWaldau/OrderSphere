@@ -23,6 +23,13 @@ var foundryDeployment = builder.Configuration["Foundry:Deployment"] ?? "gpt-4o-m
 // Embedding model for catalog hybrid search; same Foundry endpoint, separate deployment.
 var foundryEmbeddingDeployment = builder.Configuration["Foundry:EmbeddingDeployment"] ?? "text-embedding-3-small";
 
+// Azure Cognitive Services Speech for the voice advisor (C8).
+// Local runs: dotnet user-secrets set "Speech:Region" "<region>"
+//             dotnet user-secrets set "Speech:SubscriptionKey" "<key>"
+// In Azure: Speech:SubscriptionKey should be stored in Key Vault.
+var speechRegion = builder.Configuration["Speech:Region"] ?? "";
+var speechKey = builder.Configuration["Speech:SubscriptionKey"] ?? "";
+
 // Provisioned by azd in non-dev environments. Parameters above are backed by
 // Key Vault secrets at deployment time; no code change required in service projects.
 builder.AddAzureKeyVault("ordersphere-kv");
@@ -296,6 +303,8 @@ var advisory = builder.AddProject<Projects.OrderSphere_Advisory_Api>("orderspher
     .WithEnvironment("Oidc__Authority", oidcAuthority)
     .WithEnvironment("Foundry__Endpoint", foundryEndpoint)
     .WithEnvironment("Foundry__Deployment", foundryDeployment)
+    .WithEnvironment("Speech__Region", speechRegion)
+    .WithEnvironment("Speech__SubscriptionKey", speechKey)
     // Concrete endpoint reference, not the logical name: the MCP client transport
     // uses a plain HttpClient without Aspire service discovery.
     .WithEnvironment("Services__Mcp__BaseUrl", mcpServer.GetEndpoint("https"));

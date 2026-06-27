@@ -50,7 +50,17 @@ public interface IAdvisorClient
 
     // Returns the stored transcript of one conversation, oldest message first.
     Task<IReadOnlyList<AdvisorHistoryMessage>> GetMessagesAsync(string conversationId, CancellationToken ct = default);
+
+    // Transcribes a WAV audio blob (16 kHz / 16-bit / mono) to text.
+    // Returns null when the endpoint returns 501 (voice not configured server-side).
+    Task<string?> TranscribeAsync(byte[] wavBytes, CancellationToken ct = default);
+
+    // Synthesizes text to MP3 audio bytes.
+    // Returns null when the endpoint returns 501 (voice not configured server-side).
+    Task<byte[]?> SynthesizeAsync(string text, CancellationToken ct = default);
 }
+
+file sealed record TranscribeResponse(string Text);
 
 public sealed class AdvisorClient(IHttpClientFactory factory) : IAdvisorClient
 {
@@ -63,6 +73,25 @@ public sealed class AdvisorClient(IHttpClientFactory factory) : IAdvisorClient
         string conversationId, CancellationToken ct = default)
         => await client.GetFromJsonAsync<List<AdvisorHistoryMessage>>(
                $"/api/v1/advisor/conversations/{Uri.EscapeDataString(conversationId)}", ct) ?? [];
+
+    public async Task<string?> TranscribeAsync(byte[] wavBytes, CancellationToken ct = default)
+    {
+        using var content = new ByteArrayContent(wavBytes);
+        content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        using var response = await client.PostAsync("/api/v1/advisor/voice/transcribe", content, ct);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotImplemented) return null;
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadFromJsonAsync<TranscribeResponse>(ct);
+        return result?.Text;
+    }
+
+    public async Task<byte[]?> SynthesizeAsync(string text, CancellationToken ct = default)
+    {
+        using var response = await client.PostAsJsonAsync("/api/v1/advisor/voice/synthesize", new { text }, ct);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotImplemented) return null;
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsByteArrayAsync(ct);
+    }
 
     public async IAsyncEnumerable<AdvisorStreamItem> StreamAsync(
         string conversationId,

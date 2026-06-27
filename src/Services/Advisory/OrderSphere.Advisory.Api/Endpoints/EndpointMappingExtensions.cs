@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using OrderSphere.Advisory.Api.Agent;
+using OrderSphere.Advisory.Api.Voice;
 
 namespace OrderSphere.Advisory.Api.Endpoints;
 
@@ -21,5 +22,6 @@ public static class EndpointMappingExtensions
 
         advisor.MapAdvisorChatEndpoints();
         advisor.MapAdvisorHistoryEndpoints();
+        advisor.MapAdvisorVoiceEndpoints();
     }
 }

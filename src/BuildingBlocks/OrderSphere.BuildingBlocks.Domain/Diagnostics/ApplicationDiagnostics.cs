@@ -33,4 +33,21 @@ public static class ApplicationDiagnostics
     public static readonly Counter<long> AdvisorCacheMisses = Meter.CreateCounter<long>(
         "ordersphere.advisor.cache.misses",
         description: "Number of advisory turns that bypassed the semantic cache.");
+
+    /// <summary>Wall-clock duration of a model-backed advisory turn, tagged by outcome (completed|canceled|failed).</summary>
+    public static readonly Histogram<double> AdvisorTurnDuration = Meter.CreateHistogram<double>(
+        "ordersphere.advisor.turn.duration",
+        unit: "ms",
+        description: "Wall-clock duration of a model-backed advisory turn.");
+
+    /// <summary>Model tokens consumed by the advisory agent, tagged by direction (input|output).</summary>
+    public static readonly Counter<long> AdvisorTokens = Meter.CreateCounter<long>(
+        "ordersphere.advisor.tokens",
+        unit: "{token}",
+        description: "Model tokens consumed by the advisory agent, tagged by direction.");
+
+    /// <summary>Advisory agent tool invocations, tagged by tool and outcome (success|error).</summary>
+    public static readonly Counter<long> AdvisorToolInvocations = Meter.CreateCounter<long>(
+        "ordersphere.advisor.tool.invocations",
+        description: "Advisory agent tool invocations, tagged by tool and outcome.");
 }

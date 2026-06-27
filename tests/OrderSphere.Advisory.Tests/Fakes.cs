@@ -51,6 +51,16 @@ internal sealed class ScriptedChatClient : IChatClient
         return this;
     }
 
+    /// <summary>
+    /// Enqueues a turn from arbitrary updates, so a test can mix text, function
+    /// calls, function results and usage content within a single streamed turn.
+    /// </summary>
+    public ScriptedChatClient AddTurn(params ChatResponseUpdate[] updates)
+    {
+        _turns.Enqueue([.. updates.Select(u => new ScriptedItem(u, Throw: false))]);
+        return this;
+    }
+
     public ScriptedChatClient AddFailingTurn(params string[] tokensBeforeFailure)
     {
         List<ScriptedItem> items = [.. tokensBeforeFailure.Select(t =>

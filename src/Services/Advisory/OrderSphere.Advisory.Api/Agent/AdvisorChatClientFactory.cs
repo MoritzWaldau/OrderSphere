@@ -4,7 +4,6 @@ using Azure.Identity;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Caching.Hybrid;
 using OpenAI.Embeddings;
-using OrderSphere.BuildingBlocks.Diagnostics;
 
 namespace OrderSphere.Advisory.Api.Agent;
 
@@ -24,10 +23,13 @@ public interface IAdvisorChatClientFactory
 // Pipeline order (outermost → innermost):
 //   0. ContentSafetyChatClient  — blocks unsafe inputs before any model round-trip.
 //      Wired only when ContentSafety:Endpoint is configured (graceful-degradation).
-//   1. UseChatReducer           — trims history once per turn, BEFORE the function-
-//      invocation loop. Runs inside ContentSafety so history trimming is transparent.
-//   2. UseFunctionInvocation    — runs the tool-call loop.
-//   3. UseOpenTelemetry         — innermost, captures every model round-trip as its
+//   1. ObservabilityChatClient  — records per-turn cost and quality metrics (tokens,
+//      tool success rate, latency). Runs inside ContentSafety so blocked requests are
+//      not counted as model turns.
+//   2. UseChatReducer           — trims history once per turn, BEFORE the function-
+//      invocation loop. Runs inside ObservabilityChatClient so trimming is transparent.
+//   3. UseFunctionInvocation    — runs the tool-call loop.
+//   4. UseOpenTelemetry         — innermost, captures every model round-trip as its
 //      own GenAI span (model, latency, token usage).
 public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
 {
@@ -69,6 +71,10 @@ public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
                 .UseOpenTelemetry(loggerFactory, TelemetrySourceName)
                 .Build();
 #pragma warning restore MEAI001
+
+            // Observability wraps the inner pipeline: only model-backed turns are counted;
+            // future cache hits (SemanticCacheChatClient, not yet wired here) bypass it.
+            pipeline = new ObservabilityChatClient(pipeline);
 
             var safetyEndpoint = configuration["ContentSafety:Endpoint"];
             if (!string.IsNullOrWhiteSpace(safetyEndpoint))

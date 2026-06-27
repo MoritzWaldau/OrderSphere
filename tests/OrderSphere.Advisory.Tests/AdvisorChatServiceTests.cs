@@ -50,6 +50,7 @@ public sealed class AdvisorChatServiceTests
             db,
             new FakeChatClientFactory(chatClient),
             toolSource ?? new FakeToolSource(),
+            new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build(),
             NullLogger<AdvisorChatService>.Instance);
 
     private static async Task<List<AdvisorStreamEvent>> CollectAsync(

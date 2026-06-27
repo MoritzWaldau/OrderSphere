@@ -62,7 +62,7 @@ public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
             // alternative is a hand-rolled trimming DelegatingChatClient with identical
             // semantics; accepting the experimental surface is the smaller risk.
 #pragma warning disable MEAI001
-            IChatClient pipeline = new AzureOpenAIClient(new Uri(endpoint), new DefaultAzureCredential())
+            IChatClient innerPipeline = new AzureOpenAIClient(new Uri(endpoint), new DefaultAzureCredential())
                 .GetChatClient(deployment)
                 .AsIChatClient()
                 .AsBuilder()
@@ -72,9 +72,28 @@ public sealed class FoundryChatClientFactory : IAdvisorChatClientFactory
                 .Build();
 #pragma warning restore MEAI001
 
+            // Optional fallback model: on HttpRequestException or timeout from the primary
+            // deployment, the FallbackChatClient retries the full request against the
+            // configured alternate deployment. Enabled by Foundry:FallbackDeployment.
+            var fallbackDeployment = configuration["Foundry:FallbackDeployment"];
+            if (!string.IsNullOrWhiteSpace(fallbackDeployment))
+            {
+#pragma warning disable MEAI001
+                IChatClient fallbackPipeline = new AzureOpenAIClient(new Uri(endpoint), new DefaultAzureCredential())
+                    .GetChatClient(fallbackDeployment)
+                    .AsIChatClient()
+                    .AsBuilder()
+                    .UseChatReducer(new MessageCountingChatReducer(MaxNonSystemMessages))
+                    .UseFunctionInvocation(loggerFactory)
+                    .UseOpenTelemetry(loggerFactory, TelemetrySourceName)
+                    .Build();
+#pragma warning restore MEAI001
+                innerPipeline = new FallbackChatClient(innerPipeline, fallbackPipeline);
+            }
+
             // Observability wraps the inner pipeline: only model-backed turns are counted;
             // future cache hits (SemanticCacheChatClient, not yet wired here) bypass it.
-            pipeline = new ObservabilityChatClient(pipeline);
+            IChatClient pipeline = new ObservabilityChatClient(innerPipeline);
 
             var safetyEndpoint = configuration["ContentSafety:Endpoint"];
             if (!string.IsNullOrWhiteSpace(safetyEndpoint))

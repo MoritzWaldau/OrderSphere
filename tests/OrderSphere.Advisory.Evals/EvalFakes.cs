@@ -93,6 +93,7 @@ internal static class EvalServiceFactory
             EmptyDb(),
             new FakeChatClientFactory(chatClient),
             toolSource ?? new FakeToolSource(),
+            new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build(),
             Microsoft.Extensions.Logging.Abstractions.NullLogger<AdvisorChatService>.Instance);
     }
 }

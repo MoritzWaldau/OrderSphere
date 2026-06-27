@@ -24,3 +24,6 @@ immutable; supersede rather than rewrite.
 | [0004](0004-database-per-service.md) | Database-per-service on PostgreSQL | Accepted |
 | [0005](0005-http-clients-and-events-not-grpc.md) | HTTP clients + Service Bus events instead of gRPC | Accepted |
 | [0006](0006-soft-delete-global-query-filter.md) | Soft-delete via a global EF query filter | Accepted |
+| [0007](0007-event-sourcing-island-order-aggregate.md) | Event-sourcing island: only the Order aggregate | Accepted |
+| [0008](0008-saga-choreography-service-bus.md) | Saga choreography over Service Bus for the order/payment flow | Accepted |
+| [0009](0009-multi-tenancy-customer-scoping.md) | Single-tenant deployment with per-customer scoping | Accepted |

@@ -18,10 +18,17 @@ public enum AdvisorStreamItemKind
     Tool,
 
     // A write-action requires customer confirmation. Text is the raw JSON payload.
-    Confirm
+    Confirm,
+
+    // Product citations for the completed turn.
+    // Text is a JSON array: [{"slug":"...","name":"..."}]
+    Citation
 }
 
 public sealed record AdvisorStreamItem(AdvisorStreamItemKind Kind, string Text);
+
+// Deserialized from a citation SSE event: one entry per product referenced by tool results.
+public sealed record AdvisorCitationItem(string Slug, string Name);
 
 // Deserialized from the confirmation_required JSON payload produced by add_to_cart.
 public sealed record AdvisorConfirmPayload(
@@ -119,6 +126,7 @@ public sealed class AdvisorClient(IHttpClientFactory factory) : IAdvisorClient
             {
                 "tool" => new AdvisorStreamItem(AdvisorStreamItemKind.Tool, data),
                 "confirm" => new AdvisorStreamItem(AdvisorStreamItemKind.Confirm, data),
+                "citation" => new AdvisorStreamItem(AdvisorStreamItemKind.Citation, data),
                 _ => new AdvisorStreamItem(AdvisorStreamItemKind.Text, data)
             };
         }

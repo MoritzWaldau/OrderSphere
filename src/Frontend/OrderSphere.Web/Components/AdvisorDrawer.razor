@@ -2,6 +2,7 @@
 @using System.Text.Json
 @inject IAdvisorClient Advisor
 @inject ILogger<AdvisorDrawer> Logger
+@inject NavigationManager Nav
 
 <MudDrawer @bind-Open="IsOpen"
            Anchor="Anchor.Right"
@@ -77,6 +78,22 @@
                                       Class="surface-card pa-3"
                                       Style="@(m.IsUser ? "align-self:flex-end;max-width:85%;background:var(--mud-palette-primary);color:#fff;" : "align-self:flex-start;max-width:85%;")">
                                 <MudText Typo="Typo.body2" Style="white-space:pre-wrap;overflow-wrap:anywhere;">@m.Text</MudText>
+                                @if (!m.IsUser && m.Citations is { Count: > 0 })
+                                {
+                                    <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;">
+                                        @foreach (var c in m.Citations)
+                                        {
+                                            <MudChip T="string"
+                                                     Size="Size.Small"
+                                                     Variant="Variant.Outlined"
+                                                     Color="Color.Primary"
+                                                     OnClick="@(() => NavigateToProduct(c.Slug))"
+                                                     Style="cursor:pointer;">
+                                                @c.Name
+                                            </MudChip>
+                                        }
+                                    </div>
+                                }
                             </MudPaper>
                         }
                         @if (_toolActivity is not null)
@@ -130,6 +147,7 @@
     {
         public bool IsUser { get; init; }
         public string Text { get; set; } = string.Empty;
+        public List<AdvisorCitationItem>? Citations { get; set; }
     }
 
     private readonly List<ChatMessage> _messages = [];
@@ -193,6 +211,17 @@
                     }
                     if (_pendingConfirm is not null)
                         _messages.Remove(reply); // Remove empty assistant bubble
+                }
+                else if (item.Kind == AdvisorStreamItemKind.Citation)
+                {
+                    try
+                    {
+                        reply.Citations = JsonSerializer.Deserialize<List<AdvisorCitationItem>>(item.Text, JsonOpts);
+                    }
+                    catch
+                    {
+                        // Malformed citation payload — omit silently.
+                    }
                 }
                 else
                 {
@@ -284,6 +313,12 @@
         _pendingConfirm = null;
         _input = "Abbrechen, bitte nicht in den Warenkorb legen.";
         await SendAsync();
+    }
+
+    private void NavigateToProduct(string slug)
+    {
+        IsOpenChanged.InvokeAsync(false);
+        Nav.NavigateTo($"/products/{slug}");
     }
 
     private void Close() => IsOpenChanged.InvokeAsync(false);

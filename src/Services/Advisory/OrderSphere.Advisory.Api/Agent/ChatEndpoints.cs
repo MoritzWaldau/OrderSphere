@@ -41,6 +41,7 @@ public static class ChatEndpoints
                 {
                     AdvisorStreamEventKind.Tool => $"event: tool\ndata: {payload}\n\n",
                     AdvisorStreamEventKind.Confirm => $"event: confirm\ndata: {payload}\n\n",
+                    AdvisorStreamEventKind.Citation => $"event: citation\ndata: {payload}\n\n",
                     _ => $"data: {payload}\n\n"
                 };
                 await http.Response.WriteAsync(frame, ct);

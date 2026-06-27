@@ -12,7 +12,15 @@ public enum AdvisorStreamEventKind
     /// A write-action requires customer confirmation before execution.
     /// Text carries the raw confirmation_required JSON payload from the tool.
     /// </summary>
-    Confirm
+    Confirm,
+
+    /// <summary>
+    /// Product citations for the completed turn.
+    /// Text carries a JSON array of <c>[{"slug":"...","name":"..."}]</c> objects
+    /// referencing the products that were returned by tool calls in this turn.
+    /// Emitted once, after all text tokens, before [DONE].
+    /// </summary>
+    Citation
 }
 
 public sealed record AdvisorStreamEvent(AdvisorStreamEventKind Kind, string Text)
@@ -20,4 +28,5 @@ public sealed record AdvisorStreamEvent(AdvisorStreamEventKind Kind, string Text
     public static AdvisorStreamEvent OfText(string text) => new(AdvisorStreamEventKind.Text, text);
     public static AdvisorStreamEvent OfTool(string label) => new(AdvisorStreamEventKind.Tool, label);
     public static AdvisorStreamEvent OfConfirm(string payload) => new(AdvisorStreamEventKind.Confirm, payload);
+    public static AdvisorStreamEvent OfCitation(string json) => new(AdvisorStreamEventKind.Citation, json);
 }

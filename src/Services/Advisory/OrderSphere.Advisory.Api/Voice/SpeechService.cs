@@ -1,5 +1,3 @@
-using Azure.Core;
-using Azure.Identity;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
 
@@ -7,52 +5,32 @@ namespace OrderSphere.Advisory.Api.Voice;
 
 /// <summary>
 /// Wraps Azure Cognitive Services Speech for server-side STT and TTS.
-/// Disabled (IsEnabled = false) when Speech:Region is absent — callers return 501.
-/// Auth uses DefaultAzureCredential; tokens are cached and refreshed 1 minute before expiry.
+/// Requires Speech:Region and Speech:SubscriptionKey in configuration.
+/// Disabled gracefully (IsEnabled = false) when either is absent — callers return 501.
 /// </summary>
-public sealed class SpeechService : IDisposable
+public sealed class SpeechService
 {
-    private static readonly TokenRequestContext SpeechTokenContext =
-        new(["https://cognitiveservices.azure.com/.default"]);
-
     private readonly ILogger<SpeechService> _logger;
     private readonly string? _region;
-    // DefaultAzureCredential is not IDisposable; field is intentionally not disposed.
-    private readonly DefaultAzureCredential _credential = new();
-    private readonly SemaphoreSlim _lock = new(1, 1);
-    private string? _cachedToken;
-    private DateTimeOffset _tokenExpiry = DateTimeOffset.MinValue;
+    private readonly string? _subscriptionKey;
 
     public SpeechService(IConfiguration config, ILogger<SpeechService> logger)
     {
         _logger = logger;
         _region = config["Speech:Region"];
-        if (_region is null)
-            logger.LogInformation("Speech:Region not configured — voice endpoints disabled");
+        _subscriptionKey = config["Speech:SubscriptionKey"];
+
+        if (_region is null || _subscriptionKey is null)
+            logger.LogInformation(
+                "Speech:Region or Speech:SubscriptionKey not configured — voice endpoints disabled");
     }
 
-    public bool IsEnabled => _region is not null;
+    public bool IsEnabled => _region is not null && _subscriptionKey is not null;
 
-    private async Task<string> GetTokenAsync(CancellationToken ct)
+    private SpeechConfig CreateConfig()
     {
-        if (_cachedToken is not null && DateTimeOffset.UtcNow < _tokenExpiry)
-            return _cachedToken;
-
-        await _lock.WaitAsync(ct);
-        try
-        {
-            if (_cachedToken is not null && DateTimeOffset.UtcNow < _tokenExpiry)
-                return _cachedToken;
-
-            var azToken = await _credential.GetTokenAsync(SpeechTokenContext, ct);
-            _cachedToken = azToken.Token;
-            _tokenExpiry = azToken.ExpiresOn.AddMinutes(-1);
-            return _cachedToken;
-        }
-        finally
-        {
-            _lock.Release();
-        }
+        var config = SpeechConfig.FromSubscription(_subscriptionKey!, _region!);
+        return config;
     }
 
     /// <summary>
@@ -61,8 +39,7 @@ public sealed class SpeechService : IDisposable
     /// </summary>
     public async Task<string> TranscribeAsync(byte[] wavBytes, CancellationToken ct)
     {
-        var token = await GetTokenAsync(ct);
-        var config = SpeechConfig.FromAuthorizationToken(token, _region!);
+        var config = CreateConfig();
         config.SpeechRecognitionLanguage = "de-DE";
 
         using var pushStream = AudioInputStream.CreatePushStream(
@@ -80,7 +57,16 @@ public sealed class SpeechService : IDisposable
         if (result.Reason == ResultReason.RecognizedSpeech)
             return result.Text;
 
-        _logger.LogWarning("STT result: {Reason} — details: {Details}", result.Reason, result.Properties.GetProperty(PropertyId.SpeechServiceResponse_JsonResult));
+        if (result.Reason == ResultReason.Canceled)
+        {
+            var details = CancellationDetails.FromResult(result);
+            _logger.LogWarning("STT canceled: {Code} — {Details}", details.ErrorCode, details.ErrorDetails);
+        }
+        else
+        {
+            _logger.LogWarning("STT result: {Reason}", result.Reason);
+        }
+
         return string.Empty;
     }
 
@@ -90,8 +76,7 @@ public sealed class SpeechService : IDisposable
     /// </summary>
     public async Task<byte[]> SynthesizeAsync(string text, CancellationToken ct)
     {
-        var token = await GetTokenAsync(ct);
-        var config = SpeechConfig.FromAuthorizationToken(token, _region!);
+        var config = CreateConfig();
         config.SetSpeechSynthesisOutputFormat(SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3);
         config.SpeechSynthesisVoiceName = "de-DE-KatjaNeural";
 
@@ -101,12 +86,16 @@ public sealed class SpeechService : IDisposable
         if (result.Reason == ResultReason.SynthesizingAudioCompleted)
             return result.AudioData;
 
-        _logger.LogWarning("TTS result: {Reason}", result.Reason);
-        return [];
-    }
+        if (result.Reason == ResultReason.Canceled)
+        {
+            var details = SpeechSynthesisCancellationDetails.FromResult(result);
+            _logger.LogWarning("TTS canceled: {Code} — {Details}", details.ErrorCode, details.ErrorDetails);
+        }
+        else
+        {
+            _logger.LogWarning("TTS result: {Reason}", result.Reason);
+        }
 
-    public void Dispose()
-    {
-        _lock.Dispose();
+        return [];
     }
 }

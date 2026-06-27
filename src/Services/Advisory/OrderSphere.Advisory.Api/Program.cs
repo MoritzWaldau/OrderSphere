@@ -1,3 +1,4 @@
+using Azure.Identity;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.Advisory.Api.Agent;
 using OrderSphere.Advisory.Api.Configuration;
@@ -7,6 +8,21 @@ using OrderSphere.Advisory.Infrastructure;
 using OrderSphere.Advisory.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Azure App Configuration — centralised, versioned prompt storage.
+// Enabled when AppConfiguration:Endpoint is set (e.g. via user-secrets locally, Key Vault in Azure).
+// Without it the service falls back to the built-in DefaultSystemInstructions constant.
+// Label selects the prompt version; defaults to no label (production baseline).
+//   dotnet user-secrets set "AppConfiguration:Endpoint" "https://<name>.azconfig.io"
+//   dotnet user-secrets set "AppConfiguration:Label"    "v2"          # optional
+var appConfigEndpoint = builder.Configuration["AppConfiguration:Endpoint"];
+if (!string.IsNullOrWhiteSpace(appConfigEndpoint))
+{
+    var appConfigLabel = builder.Configuration["AppConfiguration:Label"] ?? "\0";
+    builder.Configuration.AddAzureAppConfiguration(options =>
+        options.Connect(new Uri(appConfigEndpoint), new DefaultAzureCredential())
+               .Select("Advisory:*", appConfigLabel));
+}
 
 // Aspire defaults (OpenTelemetry, health checks, service discovery, resilience).
 builder.AddServiceDefaults();

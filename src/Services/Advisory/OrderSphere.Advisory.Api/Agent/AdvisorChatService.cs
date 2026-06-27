@@ -26,9 +26,14 @@ public sealed class AdvisorChatService(
     IAdvisoryDbContext db,
     IAdvisorChatClientFactory chatClientFactory,
     IAdvisorToolSource toolSource,
+    IConfiguration configuration,
     ILogger<AdvisorChatService> logger)
 {
-    private const string SystemInstructions =
+    // Built-in fallback used when Advisory:SystemPrompt is absent from configuration.
+    // In production the prompt lives in Azure App Configuration under that key, versioned
+    // via labels (e.g. "v1", "canary"). Set AppConfiguration:Endpoint (+ managed identity)
+    // to activate; without it this constant is used and behavior is unchanged.
+    private const string DefaultSystemInstructions =
         """
         Du bist der Kundenberater von OrderSphere, einem Online-Shop.
         Antworte auf Deutsch, sachlich und freundlich. Hilf bei Produktsuche und
@@ -53,6 +58,9 @@ public sealed class AdvisorChatService(
         - Wenn der Nutzer abbricht (Nachricht enthält "Abbrechen"), führe keine Aktion durch
           und bestätige die Ablehnung kurz.
         """;
+
+    private string GetSystemInstructions()
+        => configuration["Advisory:SystemPrompt"] ?? DefaultSystemInstructions;
 
     private const string NotConfiguredMessage =
         "Der Berater ist derzeit nicht konfiguriert. Bitte versuche es später erneut.";
@@ -85,7 +93,7 @@ public sealed class AdvisorChatService(
             {
                 toolLease = await toolSource.AcquireAsync(ct);
                 agent = chatClient.AsAIAgent(
-                    instructions: SystemInstructions,
+                    instructions: GetSystemInstructions(),
                     name: "OrderSphereAdvisor",
                     tools: [.. toolLease.Tools]);
             }

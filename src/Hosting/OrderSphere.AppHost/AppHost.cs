@@ -30,6 +30,16 @@ var foundryEmbeddingDeployment = builder.Configuration["Foundry:EmbeddingDeploym
 var speechRegion = builder.Configuration["Speech:Region"] ?? "";
 var speechKey = builder.Configuration["Speech:SubscriptionKey"] ?? "";
 
+// Azure App Configuration for versioned prompt management (C9).
+// Local runs: dotnet user-secrets set "AppConfiguration:Endpoint" "https://<name>.azconfig.io"
+//             dotnet user-secrets set "AppConfiguration:Label"    "v2"   # optional
+// In Azure: the endpoint is provisioned by azd; no explicit secret needed (managed identity).
+var appConfigEndpoint = builder.Configuration["AppConfiguration:Endpoint"] ?? "";
+var appConfigLabel = builder.Configuration["AppConfiguration:Label"] ?? "";
+// Fallback model deployment (optional): advisory retries on network errors against this deployment.
+// dotnet user-secrets set "Foundry:FallbackDeployment" "gpt-4o"
+var foundryFallbackDeployment = builder.Configuration["Foundry:FallbackDeployment"] ?? "";
+
 // Provisioned by azd in non-dev environments. Parameters above are backed by
 // Key Vault secrets at deployment time; no code change required in service projects.
 builder.AddAzureKeyVault("ordersphere-kv");
@@ -305,6 +315,9 @@ var advisory = builder.AddProject<Projects.OrderSphere_Advisory_Api>("orderspher
     .WithEnvironment("Foundry__Deployment", foundryDeployment)
     .WithEnvironment("Speech__Region", speechRegion)
     .WithEnvironment("Speech__SubscriptionKey", speechKey)
+    .WithEnvironment("AppConfiguration__Endpoint", appConfigEndpoint)
+    .WithEnvironment("AppConfiguration__Label", appConfigLabel)
+    .WithEnvironment("Foundry__FallbackDeployment", foundryFallbackDeployment)
     // Concrete endpoint reference, not the logical name: the MCP client transport
     // uses a plain HttpClient without Aspire service discovery.
     .WithEnvironment("Services__Mcp__BaseUrl", mcpServer.GetEndpoint("https"));

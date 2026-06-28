@@ -18,6 +18,7 @@ public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggre
     public string Email { get; private set; }
     public bool DarkModeEnabled { get; private set; }
     public bool IsOnboardingComplete { get; private set; }
+    public NotificationPreferences NotificationPreferences { get; private set; } = NotificationPreferences.Default();
 
     private readonly List<SavedAddress> _addresses = [];
     public IReadOnlyList<SavedAddress> Addresses => _addresses.AsReadOnly();
@@ -27,6 +28,7 @@ public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggre
         Subject = string.Empty;
         DisplayName = string.Empty;
         Email = string.Empty;
+        NotificationPreferences = NotificationPreferences.Default();
     }
 
     public CustomerProfile(string subject, string displayName, string email)
@@ -35,6 +37,7 @@ public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggre
         Subject = subject;
         DisplayName = displayName;
         Email = email;
+        NotificationPreferences = NotificationPreferences.Default();
     }
 
     public void MarkOnboardingComplete()
@@ -51,6 +54,11 @@ public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggre
     public void SetDarkMode(bool enabled)
     {
         DarkModeEnabled = enabled;
+    }
+
+    public void UpdateNotificationPreferences(bool emailEnabled, bool smsEnabled, bool pushEnabled, DateTime nowUtc)
+    {
+        NotificationPreferences.Update(emailEnabled, smsEnabled, pushEnabled, nowUtc);
     }
 
     public SavedAddress AddAddress(

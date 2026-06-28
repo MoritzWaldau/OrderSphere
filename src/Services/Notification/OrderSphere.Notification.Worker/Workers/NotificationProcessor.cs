@@ -2,7 +2,8 @@ using Azure.Messaging.ServiceBus;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
-using OrderSphere.Notification.Worker.Email;
+using OrderSphere.Notification.Worker.Channels;
+using OrderSphere.Notification.Worker.Clients;
 
 namespace OrderSphere.Notification.Worker.Workers;
 
@@ -60,9 +61,10 @@ public sealed class NotificationProcessor(
 
             await using var scope = scopeFactory.CreateAsyncScope();
             var inboxStore = scope.ServiceProvider.GetRequiredService<IInboxStore>();
-            var emailService = scope.ServiceProvider.GetRequiredService<INotificationEmailService>();
+            var channels = scope.ServiceProvider.GetRequiredService<IEnumerable<INotificationChannel>>();
+            var profileClient = scope.ServiceProvider.GetRequiredService<IUserProfileClient>();
 
-            await ProcessNotificationAsync(evt, inboxStore, emailService, args.CancellationToken);
+            await ProcessNotificationAsync(evt, inboxStore, channels, profileClient, args.CancellationToken);
             await args.CompleteMessageAsync(args.Message);
         }
         catch (Exception ex)
@@ -75,7 +77,8 @@ public sealed class NotificationProcessor(
     internal async Task ProcessNotificationAsync(
         OrderPlacedIntegrationEvent evt,
         IInboxStore inboxStore,
-        INotificationEmailService emailService,
+        IEnumerable<INotificationChannel> channels,
+        IUserProfileClient profileClient,
         CancellationToken ct)
     {
         // Idempotency check — guard against ASB at-least-once redelivery.
@@ -92,10 +95,25 @@ public sealed class NotificationProcessor(
             return;
         }
 
-        await emailService.SendOrderConfirmationAsync(evt, ct);
+        // Fetch channel preferences; defaults to email-only on failure.
+        var prefs = await profileClient.GetNotificationPreferencesAsync(evt.CustomerEmail, ct);
+
+        var channelMap = channels.ToDictionary(c => c.ChannelType);
+        var tasks = new List<Task>();
+
+        if (prefs.EmailEnabled && channelMap.TryGetValue(NotificationChannelType.Email, out var email))
+            tasks.Add(email.SendOrderConfirmationAsync(evt, ct));
+        if (prefs.SmsEnabled && channelMap.TryGetValue(NotificationChannelType.Sms, out var sms))
+            tasks.Add(sms.SendOrderConfirmationAsync(evt, ct));
+        if (prefs.PushEnabled && channelMap.TryGetValue(NotificationChannelType.Push, out var push))
+            tasks.Add(push.SendOrderConfirmationAsync(evt, ct));
+
+        await Task.WhenAll(tasks);
         await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(OrderPlacedIntegrationEvent), ct);
 
-        logger.LogInformation("Notification processed for order {OrderId}.", evt.OrderId);
+        logger.LogInformation(
+            "Notification dispatched for order {OrderId} via {ChannelCount} channel(s).",
+            evt.OrderId, tasks.Count);
     }
 
     private Task OnError(ProcessErrorEventArgs args)

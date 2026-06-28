@@ -24,6 +24,17 @@ public sealed record UpdateProfileRequest(string DisplayName, string Email);
 
 public sealed record UpdatePreferencesRequest(bool DarkModeEnabled);
 
+public sealed record NotificationPreferencesDto(
+    bool EmailEnabled,
+    bool SmsEnabled,
+    bool PushEnabled,
+    DateTime? ConsentedAt);
+
+public sealed record UpdateNotificationPreferencesRequest(
+    bool EmailEnabled,
+    bool SmsEnabled,
+    bool PushEnabled);
+
 public sealed record CreateAddressRequest(
     string Label,
     string FirstName,

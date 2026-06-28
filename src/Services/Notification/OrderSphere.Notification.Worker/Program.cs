@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
+using OrderSphere.Notification.Worker.Channels;
+using OrderSphere.Notification.Worker.Clients;
 using OrderSphere.Notification.Worker.Email;
 using OrderSphere.Notification.Worker.Persistence;
 using OrderSphere.Notification.Worker.Workers;
@@ -33,6 +35,25 @@ if (!string.IsNullOrWhiteSpace(connectionString) && !string.IsNullOrWhiteSpace(s
 else
 {
     builder.Services.AddSingleton<INotificationEmailService, LoggingNotificationEmailService>();
+}
+
+// Notification channels — strategy implementations registered as INotificationChannel.
+builder.Services.AddScoped<INotificationChannel, EmailNotificationChannel>();
+builder.Services.AddScoped<INotificationChannel, SmsNotificationChannel>();
+builder.Services.AddScoped<INotificationChannel, PushNotificationChannel>();
+
+// UserProfile client — fetches per-user channel opt-in state before dispatching.
+var userProfileUrl = builder.Configuration["Services:UserProfile:BaseUrl"];
+if (!string.IsNullOrWhiteSpace(userProfileUrl))
+{
+    builder.Services.AddHttpClient<IUserProfileClient, HttpUserProfileClient>(client =>
+    {
+        client.BaseAddress = new Uri(userProfileUrl);
+    });
+}
+else
+{
+    builder.Services.AddSingleton<IUserProfileClient, FallbackUserProfileClient>();
 }
 
 builder.Services.AddHostedService<NotificationProcessor>();

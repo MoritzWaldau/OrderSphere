@@ -6,7 +6,8 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
-using OrderSphere.Notification.Worker.Email;
+using OrderSphere.Notification.Worker.Channels;
+using OrderSphere.Notification.Worker.Clients;
 using OrderSphere.Notification.Worker.Workers;
 using Xunit;
 
@@ -37,32 +38,66 @@ public sealed class NotificationProcessorTests
             Total = 9.99m
         };
 
+    private static INotificationChannel EmailChannel(INotificationChannel? substitute = null)
+    {
+        var ch = substitute ?? Substitute.For<INotificationChannel>();
+        ch.ChannelType.Returns(NotificationChannelType.Email);
+        return ch;
+    }
+
+    private static INotificationChannel SmsChannel(INotificationChannel? substitute = null)
+    {
+        var ch = substitute ?? Substitute.For<INotificationChannel>();
+        ch.ChannelType.Returns(NotificationChannelType.Sms);
+        return ch;
+    }
+
+    private static INotificationChannel PushChannel(INotificationChannel? substitute = null)
+    {
+        var ch = substitute ?? Substitute.For<INotificationChannel>();
+        ch.ChannelType.Returns(NotificationChannelType.Push);
+        return ch;
+    }
+
+    private static IUserProfileClient ProfileClient(
+        bool emailEnabled = true, bool smsEnabled = false, bool pushEnabled = false)
+    {
+        var client = Substitute.For<IUserProfileClient>();
+        client.GetNotificationPreferencesAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new NotificationPreferences(emailEnabled, smsEnabled, pushEnabled));
+        return client;
+    }
+
+
     [Fact]
     public async Task Happy_path_sends_email_and_marks_inbox_processed()
     {
         var evt = NewEvent();
         var inbox = Substitute.For<IInboxStore>();
         inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(false);
-        var emailService = Substitute.For<INotificationEmailService>();
+        var emailCh = EmailChannel();
+        var channels = new[] { emailCh, SmsChannel(), PushChannel() };
 
-        await NewProcessor().ProcessNotificationAsync(evt, inbox, emailService, CancellationToken.None);
+        await NewProcessor().ProcessNotificationAsync(
+            evt, inbox, channels, ProfileClient(emailEnabled: true), CancellationToken.None);
 
-        await emailService.Received(1).SendOrderConfirmationAsync(evt, Arg.Any<CancellationToken>());
+        await emailCh.Received(1).SendOrderConfirmationAsync(evt, Arg.Any<CancellationToken>());
         await inbox.Received(1).MarkAsProcessedAsync(
             evt.Id, nameof(OrderPlacedIntegrationEvent), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Duplicate_event_skips_email_and_does_not_mark_inbox()
+    public async Task Duplicate_event_skips_channels_and_does_not_mark_inbox()
     {
         var evt = NewEvent();
         var inbox = Substitute.For<IInboxStore>();
         inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(true);
-        var emailService = Substitute.For<INotificationEmailService>();
+        var emailCh = EmailChannel();
 
-        await NewProcessor().ProcessNotificationAsync(evt, inbox, emailService, CancellationToken.None);
+        await NewProcessor().ProcessNotificationAsync(
+            evt, inbox, [emailCh], ProfileClient(), CancellationToken.None);
 
-        await emailService.DidNotReceive().SendOrderConfirmationAsync(Arg.Any<OrderPlacedIntegrationEvent>(), Arg.Any<CancellationToken>());
+        await emailCh.DidNotReceive().SendOrderConfirmationAsync(Arg.Any<OrderPlacedIntegrationEvent>(), Arg.Any<CancellationToken>());
         await inbox.DidNotReceive().MarkAsProcessedAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
@@ -72,28 +107,94 @@ public sealed class NotificationProcessorTests
         var evt = NewEvent(email: "");
         var inbox = Substitute.For<IInboxStore>();
         inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(false);
-        var emailService = Substitute.For<INotificationEmailService>();
+        var emailCh = EmailChannel();
 
-        await NewProcessor().ProcessNotificationAsync(evt, inbox, emailService, CancellationToken.None);
+        await NewProcessor().ProcessNotificationAsync(
+            evt, inbox, [emailCh], ProfileClient(), CancellationToken.None);
 
-        await emailService.DidNotReceive().SendOrderConfirmationAsync(Arg.Any<OrderPlacedIntegrationEvent>(), Arg.Any<CancellationToken>());
+        await emailCh.DidNotReceive().SendOrderConfirmationAsync(Arg.Any<OrderPlacedIntegrationEvent>(), Arg.Any<CancellationToken>());
         await inbox.Received(1).MarkAsProcessedAsync(
             evt.Id, nameof(OrderPlacedIntegrationEvent), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Email_service_throws_propagates_and_does_not_mark_inbox()
+    public async Task Channel_throws_propagates_and_does_not_mark_inbox()
     {
         var evt = NewEvent();
         var inbox = Substitute.For<IInboxStore>();
         inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(false);
-        var emailService = Substitute.For<INotificationEmailService>();
-        emailService.SendOrderConfirmationAsync(Arg.Any<OrderPlacedIntegrationEvent>(), Arg.Any<CancellationToken>())
+        var emailCh = EmailChannel();
+        emailCh.SendOrderConfirmationAsync(Arg.Any<OrderPlacedIntegrationEvent>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("SMTP unreachable"));
 
-        Func<Task> act = () => NewProcessor().ProcessNotificationAsync(evt, inbox, emailService, CancellationToken.None);
+        Func<Task> act = () => NewProcessor().ProcessNotificationAsync(
+            evt, inbox, [emailCh], ProfileClient(), CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("SMTP unreachable");
         await inbox.DidNotReceive().MarkAsProcessedAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Sms_and_push_channels_invoked_when_preferences_enabled()
+    {
+        var evt = NewEvent();
+        var inbox = Substitute.For<IInboxStore>();
+        inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(false);
+
+        var emailCh = EmailChannel();
+        var smsCh = SmsChannel();
+        var pushCh = PushChannel();
+
+        await NewProcessor().ProcessNotificationAsync(
+            evt, inbox, [emailCh, smsCh, pushCh],
+            ProfileClient(emailEnabled: true, smsEnabled: true, pushEnabled: true),
+            CancellationToken.None);
+
+        await emailCh.Received(1).SendOrderConfirmationAsync(evt, Arg.Any<CancellationToken>());
+        await smsCh.Received(1).SendOrderConfirmationAsync(evt, Arg.Any<CancellationToken>());
+        await pushCh.Received(1).SendOrderConfirmationAsync(evt, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Only_opted_in_channels_are_invoked()
+    {
+        var evt = NewEvent();
+        var inbox = Substitute.For<IInboxStore>();
+        inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(false);
+
+        var emailCh = EmailChannel();
+        var smsCh = SmsChannel();
+        var pushCh = PushChannel();
+
+        // Only email is enabled; SMS and Push are opted out.
+        await NewProcessor().ProcessNotificationAsync(
+            evt, inbox, [emailCh, smsCh, pushCh],
+            ProfileClient(emailEnabled: true, smsEnabled: false, pushEnabled: false),
+            CancellationToken.None);
+
+        await emailCh.Received(1).SendOrderConfirmationAsync(evt, Arg.Any<CancellationToken>());
+        await smsCh.DidNotReceive().SendOrderConfirmationAsync(Arg.Any<OrderPlacedIntegrationEvent>(), Arg.Any<CancellationToken>());
+        await pushCh.DidNotReceive().SendOrderConfirmationAsync(Arg.Any<OrderPlacedIntegrationEvent>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UserProfile_unavailable_falls_back_to_email_only()
+    {
+        var evt = NewEvent();
+        var inbox = Substitute.For<IInboxStore>();
+        inbox.HasBeenProcessedAsync(evt.Id, Arg.Any<CancellationToken>()).Returns(false);
+
+        var emailCh = EmailChannel();
+        var smsCh = SmsChannel();
+
+        // FallbackUserProfileClient returns email-only defaults.
+        var fallback = new FallbackUserProfileClient(
+            NullLogger<FallbackUserProfileClient>.Instance);
+
+        await NewProcessor().ProcessNotificationAsync(
+            evt, inbox, [emailCh, smsCh], fallback, CancellationToken.None);
+
+        await emailCh.Received(1).SendOrderConfirmationAsync(evt, Arg.Any<CancellationToken>());
+        await smsCh.DidNotReceive().SendOrderConfirmationAsync(Arg.Any<OrderPlacedIntegrationEvent>(), Arg.Any<CancellationToken>());
     }
 }

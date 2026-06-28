@@ -60,6 +60,7 @@ app.UseOrderSphereRequestLogging();
 
 app.MapPaymentEndpoints();
 app.MapInternalPaymentEndpoints();
+app.MapStripeWebhookEndpoints();
 
 app.MapHealthChecks("/health");
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });

@@ -27,9 +27,24 @@ public static class DependencyInjection
         services.AddScoped<IOutboxEventHandler, PaymentRefundedEventHandler>();
         services.AddOutboxProcessing<PaymentDbContext>();
 
+        services.Configure<StripeOptions>(configuration.GetSection(StripeOptions.SectionName));
+
         services.AddSingleton<IPaymentProvider, InvoicePaymentProvider>();
-        services.AddSingleton<IPaymentProvider, CreditCardPaymentProvider>();
         services.AddSingleton<IPaymentProvider, PayPalPaymentProvider>();
+
+        // Stripe handles the "CreditCard" method when an API key is configured; otherwise the
+        // simulated provider keeps local development working without external credentials.
+        var stripeApiKey = configuration.GetSection(StripeOptions.SectionName)["ApiKey"];
+        if (!string.IsNullOrWhiteSpace(stripeApiKey))
+        {
+            services.AddSingleton<Stripe.IStripeClient>(new Stripe.StripeClient(stripeApiKey));
+            services.AddSingleton<IPaymentProvider, StripePaymentProvider>();
+        }
+        else
+        {
+            services.AddSingleton<IPaymentProvider, CreditCardPaymentProvider>();
+        }
+
         services.AddSingleton<IPaymentProviderFactory, PaymentProviderFactory>();
 
         return services;

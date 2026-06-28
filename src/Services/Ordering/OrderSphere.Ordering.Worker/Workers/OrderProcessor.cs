@@ -121,7 +121,7 @@ public sealed class OrderProcessor(
                 try
                 {
                     var orderItems = evt.Items
-                        .Select(i => new OrderItem(ProductId.From(i.ProductId), i.ProductName, Quantity.Of(i.Quantity), Money.Of(i.Price)))
+                        .Select(i => new OrderItem(ProductId.From(i.ProductId), i.ProductName, Quantity.Of(i.Quantity), Money.Of(i.Price), i.CategoryId))
                         .ToList();
 
                     var addr = evt.ShippingAddress;
@@ -138,7 +138,8 @@ public sealed class OrderProcessor(
                     // Apply a coupon (if carried through checkout) within this transaction.
                     // The discount is computed server-side — the client only sends the code.
                     var subtotal = evt.Items.Sum(i => i.Price * i.Quantity);
-                    var discount = await ApplyCouponAsync(evt.CouponCode, subtotal, order, context, ct);
+                    var itemLines = evt.Items.Select(i => (i.CategoryId, (decimal)(i.Price * i.Quantity))).ToList();
+                    var discount = await ApplyCouponAsync(evt.CouponCode, subtotal, itemLines, order, context, ct);
 
                     var shipping = shippingRateProvider.Calculate(subtotal);
                     order.SetShippingCost(shipping);
@@ -204,9 +205,15 @@ public sealed class OrderProcessor(
     /// Re-validates and redeems a coupon within the order-creation transaction, sets the discount
     /// on the order, and returns the discount amount. A coupon that has become invalid between
     /// checkout and processing (expired, usage limit) is ignored — checkout is not failed for it.
+    /// Category-scoped coupons compute the discount on the filtered item subtotal only.
     /// </summary>
     private async Task<decimal> ApplyCouponAsync(
-        string? couponCode, decimal subtotal, Order order, OrderingDbContext context, CancellationToken ct)
+        string? couponCode,
+        decimal subtotal,
+        IReadOnlyList<(Guid? CategoryId, decimal LineTotal)> itemLines,
+        Order order,
+        OrderingDbContext context,
+        CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(couponCode))
             return 0m;
@@ -222,7 +229,8 @@ public sealed class OrderProcessor(
             return 0m;
         }
 
-        var discountResult = coupon.CalculateDiscount(subtotal, DateTime.UtcNow);
+        var effectiveSubtotal = coupon.ComputeScopedSubtotal(itemLines);
+        var discountResult = coupon.CalculateDiscount(effectiveSubtotal, DateTime.UtcNow);
         if (discountResult.IsFailure)
         {
             logger.LogWarning("Coupon {Code} not applicable ({Reason}); ignoring.", normalized, discountResult.Error.Code);

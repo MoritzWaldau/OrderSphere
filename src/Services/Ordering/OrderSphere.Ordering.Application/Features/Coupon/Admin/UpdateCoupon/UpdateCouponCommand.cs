@@ -1,5 +1,6 @@
 using OrderSphere.BuildingBlocks.Abstraction;
 using OrderSphere.BuildingBlocks.Primitives;
+using OrderSphere.Ordering.Application.Features.Coupon.Admin.CreateCoupon;
 
 namespace OrderSphere.Ordering.Application.Features.Coupon.Admin.UpdateCoupon;
 
@@ -12,4 +13,6 @@ public sealed record UpdateCouponCommand(
     DateTime? ValidFrom,
     DateTime? ValidUntil,
     int? MaxRedemptions,
-    bool IsActive) : ICommand<Result>;
+    bool IsActive,
+    IReadOnlyList<CreateCouponTierDto>? Tiers = null,
+    IReadOnlyList<Guid>? ScopedCategoryIds = null) : ICommand<Result>;

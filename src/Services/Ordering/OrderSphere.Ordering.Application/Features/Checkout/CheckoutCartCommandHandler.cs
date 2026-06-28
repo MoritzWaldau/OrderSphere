@@ -76,7 +76,8 @@ public sealed class CheckoutCartCommandHandler(
                     cartItem.ProductId,
                     productResult.Value.Name,
                     cartItem.Quantity,
-                    productResult.Value.Price));
+                    productResult.Value.Price,
+                    productResult.Value.CategoryId == default ? null : productResult.Value.CategoryId));
             }
 
             // 3. Reserve stock against the correlation id. The hold is confirmed (decremented)

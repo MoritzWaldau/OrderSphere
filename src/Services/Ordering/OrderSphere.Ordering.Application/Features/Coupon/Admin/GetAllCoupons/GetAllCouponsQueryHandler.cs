@@ -14,7 +14,9 @@ public sealed class GetAllCouponsQueryHandler(IOrderingDbContext context)
         var coupons = await context.Coupons
             .AsNoTracking()
             .OrderBy(c => c.Code)
-            .Select(c => new CouponAdminDto(
+            .ToListAsync(ct);
+
+        var dtos = coupons.Select(c => new CouponAdminDto(
                 c.Id.Value,
                 c.Code,
                 (int)c.DiscountType,
@@ -24,9 +26,11 @@ public sealed class GetAllCouponsQueryHandler(IOrderingDbContext context)
                 c.ValidUntil,
                 c.MaxRedemptions,
                 c.RedeemedCount,
-                c.IsActive))
-            .ToListAsync(ct);
+                c.IsActive,
+                c.Tiers.Select(t => new CouponTierDto(t.MinSubtotal, t.DiscountValue)).ToList(),
+                c.ScopedCategoryIds))
+            .ToList();
 
-        return Result<List<CouponAdminDto>>.Success(coupons);
+        return Result<List<CouponAdminDto>>.Success(dtos);
     }
 }

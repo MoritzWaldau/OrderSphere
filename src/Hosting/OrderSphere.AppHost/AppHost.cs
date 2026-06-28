@@ -9,6 +9,14 @@ var orderingWorkerSecret = builder.AddParameter("ordering-worker-secret", secret
 var notificationWorkerSecret = builder.AddParameter("notification-worker-secret", secret: true);
 var paymentWorkerSecret = builder.AddParameter("payment-worker-secret", secret: true);
 
+// Stripe (test mode) — optional. Resolved from AppHost configuration / user-secrets so local
+// runs work without it; when unset the Payment service falls back to the simulated provider.
+// Set locally via:
+//   dotnet user-secrets set "Stripe:ApiKey" "sk_test_..." --project src/Hosting/OrderSphere.AppHost
+//   dotnet user-secrets set "Stripe:WebhookSecret" "whsec_..." --project src/Hosting/OrderSphere.AppHost
+var stripeApiKey = builder.Configuration["Stripe:ApiKey"] ?? "";
+var stripeWebhookSecret = builder.Configuration["Stripe:WebhookSecret"] ?? "";
+
 // Non-secret parameters — defaults provided in appsettings.Development.json.
 // In Azure: supply via azd environment parameter or Key Vault.
 var paymentBypassProviders = builder.AddParameter("payment-bypass-providers");
@@ -241,7 +249,9 @@ var payment = builder.AddProject<Projects.OrderSphere_Payment_Api>("ordersphere-
     .WaitFor(serviceBus)
     .WaitFor(redis)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
-    .WithEnvironment("Oidc__Audience", OidcAudience);
+    .WithEnvironment("Oidc__Audience", OidcAudience)
+    .WithEnvironment("Stripe__ApiKey", stripeApiKey)
+    .WithEnvironment("Stripe__WebhookSecret", stripeWebhookSecret);
 
 var paymentWorker = builder.AddProject<Projects.OrderSphere_Payment_Worker>("ordersphere-payment-worker")
     .WithHttpsEndpoint()
@@ -254,7 +264,8 @@ var paymentWorker = builder.AddProject<Projects.OrderSphere_Payment_Worker>("ord
     .WithEnvironment("Oidc__Authority", oidcAuthority)
     .WithEnvironment("Oidc__ClientId", "ub8w9SMhhUZddhRGxG2xcNU96Wx87csW")
     .WithEnvironment("Oidc__ClientSecret", paymentWorkerSecret)
-    .WithEnvironment("Payment__BypassProviders", paymentBypassProviders);
+    .WithEnvironment("Payment__BypassProviders", paymentBypassProviders)
+    .WithEnvironment("Stripe__ApiKey", stripeApiKey);
 
 var userProfile = builder.AddProject<Projects.OrderSphere_UserProfile_Api>("ordersphere-userprofile")
     .WithReference(userProfileDb)

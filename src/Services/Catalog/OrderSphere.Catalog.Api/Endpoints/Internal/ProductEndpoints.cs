@@ -28,7 +28,7 @@ public static class ProductEndpoints
         var product = await context.Products
             .AsNoTracking()
             .Where(p => p.Id == ProductId.From(productId))
-            .Select(p => new InternalProductDto(p.Id.Value, p.Name, p.Price.Amount, p.Stock, p.IsActive))
+            .Select(p => new InternalProductDto(p.Id.Value, p.Name, p.Price.Amount, p.Stock, p.IsActive, p.CategoryId.Value))
             .FirstOrDefaultAsync(ct);
 
         return product is null ? Results.NotFound() : Results.Ok(product);
@@ -64,7 +64,7 @@ public static class ProductEndpoints
         var products = await context.Products
             .AsNoTracking()
             .Where(p => typedIds.Contains(p.Id))
-            .Select(p => new InternalProductDto(p.Id.Value, p.Name, p.Price.Amount, p.Stock, p.IsActive))
+            .Select(p => new InternalProductDto(p.Id.Value, p.Name, p.Price.Amount, p.Stock, p.IsActive, p.CategoryId.Value))
             .ToListAsync(ct);
 
         return Results.Ok(products.ToDictionary(p => p.Id));
@@ -106,7 +106,7 @@ public static class ProductEndpoints
         return Results.NoContent();
     }
 
-    private sealed record InternalProductDto(Guid Id, string Name, decimal Price, int Stock, bool IsActive);
+    private sealed record InternalProductDto(Guid Id, string Name, decimal Price, int Stock, bool IsActive, Guid CategoryId = default);
 
     private sealed record StockChangeRequest(int Quantity);
 }

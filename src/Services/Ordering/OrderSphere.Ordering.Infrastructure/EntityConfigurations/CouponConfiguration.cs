@@ -23,6 +23,18 @@ public sealed class CouponConfiguration : IEntityTypeConfiguration<Coupon>
         builder.Property(c => c.RedeemedCount).IsRequired();
         builder.Property(c => c.IsActive).IsRequired();
 
+        // Tiered discount thresholds stored as a JSON column; empty for Flat/Percentage coupons.
+        builder.OwnsMany(c => c.Tiers, tiers =>
+        {
+            tiers.ToJson("tiers");
+            tiers.Property(t => t.MinSubtotal).HasPrecision(18, 2);
+            tiers.Property(t => t.DiscountValue).HasPrecision(18, 2);
+        });
+
+        // Optional category scope stored as a primitive JSON collection; empty = all categories.
+        builder.PrimitiveCollection(c => c.ScopedCategoryIds)
+            .HasColumnName("scoped_category_ids");
+
         // Seed the two codes the former hardcoded handler supported, so behavior is preserved.
         var seedCreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         builder.HasData(
@@ -38,6 +50,7 @@ public sealed class CouponConfiguration : IEntityTypeConfiguration<Coupon>
                 MaxRedemptions = (int?)null,
                 RedeemedCount = 0,
                 IsActive = true,
+                ScopedCategoryIds = new List<Guid>(),
                 CreatedAt = seedCreatedAt,
                 IsDeleted = false,
             },
@@ -53,6 +66,7 @@ public sealed class CouponConfiguration : IEntityTypeConfiguration<Coupon>
                 MaxRedemptions = (int?)null,
                 RedeemedCount = 0,
                 IsActive = true,
+                ScopedCategoryIds = new List<Guid>(),
                 CreatedAt = seedCreatedAt,
                 IsDeleted = false,
             });

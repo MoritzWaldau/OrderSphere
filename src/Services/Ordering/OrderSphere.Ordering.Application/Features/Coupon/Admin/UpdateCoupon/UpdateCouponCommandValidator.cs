@@ -7,8 +7,9 @@ public sealed class UpdateCouponCommandValidator : AbstractValidator<UpdateCoupo
     public UpdateCouponCommandValidator()
     {
         RuleFor(x => x.Id).NotEmpty();
-        RuleFor(x => x.DiscountType).InclusiveBetween(0, 1);
-        RuleFor(x => x.Value).GreaterThan(0);
+        RuleFor(x => x.DiscountType).InclusiveBetween(0, 2);
+        RuleFor(x => x.Value).GreaterThan(0)
+            .When(x => x.DiscountType != 2);
         RuleFor(x => x.Value).LessThanOrEqualTo(100)
             .When(x => x.DiscountType == 1)
             .WithMessage("Ein prozentualer Rabatt muss zwischen 0 und 100 liegen.");
@@ -17,5 +18,16 @@ public sealed class UpdateCouponCommandValidator : AbstractValidator<UpdateCoupo
         RuleFor(x => x.ValidUntil).GreaterThan(x => x.ValidFrom!.Value)
             .When(x => x.ValidFrom.HasValue && x.ValidUntil.HasValue)
             .WithMessage("Das Enddatum muss nach dem Startdatum liegen.");
+
+        When(x => x.DiscountType == 2, () =>
+        {
+            RuleFor(x => x.Tiers).NotNull().NotEmpty()
+                .WithMessage("Ein gestaffelter Coupon benötigt mindestens eine Stufe.");
+            RuleForEach(x => x.Tiers).ChildRules(tier =>
+            {
+                tier.RuleFor(t => t.MinSubtotal).GreaterThanOrEqualTo(0);
+                tier.RuleFor(t => t.DiscountValue).GreaterThan(0);
+            });
+        });
     }
 }

@@ -20,6 +20,6 @@ public interface ICatalogClient
     Task<Result> ReleaseReservationAsync(Guid correlationId, CancellationToken ct = default);
 }
 
-public sealed record CatalogProductInfo(Guid Id, string Name, decimal Price, int Stock, bool IsActive);
+public sealed record CatalogProductInfo(Guid Id, string Name, decimal Price, int Stock, bool IsActive, Guid CategoryId = default);
 
 public sealed record ReservationItem(Guid ProductId, int Quantity);

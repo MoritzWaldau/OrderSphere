@@ -26,7 +26,7 @@ public sealed class RealServiceBusPublisher(IEventBus eventBus)
             PaymentMethod = checkoutCartEvent.CheckoutCart.PaymentMethod.ToString(),
             CouponCode = checkoutCartEvent.CheckoutCart.CouponCode,
             Items = checkoutCartEvent.Items.Select(i => new OrderItemDto(
-                i.ProductId, i.ProductName, i.Quantity, i.Price)).ToList()
+                i.ProductId, i.ProductName, i.Quantity, i.Price, i.CategoryId)).ToList()
         };
 
         await eventBus.PublishAsync(integrationEvent, QueueName);

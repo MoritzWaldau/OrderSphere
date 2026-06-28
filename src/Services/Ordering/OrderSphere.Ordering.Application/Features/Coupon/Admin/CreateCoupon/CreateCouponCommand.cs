@@ -11,4 +11,8 @@ public sealed record CreateCouponCommand(
     DateTime? ValidFrom,
     DateTime? ValidUntil,
     int? MaxRedemptions,
-    bool IsActive) : ICommand<Result<Guid>>;
+    bool IsActive,
+    IReadOnlyList<CreateCouponTierDto>? Tiers = null,
+    IReadOnlyList<Guid>? ScopedCategoryIds = null) : ICommand<Result<Guid>>;
+
+public sealed record CreateCouponTierDto(decimal MinSubtotal, decimal DiscountValue);

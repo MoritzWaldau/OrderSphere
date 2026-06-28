@@ -20,4 +20,4 @@ public sealed record CheckoutCartDto(
     PaymentMethod PaymentMethod,
     string? CouponCode = null);
 
-public sealed record OrderItemEventDto(Guid ProductId, string ProductName, int Quantity, decimal Price);
+public sealed record OrderItemEventDto(Guid ProductId, string ProductName, int Quantity, decimal Price, Guid? CategoryId = null);

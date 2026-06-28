@@ -28,4 +28,5 @@ public sealed record OrderItemDto(
     Guid ProductId,
     string ProductName,
     int Quantity,
-    decimal Price);
+    decimal Price,
+    Guid? CategoryId = null);

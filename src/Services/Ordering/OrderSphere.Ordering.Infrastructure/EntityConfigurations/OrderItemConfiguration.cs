@@ -30,6 +30,8 @@ public sealed class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
              .HasDefaultValue("EUR");
         });
 
+        builder.Property(i => i.CategoryId).HasColumnName("category_id");
+
         builder.HasOne<OrderView>()
             .WithMany(o => o.Items)
             .HasForeignKey("OrderId")

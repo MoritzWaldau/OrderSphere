@@ -5,6 +5,7 @@ using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Domain.Errors;
+using OrderSphere.Ordering.Domain.ValueObjects;
 
 namespace OrderSphere.Ordering.Application.Features.Coupon.Admin.UpdateCoupon;
 
@@ -20,6 +21,8 @@ public sealed class UpdateCouponCommandHandler(IOrderingDbContext context)
         if (coupon is null)
             return Result.Failure(CouponErrors.NotFound);
 
+        var tiers = request.Tiers?.Select(t => new CouponTier(t.MinSubtotal, t.DiscountValue));
+
         coupon.Update(
             (DiscountType)request.DiscountType,
             request.Value,
@@ -27,7 +30,9 @@ public sealed class UpdateCouponCommandHandler(IOrderingDbContext context)
             request.ValidFrom,
             request.ValidUntil,
             request.MaxRedemptions,
-            request.IsActive);
+            request.IsActive,
+            tiers,
+            request.ScopedCategoryIds);
 
         await context.SaveChangesAsync(ct);
         return Result.Success();

@@ -21,6 +21,16 @@ public sealed class CustomerProfileConfiguration : IEntityTypeConfiguration<Cust
         builder.Property(p => p.Email).IsRequired().HasMaxLength(320);
         builder.Property(p => p.IsOnboardingComplete).IsRequired().HasDefaultValue(false);
 
+        // Notification channel preferences — stored as scalar columns on the same table.
+        // EmailEnabled defaults true (transactional); SMS/Push default false (DSGVO opt-out).
+        builder.OwnsOne(p => p.NotificationPreferences, np =>
+        {
+            np.Property(x => x.EmailEnabled).HasColumnName("notification_email_enabled").HasDefaultValue(true);
+            np.Property(x => x.SmsEnabled).HasColumnName("notification_sms_enabled").HasDefaultValue(false);
+            np.Property(x => x.PushEnabled).HasColumnName("notification_push_enabled").HasDefaultValue(false);
+            np.Property(x => x.ConsentedAt).HasColumnName("notification_consented_at");
+        });
+
         builder.HasMany(p => p.Addresses)
             .WithOne()
             .HasForeignKey(a => a.CustomerProfileId)

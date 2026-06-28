@@ -280,6 +280,11 @@ var userProfile = builder.AddProject<Projects.OrderSphere_UserProfile_Api>("orde
     .WithEnvironment("Oidc__Authority", oidcAuthority)
     .WithEnvironment("Oidc__Audience", OidcAudience);
 
+// Notification worker fetches per-user channel preferences from UserProfile on each event.
+notificationWorker
+    .WithReference(userProfile)
+    .WaitFor(userProfile);
+
 var webhooks = builder.AddProject<Projects.OrderSphere_Webhooks_Api>("ordersphere-webhooks")
     .WithReference(webhooksDb)
     .WaitFor(webhooksDb)

@@ -7,10 +7,12 @@ using OrderSphere.UserProfile.Application.Features.Profile.CompleteOnboarding;
 using OrderSphere.UserProfile.Application.Features.Profile.DeleteAddress;
 using OrderSphere.UserProfile.Application.Features.Profile.EnsureProfile;
 using OrderSphere.UserProfile.Application.Features.Profile.GetAddresses;
+using OrderSphere.UserProfile.Application.Features.Profile.GetNotificationPreferences;
 using OrderSphere.UserProfile.Application.Features.Profile.OnboardingStatus;
 using OrderSphere.UserProfile.Application.Features.Profile.SetDefaultAddress;
 using OrderSphere.UserProfile.Application.Features.Profile.SkipOnboarding;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdateAddress;
+using OrderSphere.UserProfile.Application.Features.Profile.UpdateNotificationPreferences;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdatePreferences;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdateProfile;
 using OrderSphere.UserProfile.Application.Models;
@@ -26,6 +28,8 @@ public static class ProfileEndpoints
         group.MapGet("/", GetOrCreateProfile);
         group.MapPut("/", UpdateProfile);
         group.MapPut("/preferences", UpdatePreferences);
+        group.MapGet("/notifications", GetNotificationPreferences);
+        group.MapPut("/notifications", UpdateNotificationPreferences);
         group.MapGet("/onboarding-status", GetOnboardingStatus);
         group.MapPost("/complete-onboarding", CompleteOnboarding);
         group.MapPost("/skip-onboarding", SkipOnboarding);
@@ -70,6 +74,30 @@ public static class ProfileEndpoints
         if (currentUser.Sub is not { } sub) return Results.Unauthorized();
 
         var result = await sender.Send(new UpdatePreferencesCommand(sub, request.DarkModeEnabled), ct);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetNotificationPreferences(
+        ICurrentUser currentUser,
+        ISender sender,
+        CancellationToken ct)
+    {
+        if (currentUser.Sub is not { } sub) return Results.Unauthorized();
+
+        var result = await sender.Send(new GetNotificationPreferencesQuery(sub), ct);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> UpdateNotificationPreferences(
+        [FromBody] UpdateNotificationPreferencesRequest request,
+        ICurrentUser currentUser,
+        ISender sender,
+        CancellationToken ct)
+    {
+        if (currentUser.Sub is not { } sub) return Results.Unauthorized();
+
+        var result = await sender.Send(
+            new UpdateNotificationPreferencesCommand(sub, request.EmailEnabled, request.SmsEnabled, request.PushEnabled), ct);
         return result.ToHttpResult();
     }
 

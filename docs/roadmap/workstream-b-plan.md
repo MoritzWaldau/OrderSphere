@@ -26,7 +26,7 @@ Die bestehende Architektur (Clean Architecture + CQRS/MediatR + DDD, `Result<T>`
 | # | Issue | Item | Phase | Branch | Status |
 |---|-------|------|-------|--------|--------|
 | 1 | [#70](https://github.com/MoritzWaldau/OrderSphere/issues/70) | B1 Stripe-Payment-Provider | 3 | `feat/task_b1` | ✅ umgesetzt (Review offen) |
-| 2 | [#71](https://github.com/MoritzWaldau/OrderSphere/issues/71) | B2 Returns/RMA-Workflow | 3 | `feat/task_b2` | offen |
+| 2 | [#71](https://github.com/MoritzWaldau/OrderSphere/issues/71) | B2 Returns/RMA-Workflow | 3 | `feat/task_b2` | ✅ umgesetzt (Review offen) |
 | 3 | [#72](https://github.com/MoritzWaldau/OrderSphere/issues/72) | B3 Coupon-Engine (Staffel/Kategorie) | 3 | `feat/task_b3` | offen |
 | 4 | [#76](https://github.com/MoritzWaldau/OrderSphere/issues/76) | B7 Multi-Channel-Notifications | 3 | `feat/task_b7` | offen |
 | 5 | [#77](https://github.com/MoritzWaldau/OrderSphere/issues/77) | B8 Invoice-/Dokument-Service | 3 | `feat/task_b8` | offen |

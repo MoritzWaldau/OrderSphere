@@ -11,6 +11,13 @@ public interface IOrderingDbContext
     DbSet<Coupon> Coupons { get; }
     DbSet<OrderSaga> OrderSagas { get; }
     DbSet<OrderHistoryEntry> OrderHistory { get; }
+    DbSet<ReturnRequest> ReturnRequests { get; }
+
+    /// <summary>
+    /// Stages an integration event in the outbox table; dispatched to Service Bus by the
+    /// OutboxDispatcher after the surrounding SaveChanges commits.
+    /// </summary>
+    void AddOutboxMessage(string type, string content);
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 

@@ -36,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<IOutboxEventHandler, RealtimeNotificationEventHandler>();
         services.AddScoped<IOutboxEventHandler, OrderStatusChangedEventHandler>();
         services.AddScoped<IOutboxEventHandler, OrderConfirmationFailedEventHandler>();
+        services.AddScoped<IOutboxEventHandler, RefundRequestedEventHandler>();
 
         // Inbox: idempotency for consumed integration events.
         services.AddScoped<IInboxStore, EfInboxStore<OrderingDbContext>>();

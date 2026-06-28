@@ -125,6 +125,13 @@ serviceBus.AddServiceBusQueue("payment-refunds")
         cfg.MaxDeliveryCount = 5;
     });
 
+// Returns/RMA loop: Ordering → Payment (refund an approved return request).
+serviceBus.AddServiceBusQueue("refund-requested")
+    .WithProperties(cfg =>
+    {
+        cfg.MaxDeliveryCount = 5;
+    });
+
 serviceBus.AddServiceBusQueue("webhook-events")
     .WithProperties(cfg =>
     {

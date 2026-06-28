@@ -27,6 +27,7 @@ public sealed class OrderingDbContext(
     public DbSet<Coupon> Coupons => Set<Coupon>();
     public DbSet<OrderSaga> OrderSagas => Set<OrderSaga>();
     public DbSet<OrderHistoryEntry> OrderHistory => Set<OrderHistoryEntry>();
+    public DbSet<ReturnRequest> ReturnRequests => Set<ReturnRequest>();
     internal DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     public void AddOutboxMessage(string type, string content)
@@ -109,6 +110,7 @@ public sealed class OrderingDbContext(
         configurationBuilder.Properties<OrderId>().HaveConversion<OrderIdConverter>();
         configurationBuilder.Properties<OrderItemId>().HaveConversion<OrderItemIdConverter>();
         configurationBuilder.Properties<CouponId>().HaveConversion<CouponIdConverter>();
+        configurationBuilder.Properties<ReturnRequestId>().HaveConversion<ReturnRequestIdConverter>();
         configurationBuilder.Properties<CustomerId>().HaveConversion<CustomerIdConverter>();
         configurationBuilder.Properties<ProductId>().HaveConversion<ProductIdConverter>();
         configurationBuilder.Properties<Quantity>().HaveConversion<QuantityConverter>();

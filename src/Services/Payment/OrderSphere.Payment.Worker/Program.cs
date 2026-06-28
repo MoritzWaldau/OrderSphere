@@ -22,6 +22,7 @@ builder.Services.AddOrderSphereDistributedLocking();
 builder.Services.AddPaymentInfrastructure(builder.Configuration);
 builder.Services.AddHostedService<PaymentProcessor>();
 builder.Services.AddHostedService<OrderConfirmationFailedProcessor>();
+builder.Services.AddHostedService<RefundRequestedProcessor>();
 
 builder.Services.AddPaymentApplication();
 

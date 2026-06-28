@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
+using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Domain.Enums;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 
@@ -93,6 +94,14 @@ public sealed class PaymentRefundProcessor(
             return;
         }
 
+        // Returns/RMA flow: the refund settles an approved return request rather than a failed-
+        // confirmation compensation, so advance the return — not the saga — to its terminal state.
+        if (evt.ReturnRequestId is { } returnRequestId)
+        {
+            await ProcessReturnRefundAsync(returnRequestId, evt, context, inboxStore, ct);
+            return;
+        }
+
         var saga = await context.OrderSagas.FirstOrDefaultAsync(s => s.CorrelationId == evt.CorrelationId, ct);
         if (saga is null)
         {
@@ -108,6 +117,36 @@ public sealed class PaymentRefundProcessor(
         }
 
         // Single SaveChanges commits the saga transition and the inbox mark atomically.
+        await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(PaymentRefundedIntegrationEvent), ct);
+    }
+
+    private async Task ProcessReturnRefundAsync(
+        Guid returnRequestId,
+        PaymentRefundedIntegrationEvent evt,
+        OrderingDbContext context,
+        IInboxStore inboxStore,
+        CancellationToken ct)
+    {
+        var returnRequest = await context.ReturnRequests
+            .FirstOrDefaultAsync(r => r.Id == ReturnRequestId.From(returnRequestId), ct);
+
+        if (returnRequest is null)
+        {
+            logger.LogWarning("No return request {ReturnRequestId} found on refund; marking processed.",
+                returnRequestId);
+        }
+        else
+        {
+            var transition = returnRequest.MarkRefunded();
+            if (transition.IsFailure)
+                logger.LogWarning("Return {ReturnRequestId} could not be marked refunded ({Status}): {Error}.",
+                    returnRequestId, returnRequest.Status, transition.Error.Code);
+            else
+                logger.LogInformation("Return {ReturnRequestId} advanced to Refunded for order {OrderId}.",
+                    returnRequestId, evt.OrderId);
+        }
+
+        // Single SaveChanges commits the return transition and the inbox mark atomically.
         await inboxStore.MarkAsProcessedAsync(evt.Id, nameof(PaymentRefundedIntegrationEvent), ct);
     }
 

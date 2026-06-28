@@ -21,6 +21,7 @@ public static class EndpointMappingExtensions
         v1.MapOrderHistoryEndpoints();
         v1.MapCheckoutEndpoints();
         v1.MapCouponEndpoints();
+        v1.MapReturnEndpoints();
         v1.MapSagaEndpoints();
 
         app.MapGroup("internal")

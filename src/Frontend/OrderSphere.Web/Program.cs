@@ -57,6 +57,7 @@ builder.Services.AddScoped<IInvoicingClient, InvoicingClient>();
 builder.Services.AddScoped<IAdminCatalogClient, AdminCatalogClient>();
 builder.Services.AddScoped<IAdminOrderingClient, AdminOrderingClient>();
 builder.Services.AddScoped<IAdminUserClient, AdminUserClient>();
+builder.Services.AddScoped<IAdminInvoicingClient, AdminInvoicingClient>();
 
 // Application state
 builder.Services.AddScoped<CartState>();

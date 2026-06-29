@@ -1,6 +1,7 @@
 using MediatR;
 using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.Invoicing.Application.Features.Invoice.GetInvoice;
+using OrderSphere.Invoicing.Application.Features.Invoice.GetInvoiceByNumber;
 using OrderSphere.Invoicing.Application.Features.Invoice.GetInvoiceDownloadUrl;
 using OrderSphere.Invoicing.Application.Features.Invoice.GetInvoicePdf;
 using OrderSphere.ServiceDefaults;
@@ -24,6 +25,18 @@ public static class InvoiceEndpoints
         group.MapGet("by-order/{orderId:guid}/pdf", GetPdf)
             .WithName("GetInvoicePdf")
             .WithSummary("Streams the invoice PDF. Inline by default; pass ?download=true for an attachment.");
+
+        group.MapGet("by-number/{invoiceNumber}", GetInvoiceByNumber)
+            .RequireAuthorization("AdminPolicy")
+            .WithName("GetInvoiceByNumber")
+            .WithSummary("Admin support lookup of a single invoice by its invoice number.");
+    }
+
+    private static async Task<IResult> GetInvoiceByNumber(
+        string invoiceNumber, ISender sender, CancellationToken ct)
+    {
+        var result = await sender.Send(new GetInvoiceByNumberQuery(invoiceNumber), ct);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetInvoiceByOrder(

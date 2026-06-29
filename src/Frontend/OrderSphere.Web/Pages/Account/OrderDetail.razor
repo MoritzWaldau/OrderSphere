@@ -168,6 +168,12 @@ else
                                            Class="btn-pill" FullWidth="true">
                                     @L["OrderDetail.ViewInvoice"]
                                 </MudButton>
+                                <MudButton Href="@Invoicing.GetDownloadUrl(_order.Id)"
+                                           Variant="Variant.Outlined"
+                                           StartIcon="@Icons.Material.Outlined.Download"
+                                           Class="btn-pill-outline mt-2" FullWidth="true">
+                                    @L["OrderDetail.DownloadInvoice"]
+                                </MudButton>
                             }
                             else
                             {

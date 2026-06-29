@@ -23,7 +23,7 @@ public static class InvoiceEndpoints
 
         group.MapGet("by-order/{orderId:guid}/pdf", GetPdf)
             .WithName("GetInvoicePdf")
-            .WithSummary("Streams the invoice PDF inline for viewing/downloading.");
+            .WithSummary("Streams the invoice PDF. Inline by default; pass ?download=true for an attachment.");
     }
 
     private static async Task<IResult> GetInvoiceByOrder(
@@ -61,7 +61,8 @@ public static class InvoiceEndpoints
     }
 
     private static async Task<IResult> GetPdf(
-        Guid orderId, ICurrentUser currentUser, ISender sender, HttpContext http, CancellationToken ct)
+        Guid orderId, ICurrentUser currentUser, ISender sender, HttpContext http,
+        bool download, CancellationToken ct)
     {
         if (!currentUser.IsAuthenticated)
             return Results.Unauthorized();
@@ -77,9 +78,10 @@ public static class InvoiceEndpoints
         if (pdfResult.IsFailure)
             return pdfResult.ToHttpResult();
 
-        // Inline disposition so the browser can render the PDF in a new tab; the filename is
-        // still honoured when the user chooses to save.
-        http.Response.Headers.ContentDisposition = $"inline; filename=\"{pdfResult.Value.FileName}\"";
+        // Inline lets the browser render the PDF in a new tab; download=true forces a file save.
+        // Either way the filename is honoured when the user chooses to save.
+        var disposition = download ? "attachment" : "inline";
+        http.Response.Headers.ContentDisposition = $"{disposition}; filename=\"{pdfResult.Value.FileName}\"";
         return Results.File(pdfResult.Value.Content, "application/pdf");
     }
 }

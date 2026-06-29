@@ -19,6 +19,8 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<IInvoicePdfService, QuestPdfInvoiceService>();
 
+        builder.Services.AddScoped<IInvoiceNumberGenerator, SequentialInvoiceNumberGenerator>();
+
         builder.Services.AddSingleton(sp => new BlobStorageClients(
             sp.GetRequiredService<IConfiguration>(), "InvoiceBlob:Endpoint", "invoices", "invoices"));
 

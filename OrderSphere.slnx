@@ -100,6 +100,7 @@
     <Project Path="tests/OrderSphere.ContainerTests/OrderSphere.ContainerTests.csproj" />
     <Project Path="tests/OrderSphere.Domain.Tests/OrderSphere.Domain.Tests.csproj" />
     <Project Path="tests/OrderSphere.IntegrationTests/OrderSphere.IntegrationTests.csproj" />
+    <Project Path="tests/OrderSphere.Invoicing.Tests/OrderSphere.Invoicing.Tests.csproj" />
     <Project Path="tests/OrderSphere.Mcp.Tests/OrderSphere.Mcp.Tests.csproj" />
     <Project Path="tests/OrderSphere.Notification.Tests/OrderSphere.Notification.Tests.csproj" />
     <Project Path="tests/OrderSphere.Ordering.Application.Tests/OrderSphere.Ordering.Application.Tests.csproj" />

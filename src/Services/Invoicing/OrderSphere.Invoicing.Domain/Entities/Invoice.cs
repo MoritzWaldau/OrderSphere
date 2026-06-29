@@ -16,19 +16,22 @@ public sealed class Invoice : AuditableEntity<InvoiceId>
 
     private Invoice() { }
 
+    // The sequential invoice number and issue timestamp are allocated by the application layer
+    // (see IInvoiceNumberGenerator) and passed in, so the domain constructor stays pure and
+    // deterministic — no clock or counter access here.
     public static Invoice Create(
         Guid orderId,
         string customerEmail,
         string customerName,
         decimal total,
-        IReadOnlyList<InvoiceLineItem> items)
+        IReadOnlyList<InvoiceLineItem> items,
+        string invoiceNumber,
+        DateTime issuedAt)
     {
-        var id = InvoiceId.New();
-        var issuedAt = DateTime.UtcNow;
         return new Invoice
         {
-            Id = id,
-            InvoiceNumber = GenerateNumber(id, issuedAt),
+            Id = InvoiceId.New(),
+            InvoiceNumber = invoiceNumber,
             OrderId = orderId,
             CustomerEmail = customerEmail,
             CustomerName = customerName,
@@ -39,7 +42,4 @@ public sealed class Invoice : AuditableEntity<InvoiceId>
     }
 
     public void SetBlobPath(string blobPath) => BlobPath = blobPath;
-
-    private static string GenerateNumber(InvoiceId id, DateTime issuedAt)
-        => $"INV-{issuedAt:yyyy}-{id.Value.ToString("N")[..8].ToUpper()}";
 }

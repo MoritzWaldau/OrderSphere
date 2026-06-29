@@ -649,6 +649,9 @@
   <data name="OrderDetail.ViewInvoice" xml:space="preserve">
     <value>View invoice</value>
   </data>
+  <data name="OrderDetail.DownloadInvoice" xml:space="preserve">
+    <value>Download</value>
+  </data>
   <data name="OrderDetail.InvoicePending" xml:space="preserve">
     <value>Your invoice is being generated.</value>
   </data>

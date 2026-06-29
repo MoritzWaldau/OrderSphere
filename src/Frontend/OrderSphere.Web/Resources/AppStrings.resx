@@ -649,6 +649,9 @@
   <data name="OrderDetail.ViewInvoice" xml:space="preserve">
     <value>Rechnung ansehen</value>
   </data>
+  <data name="OrderDetail.DownloadInvoice" xml:space="preserve">
+    <value>Herunterladen</value>
+  </data>
   <data name="OrderDetail.InvoicePending" xml:space="preserve">
     <value>Die Rechnung wird noch erstellt.</value>
   </data>

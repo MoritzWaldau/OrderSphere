@@ -456,7 +456,7 @@ namespace OrderSphere.Ordering.Infrastructure.Migrations
 
                             b1.HasKey("CouponId", "__synthesizedOrdinal");
 
-                            b1.ToTable("coupons");
+                            b1.ToTable("coupons", (string)null);
 
                             b1
                                 .ToJson("tiers")
@@ -583,7 +583,7 @@ namespace OrderSphere.Ordering.Infrastructure.Migrations
 
                             b1.HasKey("OrderViewId");
 
-                            b1.ToTable("orders");
+                            b1.ToTable("orders", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("OrderViewId");

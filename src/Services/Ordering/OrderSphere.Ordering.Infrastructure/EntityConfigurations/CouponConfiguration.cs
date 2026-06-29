@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Domain.Entities;
@@ -8,6 +9,16 @@ namespace OrderSphere.Ordering.Infrastructure.EntityConfigurations;
 
 public sealed class CouponConfiguration : IEntityTypeConfiguration<Coupon>
 {
+    private static readonly List<Guid> EmptyCategoryIds = [];
+
+    // Compare the category-scope collection structurally. Without this, EF's model differ
+    // compares the seeded empty list by reference and reports a perpetual pending change
+    // (an empty-list -> empty-list UpdateData) on every model build.
+    private static readonly ValueComparer<List<Guid>> CategoryIdsComparer = new(
+        (left, right) => left == null ? right == null : right != null && left.SequenceEqual(right),
+        value => value.Aggregate(0, (hash, id) => HashCode.Combine(hash, id.GetHashCode())),
+        value => value.ToList());
+
     public void Configure(EntityTypeBuilder<Coupon> builder)
     {
         builder.ToTable("coupons");
@@ -32,8 +43,9 @@ public sealed class CouponConfiguration : IEntityTypeConfiguration<Coupon>
         });
 
         // Optional category scope stored as a primitive JSON collection; empty = all categories.
-        builder.PrimitiveCollection(c => c.ScopedCategoryIds)
-            .HasColumnName("scoped_category_ids");
+        var scopedCategoryIds = builder.PrimitiveCollection(c => c.ScopedCategoryIds);
+        scopedCategoryIds.HasColumnName("scoped_category_ids");
+        scopedCategoryIds.Metadata.SetValueComparer(CategoryIdsComparer);
 
         // Seed the two codes the former hardcoded handler supported, so behavior is preserved.
         var seedCreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -50,7 +62,7 @@ public sealed class CouponConfiguration : IEntityTypeConfiguration<Coupon>
                 MaxRedemptions = (int?)null,
                 RedeemedCount = 0,
                 IsActive = true,
-                ScopedCategoryIds = new List<Guid>(),
+                ScopedCategoryIds = EmptyCategoryIds,
                 CreatedAt = seedCreatedAt,
                 IsDeleted = false,
             },
@@ -66,7 +78,7 @@ public sealed class CouponConfiguration : IEntityTypeConfiguration<Coupon>
                 MaxRedemptions = (int?)null,
                 RedeemedCount = 0,
                 IsActive = true,
-                ScopedCategoryIds = new List<Guid>(),
+                ScopedCategoryIds = EmptyCategoryIds,
                 CreatedAt = seedCreatedAt,
                 IsDeleted = false,
             });

@@ -27,3 +27,5 @@ immutable; supersede rather than rewrite.
 | [0007](0007-event-sourcing-island-order-aggregate.md) | Event-sourcing island: only the Order aggregate | Accepted |
 | [0008](0008-saga-choreography-service-bus.md) | Saga choreography over Service Bus for the order/payment flow | Accepted |
 | [0009](0009-multi-tenancy-customer-scoping.md) | Single-tenant deployment with per-customer scoping | Accepted |
+| [0010](0010-shared-infrastructure-building-block.md) | Shared infrastructure building block for Blob storage | Accepted |
+| [0011](0011-invoicing-in-api-consumer-no-outbox.md) | Invoicing: in-Api Service Bus consumer without an outbox | Accepted |

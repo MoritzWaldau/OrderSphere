@@ -13,7 +13,14 @@ internal sealed class LoggingNotificationEmailService(ILogger<LoggingNotificatio
         return Task.CompletedTask;
     }
 
-    // Masks the local part so logs never carry full email addresses (PII): "a***@example.com".
+    public Task SendInvoiceReadyAsync(InvoiceGeneratedIntegrationEvent evt, CancellationToken ct = default)
+    {
+        logger.LogInformation(
+            "[DEV] Invoice-ready email suppressed. Invoice={InvoiceNumber} OrderId={OrderId} To={Email}",
+            evt.InvoiceNumber, evt.OrderId, MaskEmail(evt.CustomerEmail));
+        return Task.CompletedTask;
+    }
+
     private static string MaskEmail(string? email)
     {
         if (string.IsNullOrWhiteSpace(email))

@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Blob;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Catalog.Application.Abstractions;
 using OrderSphere.Catalog.Application.Features.Brands.Admin.CreateBrand;

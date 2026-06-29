@@ -57,6 +57,7 @@ else
 }
 
 builder.Services.AddHostedService<NotificationProcessor>();
+builder.Services.AddHostedService<InvoiceGeneratedProcessor>();
 
 var app = builder.Build();
 

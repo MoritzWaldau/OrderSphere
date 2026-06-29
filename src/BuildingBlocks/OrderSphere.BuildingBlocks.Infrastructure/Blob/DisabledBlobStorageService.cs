@@ -1,4 +1,6 @@
-namespace OrderSphere.Catalog.Infrastructure.Blob;
+using OrderSphere.BuildingBlocks.Blob;
+
+namespace OrderSphere.BuildingBlocks.Infrastructure.Blob;
 
 public sealed class DisabledBlobStorageService : IBlobStorageService
 {

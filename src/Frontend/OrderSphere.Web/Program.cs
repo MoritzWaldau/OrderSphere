@@ -51,6 +51,7 @@ builder.Services.AddScoped<ICatalogClient, CatalogClient>();
 builder.Services.AddScoped<IOrderingClient, OrderingClient>();
 builder.Services.AddScoped<IUserProfileClient, UserProfileClient>();
 builder.Services.AddScoped<IAdvisorClient, AdvisorClient>();
+builder.Services.AddScoped<IInvoicingClient, InvoicingClient>();
 
 // Admin clients
 builder.Services.AddScoped<IAdminCatalogClient, AdminCatalogClient>();

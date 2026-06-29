@@ -28,6 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\OrderSphere.Catalog.Application\OrderSphere.Catalog.Application.csproj" />
     <ProjectReference Include="..\OrderSphere.Catalog.Domain\OrderSphere.Catalog.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.Infrastructure\OrderSphere.BuildingBlocks.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.Basket.Api.Configuration;
 using OrderSphere.Basket.Api.Endpoints;
@@ -40,7 +39,7 @@ var app = builder.Build();
 if (!app.Environment.IsEnvironment("Testing"))
 {
     using var scope = app.Services.CreateScope();
-    scope.ServiceProvider.GetRequiredService<BasketDbContext>().Database.Migrate();
+    await scope.ServiceProvider.GetRequiredService<BasketDbContext>().Database.MigrateAsync();
 }
 
 if (app.Environment.IsDevelopment())
@@ -57,8 +56,9 @@ app.UseOrderSphereRequestLogging();
 app.MapCartEndpoints();
 app.MapInternalCartEndpoints();
 
-app.MapHealthChecks("/health");
-app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+// Health endpoints (/health, /alive) are mapped by MapDefaultEndpoints from ServiceDefaults.
+// Do not map "/health" again here — a second registration makes the route ambiguous and every
+// probe returns 500 (AmbiguousMatchException).
 app.MapDefaultEndpoints();
 
 app.Run();

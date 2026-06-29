@@ -18,7 +18,7 @@ public sealed class BlobStorageClientsTests
     public void Disabled_WhenNoEndpointConfigured()
     {
         // appsettings ships Blob:Endpoint as "" — whitespace must not enable the client.
-        using var clients = new BlobStorageClients(Config(("Blob:Endpoint", "")));
+        using var clients = new BlobStorageClients(Config(("Blob:Endpoint", "")), "Blob:Endpoint", "images", "product-images");
 
         clients.IsEnabled.Should().BeFalse();
         clients.Container.Should().BeNull();
@@ -27,7 +27,7 @@ public sealed class BlobStorageClientsTests
     [Fact]
     public void Disabled_DefaultContainerName_StillResolved()
     {
-        using var clients = new BlobStorageClients(Config(("Blob:Endpoint", "")));
+        using var clients = new BlobStorageClients(Config(("Blob:Endpoint", "")), "Blob:Endpoint", "images", "product-images");
 
         clients.ContainerName.Should().Be("product-images");
     }
@@ -35,8 +35,9 @@ public sealed class BlobStorageClientsTests
     [Fact]
     public void Enabled_WhenBareEndpointUrlConfigured()
     {
-        using var clients = new BlobStorageClients(Config(
-            ("Blob:Endpoint", "https://acct.blob.core.windows.net")));
+        using var clients = new BlobStorageClients(
+            Config(("Blob:Endpoint", "https://acct.blob.core.windows.net")),
+            "Blob:Endpoint", "images", "product-images");
 
         clients.IsEnabled.Should().BeTrue();
         clients.Container.Should().NotBeNull();
@@ -46,9 +47,11 @@ public sealed class BlobStorageClientsTests
     public void Enabled_WhenConnectionStringFormProvided_NormalizesEndpoint()
     {
         // Aspire can inject the "BlobEndpoint=...;..." key-value form; it must be normalized.
-        using var clients = new BlobStorageClients(Config(
-            ("Blob:Endpoint", ""),
-            ("ConnectionStrings:images", "BlobEndpoint=https://acct.blob.core.windows.net;")));
+        using var clients = new BlobStorageClients(
+            Config(
+                ("Blob:Endpoint", ""),
+                ("ConnectionStrings:images", "BlobEndpoint=https://acct.blob.core.windows.net;")),
+            "Blob:Endpoint", "images", "product-images");
 
         clients.IsEnabled.Should().BeTrue();
     }
@@ -56,9 +59,9 @@ public sealed class BlobStorageClientsTests
     [Fact]
     public void CustomContainerName_IsHonored()
     {
-        using var clients = new BlobStorageClients(Config(
-            ("Blob:Endpoint", "https://acct.blob.core.windows.net"),
-            ("Blob:ContainerName", "custom-images")));
+        using var clients = new BlobStorageClients(
+            Config(("Blob:Endpoint", "https://acct.blob.core.windows.net")),
+            "Blob:Endpoint", "images", "custom-images");
 
         clients.ContainerName.Should().Be("custom-images");
     }

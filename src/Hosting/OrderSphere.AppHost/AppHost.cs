@@ -76,6 +76,7 @@ var paymentDb = postgresServer.AddDatabase("payment-db");
 var userProfileDb = postgresServer.AddDatabase("userprofile-db");
 var webhooksDb = postgresServer.AddDatabase("webhooks-db");
 var notificationDb = postgresServer.AddDatabase("notification-db");
+var invoicingDb = postgresServer.AddDatabase("invoicing-db");
 var advisoryDb = postgresServer.AddDatabase("advisory-db");
 
 var serviceBus = builder.AddAzureServiceBus("azure-service-bus")
@@ -132,6 +133,20 @@ serviceBus.AddServiceBusQueue("refund-requested")
         cfg.MaxDeliveryCount = 5;
     });
 
+// Invoice generation: Ordering outbox → Invoicing.Api (generate PDF, persist, upload blob).
+serviceBus.AddServiceBusQueue("invoice-generation")
+    .WithProperties(cfg =>
+    {
+        cfg.MaxDeliveryCount = 5;
+    });
+
+// Invoice ready: Invoicing.Api → Notification.Worker (send invoice-ready email).
+serviceBus.AddServiceBusQueue("invoice-ready")
+    .WithProperties(cfg =>
+    {
+        cfg.MaxDeliveryCount = 5;
+    });
+
 serviceBus.AddServiceBusQueue("webhook-events")
     .WithProperties(cfg =>
     {
@@ -162,6 +177,10 @@ var basket = builder.AddProject<Projects.OrderSphere_Basket_Api>("ordersphere-ba
     .WithReference(basketDb)
     .WithReference(catalog)
     .WaitFor(basketDb)
+    // Probe /health so WaitFor (and the gateway) gate on Basket actually serving, not just on the
+    // process being up. Without this, Aspire reports the project healthy as soon as it launches,
+    // which masks a hung startup (e.g. a wedged hot-reload hook) behind a false "Healthy".
+    .WithHttpHealthCheck("/health")
     .WithEnvironment("Oidc__Authority", oidcAuthority)
     .WithEnvironment("Oidc__Audience", OidcAudience)
     .WithEnvironment("Oidc__ClientId", "xY2Mgok7H98OsgFswj8JLC0gcgA6Oegy")
@@ -281,9 +300,31 @@ var userProfile = builder.AddProject<Projects.OrderSphere_UserProfile_Api>("orde
     .WithEnvironment("Oidc__Audience", OidcAudience);
 
 // Notification worker fetches per-user channel preferences from UserProfile on each event.
+// It also consumes the invoice-ready queue to send invoice-attached emails.
 notificationWorker
     .WithReference(userProfile)
     .WaitFor(userProfile);
+
+// Invoicing service: consumes invoice-generation, generates QuestPDF, uploads to blob,
+// publishes invoice-ready. Download endpoint requires JWT auth (invoicing-api audience).
+var invoicingApi = builder.AddProject<Projects.OrderSphere_Invoicing_Api>("ordersphere-invoicing")
+    .WithReference(invoicingDb)
+    .WithReference(serviceBus)
+    .WaitFor(invoicingDb)
+    .WaitFor(serviceBus)
+    .WithEnvironment("Oidc__Authority", oidcAuthority)
+    .WithEnvironment("Oidc__Audience", OidcAudience);
+
+if (builder.ExecutionContext.IsPublishMode)
+{
+    var invoiceStorage = builder.AddAzureStorage("invoice-storage");
+    var invoicesBlob = invoiceStorage.AddBlobs("invoices");
+    invoicingApi.WithReference(invoicesBlob);
+}
+else
+{
+    invoicingApi.WithEnvironment("InvoiceBlob:Endpoint", builder.Configuration["InvoiceBlob:Endpoint"] ?? "");
+}
 
 var webhooks = builder.AddProject<Projects.OrderSphere_Webhooks_Api>("ordersphere-webhooks")
     .WithReference(webhooksDb)

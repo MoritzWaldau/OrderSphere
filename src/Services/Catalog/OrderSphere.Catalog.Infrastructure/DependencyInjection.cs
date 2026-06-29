@@ -1,7 +1,7 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using OrderSphere.Catalog.Infrastructure.Blob;
 using OrderSphere.Catalog.Infrastructure.Persistence;
 using OrderSphere.Catalog.Infrastructure.Search;
 
@@ -41,7 +41,8 @@ public static class DependencyInjection
         // Azure Blob Storage: the blob client is built once (singleton); the scoped service
         // borrows it. When Blob/images is not configured, a no-op service is used and
         // uploaded images fall back to external URL behaviour (graceful degradation).
-        builder.Services.AddSingleton<BlobStorageClients>();
+        builder.Services.AddSingleton(sp => new BlobStorageClients(
+            sp.GetRequiredService<IConfiguration>(), "Blob:Endpoint", "images", "product-images"));
         builder.Services.AddScoped<IBlobStorageService>(sp =>
         {
             var clients = sp.GetRequiredService<BlobStorageClients>();

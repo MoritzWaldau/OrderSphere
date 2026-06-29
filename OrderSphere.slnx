@@ -21,6 +21,7 @@
     <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/OrderSphere.BuildingBlocks.csproj" />
     <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.EventBus.AzureServiceBus/OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.csproj" />
     <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.EventBus/OrderSphere.BuildingBlocks.EventBus.csproj" />
+    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Infrastructure/OrderSphere.BuildingBlocks.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Hosting/">
     <Project Path="src/Hosting/OrderSphere.AppHost/OrderSphere.AppHost.csproj" />
@@ -69,6 +70,12 @@
   </Folder>
   <Folder Name="/src/Services/Notification/">
     <Project Path="src/Services/Notification/OrderSphere.Notification.Worker/OrderSphere.Notification.Worker.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Invoicing/">
+    <Project Path="src/Services/Invoicing/OrderSphere.Invoicing.Api/OrderSphere.Invoicing.Api.csproj" />
+    <Project Path="src/Services/Invoicing/OrderSphere.Invoicing.Application/OrderSphere.Invoicing.Application.csproj" />
+    <Project Path="src/Services/Invoicing/OrderSphere.Invoicing.Domain/OrderSphere.Invoicing.Domain.csproj" />
+    <Project Path="src/Services/Invoicing/OrderSphere.Invoicing.Infrastructure/OrderSphere.Invoicing.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Services/UserProfile/">
     <Project Path="src/Services/UserProfile/OrderSphere.UserProfile.Api/OrderSphere.UserProfile.Api.csproj" />

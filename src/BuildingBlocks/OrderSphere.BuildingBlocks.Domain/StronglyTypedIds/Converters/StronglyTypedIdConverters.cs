@@ -92,3 +92,8 @@ public sealed class ReservationIdConverter : ValueConverter<ReservationId, Guid>
 {
     public ReservationIdConverter() : base(id => id.Value, v => new ReservationId(v)) { }
 }
+
+public sealed class InvoiceIdConverter : ValueConverter<InvoiceId, Guid>
+{
+    public InvoiceIdConverter() : base(id => id.Value, v => new InvoiceId(v)) { }
+}

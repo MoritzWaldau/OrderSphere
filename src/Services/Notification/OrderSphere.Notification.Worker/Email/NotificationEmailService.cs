@@ -11,6 +11,36 @@ public sealed class NotificationEmailService(
     string senderAddress,
     ILogger<NotificationEmailService> logger) : INotificationEmailService
 {
+    public async Task SendInvoiceReadyAsync(InvoiceGeneratedIntegrationEvent evt, CancellationToken ct = default)
+    {
+        try
+        {
+            var mailClient = new EmailClient(connectionString);
+            var de = CultureInfo.GetCultureInfo("de-DE");
+            var subject = $"Ihre Rechnung {evt.InvoiceNumber} – Bestellung {evt.OrderId}";
+            var body = evt.PdfUrl.Length > 0
+                ? $"Ihre Rechnung steht zum Download bereit: {evt.PdfUrl}"
+                : "Ihre Rechnung wurde erstellt. Der Download ist in Kürze verfügbar.";
+
+            var message = new EmailMessage(
+                senderAddress: senderAddress,
+                recipients: new EmailRecipients([new EmailAddress(evt.CustomerEmail)]),
+                content: new EmailContent(subject)
+                {
+                    PlainText = $"Rechnungsnummer: {evt.InvoiceNumber}\nGesamtbetrag: {evt.Total.ToString("C", de)}\n\n{body}",
+                    Html = $"<h3>Rechnung {evt.InvoiceNumber}</h3><p>Gesamtbetrag: <strong>{evt.Total.ToString("C", de)}</strong></p><p>{body}</p>",
+                });
+
+            await mailClient.SendAsync(WaitUntil.Completed, message, ct);
+            logger.LogInformation("Invoice-ready email sent for invoice {InvoiceNumber} to {Email}.", evt.InvoiceNumber, evt.CustomerEmail);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to send invoice-ready email for invoice {InvoiceNumber}.", evt.InvoiceNumber);
+            throw;
+        }
+    }
+
     public async Task SendOrderConfirmationAsync(OrderPlacedIntegrationEvent evt, CancellationToken ct = default)
     {
         try

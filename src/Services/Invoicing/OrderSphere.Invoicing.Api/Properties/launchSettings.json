@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "OrderSphere.Invoicing.Api": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:60861;http://localhost:60862"
+    }
+  }
+}

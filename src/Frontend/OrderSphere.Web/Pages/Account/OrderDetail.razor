@@ -1,6 +1,7 @@
 @page "/account/orders/{OrderId:guid}"
 @attribute [Authorize]
 @inject IOrderingClient Ordering
+@inject IInvoicingClient Invoicing
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<AppStrings> L
@@ -154,6 +155,25 @@ else
                                 @Formatting.DateTime(_order.CreatedAt.ToLocalTime())
                             </MudText>
                         </MudPaper>
+
+                        <MudPaper Elevation="0" Class="surface-card-lg pa-6">
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:600;" Class="mb-2">@L["OrderDetail.Invoice"]</MudText>
+                            @if (_invoice is not null)
+                            {
+                                <MudText Typo="Typo.caption" Class="text-muted">@L["OrderDetail.InvoiceNumber"]</MudText>
+                                <MudText Typo="Typo.body2" Class="os-mono mb-3">@_invoice.InvoiceNumber</MudText>
+                                <MudButton Href="@Invoicing.GetPdfUrl(_order.Id)" Target="_blank"
+                                           Variant="Variant.Filled" Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Outlined.PictureAsPdf"
+                                           Class="btn-pill" FullWidth="true">
+                                    @L["OrderDetail.ViewInvoice"]
+                                </MudButton>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body2" Class="text-muted">@L["OrderDetail.InvoicePending"]</MudText>
+                            }
+                        </MudPaper>
                     </MudStack>
                 </MudItem>
             </MudGrid>
@@ -165,6 +185,7 @@ else
     [Parameter] public Guid OrderId { get; set; }
 
     private OrderDto? _order;
+    private InvoiceDto? _invoice;
     private bool _loading = true;
 
     private decimal Subtotal => _order?.Items.Sum(i => i.Quantity * i.Price) ?? 0m;
@@ -176,7 +197,16 @@ else
             var result = await Ordering.GetOrderByIdAsync(OrderId);
             _order = result.Value;
             if (!result.IsSuccess)
+            {
                 Snackbar.Add(result.Error!.Message, Severity.Error);
+                return;
+            }
+
+            // The invoice is generated asynchronously after checkout; a not-found result simply
+            // means it is not ready yet, so the card shows a pending note rather than an error.
+            var invoiceResult = await Invoicing.GetByOrderAsync(OrderId);
+            if (invoiceResult.IsSuccess)
+                _invoice = invoiceResult.Value;
         }
         finally
         {

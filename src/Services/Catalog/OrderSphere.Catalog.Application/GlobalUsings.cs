@@ -3,6 +3,7 @@ global using MediatR;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.DependencyInjection;
 global using OrderSphere.BuildingBlocks.Abstraction;
+global using OrderSphere.BuildingBlocks.Blob;
 global using OrderSphere.BuildingBlocks.Contracts;
 global using OrderSphere.BuildingBlocks.Primitives;
 global using OrderSphere.Catalog.Application.Abstractions;

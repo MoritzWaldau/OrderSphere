@@ -1,4 +1,4 @@
-using OrderSphere.Catalog.Infrastructure.Blob;
+using OrderSphere.BuildingBlocks.Infrastructure.Blob;
 
 namespace OrderSphere.Catalog.Api.BackgroundServices;
 

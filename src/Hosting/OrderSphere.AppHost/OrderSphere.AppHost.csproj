@@ -28,6 +28,7 @@
     <ProjectReference Include="..\..\Services\Ordering\OrderSphere.Ordering.Api\OrderSphere.Ordering.Api.csproj" />
     <ProjectReference Include="..\..\Services\Ordering\OrderSphere.Ordering.Worker\OrderSphere.Ordering.Worker.csproj" />
     <ProjectReference Include="..\..\Services\Notification\OrderSphere.Notification.Worker\OrderSphere.Notification.Worker.csproj" />
+    <ProjectReference Include="..\..\Services\Invoicing\OrderSphere.Invoicing.Api\OrderSphere.Invoicing.Api.csproj" />
     <ProjectReference Include="..\..\Services\Payment\OrderSphere.Payment.Api\OrderSphere.Payment.Api.csproj" />
     <ProjectReference Include="..\..\Services\Payment\OrderSphere.Payment.Worker\OrderSphere.Payment.Worker.csproj" />
     <ProjectReference Include="..\..\Services\UserProfile\OrderSphere.UserProfile.Api\OrderSphere.UserProfile.Api.csproj" />

@@ -640,6 +640,18 @@
   <data name="OrderDetail.OrderDate" xml:space="preserve">
     <value>Order date</value>
   </data>
+  <data name="OrderDetail.Invoice" xml:space="preserve">
+    <value>Invoice</value>
+  </data>
+  <data name="OrderDetail.InvoiceNumber" xml:space="preserve">
+    <value>Invoice number</value>
+  </data>
+  <data name="OrderDetail.ViewInvoice" xml:space="preserve">
+    <value>View invoice</value>
+  </data>
+  <data name="OrderDetail.InvoicePending" xml:space="preserve">
+    <value>Your invoice is being generated.</value>
+  </data>
   <data name="Profile.PageTitle" xml:space="preserve">
     <value>My profile — OrderSphere</value>
   </data>

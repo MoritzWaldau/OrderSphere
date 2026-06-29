@@ -46,7 +46,8 @@ producer and consumer agree on the schema.
   from `IntegrationEvent` (`BuildingBlocks.EventBus`), which carries `Id`, `CreatedAt`, and
   `CorrelationId`. Current events: `CheckoutCartIntegrationEvent`, `OrderPlacedIntegrationEvent`,
   `OrderStatusChangedIntegrationEvent`, `PaymentRequestedIntegrationEvent`,
-  `PaymentProcessedIntegrationEvent`, `RealtimeNotificationEvent`, `StockReservedIntegrationEvent`.
+  `PaymentProcessedIntegrationEvent`, `RealtimeNotificationEvent`, `StockReservedIntegrationEvent`,
+  `InvoiceGeneratedIntegrationEvent`.
 - Naming: `<Subject><PastTense>IntegrationEvent` (e.g. `OrderPlacedIntegrationEvent`). Records are
   `sealed`; properties are `required` / `init`-only. Nested payload DTOs use the `…Dto` suffix
   (e.g. `OrderPlacedItemDto`).

@@ -9,6 +9,11 @@ manually.
 ## [Unreleased]
 
 ### Added
+- Invoicing service: generates invoice PDFs (QuestPDF) on order placement, stores them in Blob
+  storage, and sends an invoice-ready email. Customers can view and download their invoice from the
+  order detail page.
+- `BuildingBlocks.Infrastructure`: shared Azure Blob storage implementation (relocated from Catalog),
+  now consumed by both Catalog and Invoicing.
 - Repository documentation: `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, and this changelog.
 - README status, deployment, security, and contributing sections with CI/security badges.
 - README: local-secrets setup, configuration reference, repository layout, testing/quality,

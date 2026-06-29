@@ -57,6 +57,16 @@ public sealed record CheckoutAddress(
 // Coupon
 public sealed record CouponValidationDto(bool IsValid, decimal DiscountAmount, string? Message);
 
+// Invoice — metadata returned by the Invoicing service; the PDF itself is streamed separately.
+public sealed record InvoiceDto(
+    Guid Id,
+    string InvoiceNumber,
+    Guid OrderId,
+    string CustomerEmail,
+    string CustomerName,
+    decimal Total,
+    DateTime IssuedAt);
+
 // Editable form-state for the checkout page (bound across the address/payment sub-forms).
 public sealed class CheckoutFormModel
 {

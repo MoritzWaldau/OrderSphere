@@ -1,7 +1,8 @@
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
+using OrderSphere.BuildingBlocks.Blob;
 
-namespace OrderSphere.Catalog.Infrastructure.Blob;
+namespace OrderSphere.BuildingBlocks.Infrastructure.Blob;
 
 public sealed class AzureBlobStorageService(BlobStorageClients clients, ILogger<AzureBlobStorageService> logger)
     : IBlobStorageService

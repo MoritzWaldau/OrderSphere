@@ -18,10 +18,11 @@ A rendered request-flow diagram is in the repository-root [README.md](../README.
 
 ## Shared primitives (BuildingBlocks)
 
-- `BuildingBlocks.Domain` — `ICommand`, `IQuery`, `Result<T>`, `AuditableEntity`, `Error`, MediatR pipeline behaviors
+- `BuildingBlocks.Domain` — `ICommand`, `IQuery`, `Result<T>`, `AuditableEntity`, `Error`, `IBlobStorageService` (`/Blob`), MediatR pipeline behaviors
 - `BuildingBlocks.Contracts` — Integration event DTOs shared across service boundaries (naming and versioning rules: [../contracts/CONVENTIONS.md](../contracts/CONVENTIONS.md))
 - `BuildingBlocks.EventBus` — `IEventBus` abstraction
 - `BuildingBlocks.EventBus.AzureServiceBus` — Azure Service Bus implementation
+- `BuildingBlocks.Infrastructure` — shared infrastructure implementations (Azure Blob storage: `BlobStorageClients`, `AzureBlobStorageService`, `DisabledBlobStorageService` no-op fallback)
 
 ## Project layout
 
@@ -32,6 +33,7 @@ A rendered request-flow diagram is in the repository-root [README.md](../README.
 | `src/BuildingBlocks/OrderSphere.BuildingBlocks.Contracts` | Integration event DTOs (`CheckoutCartIntegrationEvent`, `OrderPlacedIntegrationEvent`, etc.) |
 | `src/BuildingBlocks/OrderSphere.BuildingBlocks.EventBus` | `IEventBus` abstraction |
 | `src/BuildingBlocks/OrderSphere.BuildingBlocks.EventBus.AzureServiceBus` | Azure Service Bus implementation |
+| `src/BuildingBlocks/OrderSphere.BuildingBlocks.Infrastructure` | Shared infrastructure implementations — Azure Blob storage (`BlobStorageClients`, `AzureBlobStorageService`, `DisabledBlobStorageService`) behind `IBlobStorageService`. Consumed by Catalog (product images) and Invoicing (invoice PDFs). |
 
 ### Services
 | Service | Projects | Notes |
@@ -43,6 +45,7 @@ A rendered request-flow diagram is in the repository-root [README.md](../README.
 | Webhooks | `Webhooks.Domain`, `Webhooks.Application`, `Webhooks.Infrastructure`, `Webhooks.Api`, `Webhooks.Worker` | Subscription CRUD + outbound webhook dispatch; Worker consumes integration events |
 | Notification | `Notification.Worker` | Sends order confirmation emails via Azure Communication Services. Deliberate exception to the per-service layering: a worker-only service with no Domain/Application/Infrastructure split — its `DbContext` lives in the Worker (inbox idempotency only). |
 | UserProfile | `UserProfile.Domain`, `UserProfile.Application`, `UserProfile.Infrastructure`, `UserProfile.Api` | Customer profile data |
+| Invoicing | `Invoicing.Domain`, `Invoicing.Application`, `Invoicing.Infrastructure`, `Invoicing.Api` | Generates invoice PDFs (QuestPDF) on `OrderPlacedIntegrationEvent`, stores them in Blob storage, publishes `invoice-ready`. The Service Bus consumer (`InvoiceProcessor`) runs inside the Api as a `BackgroundService` — no separate Worker project. JWT-protected download endpoints. See [src/Services/Invoicing/CLAUDE.md](../src/Services/Invoicing/CLAUDE.md). |
 | Advisory | `Advisory.Api`, `Mcp.Server` (both under `src/Services/Advisory/`) | Customer-advisory AI agent + MCP tool server. See [AI advisory](#ai-advisory-agent--mcp-server). |
 
 ### Infrastructure & Frontend
@@ -79,8 +82,9 @@ xUnit + FluentAssertions (NSubstitute for mocking; EF Core in-memory, or SQLite 
 | Coupon | Ordering | `ValidateCoupon` query; hardcoded codes `WELCOME10`, `SUMMER15` |
 | Payment | Payment | `PaymentRecord` created by Worker on `payment-requests` queue; status: Pending → Authorized → Captured / Failed |
 | Webhooks | Webhooks | Outbound webhook dispatch triggered by integration events |
-| Notification | Notification | Order confirmation email on `OrderPlacedIntegrationEvent` |
+| Notification | Notification | Order confirmation email on `OrderPlacedIntegrationEvent`; invoice-ready email on `InvoiceGeneratedIntegrationEvent` |
 | UserProfile | UserProfile | Customer profile data |
+| Invoice | Invoicing | PDF generation on `OrderPlacedIntegrationEvent`; metadata + SAS download + inline-PDF endpoints (owner or admin only) |
 
 ## Ordering write model (event-sourced)
 
@@ -278,12 +282,15 @@ Each service owns its migrations. Pattern: `-p <Infrastructure project> -s <Api 
 | Webhooks | `dotnet ef migrations add <Name> -p src/Services/Webhooks/OrderSphere.Webhooks.Infrastructure -s src/Services/Webhooks/OrderSphere.Webhooks.Api` | same with `database update` |
 | UserProfile | `dotnet ef migrations add <Name> -p src/Services/UserProfile/OrderSphere.UserProfile.Infrastructure -s src/Services/UserProfile/OrderSphere.UserProfile.Api` | same with `database update` |
 | Advisory | `dotnet ef migrations add <Name> -p src/Services/Advisory/OrderSphere.Advisory.Infrastructure -s src/Services/Advisory/OrderSphere.Advisory.Api` | same with `database update` |
+| Invoicing | `dotnet ef migrations add <Name> -p src/Services/Invoicing/OrderSphere.Invoicing.Infrastructure -s src/Services/Invoicing/OrderSphere.Invoicing.Api` | same with `database update` |
 
 ## External services
 
 - **Database**: PostgreSQL via EF Core. Each service has its own `DbContext` under `<Service>.Infrastructure/Persistence/`. Configurations applied via `ApplyConfigurationsFromAssembly`. Migrations are per-service (see above).
 - **Cache**: Redis via .NET Hybrid Cache. Used by Catalog service for product/category reads.
-- **Email**: Azure Communication Services. Implemented in `Notification.Worker/Email/NotificationEmailService.cs`. Triggered by `OrderPlacedIntegrationEvent`. Connection string and sender address read from configuration.
+- **Email**: Azure Communication Services. Implemented in `Notification.Worker/Email/NotificationEmailService.cs`. Triggered by `OrderPlacedIntegrationEvent` (order confirmation) and `InvoiceGeneratedIntegrationEvent` (invoice-ready). Connection string and sender address read from configuration.
+- **Blob storage**: Azure Blob Storage via `BuildingBlocks.Infrastructure` (`BlobStorageClients` behind `IBlobStorageService`, `DefaultAzureCredential`). Used by Catalog (product images) and Invoicing (invoice PDFs). Provisioned only in publish mode from the Aspire manifest (`AppHost.cs` — Invoicing gets the `invoice-storage` account / `invoices` container); local runs leave the endpoint empty and `DisabledBlobStorageService` degrades gracefully (no-op upload, external-URL fallback).
+- **PDF generation**: QuestPDF, in `Invoicing.Infrastructure/Pdf/QuestPdfInvoiceService.cs`, renders invoice documents server-side.
 - **Search**: Azure AI Search, optional read-model for catalog hybrid (BM25 keyword + vector) search. PostgreSQL stays the system of record; the index is a derived, best-effort copy. Implemented in `Catalog.Infrastructure/Search/` behind `IProductSearchIndex`; write handlers sync best-effort, `GetProductsQueryHandler` queries the index when enabled and falls back to the database otherwise. Provisioned only in publish mode from the Aspire manifest (`AppHost.cs`, **Free** tier), with no local emulator — local runs leave `Search:Endpoint` empty and degrade to database `LIKE` search. Access is managed-identity only (`DefaultAzureCredential`); azd generates the `SearchServiceContributor` + `SearchIndexDataContributor` roles. The shared container-app identity additionally needs `Cognitive Services OpenAI User` on the Foundry account for embeddings — Foundry is external to this azd project, so that role is granted by the `postprovision` hook in `azure.yaml`. The hook reads the identity from the generated `MANAGED_IDENTITY_PRINCIPAL_ID` output automatically; only the external Foundry scope must be supplied once via `azd env set AZURE_FOUNDRY_RESOURCE_ID <account-resource-id>`.
 - **Service Bus**: Azure Service Bus via `BuildingBlocks.EventBus.AzureServiceBus`. Queues are declared in `src/Hosting/OrderSphere.AppHost/AppHost.cs`; each is published by an Ordering/Payment outbox handler and consumed by exactly one worker:
 
@@ -291,10 +298,17 @@ Each service owns its migrations. Pattern: `-p <Infrastructure project> -s <Api 
   |---|---|---|
   | `orders` | Ordering checkout (`RealServiceBusPublisher`) | `Ordering.Worker` (`OrderProcessor`) |
   | `notification-orders` | Ordering (`OrderPlacedEventHandler`) | `Notification.Worker` (`NotificationProcessor`) |
+  | `invoice-generation` | Ordering (`OrderPlacedEventHandler`) | `Invoicing.Api` (`InvoiceProcessor`) |
+  | `invoice-ready` | `Invoicing.Api` (`InvoiceProcessor`) | `Notification.Worker` (`InvoiceGeneratedProcessor`) |
   | `payment-requests` | Ordering (`PaymentRequestedEventHandler`) | `Payment.Worker` (`PaymentProcessor`) |
   | `payment-results` | Payment (`PaymentProcessedEventHandler`) | `Ordering.Worker` (`PaymentResultProcessor`) |
   | `realtime-notifications` | Ordering (`RealtimeNotificationEventHandler`) | `BFF` (`RealtimeNotificationProcessor`, SignalR fan-out) |
   | `webhook-events` | Ordering (`OrderStatusChangedEventHandler`) | `Webhooks.Worker` (`WebhookEventProcessor`) |
+
+  `OrderPlacedEventHandler` fans the same `OrderPlacedIntegrationEvent` out to two queues
+  (`notification-orders` and `invoice-generation`) — Service Bus uses point-to-point queues here,
+  so each consumer needs its own queue. Both publishes are at-least-once; the consumers' inbox
+  dedupe discards duplicates from an outbox retry.
 
 ## Payment provider integration
 

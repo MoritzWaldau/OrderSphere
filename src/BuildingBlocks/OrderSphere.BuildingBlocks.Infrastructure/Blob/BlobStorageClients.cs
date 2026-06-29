@@ -4,13 +4,13 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
 using Microsoft.Extensions.Configuration;
 
-namespace OrderSphere.Catalog.Infrastructure.Blob;
+namespace OrderSphere.BuildingBlocks.Infrastructure.Blob;
 
 /// <summary>
-/// Singleton holder for the Azure Blob Storage service client. Expensive to construct and
-/// thread-safe, so built once and shared. Caches the User Delegation Key (valid 23h,
-/// refreshed when fewer than 10 minutes remain) to avoid a round-trip on every SAS URL
-/// generation. Disabled when Blob:Endpoint / ConnectionStrings:images is not configured.
+/// Singleton holder for an Azure Blob Storage service client. Expensive to construct and
+/// thread-safe; caches the User Delegation Key (valid 23 h, refreshed when fewer than
+/// 10 minutes remain) to avoid a round-trip on every SAS URL generation.
+/// Disabled when the resolved endpoint is empty.
 /// </summary>
 public sealed class BlobStorageClients : IDisposable
 {
@@ -27,16 +27,22 @@ public sealed class BlobStorageClients : IDisposable
     private DateTimeOffset _keyExpiresAt;
     private readonly SemaphoreSlim _keyLock = new(1, 1);
 
-    public BlobStorageClients(IConfiguration configuration)
+    /// <param name="configuration">Application configuration.</param>
+    /// <param name="endpointConfigKey">Config key for the blob service endpoint (e.g. "Blob:Endpoint").</param>
+    /// <param name="connectionStringName">Connection string name Aspire injects (e.g. "images").</param>
+    /// <param name="containerName">Target blob container name.</param>
+    public BlobStorageClients(
+        IConfiguration configuration,
+        string endpointConfigKey,
+        string connectionStringName,
+        string containerName)
     {
-        // appsettings ships Blob:Endpoint as "" (not null); coalesce on whitespace so
-        // the Aspire-injected connection string wins over the empty local default.
-        var rawEndpoint = configuration["Blob:Endpoint"];
+        var rawEndpoint = configuration[endpointConfigKey];
         if (string.IsNullOrWhiteSpace(rawEndpoint))
-            rawEndpoint = configuration.GetConnectionString("images");
+            rawEndpoint = configuration.GetConnectionString(connectionStringName);
         var endpoint = NormalizeEndpoint(rawEndpoint);
 
-        ContainerName = configuration["Blob:ContainerName"] ?? "product-images";
+        ContainerName = containerName;
 
         if (string.IsNullOrWhiteSpace(endpoint))
         {
@@ -50,10 +56,6 @@ public sealed class BlobStorageClients : IDisposable
         IsEnabled = true;
     }
 
-    /// <summary>
-    /// Generates a read-only SAS URL valid for <see cref="SasExpiryHours"/> hour(s)
-    /// using a cached User Delegation Key. Thread-safe.
-    /// </summary>
     public async Task<string> GetSasUrlAsync(string blobName, CancellationToken ct = default)
     {
         var key = await GetOrRefreshKeyAsync(ct);
@@ -104,8 +106,6 @@ public sealed class BlobStorageClients : IDisposable
         }
     }
 
-    // Aspire injects the blob service endpoint as a bare URL for RBAC-only accounts.
-    // Handle both bare URL and the BlobEndpoint= key-value form as a safety net.
     private static string? NormalizeEndpoint(string? value)
     {
         if (string.IsNullOrWhiteSpace(value) || !value.Contains('='))

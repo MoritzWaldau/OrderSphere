@@ -39,8 +39,9 @@ vulnerable-package scan. A pull request must pass these before merge.
 ## Git hooks
 
 A versioned pre-commit hook in [.githooks/](.githooks) verifies formatting of staged C# files
-(`dotnet format … --verify-no-changes`, excluding migrations) so commits stay clean. Enable it
-once per clone:
+(`dotnet format … --verify-no-changes`, excluding migrations) so commits stay clean. The check is
+scoped to the staged files (`--include`), so pre-existing formatting issues elsewhere in the repo
+do not block unrelated commits. Enable it once per clone:
 
 ```sh
 git config core.hooksPath .githooks
@@ -48,6 +49,13 @@ git config core.hooksPath .githooks
 
 The hook is intentionally formatting-only to keep commits fast; heavier static-analysis gates
 run in CI.
+
+Claude Code sessions in this repo additionally run a `PreToolUse` hook
+([.claude/settings.json](.claude/settings.json), script at
+[.claude/hooks/format-before-commit.sh](.claude/hooks/format-before-commit.sh)) that auto-formats
+staged C# files before any `git commit` Bash call and restages the result. This makes the
+`.githooks/pre-commit` gate above pass deterministically in Claude-driven commits instead of
+relying on the format command being run manually first.
 
 ## Local MCP server (Claude Code)
 

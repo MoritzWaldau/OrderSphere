@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Http" />
+    <PackageReference Include="Grpc.Tools" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
     <PackageReference Include="Grpc.AspNetCore" />

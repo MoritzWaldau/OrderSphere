@@ -12,6 +12,7 @@
     <!-- JwtBearer is provided via ServiceDefaults → FrameworkReference Microsoft.AspNetCore.App -->
     <PackageReference Include="Asp.Versioning.Http" />
     <PackageReference Include="Azure.AI.ContentSafety" />
+    <PackageReference Include="Google.Protobuf" />
     <PackageReference Include="Microsoft.CognitiveServices.Speech" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureAppConfiguration" />
     <PackageReference Include="Azure.AI.OpenAI" />

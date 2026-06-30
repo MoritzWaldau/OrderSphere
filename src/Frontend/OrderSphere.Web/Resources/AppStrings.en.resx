@@ -1141,4 +1141,52 @@
   <data name="OrderDetail.Timeline" xml:space="preserve">
     <value>Timeline</value>
   </data>
+  <data name="Admin.Invoices.PageTitle" xml:space="preserve">
+    <value>Invoices — Admin</value>
+  </data>
+  <data name="Admin.Invoices.Title" xml:space="preserve">
+    <value>Invoices</value>
+  </data>
+  <data name="Admin.Invoices.Subtitle" xml:space="preserve">
+    <value>Look up an invoice by its invoice number</value>
+  </data>
+  <data name="Admin.Invoices.SearchLabel" xml:space="preserve">
+    <value>Invoice number</value>
+  </data>
+  <data name="Admin.Invoices.SearchPlaceholder" xml:space="preserve">
+    <value>e.g. INV-2026-000001</value>
+  </data>
+  <data name="Admin.Invoices.SearchButton" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Admin.Invoices.NoResults" xml:space="preserve">
+    <value>No invoice found with that number</value>
+  </data>
+  <data name="Admin.Invoices.Prompt" xml:space="preserve">
+    <value>Enter an invoice number to search.</value>
+  </data>
+  <data name="Admin.Invoices.ColNumber" xml:space="preserve">
+    <value>Invoice number</value>
+  </data>
+  <data name="Admin.Invoices.ColOrder" xml:space="preserve">
+    <value>Order</value>
+  </data>
+  <data name="Admin.Invoices.ColCustomer" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Admin.Invoices.ColEmail" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Admin.Invoices.ColDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Admin.Invoices.ColAmount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="Admin.Invoices.ViewInvoice" xml:space="preserve">
+    <value>View invoice</value>
+  </data>
+  <data name="Admin.Invoices.StatusIssued" xml:space="preserve">
+    <value>Issued</value>
+  </data>
 </root>

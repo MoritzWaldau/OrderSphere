@@ -1,0 +1,153 @@
+@page "/admin/invoices"
+@inject IAdminInvoicingClient AdminInvoicing
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<AppStrings> L
+
+<PageTitle>@L["Admin.Invoices.PageTitle"]</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+    <MudStack Spacing="0" Class="mb-6">
+        <MudText Typo="Typo.h4" Style="font-weight: 700;">@L["Admin.Invoices.Title"]</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Invoices.Subtitle"]</MudText>
+    </MudStack>
+
+    <MudPaper Elevation="0" Class="pa-4 mb-6 surface-card">
+        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+            <MudTextField @bind-Value="_query" Immediate="true"
+                          Label="@L["Admin.Invoices.SearchLabel"]"
+                          Placeholder="@L["Admin.Invoices.SearchPlaceholder"]"
+                          Variant="Variant.Outlined" Margin="Margin.Dense"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Search"
+                          OnKeyDown="OnSearchKeyDown" Class="flex-grow-1" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="btn-pill"
+                       OnClick="SearchAsync" Disabled="_searching">
+                @if (_searching)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                }
+                @L["Admin.Invoices.SearchButton"]
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+
+    @if (_searching)
+    {
+        <MudStack AlignItems="AlignItems.Center" Class="py-12">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        </MudStack>
+    }
+    else if (_result is not null)
+    {
+        <MudPaper Elevation="0" Class="pa-6 surface-card">
+            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Admin.Invoices.ColNumber"]</MudText>
+                    <MudText Typo="Typo.h6" Class="os-mono">@_result.InvoiceNumber</MudText>
+                </MudStack>
+                <MudChip T="string" Color="Color.Success" Size="Size.Small"
+                         Variant="Variant.Filled" Style="border-radius:100px;font-weight:600;">
+                    @StatusLabel(_result.Status)
+                </MudChip>
+            </MudStack>
+
+            <MudSimpleTable Dense="true" Hover="false" Bordered="false" Striped="false" Style="background:transparent;">
+                <tbody>
+                    <tr>
+                        <td><MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Invoices.ColOrder"]</MudText></td>
+                        <td><MudText Typo="Typo.body2" Class="os-mono">#@_result.OrderId.ToString("N")[..8].ToUpperInvariant()</MudText></td>
+                    </tr>
+                    <tr>
+                        <td><MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Invoices.ColCustomer"]</MudText></td>
+                        <td><MudText Typo="Typo.body2">@_result.CustomerName</MudText></td>
+                    </tr>
+                    <tr>
+                        <td><MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Invoices.ColEmail"]</MudText></td>
+                        <td><MudText Typo="Typo.body2">@_result.CustomerEmail</MudText></td>
+                    </tr>
+                    <tr>
+                        <td><MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Invoices.ColDate"]</MudText></td>
+                        <td><MudText Typo="Typo.body2">@Formatting.DateTime(_result.IssuedAt.ToLocalTime())</MudText></td>
+                    </tr>
+                    <tr>
+                        <td><MudText Typo="Typo.body2" Color="Color.Secondary">@L["Admin.Invoices.ColAmount"]</MudText></td>
+                        <td><MudText Typo="Typo.body2" Style="font-weight:600;">@Formatting.Currency(_result.Total)</MudText></td>
+                    </tr>
+                </tbody>
+            </MudSimpleTable>
+
+            <MudButton Href="@AdminInvoicing.GetPdfUrl(_result.OrderId)" Target="_blank"
+                       Variant="Variant.Outlined" Color="Color.Primary" Class="btn-pill-outline mt-4"
+                       StartIcon="@Icons.Material.Outlined.PictureAsPdf">
+                @L["Admin.Invoices.ViewInvoice"]
+            </MudButton>
+        </MudPaper>
+    }
+    else if (_notFound)
+    {
+        <MudPaper Elevation="0" Class="pa-12 text-center surface-card">
+            <MudIcon Icon="@Icons.Material.Outlined.SearchOff" Color="Color.Secondary" Style="font-size:64px;" Class="mb-3" />
+            <MudText Typo="Typo.h6">@L["Admin.Invoices.NoResults"]</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Elevation="0" Class="pa-12 text-center surface-card">
+            <MudIcon Icon="@Icons.Material.Outlined.ReceiptLong" Color="Color.Secondary" Style="font-size:64px;" Class="mb-3" />
+            <MudText Typo="Typo.body1" Color="Color.Secondary">@L["Admin.Invoices.Prompt"]</MudText>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private string _query = string.Empty;
+    private bool _searching;
+    private bool _notFound;
+    private AdminInvoiceDto? _result;
+
+    private async Task OnSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key is "Enter" or "NumpadEnter")
+            await SearchAsync();
+    }
+
+    private async Task SearchAsync()
+    {
+        var number = _query.Trim();
+        if (string.IsNullOrEmpty(number))
+            return;
+
+        _searching = true;
+        _notFound = false;
+        _result = null;
+        try
+        {
+            var result = await AdminInvoicing.GetByNumberAsync(number);
+            if (result.IsSuccess)
+            {
+                _result = result.Value;
+            }
+            else if (result.Error!.Kind == ApiErrorKind.NotFound)
+            {
+                _notFound = true;
+            }
+            else
+            {
+                Snackbar.Add(result.Error!.Message, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(L["Common.LoadError", ex.Message], Severity.Error);
+        }
+        finally
+        {
+            _searching = false;
+        }
+    }
+
+    private string StatusLabel(string s) => s switch
+    {
+        "Issued" => L["Admin.Invoices.StatusIssued"],
+        _ => s
+    };
+}

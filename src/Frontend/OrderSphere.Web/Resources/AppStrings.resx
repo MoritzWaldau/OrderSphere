@@ -1141,4 +1141,52 @@
   <data name="OrderDetail.Timeline" xml:space="preserve">
     <value>Verlauf</value>
   </data>
+  <data name="Admin.Invoices.PageTitle" xml:space="preserve">
+    <value>Rechnungen — Admin</value>
+  </data>
+  <data name="Admin.Invoices.Title" xml:space="preserve">
+    <value>Rechnungen</value>
+  </data>
+  <data name="Admin.Invoices.Subtitle" xml:space="preserve">
+    <value>Rechnung anhand der Rechnungsnummer suchen</value>
+  </data>
+  <data name="Admin.Invoices.SearchLabel" xml:space="preserve">
+    <value>Rechnungsnummer</value>
+  </data>
+  <data name="Admin.Invoices.SearchPlaceholder" xml:space="preserve">
+    <value>z. B. INV-2026-000001</value>
+  </data>
+  <data name="Admin.Invoices.SearchButton" xml:space="preserve">
+    <value>Suchen</value>
+  </data>
+  <data name="Admin.Invoices.NoResults" xml:space="preserve">
+    <value>Keine Rechnung mit dieser Nummer gefunden</value>
+  </data>
+  <data name="Admin.Invoices.Prompt" xml:space="preserve">
+    <value>Geben Sie eine Rechnungsnummer ein, um zu suchen.</value>
+  </data>
+  <data name="Admin.Invoices.ColNumber" xml:space="preserve">
+    <value>Rechnungsnummer</value>
+  </data>
+  <data name="Admin.Invoices.ColOrder" xml:space="preserve">
+    <value>Bestellung</value>
+  </data>
+  <data name="Admin.Invoices.ColCustomer" xml:space="preserve">
+    <value>Kunde</value>
+  </data>
+  <data name="Admin.Invoices.ColEmail" xml:space="preserve">
+    <value>E-Mail</value>
+  </data>
+  <data name="Admin.Invoices.ColDate" xml:space="preserve">
+    <value>Datum</value>
+  </data>
+  <data name="Admin.Invoices.ColAmount" xml:space="preserve">
+    <value>Betrag</value>
+  </data>
+  <data name="Admin.Invoices.ViewInvoice" xml:space="preserve">
+    <value>Rechnung anzeigen</value>
+  </data>
+  <data name="Admin.Invoices.StatusIssued" xml:space="preserve">
+    <value>Ausgestellt</value>
+  </data>
 </root>

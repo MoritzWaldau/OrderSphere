@@ -17,6 +17,10 @@ public sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         builder.Property(i => i.CustomerEmail).HasMaxLength(256).IsRequired();
         builder.Property(i => i.CustomerName).HasMaxLength(256).IsRequired();
         builder.Property(i => i.Total).HasPrecision(18, 2);
+        builder.Property(i => i.NetAmount).HasPrecision(18, 2);
+        builder.Property(i => i.TaxRate).HasPrecision(5, 4);
+        builder.Property(i => i.TaxAmount).HasPrecision(18, 2);
+        builder.Property(i => i.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(i => i.BlobPath).HasMaxLength(512);
 
         builder.OwnsMany(i => i.Items, items => items.ToJson("items"));

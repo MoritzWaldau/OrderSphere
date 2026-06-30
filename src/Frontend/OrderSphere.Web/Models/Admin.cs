@@ -70,8 +70,8 @@ public sealed record AdminUserDetailDto(
     bool DarkModeEnabled,
     IReadOnlyList<AddressDto> Addresses);
 
-// Invoicing admin — support lookup by invoice number. Status is a string for forward-compatibility
-// with the I4 status model (Issued/Adjusted/CreditIssued); the backend reports "Issued" until then.
+// Invoicing admin — support lookup by invoice number, plus the I4 adjustment/status model
+// (Issued/Adjusted/CreditIssued).
 public sealed record AdminInvoiceDto(
     Guid Id,
     string InvoiceNumber,
@@ -79,8 +79,23 @@ public sealed record AdminInvoiceDto(
     string CustomerName,
     string CustomerEmail,
     decimal Total,
+    decimal NetAmount,
+    decimal TaxRate,
+    decimal TaxAmount,
+    decimal AdjustedNet,
+    decimal AdjustedTax,
+    decimal AdjustedTotal,
     DateTime IssuedAt,
-    string Status);
+    string Status,
+    IReadOnlyList<AdminInvoiceAdjustmentDto> Adjustments);
+
+public sealed record AdminInvoiceAdjustmentDto(
+    Guid Id,
+    string Type,
+    decimal AmountNet,
+    string Reason,
+    string AppliedBy,
+    DateTime AppliedAt);
 
 // Ordering admin — coupons
 public sealed record AdminCouponDto(

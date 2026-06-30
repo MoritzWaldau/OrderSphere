@@ -24,7 +24,8 @@ public sealed class GenerateInvoiceCommandHandler(
     IInvoicingDbContext context,
     IInvoiceNumberGenerator numberGenerator,
     IInvoicePdfService pdfService,
-    IBlobStorageService blobStorage) : ICommandHandler<GenerateInvoiceCommand, Result<InvoiceCreatedDto>>
+    IBlobStorageService blobStorage,
+    IInvoiceTaxRateProvider taxRateProvider) : ICommandHandler<GenerateInvoiceCommand, Result<InvoiceCreatedDto>>
 {
     public async Task<Result<InvoiceCreatedDto>> Handle(GenerateInvoiceCommand request, CancellationToken ct)
     {
@@ -59,7 +60,7 @@ public sealed class GenerateInvoiceCommandHandler(
 
             invoice = InvoiceEntity.Create(
                 request.OrderId, request.CustomerEmail, request.CustomerName, request.Total,
-                lineItems, invoiceNumber, issuedAt);
+                lineItems, invoiceNumber, issuedAt, taxRateProvider.DefaultRate);
 
             var pdfBytes = await pdfService.GenerateAsync(invoice, ct);
 

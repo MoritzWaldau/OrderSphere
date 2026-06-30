@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Dlq;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.Notification.Worker.Channels;
@@ -59,6 +61,13 @@ else
 builder.Services.AddHostedService<NotificationProcessor>();
 builder.Services.AddHostedService<InvoiceGeneratedProcessor>();
 
+// DLQ admin surface: admin-protected dead-letter reader/replay for this worker's queues, plus the
+// ordersphere.dlq.depth gauge. JWT auth mirrors the API services (Oidc config is already injected).
+builder.AddOrderSphereJwtAuth("notification-worker");
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
+builder.Services.AddDlqAdmin("notification-orders", "invoice-ready");
+
 var app = builder.Build();
 
 // Apply EF migrations on startup (dev convenience)
@@ -67,6 +76,12 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
     db.Database.Migrate();
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Admin DLQ surface — the gateway forwards /api/v1/admin/notification/dlq/** here.
+app.MapDlqAdminEndpoints("api/v1/admin/notification/dlq", "AdminPolicy");
 
 // Liveness/readiness endpoints (/health, /alive, /version) for container probes.
 app.MapDefaultEndpoints();

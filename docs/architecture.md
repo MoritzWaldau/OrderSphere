@@ -84,7 +84,7 @@ xUnit + FluentAssertions (NSubstitute for mocking; EF Core in-memory, or SQLite 
 | Webhooks | Webhooks | Outbound webhook dispatch triggered by integration events |
 | Notification | Notification | Order confirmation email on `OrderPlacedIntegrationEvent`; invoice-ready email on `InvoiceGeneratedIntegrationEvent` |
 | UserProfile | UserProfile | Customer profile data |
-| Invoice | Invoicing | PDF generation on `OrderPlacedIntegrationEvent`; metadata + SAS download + inline-PDF endpoints (owner or admin only) |
+| Invoice | Invoicing | PDF generation on `OrderPlacedIntegrationEvent` with a gap-free sequential invoice number (`INV-{year}-{counter}`, row-locked counter table); metadata + SAS download + inline/attachment PDF endpoints (owner or admin only); admin lookup by invoice number; admin discount/credit-note adjustments with Net/VAT/Gross recalculation and audit trail |
 
 ## Ordering write model (event-sourced)
 
@@ -309,6 +309,13 @@ Each service owns its migrations. Pattern: `-p <Infrastructure project> -s <Api 
   (`notification-orders` and `invoice-generation`) — Service Bus uses point-to-point queues here,
   so each consumer needs its own queue. Both publishes are at-least-once; the consumers' inbox
   dedupe discards duplicates from an outbox retry.
+
+  Each consumer above (except the BFF's `realtime-notifications`) exposes an admin-protected
+  dead-letter reader/replay surface for its owned queues, routed through the API Gateway under
+  `/api/v1/admin/{slug}/dlq` (`ordering`, `payment`, `notification`, `webhooks`, `invoicing`), plus a
+  per-queue `ordersphere.dlq.depth` gauge. Shared implementation:
+  `BuildingBlocks.EventBus.AzureServiceBus/Dlq/`, wired via `AddDlqAdmin(...)`. See
+  [docs/operations.md](operations.md) for the endpoint reference and replay runbook.
 
 ## Payment provider integration
 

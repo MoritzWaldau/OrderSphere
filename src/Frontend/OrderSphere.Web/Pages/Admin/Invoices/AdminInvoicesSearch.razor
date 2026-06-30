@@ -44,7 +44,7 @@
                     <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Admin.Invoices.ColNumber"]</MudText>
                     <MudText Typo="Typo.h6" Class="os-mono">@_result.InvoiceNumber</MudText>
                 </MudStack>
-                <MudChip T="string" Color="Color.Success" Size="Size.Small"
+                <MudChip T="string" Color="@StatusColor(_result.Status)" Size="Size.Small"
                          Variant="Variant.Filled" Style="border-radius:100px;font-weight:600;">
                     @StatusLabel(_result.Status)
                 </MudChip>
@@ -75,11 +75,18 @@
                 </tbody>
             </MudSimpleTable>
 
-            <MudButton Href="@AdminInvoicing.GetPdfUrl(_result.OrderId)" Target="_blank"
-                       Variant="Variant.Outlined" Color="Color.Primary" Class="btn-pill-outline mt-4"
-                       StartIcon="@Icons.Material.Outlined.PictureAsPdf">
-                @L["Admin.Invoices.ViewInvoice"]
-            </MudButton>
+            <MudStack Row="true" Spacing="2" Class="mt-4">
+                <MudButton Href="@AdminInvoicing.GetPdfUrl(_result.OrderId)" Target="_blank"
+                           Variant="Variant.Outlined" Color="Color.Primary" Class="btn-pill-outline"
+                           StartIcon="@Icons.Material.Outlined.PictureAsPdf">
+                    @L["Admin.Invoices.ViewInvoice"]
+                </MudButton>
+                <MudButton Href="@($"/admin/invoices/{_result.Id}")"
+                           Variant="Variant.Filled" Color="Color.Primary" Class="btn-pill"
+                           StartIcon="@Icons.Material.Outlined.OpenInNew">
+                    @L["Admin.Invoices.ViewDetail"]
+                </MudButton>
+            </MudStack>
         </MudPaper>
     }
     else if (_notFound)
@@ -148,6 +155,15 @@
     private string StatusLabel(string s) => s switch
     {
         "Issued" => L["Admin.Invoices.StatusIssued"],
+        "Adjusted" => L["Admin.Invoices.StatusAdjusted"],
+        "CreditIssued" => L["Admin.Invoices.StatusCreditIssued"],
         _ => s
+    };
+
+    private static Color StatusColor(string s) => s switch
+    {
+        "Adjusted" => Color.Warning,
+        "CreditIssued" => Color.Info,
+        _ => Color.Success
     };
 }

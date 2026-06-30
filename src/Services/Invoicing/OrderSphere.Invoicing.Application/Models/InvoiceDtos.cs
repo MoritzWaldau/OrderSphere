@@ -9,9 +9,8 @@ public sealed record InvoiceDto(
     decimal Total,
     DateTime IssuedAt);
 
-// Admin support view: the same invoice metadata as InvoiceDto plus a Status field. Status is a
-// plain string so the admin surface is forward-compatible with I4 (Issued/Adjusted/CreditIssued);
-// until the status model lands it is reported as the constant "Issued".
+// Admin support/detail view: original (immutable) amounts plus the currently effective amounts
+// after adjustments, the adjustment history, and the status derived from the most recent adjustment.
 public sealed record InvoiceAdminDto(
     Guid Id,
     string InvoiceNumber,
@@ -19,8 +18,23 @@ public sealed record InvoiceAdminDto(
     string CustomerName,
     string CustomerEmail,
     decimal Total,
+    decimal NetAmount,
+    decimal TaxRate,
+    decimal TaxAmount,
+    decimal AdjustedNet,
+    decimal AdjustedTax,
+    decimal AdjustedTotal,
     DateTime IssuedAt,
-    string Status);
+    string Status,
+    IReadOnlyList<InvoiceAdjustmentDto> Adjustments);
+
+public sealed record InvoiceAdjustmentDto(
+    Guid Id,
+    string Type,
+    decimal AmountNet,
+    string Reason,
+    string AppliedBy,
+    DateTime AppliedAt);
 
 public sealed record InvoiceCreatedDto(string InvoiceNumber, string PdfUrl);
 

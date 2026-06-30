@@ -1189,4 +1189,88 @@
   <data name="Admin.Invoices.StatusIssued" xml:space="preserve">
     <value>Ausgestellt</value>
   </data>
+  <data name="Admin.Invoices.StatusAdjusted" xml:space="preserve">
+    <value>Angepasst</value>
+  </data>
+  <data name="Admin.Invoices.StatusCreditIssued" xml:space="preserve">
+    <value>Gutschrift erteilt</value>
+  </data>
+  <data name="Admin.Invoices.ViewDetail" xml:space="preserve">
+    <value>Details &amp; Anpassungen</value>
+  </data>
+  <data name="Admin.Invoices.Detail.PageTitle" xml:space="preserve">
+    <value>Rechnungsdetail — Admin</value>
+  </data>
+  <data name="Admin.Invoices.Detail.BackToList" xml:space="preserve">
+    <value>Zurück zur Suche</value>
+  </data>
+  <data name="Admin.Invoices.Detail.NotFound" xml:space="preserve">
+    <value>Rechnung nicht gefunden</value>
+  </data>
+  <data name="Admin.Invoices.Detail.OriginalAmounts" xml:space="preserve">
+    <value>Originalbetrag</value>
+  </data>
+  <data name="Admin.Invoices.Detail.Net" xml:space="preserve">
+    <value>Netto</value>
+  </data>
+  <data name="Admin.Invoices.Detail.Tax" xml:space="preserve">
+    <value>MwSt</value>
+  </data>
+  <data name="Admin.Invoices.Detail.Total" xml:space="preserve">
+    <value>Gesamtbetrag</value>
+  </data>
+  <data name="Admin.Invoices.Detail.AdjustedAmounts" xml:space="preserve">
+    <value>Angepasster Betrag</value>
+  </data>
+  <data name="Admin.Invoices.Detail.AdjustedTotal" xml:space="preserve">
+    <value>Angepasster Gesamtbetrag</value>
+  </data>
+  <data name="Admin.Invoices.Detail.History" xml:space="preserve">
+    <value>Anpassungshistorie</value>
+  </data>
+  <data name="Admin.Invoices.Detail.ColType" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="Admin.Invoices.Detail.ColReason" xml:space="preserve">
+    <value>Begründung</value>
+  </data>
+  <data name="Admin.Invoices.Detail.ColAppliedBy" xml:space="preserve">
+    <value>Durchgeführt von</value>
+  </data>
+  <data name="Admin.Invoices.Detail.ApplyDiscount" xml:space="preserve">
+    <value>Rabatt hinzufügen</value>
+  </data>
+  <data name="Admin.Invoices.Detail.DiscountModeAbsolute" xml:space="preserve">
+    <value>Absoluter Betrag</value>
+  </data>
+  <data name="Admin.Invoices.Detail.DiscountModePercentage" xml:space="preserve">
+    <value>Prozentual</value>
+  </data>
+  <data name="Admin.Invoices.Detail.AmountLabel" xml:space="preserve">
+    <value>Betrag (Netto)</value>
+  </data>
+  <data name="Admin.Invoices.Detail.PercentageLabel" xml:space="preserve">
+    <value>Prozentsatz</value>
+  </data>
+  <data name="Admin.Invoices.Detail.ReasonLabel" xml:space="preserve">
+    <value>Begründung</value>
+  </data>
+  <data name="Admin.Invoices.Detail.SubmitDiscount" xml:space="preserve">
+    <value>Rabatt anwenden</value>
+  </data>
+  <data name="Admin.Invoices.Detail.IssueCredit" xml:space="preserve">
+    <value>Gutschrift erfassen</value>
+  </data>
+  <data name="Admin.Invoices.Detail.SubmitCredit" xml:space="preserve">
+    <value>Gutschrift erfassen</value>
+  </data>
+  <data name="Admin.Invoices.Detail.AdjustmentApplied" xml:space="preserve">
+    <value>Anpassung wurde übernommen</value>
+  </data>
+  <data name="Admin.Invoices.Detail.TypeDiscount" xml:space="preserve">
+    <value>Rabatt</value>
+  </data>
+  <data name="Admin.Invoices.Detail.TypeCredit" xml:space="preserve">
+    <value>Gutschrift</value>
+  </data>
 </root>

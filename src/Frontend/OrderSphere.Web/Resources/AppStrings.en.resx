@@ -1189,4 +1189,88 @@
   <data name="Admin.Invoices.StatusIssued" xml:space="preserve">
     <value>Issued</value>
   </data>
+  <data name="Admin.Invoices.StatusAdjusted" xml:space="preserve">
+    <value>Adjusted</value>
+  </data>
+  <data name="Admin.Invoices.StatusCreditIssued" xml:space="preserve">
+    <value>Credit issued</value>
+  </data>
+  <data name="Admin.Invoices.ViewDetail" xml:space="preserve">
+    <value>Details &amp; adjustments</value>
+  </data>
+  <data name="Admin.Invoices.Detail.PageTitle" xml:space="preserve">
+    <value>Invoice detail — Admin</value>
+  </data>
+  <data name="Admin.Invoices.Detail.BackToList" xml:space="preserve">
+    <value>Back to search</value>
+  </data>
+  <data name="Admin.Invoices.Detail.NotFound" xml:space="preserve">
+    <value>Invoice not found</value>
+  </data>
+  <data name="Admin.Invoices.Detail.OriginalAmounts" xml:space="preserve">
+    <value>Original amount</value>
+  </data>
+  <data name="Admin.Invoices.Detail.Net" xml:space="preserve">
+    <value>Net</value>
+  </data>
+  <data name="Admin.Invoices.Detail.Tax" xml:space="preserve">
+    <value>VAT</value>
+  </data>
+  <data name="Admin.Invoices.Detail.Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Admin.Invoices.Detail.AdjustedAmounts" xml:space="preserve">
+    <value>Adjusted amount</value>
+  </data>
+  <data name="Admin.Invoices.Detail.AdjustedTotal" xml:space="preserve">
+    <value>Adjusted total</value>
+  </data>
+  <data name="Admin.Invoices.Detail.History" xml:space="preserve">
+    <value>Adjustment history</value>
+  </data>
+  <data name="Admin.Invoices.Detail.ColType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Admin.Invoices.Detail.ColReason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="Admin.Invoices.Detail.ColAppliedBy" xml:space="preserve">
+    <value>Applied by</value>
+  </data>
+  <data name="Admin.Invoices.Detail.ApplyDiscount" xml:space="preserve">
+    <value>Apply discount</value>
+  </data>
+  <data name="Admin.Invoices.Detail.DiscountModeAbsolute" xml:space="preserve">
+    <value>Absolute amount</value>
+  </data>
+  <data name="Admin.Invoices.Detail.DiscountModePercentage" xml:space="preserve">
+    <value>Percentage</value>
+  </data>
+  <data name="Admin.Invoices.Detail.AmountLabel" xml:space="preserve">
+    <value>Amount (net)</value>
+  </data>
+  <data name="Admin.Invoices.Detail.PercentageLabel" xml:space="preserve">
+    <value>Percentage</value>
+  </data>
+  <data name="Admin.Invoices.Detail.ReasonLabel" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="Admin.Invoices.Detail.SubmitDiscount" xml:space="preserve">
+    <value>Apply discount</value>
+  </data>
+  <data name="Admin.Invoices.Detail.IssueCredit" xml:space="preserve">
+    <value>Issue credit note</value>
+  </data>
+  <data name="Admin.Invoices.Detail.SubmitCredit" xml:space="preserve">
+    <value>Issue credit note</value>
+  </data>
+  <data name="Admin.Invoices.Detail.AdjustmentApplied" xml:space="preserve">
+    <value>Adjustment applied</value>
+  </data>
+  <data name="Admin.Invoices.Detail.TypeDiscount" xml:space="preserve">
+    <value>Discount</value>
+  </data>
+  <data name="Admin.Invoices.Detail.TypeCredit" xml:space="preserve">
+    <value>Credit</value>
+  </data>
 </root>

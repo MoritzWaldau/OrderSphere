@@ -62,7 +62,7 @@ public sealed class GetInvoiceByNumberQueryHandlerTests
         {
             new() { ProductName = "Widget", Quantity = 1, UnitPrice = total },
         };
-        var invoice = Invoice.Create(orderId, email, name, total, items, number, IssuedAt);
+        var invoice = Invoice.Create(orderId, email, name, total, items, number, IssuedAt, taxRate: 0.19m);
         context.Invoices.Add(invoice);
         await context.SaveChangesAsync();
     }

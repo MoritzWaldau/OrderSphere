@@ -3,6 +3,7 @@ namespace OrderSphere.Invoicing.Application.Abstractions;
 public interface IInvoicingDbContext
 {
     DbSet<Invoice> Invoices { get; }
+    DbSet<InvoiceAdjustment> InvoiceAdjustments { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     Task BeginTransactionAsync(CancellationToken ct = default);

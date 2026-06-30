@@ -10,19 +10,12 @@ public sealed class GetInvoiceByNumberQueryHandler(IInvoicingDbContext context)
         var invoiceNumber = request.InvoiceNumber.Trim();
 
         var invoice = await context.Invoices
+            .Include(i => i.Adjustments)
             .FirstOrDefaultAsync(i => i.InvoiceNumber == invoiceNumber, ct);
 
         if (invoice is null)
             return Result<InvoiceAdminDto>.Failure(InvoicingErrors.InvoiceNotFound);
 
-        return Result<InvoiceAdminDto>.Success(new InvoiceAdminDto(
-            invoice.Id.Value,
-            invoice.InvoiceNumber,
-            invoice.OrderId,
-            invoice.CustomerName,
-            invoice.CustomerEmail,
-            invoice.Total,
-            invoice.IssuedAt,
-            "Issued"));
+        return Result<InvoiceAdminDto>.Success(invoice.ToAdminDto());
     }
 }

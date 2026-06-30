@@ -21,6 +21,9 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<IInvoiceNumberGenerator, SequentialInvoiceNumberGenerator>();
 
+        builder.Services.Configure<InvoicingOptions>(builder.Configuration.GetSection(InvoicingOptions.SectionName));
+        builder.Services.AddScoped<IInvoiceTaxRateProvider, ConfiguredInvoiceTaxRateProvider>();
+
         builder.Services.AddSingleton(sp => new BlobStorageClients(
             sp.GetRequiredService<IConfiguration>(), "InvoiceBlob:Endpoint", "invoices", "invoices"));
 

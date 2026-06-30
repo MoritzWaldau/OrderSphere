@@ -1,9 +1,12 @@
 using MediatR;
 using OrderSphere.BuildingBlocks.Security;
+using OrderSphere.Invoicing.Application.Features.Invoice.ApplyDiscount;
 using OrderSphere.Invoicing.Application.Features.Invoice.GetInvoice;
+using OrderSphere.Invoicing.Application.Features.Invoice.GetInvoiceById;
 using OrderSphere.Invoicing.Application.Features.Invoice.GetInvoiceByNumber;
 using OrderSphere.Invoicing.Application.Features.Invoice.GetInvoiceDownloadUrl;
 using OrderSphere.Invoicing.Application.Features.Invoice.GetInvoicePdf;
+using OrderSphere.Invoicing.Application.Features.Invoice.IssueCreditNote;
 using OrderSphere.ServiceDefaults;
 
 namespace OrderSphere.Invoicing.Api.Endpoints;
@@ -30,6 +33,16 @@ public static class InvoiceEndpoints
             .RequireAuthorization("AdminPolicy")
             .WithName("GetInvoiceByNumber")
             .WithSummary("Admin support lookup of a single invoice by its invoice number.");
+
+        group.MapGet("by-id/{invoiceId:guid}", GetInvoiceById)
+            .RequireAuthorization("AdminPolicy")
+            .WithName("GetInvoiceById")
+            .WithSummary("Admin detail view of a single invoice, including amounts and adjustment history.");
+
+        group.MapPost("{invoiceId:guid}/adjustments", ApplyAdjustment)
+            .RequireAuthorization("AdminPolicy")
+            .WithName("ApplyInvoiceAdjustment")
+            .WithSummary("Applies a discount or issues a credit note against an invoice.");
     }
 
     private static async Task<IResult> GetInvoiceByNumber(
@@ -37,6 +50,31 @@ public static class InvoiceEndpoints
     {
         var result = await sender.Send(new GetInvoiceByNumberQuery(invoiceNumber), ct);
         return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetInvoiceById(
+        Guid invoiceId, ISender sender, CancellationToken ct)
+    {
+        var result = await sender.Send(new GetInvoiceByIdQuery(invoiceId), ct);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> ApplyAdjustment(
+        Guid invoiceId, ApplyInvoiceAdjustmentRequest request,
+        ICurrentUser currentUser, ISender sender, CancellationToken ct)
+    {
+        var appliedBy = currentUser.Email ?? string.Empty;
+
+        return request.Type switch
+        {
+            InvoiceAdjustmentRequestType.Discount => (await sender.Send(
+                new ApplyDiscountCommand(invoiceId, request.AbsoluteAmount, request.PercentageValue, request.Reason, appliedBy), ct))
+                .ToHttpResult(),
+            InvoiceAdjustmentRequestType.Credit => (await sender.Send(
+                new IssueCreditNoteCommand(invoiceId, request.AbsoluteAmount ?? 0, request.Reason, appliedBy), ct))
+                .ToHttpResult(),
+            _ => Results.BadRequest($"Unknown adjustment type '{request.Type}'."),
+        };
     }
 
     private static async Task<IResult> GetInvoiceByOrder(
@@ -98,3 +136,15 @@ public static class InvoiceEndpoints
         return Results.File(pdfResult.Value.Content, "application/pdf");
     }
 }
+
+public enum InvoiceAdjustmentRequestType
+{
+    Discount,
+    Credit
+}
+
+public sealed record ApplyInvoiceAdjustmentRequest(
+    InvoiceAdjustmentRequestType Type,
+    decimal? AbsoluteAmount,
+    decimal? PercentageValue,
+    string Reason);

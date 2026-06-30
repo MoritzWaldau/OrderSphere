@@ -7,6 +7,7 @@ public sealed class InvoicingDbContext(DbContextOptions<InvoicingDbContext> opti
     : DbContext(options), IInvoicingDbContext
 {
     public DbSet<Invoice> Invoices => Set<Invoice>();
+    public DbSet<InvoiceAdjustment> InvoiceAdjustments => Set<InvoiceAdjustment>();
 
     // Infrastructure-only counter backing the gapless invoice number sequence; not on the interface.
     internal DbSet<InvoiceNumberCounter> InvoiceNumberCounters => Set<InvoiceNumberCounter>();
@@ -67,6 +68,7 @@ public sealed class InvoicingDbContext(DbContextOptions<InvoicingDbContext> opti
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         configurationBuilder.Properties<InvoiceId>().HaveConversion<InvoiceIdConverter>();
+        configurationBuilder.Properties<InvoiceAdjustmentId>().HaveConversion<InvoiceAdjustmentIdConverter>();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

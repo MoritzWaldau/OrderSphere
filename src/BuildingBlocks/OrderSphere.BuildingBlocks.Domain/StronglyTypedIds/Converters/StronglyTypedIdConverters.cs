@@ -97,3 +97,8 @@ public sealed class InvoiceIdConverter : ValueConverter<InvoiceId, Guid>
 {
     public InvoiceIdConverter() : base(id => id.Value, v => new InvoiceId(v)) { }
 }
+
+public sealed class InvoiceAdjustmentIdConverter : ValueConverter<InvoiceAdjustmentId, Guid>
+{
+    public InvoiceAdjustmentIdConverter() : base(id => id.Value, v => new InvoiceAdjustmentId(v)) { }
+}

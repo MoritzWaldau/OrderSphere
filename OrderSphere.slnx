@@ -99,6 +99,7 @@
     <Project Path="tests/OrderSphere.Catalog.Tests/OrderSphere.Catalog.Tests.csproj" />
     <Project Path="tests/OrderSphere.ContainerTests/OrderSphere.ContainerTests.csproj" />
     <Project Path="tests/OrderSphere.Domain.Tests/OrderSphere.Domain.Tests.csproj" />
+    <Project Path="tests/OrderSphere.EventBus.AzureServiceBus.Tests/OrderSphere.EventBus.AzureServiceBus.Tests.csproj" />
     <Project Path="tests/OrderSphere.IntegrationTests/OrderSphere.IntegrationTests.csproj" />
     <Project Path="tests/OrderSphere.Invoicing.Tests/OrderSphere.Invoicing.Tests.csproj" />
     <Project Path="tests/OrderSphere.Mcp.Tests/OrderSphere.Mcp.Tests.csproj" />

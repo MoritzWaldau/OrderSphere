@@ -24,4 +24,8 @@
     <ProjectReference Include="..\OrderSphere.BuildingBlocks.EventBus\OrderSphere.BuildingBlocks.EventBus.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="OrderSphere.EventBus.AzureServiceBus.Tests" />
+  </ItemGroup>
+
 </Project>

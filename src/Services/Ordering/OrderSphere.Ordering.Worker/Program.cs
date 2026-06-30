@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using OrderSphere.BuildingBlocks.Behaviors;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Dlq;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Infrastructure;
 using OrderSphere.Ordering.Infrastructure.CatalogClient;
@@ -50,7 +51,21 @@ builder.Services.AddHostedService<OrderHistoryProjector>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
 
+// DLQ admin surface: admin-protected dead-letter reader/replay for this worker's queues, plus the
+// ordersphere.dlq.depth gauge. JWT auth mirrors the API services (Oidc config is already injected).
+builder.AddOrderSphereJwtAuth("ordering-worker");
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
+builder.Services.AddDlqAdmin("orders", "payment-results", "payment-refunds", "order-history");
+
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Admin DLQ surface — the gateway forwards /api/v1/admin/ordering/dlq/** here.
+app.MapDlqAdminEndpoints("api/v1/admin/ordering/dlq", "AdminPolicy");
+
 // Liveness/readiness endpoints (/health, /alive, /version) for container probes.
 app.MapDefaultEndpoints();
 

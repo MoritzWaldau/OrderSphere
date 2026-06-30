@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Dlq;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.Invoicing.Api.Endpoints;
@@ -35,6 +37,10 @@ builder.Services.AddScoped<IInboxStore, EfInboxStore<InvoicingDbContext>>();
 
 builder.Services.AddHostedService<InvoiceProcessor>();
 
+// DLQ admin surface: admin-protected dead-letter reader/replay for the invoice-generation queue,
+// plus the ordersphere.dlq.depth gauge. Reuses the AdminPolicy already registered above.
+builder.Services.AddDlqAdmin("invoice-generation");
+
 var app = builder.Build();
 
 if (!app.Environment.IsEnvironment("Testing"))
@@ -52,6 +58,10 @@ app.UseAuthorization();
 app.UseOrderSphereRequestLogging();
 
 app.MapInvoiceEndpoints();
+
+// Admin DLQ surface — the gateway forwards /api/v1/admin/invoicing/dlq/** here.
+app.MapDlqAdminEndpoints("api/v1/admin/invoicing/dlq", "AdminPolicy");
+
 app.MapDefaultEndpoints();
 
 app.Run();

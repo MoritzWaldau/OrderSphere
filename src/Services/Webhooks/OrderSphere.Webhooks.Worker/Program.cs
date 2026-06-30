@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Builder;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Dlq;
 using OrderSphere.Webhooks.Application;
 using OrderSphere.Webhooks.Infrastructure;
 using OrderSphere.Webhooks.Worker.Workers;
@@ -25,7 +27,20 @@ builder.Services.AddHttpClient("WebhookDelivery", client =>
 builder.Services.AddHostedService<WebhookEventProcessor>();
 builder.Services.AddHostedService<WebhookDeliveryProcessor>();
 
+// DLQ admin surface: admin-protected dead-letter reader/replay for this worker's queue, plus the
+// ordersphere.dlq.depth gauge. JWT auth mirrors the API services (Oidc config is already injected).
+builder.AddOrderSphereJwtAuth("webhooks-worker");
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
+builder.Services.AddDlqAdmin("webhook-events");
+
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Admin DLQ surface — the gateway forwards /api/v1/admin/webhooks/dlq/** here.
+app.MapDlqAdminEndpoints("api/v1/admin/webhooks/dlq", "AdminPolicy");
 
 // Liveness/readiness endpoints (/health, /alive, /version) for container probes.
 app.MapDefaultEndpoints();

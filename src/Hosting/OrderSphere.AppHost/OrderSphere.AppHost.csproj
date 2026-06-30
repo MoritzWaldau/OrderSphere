@@ -20,6 +20,7 @@
     <PackageReference Include="Aspire.Hosting.PostgreSQL" />
     <!-- Pins the Aspire-hosting-transitive MessagePack off GHSA-hv8m-jj95-wg3x. -->
     <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.Tools" />
     <PackageReference Include="MessagePack" />
   </ItemGroup>
 

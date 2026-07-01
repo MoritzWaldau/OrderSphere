@@ -11,6 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.AddOrderSphereSwagger("OrderSphere Basket API");
 
+// D3 — distributed rate-limiting: shared Redis-backed quota counters (RateLimitingExtensions).
+var redisMultiplexer = await builder.AddOrderSphereRedisAsync();
+
 builder.AddBasketInfrastructure();
 builder.Services.AddBasketApplication();
 
@@ -24,7 +27,7 @@ builder.Services.AddHealthChecks()
     .AddNpgSql(basketConnectionString, name: "postgres");
 
 builder.Services.AddBasketApiVersioning();
-builder.Services.AddBasketRateLimiting();
+builder.Services.AddBasketRateLimiting(redisMultiplexer);
 
 // Validation exception → HTTP 400
 builder.AddOrderSphereExceptionHandling();

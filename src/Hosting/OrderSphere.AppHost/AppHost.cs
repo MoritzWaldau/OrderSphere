@@ -202,7 +202,9 @@ var catalog = builder.AddProject<Projects.OrderSphere_Catalog_Api>("ordersphere-
 var basket = builder.AddProject<Projects.OrderSphere_Basket_Api>("ordersphere-basket")
     .WithReference(basketDb)
     .WithReference(catalog)
+    .WithReference(redis)
     .WaitFor(basketDb)
+    .WaitFor(redis)
     // Probe /health so WaitFor (and the gateway) gate on Basket actually serving, not just on the
     // process being up. Without this, Aspire reports the project healthy as soon as it launches,
     // which masks a hung startup (e.g. a wedged hot-reload hook) behind a false "Healthy".
@@ -374,6 +376,8 @@ var webhooksWorker = builder.AddProject<Projects.OrderSphere_Webhooks_Worker>("o
     .WithEnvironment("Oidc__Audience", OidcAudience);
 
 var apiGateway = builder.AddProject<Projects.OrderSphere_ApiGateway>("ordersphere-apigateway")
+    .WithReference(redis)
+    .WaitFor(redis)
     .WithReference(catalog)
     .WithReference(ordering)
     .WithReference(basket)

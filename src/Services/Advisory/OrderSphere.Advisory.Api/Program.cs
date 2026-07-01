@@ -34,7 +34,7 @@ builder.AddOrderSphereSwagger("OrderSphere Advisory API");
 
 // Redis distributed lock — guards ConversationCleanupService against double-execution at scale.
 // Must precede AddAdvisoryInfrastructure which registers the cleanup hosted service.
-await builder.AddOrderSphereRedisAsync();
+var redisMultiplexer = await builder.AddOrderSphereRedisAsync();
 builder.Services.AddOrderSphereDistributedLocking();
 
 // HybridCache (L1=in-process, L2=Redis) — backing store for the semantic LLM cache.
@@ -58,7 +58,7 @@ builder.Services.AddAuthorizationBuilder()
 
 builder.AddOrderSphereExceptionHandling();
 builder.Services.AddAdvisoryApiVersioning();
-builder.Services.AddAdvisorRateLimiting();
+builder.Services.AddAdvisorRateLimiting(redisMultiplexer);
 
 // D2 — queryable audit trail: admin-protected read of AuditLogEntry rows written by AdvisoryDbContext.
 builder.Services.AddScoped<IAuditLogQuery, EfAuditLogQuery<AdvisoryDbContext>>();

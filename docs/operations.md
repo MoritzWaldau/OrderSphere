@@ -323,6 +323,49 @@ customMetrics
 
 ---
 
+### Dead-letter admin: inspection and replay
+
+Each message-consuming host (Ordering.Worker, Payment.Worker, Notification.Worker, Webhooks.Worker,
+Invoicing.Api) exposes an admin-protected dead-letter surface for the queues it owns, fronted by the
+API Gateway under `/api/v1/admin/{slug}/dlq`:
+
+| Slug | Host | Owned queues |
+|---|---|---|
+| `ordering` | ordersphere-ordering-worker | orders, payment-results, payment-refunds, order-history |
+| `payment` | ordersphere-payment-worker | payment-requests, order-confirmation-failed, refund-requested |
+| `notification` | ordersphere-notification-worker | notification-orders, invoice-ready |
+| `webhooks` | ordersphere-webhooks-worker | webhook-events |
+| `invoicing` | ordersphere-invoicing | invoice-generation |
+
+Endpoints (all require a bearer token with the `admin` role):
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/admin/{slug}/dlq` | Owned queues with current depth |
+| GET | `/api/v1/admin/{slug}/dlq/{queue}/messages?max=N` | Peek dead-lettered messages (non-destructive) |
+| POST | `/api/v1/admin/{slug}/dlq/{queue}/replay` | Re-drive up to `max` dead-lettered messages back onto the main queue |
+
+**Custom metric:** `ordersphere.dlq.depth` (`ObservableGauge<int>`, tag `queue`) is emitted by every host
+that calls `AddDlqAdmin(...)`, polled every 30 s from a capped DLQ peek. It is a trend/dashboard signal,
+not an exact count under high DLQ volume (peek is capped at `DlqAdminOptions.PeekCap`, default 100) —
+the platform metric alert (`Service Bus DLQ`, row above) remains the source of truth for alerting.
+
+**Replay runbook:**
+
+1. Inspect: `GET /api/v1/admin/{slug}/dlq` to find the affected queue and depth, then
+   `GET .../{queue}/messages?max=N` to read `DeadLetterReason` / `DeadLetterErrorDescription` and the
+   body of each message.
+2. Fix the root cause (bad payload, downstream outage, code defect) and deploy the fix.
+3. Replay: `POST /api/v1/admin/{slug}/dlq/{queue}/replay` with `{ "max": N }`. Replayed messages are
+   resent to the main queue preserving `MessageId`, `CorrelationId`, and the `traceparent` header, then
+   removed from the dead-letter sub-queue.
+4. No inbox clean-up is needed: dead-lettered messages were never marked processed in the consumer's
+   inbox (`EfInboxStore` only marks on success), so the replayed message is reprocessed normally.
+5. If the root cause is not fixed, the message dead-letters again — replay batches are capped
+   (`DlqAdminOptions.ReplayBatchLimit`, default 50) to avoid a replay storm.
+
+---
+
 ## Deployment-time troubleshooting
 
 First-deploy issues (Key Vault soft-delete, ACR credentials, resource-group mismatch, Redis Entra

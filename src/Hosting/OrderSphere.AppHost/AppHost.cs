@@ -264,6 +264,7 @@ var notificationWorker = builder.AddProject<Projects.OrderSphere_Notification_Wo
     .WaitFor(notificationDb)
     .WaitFor(serviceBus)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
+    .WithEnvironment("Oidc__Audience", OidcAudience)
     .WithEnvironment("Oidc__ClientId", "xAGJ3VxnOenpai2dGgkTId3dWBhOXMqz")
     .WithEnvironment("Oidc__ClientSecret", notificationWorkerSecret);
 
@@ -288,6 +289,7 @@ var paymentWorker = builder.AddProject<Projects.OrderSphere_Payment_Worker>("ord
     .WaitFor(serviceBus)
     .WaitFor(redis)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
+    .WithEnvironment("Oidc__Audience", OidcAudience)
     .WithEnvironment("Oidc__ClientId", "ub8w9SMhhUZddhRGxG2xcNU96Wx87csW")
     .WithEnvironment("Oidc__ClientSecret", paymentWorkerSecret)
     .WithEnvironment("Payment__BypassProviders", paymentBypassProviders)
@@ -339,7 +341,9 @@ var webhooksWorker = builder.AddProject<Projects.OrderSphere_Webhooks_Worker>("o
     .WithReference(redis)
     .WaitFor(webhooksDb)
     .WaitFor(serviceBus)
-    .WaitFor(redis);
+    .WaitFor(redis)
+    .WithEnvironment("Oidc__Authority", oidcAuthority)
+    .WithEnvironment("Oidc__Audience", OidcAudience);
 
 var apiGateway = builder.AddProject<Projects.OrderSphere_ApiGateway>("ordersphere-apigateway")
     .WithReference(catalog)
@@ -348,6 +352,12 @@ var apiGateway = builder.AddProject<Projects.OrderSphere_ApiGateway>("orderspher
     .WithReference(payment)
     .WithReference(userProfile)
     .WithReference(webhooks)
+    // Worker DLQ admin surfaces are routed through the gateway (/api/v1/admin/{service}/dlq).
+    .WithReference(orderingWorker)
+    .WithReference(paymentWorker)
+    .WithReference(notificationWorker)
+    .WithReference(webhooksWorker)
+    .WithReference(invoicingApi)
     .WaitFor(catalog)
     .WaitFor(ordering)
     .WaitFor(basket)

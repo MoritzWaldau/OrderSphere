@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Dlq;
 using OrderSphere.Payment.Application;
 using OrderSphere.Payment.Infrastructure;
 using OrderSphere.Payment.Infrastructure.Persistence;
@@ -26,7 +27,20 @@ builder.Services.AddHostedService<RefundRequestedProcessor>();
 
 builder.Services.AddPaymentApplication();
 
+// DLQ admin surface: admin-protected dead-letter reader/replay for this worker's queues, plus the
+// ordersphere.dlq.depth gauge. JWT auth mirrors the API services (Oidc config is already injected).
+builder.AddOrderSphereJwtAuth("payment-worker");
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
+builder.Services.AddDlqAdmin("payment-requests", "order-confirmation-failed", "refund-requested");
+
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Admin DLQ surface — the gateway forwards /api/v1/admin/payment/dlq/** here.
+app.MapDlqAdminEndpoints("api/v1/admin/payment/dlq", "AdminPolicy");
 
 // Liveness/readiness endpoints (/health, /alive, /version) for container probes.
 app.MapDefaultEndpoints();

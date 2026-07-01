@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Auditing;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Dlq;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
@@ -42,6 +43,9 @@ builder.Services.AddHostedService<CustomerErasureProcessor>();
 // plus the ordersphere.dlq.depth gauge. Reuses the AdminPolicy already registered above.
 builder.Services.AddDlqAdmin("invoice-generation", "erasure-invoicing");
 
+// D2 — queryable audit trail: admin-protected read of AuditLogEntry rows written by InvoicingDbContext.
+builder.Services.AddScoped<IAuditLogQuery, EfAuditLogQuery<InvoicingDbContext>>();
+
 var app = builder.Build();
 
 if (!app.Environment.IsEnvironment("Testing"))
@@ -62,6 +66,9 @@ app.MapInvoiceEndpoints();
 
 // Admin DLQ surface — the gateway forwards /api/v1/admin/invoicing/dlq/** here.
 app.MapDlqAdminEndpoints("api/v1/admin/invoicing/dlq", "AdminPolicy");
+
+// Admin audit-log surface — the gateway forwards /api/v1/admin/invoicing/audit-log/** here.
+app.MapAuditLogAdminEndpoints("api/v1/admin/invoicing/audit-log", "AdminPolicy");
 
 app.MapDefaultEndpoints();
 

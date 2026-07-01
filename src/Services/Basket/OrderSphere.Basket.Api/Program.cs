@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Auditing;
 using OrderSphere.Basket.Api.Configuration;
 using OrderSphere.Basket.Api.Endpoints;
 using OrderSphere.Basket.Application;
@@ -31,6 +32,11 @@ builder.AddOrderSphereExceptionHandling();
 // JWT Bearer
 builder.AddOrderSphereJwtAuth("basket-api");
 builder.Services.AddCurrentUser();
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
+
+// D2 — queryable audit trail: admin-protected read of AuditLogEntry rows written by BasketDbContext.
+builder.Services.AddScoped<IAuditLogQuery, EfAuditLogQuery<BasketDbContext>>();
 
 var app = builder.Build();
 
@@ -55,6 +61,9 @@ app.UseOrderSphereRequestLogging();
 
 app.MapCartEndpoints();
 app.MapInternalCartEndpoints();
+
+// Admin audit-log surface — the gateway forwards /api/v1/admin/basket/audit-log/** here.
+app.MapAuditLogAdminEndpoints("api/v1/admin/basket/audit-log", "AdminPolicy");
 
 // Health endpoints (/health, /alive) are mapped by MapDefaultEndpoints from ServiceDefaults.
 // Do not map "/health" again here — a second registration makes the route ambiguous and every

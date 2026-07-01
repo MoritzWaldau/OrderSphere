@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using OrderSphere.BuildingBlocks.Security;
 
 namespace OrderSphere.Advisory.Infrastructure.Persistence;
 
@@ -15,6 +16,6 @@ public sealed class DesignTimeAdvisoryDbContextFactory : IDesignTimeDbContextFac
             .UseNpgsql("Host=localhost;Database=advisory-db;Username=postgres;Password=postgres")
             .Options;
 
-        return new AdvisoryDbContext(options);
+        return new AdvisoryDbContext(options, NullCurrentUser.Instance);
     }
 }

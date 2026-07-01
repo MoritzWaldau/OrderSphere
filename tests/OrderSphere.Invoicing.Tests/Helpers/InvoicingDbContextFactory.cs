@@ -1,5 +1,6 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.Invoicing.Infrastructure.Persistence;
 
 namespace OrderSphere.Invoicing.Tests.Helpers;
@@ -25,7 +26,7 @@ internal static class InvoicingDbContextFactory
             .UseSqlite(connection)
             .Options;
 
-        var context = new InvoicingDbContext(options);
+        var context = new InvoicingDbContext(options, NullCurrentUser.Instance);
         context.Database.EnsureCreated();
         return context;
     }

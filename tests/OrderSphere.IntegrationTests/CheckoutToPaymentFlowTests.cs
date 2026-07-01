@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.Primitives;
+using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Application.Features.Checkout;
@@ -102,7 +103,7 @@ public sealed class CheckoutToPaymentFlowTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
-        return new OrderingDbContext(options, Substitute.For<IPublisher>());
+        return new OrderingDbContext(options, Substitute.For<IPublisher>(), NullCurrentUser.Instance);
     }
 
     private static OrderProcessor NewProcessor() =>

@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.Catalog.Infrastructure.Persistence;
 
 namespace OrderSphere.Catalog.Tests.Helpers;
@@ -22,7 +23,7 @@ internal static class CatalogDbContextFactory
             .UseSqlite(connection)
             .Options;
 
-        var context = new CatalogDbContext(options, NullPublisher.Instance);
+        var context = new CatalogDbContext(options, NullPublisher.Instance, NullCurrentUser.Instance);
         context.Database.EnsureCreated();
         return context;
     }

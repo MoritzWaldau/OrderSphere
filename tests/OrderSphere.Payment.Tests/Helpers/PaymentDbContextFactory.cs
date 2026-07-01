@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
+using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.Payment.Infrastructure.Persistence;
 
 namespace OrderSphere.Payment.Tests.Helpers;
@@ -23,7 +24,7 @@ internal static class PaymentDbContextFactory
             .UseSqlite(connection)
             .Options;
 
-        var context = new PaymentDbContext(options, Substitute.For<IPublisher>());
+        var context = new PaymentDbContext(options, Substitute.For<IPublisher>(), NullCurrentUser.Instance);
         context.Database.EnsureCreated();
         return context;
     }

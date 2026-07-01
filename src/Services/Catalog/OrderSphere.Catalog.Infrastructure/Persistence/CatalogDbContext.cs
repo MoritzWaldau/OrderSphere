@@ -1,23 +1,28 @@
 using MediatR;
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.Auditing;
 using OrderSphere.BuildingBlocks.Extensions;
+using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 
 namespace OrderSphere.Catalog.Infrastructure.Persistence;
 
 public sealed class CatalogDbContext(
     DbContextOptions<CatalogDbContext> options,
-    IPublisher publisher) : DbContext(options), ICatalogDbContext
+    IPublisher publisher,
+    ICurrentUser currentUser) : DbContext(options), ICatalogDbContext
 {
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Brand> Brands => Set<Brand>();
     public DbSet<ProductReview> Reviews => Set<ProductReview>();
     public DbSet<StockReservation> StockReservations => Set<StockReservation>();
+    internal DbSet<AuditLogEntry> AuditLogEntries => Set<AuditLogEntry>();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         ChangeTracker.ApplyAuditFields();
+        ChangeTracker.CaptureAuditLog(currentUser);
 
         var events = ChangeTracker.Entries()
             .Select(e => e.Entity)
@@ -44,5 +49,8 @@ public sealed class CatalogDbContext(
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-        => modelBuilder.ApplyConfigurationsFromAssembly(typeof(CatalogDbContext).Assembly);
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(CatalogDbContext).Assembly);
+        modelBuilder.ApplyConfiguration(new AuditLogEntryConfiguration());
+    }
 }

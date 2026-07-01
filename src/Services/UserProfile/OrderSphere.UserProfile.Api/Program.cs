@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Auditing;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.UserProfile.Api.Configuration;
 using OrderSphere.UserProfile.Api.Endpoints;
@@ -31,6 +32,9 @@ builder.Services.AddUserProfileApiVersioning();
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
 
+// D2 — queryable audit trail: admin-protected read of AuditLogEntry rows written by UserProfileDbContext.
+builder.Services.AddScoped<IAuditLogQuery, EfAuditLogQuery<UserProfileDbContext>>();
+
 var app = builder.Build();
 
 // Skipped under "Testing": integration tests boot with a non-relational in-memory provider
@@ -52,6 +56,9 @@ app.UseAuthorization();
 app.UseOrderSphereRequestLogging();
 
 app.MapUserProfileEndpoints();
+
+// Admin audit-log surface — the gateway forwards /api/v1/admin/userprofile/audit-log/** here.
+app.MapAuditLogAdminEndpoints("api/v1/admin/userprofile/audit-log", "AdminPolicy");
 
 app.MapDefaultEndpoints();
 

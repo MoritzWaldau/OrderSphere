@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using OrderSphere.Basket.Application.Abstractions;
 using OrderSphere.Basket.Domain.Entities;
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.Auditing;
 using OrderSphere.BuildingBlocks.Extensions;
+using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.BuildingBlocks.ValueObjects;
 
@@ -11,14 +13,17 @@ namespace OrderSphere.Basket.Infrastructure.Persistence;
 
 public sealed class BasketDbContext(
     DbContextOptions<BasketDbContext> options,
-    IPublisher publisher) : DbContext(options), IBasketDbContext
+    IPublisher publisher,
+    ICurrentUser currentUser) : DbContext(options), IBasketDbContext
 {
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
+    internal DbSet<AuditLogEntry> AuditLogEntries => Set<AuditLogEntry>();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         ChangeTracker.ApplyAuditFields();
+        ChangeTracker.CaptureAuditLog(currentUser);
 
         var events = ChangeTracker.Entries()
             .Select(e => e.Entity)
@@ -46,6 +51,7 @@ public sealed class BasketDbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(BasketDbContext).Assembly);
+        modelBuilder.ApplyConfiguration(new AuditLogEntryConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

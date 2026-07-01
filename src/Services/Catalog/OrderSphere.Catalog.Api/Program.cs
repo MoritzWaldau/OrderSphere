@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.Auditing;
 using OrderSphere.Catalog.Api.BackgroundServices;
 using OrderSphere.Catalog.Api.Configuration;
 using OrderSphere.Catalog.Api.Endpoints;
@@ -40,6 +41,9 @@ builder.Services.AddCatalogRateLimiting();
 builder.AddCatalogAuthentication();     // Auth0 JWT; audience "catalog-api"
 builder.Services.AddCatalogAuthorization();                          // CatalogAdminPolicy
 builder.Services.AddCurrentUser();
+
+// D2 — queryable audit trail: admin-protected read of AuditLogEntry rows written by CatalogDbContext.
+builder.Services.AddScoped<IAuditLogQuery, EfAuditLogQuery<CatalogDbContext>>();
 
 // Exception handling
 builder.AddOrderSphereExceptionHandling();
@@ -89,6 +93,9 @@ app.UseOrderSphereRequestLogging();
 
 // Endpoints
 app.MapCatalogEndpoints();
+
+// Admin audit-log surface — the gateway forwards /api/v1/admin/catalog/audit-log/** here.
+app.MapAuditLogAdminEndpoints("api/v1/admin/catalog/audit-log", AuthorizationExtensions.CatalogAdminPolicy);
 
 // Health
 app.MapHealthChecks("/health");

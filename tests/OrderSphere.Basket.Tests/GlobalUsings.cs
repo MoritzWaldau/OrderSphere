@@ -15,6 +15,7 @@ global using OrderSphere.Basket.Domain.Errors;
 global using OrderSphere.Basket.Infrastructure.Persistence;
 global using OrderSphere.BuildingBlocks.Abstraction;
 global using OrderSphere.BuildingBlocks.Primitives;
+global using OrderSphere.BuildingBlocks.Security;
 global using OrderSphere.BuildingBlocks.StronglyTypedIds;
 global using OrderSphere.BuildingBlocks.ValueObjects;
 global using Xunit;

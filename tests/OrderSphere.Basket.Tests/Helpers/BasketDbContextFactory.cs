@@ -12,6 +12,6 @@ internal static class BasketDbContextFactory
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
-        return new BasketDbContext(options, NullPublisher.Instance);
+        return new BasketDbContext(options, NullPublisher.Instance, NullCurrentUser.Instance);
     }
 }

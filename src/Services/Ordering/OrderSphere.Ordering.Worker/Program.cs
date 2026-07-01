@@ -47,6 +47,7 @@ builder.Services.AddHostedService<OrderProcessor>();
 builder.Services.AddHostedService<PaymentResultProcessor>();
 builder.Services.AddHostedService<PaymentRefundProcessor>();
 builder.Services.AddHostedService<OrderHistoryProjector>();
+builder.Services.AddHostedService<CustomerErasureProcessor>();
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEventLoggingHandler<>));
@@ -56,7 +57,7 @@ builder.Services.AddTransient(typeof(INotificationHandler<>), typeof(DomainEvent
 builder.AddOrderSphereJwtAuth("ordering-worker");
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
-builder.Services.AddDlqAdmin("orders", "payment-results", "payment-refunds", "order-history");
+builder.Services.AddDlqAdmin("orders", "payment-results", "payment-refunds", "order-history", "erasure-ordering");
 
 var app = builder.Build();
 

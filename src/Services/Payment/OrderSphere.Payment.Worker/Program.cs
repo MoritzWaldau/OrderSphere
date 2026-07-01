@@ -24,6 +24,7 @@ builder.Services.AddPaymentInfrastructure(builder.Configuration);
 builder.Services.AddHostedService<PaymentProcessor>();
 builder.Services.AddHostedService<OrderConfirmationFailedProcessor>();
 builder.Services.AddHostedService<RefundRequestedProcessor>();
+builder.Services.AddHostedService<CustomerErasureProcessor>();
 
 builder.Services.AddPaymentApplication();
 
@@ -32,7 +33,7 @@ builder.Services.AddPaymentApplication();
 builder.AddOrderSphereJwtAuth("payment-worker");
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
-builder.Services.AddDlqAdmin("payment-requests", "order-confirmation-failed", "refund-requested");
+builder.Services.AddDlqAdmin("payment-requests", "order-confirmation-failed", "refund-requested", "erasure-payment");
 
 var app = builder.Build();
 

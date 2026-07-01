@@ -44,4 +44,8 @@ public sealed class Address
         PostalCode = postalCode;
         Country = country;
     }
+
+    /// <summary>GDPR right-to-erasure placeholder — overwrites PII while keeping the order row
+    /// (and its retention-relevant financial data) intact.</summary>
+    public static Address Erased(string country) => new("Erased", "Erased", "Erased", "Erased", "00000", country);
 }

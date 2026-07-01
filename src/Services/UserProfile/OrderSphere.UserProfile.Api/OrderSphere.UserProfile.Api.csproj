@@ -11,6 +11,7 @@
   <ItemGroup>
     <!-- JwtBearer is provided via ServiceDefaults → FrameworkReference Microsoft.AspNetCore.App -->
     <PackageReference Include="Asp.Versioning.Http" />
+    <PackageReference Include="Aspire.Azure.Messaging.ServiceBus" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
@@ -24,6 +25,7 @@
     <ProjectReference Include="..\OrderSphere.UserProfile.Application\OrderSphere.UserProfile.Application.csproj" />
     <ProjectReference Include="..\OrderSphere.UserProfile.Infrastructure\OrderSphere.UserProfile.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\Hosting\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.EventBus.AzureServiceBus\OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.csproj" />
   </ItemGroup>
 
 </Project>

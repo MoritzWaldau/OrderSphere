@@ -66,6 +66,14 @@ public sealed class Invoice : AuditableEntity<InvoiceId>
 
     public void SetBlobPath(string blobPath) => BlobPath = blobPath;
 
+    /// <summary>GDPR right-to-erasure: overwrites the customer name/email, keeping the invoice
+    /// (amounts, tax, blob) for statutory commercial-record retention.</summary>
+    public void AnonymizeCustomer()
+    {
+        CustomerName = "Erased customer";
+        CustomerEmail = $"erased-{Id.Value}@erased.invalid";
+    }
+
     public Result ApplyDiscount(decimal amountNet, string reason, string appliedBy, DateTime appliedAt)
     {
         var validation = ValidateAdjustmentAmount(amountNet);

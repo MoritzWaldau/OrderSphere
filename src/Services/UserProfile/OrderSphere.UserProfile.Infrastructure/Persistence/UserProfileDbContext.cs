@@ -1,6 +1,9 @@
+using System.Diagnostics;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Outbox;
+using OrderSphere.BuildingBlocks.EventBus.Outbox;
 using OrderSphere.BuildingBlocks.Extensions;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.UserProfile.Application.Abstractions;
@@ -14,6 +17,16 @@ public sealed class UserProfileDbContext(
 {
     public DbSet<CustomerProfile> CustomerProfiles => Set<CustomerProfile>();
     public DbSet<SavedAddress> SavedAddresses => Set<SavedAddress>();
+    internal DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
+    public void AddOutboxMessage(string type, string content)
+        => OutboxMessages.Add(new OutboxMessage
+        {
+            Type = type,
+            Content = content,
+            // Capture the current trace context so the asynchronous dispatch joins this trace.
+            TraceParent = Activity.Current?.Id
+        });
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -42,6 +55,19 @@ public sealed class UserProfileDbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(UserProfileDbContext).Assembly);
+        modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
+
+        // xmin is a PostgreSQL system column — only configure it when the provider is Npgsql.
+        // SQLite (used in tests) and other providers do not support the xid column type.
+        if (Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL")
+        {
+            modelBuilder.Entity<OutboxMessage>()
+                .Property<uint>("xmin")
+                .HasColumnType("xid")
+                .ValueGeneratedOnAddOrUpdate()
+                .IsConcurrencyToken();
+        }
+
         base.OnModelCreating(modelBuilder);
     }
 }

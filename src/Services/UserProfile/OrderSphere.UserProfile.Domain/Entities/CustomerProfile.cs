@@ -61,6 +61,20 @@ public sealed class CustomerProfile : AuditableEntity<CustomerProfileId>, IAggre
         NotificationPreferences.Update(emailEnabled, smsEnabled, pushEnabled, nowUtc);
     }
 
+    /// <summary>
+    /// GDPR right-to-erasure: overwrites PII with a placeholder and hard-deletes saved addresses.
+    /// The row itself is kept (soft-deleted via <see cref="AuditableEntity{TId}.IsDeleted"/>) so
+    /// foreign keys from other aggregates in this service stay valid.
+    /// </summary>
+    public void Anonymize()
+    {
+        DisplayName = "Erased customer";
+        Email = $"erased-{Id.Value}@erased.invalid";
+        foreach (var address in _addresses)
+            address.Anonymize();
+        IsDeleted = true;
+    }
+
     public SavedAddress AddAddress(
         string label, string firstName, string lastName,
         string street, string city, string postalCode, string country,

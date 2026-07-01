@@ -161,6 +161,32 @@ serviceBus.AddServiceBusQueue("order-history")
         cfg.MaxDeliveryCount = 5;
     });
 
+// D1 — GDPR right-to-erasure: UserProfile outbox fans CustomerErasureRequestedIntegrationEvent
+// out to one queue per PII-holding consumer (point-to-point Service Bus, no topic).
+serviceBus.AddServiceBusQueue("erasure-ordering")
+    .WithProperties(cfg =>
+    {
+        cfg.MaxDeliveryCount = 5;
+    });
+
+serviceBus.AddServiceBusQueue("erasure-payment")
+    .WithProperties(cfg =>
+    {
+        cfg.MaxDeliveryCount = 5;
+    });
+
+serviceBus.AddServiceBusQueue("erasure-invoicing")
+    .WithProperties(cfg =>
+    {
+        cfg.MaxDeliveryCount = 5;
+    });
+
+serviceBus.AddServiceBusQueue("erasure-advisory")
+    .WithProperties(cfg =>
+    {
+        cfg.MaxDeliveryCount = 5;
+    });
+
 var redis = builder.AddAzureManagedRedis("redis")
     .RunAsContainer(c => c.WithLifetime(ContainerLifetime.Persistent));
 
@@ -297,7 +323,9 @@ var paymentWorker = builder.AddProject<Projects.OrderSphere_Payment_Worker>("ord
 
 var userProfile = builder.AddProject<Projects.OrderSphere_UserProfile_Api>("ordersphere-userprofile")
     .WithReference(userProfileDb)
+    .WithReference(serviceBus)
     .WaitFor(userProfileDb)
+    .WaitFor(serviceBus)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
     .WithEnvironment("Oidc__Audience", OidcAudience);
 
@@ -381,9 +409,11 @@ var advisory = builder.AddProject<Projects.OrderSphere_Advisory_Api>("orderspher
     .WithReference(mcpServer)
     .WithReference(advisoryDb)
     .WithReference(redis)
+    .WithReference(serviceBus)
     .WaitFor(mcpServer)
     .WaitFor(advisoryDb)
     .WaitFor(redis)
+    .WaitFor(serviceBus)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
     .WithEnvironment("Foundry__Endpoint", foundryEndpoint)
     .WithEnvironment("Foundry__Deployment", foundryDeployment)

@@ -11,6 +11,7 @@
   <ItemGroup>
     <!-- JwtBearer is provided via ServiceDefaults → FrameworkReference Microsoft.AspNetCore.App -->
     <PackageReference Include="Asp.Versioning.Http" />
+    <PackageReference Include="Aspire.Azure.Messaging.ServiceBus" />
     <PackageReference Include="Azure.AI.ContentSafety" />
     <PackageReference Include="Google.Protobuf" />
     <PackageReference Include="Microsoft.CognitiveServices.Speech" />
@@ -30,6 +31,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Hosting\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
     <ProjectReference Include="..\OrderSphere.Advisory.Infrastructure\OrderSphere.Advisory.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.EventBus.AzureServiceBus\OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.Contracts\OrderSphere.BuildingBlocks.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

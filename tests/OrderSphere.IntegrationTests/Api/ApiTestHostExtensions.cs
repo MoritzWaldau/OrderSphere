@@ -1,10 +1,15 @@
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace OrderSphere.IntegrationTests.Api;
 
@@ -127,5 +132,23 @@ internal static class ApiTestHostExtensions
     {
         foreach (var descriptor in services.Where(d => d.ServiceType == typeof(IHostedService)).ToList())
             services.Remove(descriptor);
+    }
+
+    /// <summary>
+    /// Replaces the production D3 Redis-backed rate-limiting policies with no-op limiters. The
+    /// production policies capture the live <see cref="StackExchange.Redis.IConnectionMultiplexer"/>
+    /// created eagerly in <c>Program.cs</c> before the test host's <c>ConfigureTestServices</c> runs,
+    /// so removing/replacing the DI registration alone would not stop requests from hitting a real
+    /// (unavailable) Redis. Every named policy the tested service defines must be listed here.
+    /// </summary>
+    public static void DisableRateLimiting(this IServiceCollection services, params string[] policyNames)
+    {
+        services.RemoveAll<IConfigureOptions<RateLimiterOptions>>();
+        services.Configure<RateLimiterOptions>(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            foreach (var policyName in policyNames)
+                options.AddPolicy(policyName, _ => RateLimitPartition.GetNoLimiter(policyName));
+        });
     }
 }

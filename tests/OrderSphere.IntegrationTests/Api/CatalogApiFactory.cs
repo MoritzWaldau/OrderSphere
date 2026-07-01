@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NSubstitute;
 using OrderSphere.Catalog.Api;
+using OrderSphere.Catalog.Api.Configuration;
 using OrderSphere.Catalog.Application.Abstractions;
 using OrderSphere.Catalog.Infrastructure.Persistence;
 using StackExchange.Redis;
@@ -43,6 +44,9 @@ public sealed class CatalogApiFactory : WebApplicationFactory<ApiMarker>
             // Drop the eagerly-connected Redis registrations; HybridCache falls back to its L1 store.
             services.RemoveAll<IConnectionMultiplexer>();
             services.RemoveAll<IDistributedCache>();
+
+            // D3's rate limiters call Redis directly (see ApiTestHostExtensions.DisableRateLimiting).
+            services.DisableRateLimiting(RateLimitingExtensions.PublicPolicy, RateLimitingExtensions.AdminPolicy);
 
             services.RemoveAll<IOrderingClient>();
             services.AddSingleton(OrderingClient);

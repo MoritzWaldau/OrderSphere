@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NSubstitute;
 using OrderSphere.Basket.Api;
+using OrderSphere.Basket.Api.Configuration;
 using OrderSphere.Basket.Application.Abstractions;
 using OrderSphere.Basket.Infrastructure.Persistence;
 using OrderSphere.BuildingBlocks.Primitives;
@@ -45,6 +46,9 @@ public sealed class BasketApiFactory : WebApplicationFactory<ApiMarker>
             services.UseInMemoryDb<BasketDbContext>("basket-tests");
             services.AddTestAuthentication();
             services.RemoveHostedServices();
+
+            // D3's rate limiter calls Redis directly (see ApiTestHostExtensions.DisableRateLimiting).
+            services.DisableRateLimiting(RateLimitingExtensions.CartPolicy);
 
             services.RemoveAll<ICatalogClient>();
             services.AddSingleton(CatalogClient);

@@ -62,4 +62,16 @@ public sealed class SavedAddress : AuditableEntity<SavedAddressId>
     internal void SetAsDefault() => IsDefault = true;
     internal void ClearDefault() => IsDefault = false;
     internal void MarkDeleted() => IsDeleted = true;
+
+    /// <summary>GDPR right-to-erasure: overwrites PII in place and soft-deletes the row.</summary>
+    internal void Anonymize()
+    {
+        FirstName = "Erased";
+        LastName = "Erased";
+        Street = "Erased";
+        City = "Erased";
+        PostalCode = "00000";
+        IsDefault = false;
+        IsDeleted = true;
+    }
 }

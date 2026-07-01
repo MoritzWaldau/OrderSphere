@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OrderSphere.Advisory.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using OrderSphere.Advisory.Infrastructure.Persistence;
 namespace OrderSphere.Advisory.Infrastructure.Migrations
 {
     [DbContext(typeof(AdvisoryDbContext))]
-    partial class AdvisoryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260701161916_AddInboxForErasure")]
+    partial class AddInboxForErasure
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

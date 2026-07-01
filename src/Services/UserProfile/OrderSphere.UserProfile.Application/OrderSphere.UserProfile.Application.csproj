@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.Domain\OrderSphere.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.Contracts\OrderSphere.BuildingBlocks.Contracts.csproj" />
     <ProjectReference Include="..\OrderSphere.UserProfile.Domain\OrderSphere.UserProfile.Domain.csproj" />
   </ItemGroup>
 

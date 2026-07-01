@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus;
 using OrderSphere.UserProfile.Api.Configuration;
 using OrderSphere.UserProfile.Api.Endpoints;
 using OrderSphere.UserProfile.Application;
@@ -13,6 +14,11 @@ builder.AddOrderSphereSwagger("OrderSphere UserProfile API");
 // Domain layers
 builder.AddUserProfileInfrastructure();        // EF Core, IUserProfileDbContext
 builder.Services.AddUserProfileApplication();  // MediatR + Behaviors + FluentValidation
+
+// Outbox → Service Bus (D1: publishes CustomerErasureRequestedIntegrationEvent fan-out).
+builder.Services.AddUserProfileOutboxProcessing();
+builder.AddAzureServiceBusClient("azure-service-bus");
+builder.Services.AddAzureServiceBusEventBus();
 
 // JWT Bearer — shared Auth0 validation; audience "userprofile-api" is a
 // dedicated API registered in the Auth0 tenant.

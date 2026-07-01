@@ -95,4 +95,13 @@ public sealed class OrderView : AuditableEntity<OrderId>
 
     private void AppendStatus(OrderStatus status, DateTime occurredAt)
         => _statusHistory.Add(new OrderStatusHistory(status, occurredAt));
+
+    /// <summary>
+    /// D1 — GDPR right-to-erasure. Overwrites the shipping address on this read-model row.
+    /// Only the projection is anonymized: the immutable <c>order_events</c> stream that this
+    /// aggregate is sourced from is a deliberately scoped island (see docs/architecture.md) and
+    /// is not rewritten here.
+    /// </summary>
+    public void AnonymizeShippingAddress()
+        => ShippingAddress = Address.Erased(ShippingAddress.Country);
 }

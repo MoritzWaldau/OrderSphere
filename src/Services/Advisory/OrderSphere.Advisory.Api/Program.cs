@@ -4,8 +4,11 @@ using OrderSphere.Advisory.Api.Agent;
 using OrderSphere.Advisory.Api.Configuration;
 using OrderSphere.Advisory.Api.Endpoints;
 using OrderSphere.Advisory.Api.Voice;
+using OrderSphere.Advisory.Api.Workers;
 using OrderSphere.Advisory.Infrastructure;
 using OrderSphere.Advisory.Infrastructure.Persistence;
+using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
+using OrderSphere.BuildingBlocks.EventBus.Inbox;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +41,11 @@ builder.Services.AddHybridCache();
 
 // EF Core persistence for conversation history (advisory-db).
 builder.AddAdvisoryInfrastructure();
+
+// D1 — GDPR right-to-erasure: consumes UserProfile's fan-out queue, hard-deletes conversations.
+builder.AddAzureServiceBusClient("azure-service-bus");
+builder.Services.AddScoped<IInboxStore, EfInboxStore<AdvisoryDbContext>>();
+builder.Services.AddHostedService<CustomerErasureProcessor>();
 
 // Auth0 JWT validation. The end-user token is forwarded by the BFF; the agent
 // passes it on to the MCP server. Audience is validated downstream, not here —

@@ -17,6 +17,8 @@
   <ItemGroup>
     <ProjectReference Include="..\OrderSphere.Advisory.Application\OrderSphere.Advisory.Application.csproj" />
     <ProjectReference Include="..\OrderSphere.Advisory.Domain\OrderSphere.Advisory.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.EventBus\OrderSphere.BuildingBlocks.EventBus.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.EventBus.AzureServiceBus\OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.csproj" />
   </ItemGroup>
 
 </Project>

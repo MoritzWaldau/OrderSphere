@@ -4,5 +4,12 @@ public interface IUserProfileDbContext
 {
     DbSet<CustomerProfile> CustomerProfiles { get; }
     DbSet<SavedAddress> SavedAddresses { get; }
+
+    /// <summary>
+    /// Stages an integration event in the outbox table; dispatched to Service Bus by the
+    /// OutboxDispatcher after the surrounding SaveChanges commits.
+    /// </summary>
+    void AddOutboxMessage(string type, string content);
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

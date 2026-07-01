@@ -9,6 +9,7 @@ using OrderSphere.UserProfile.Application.Features.Profile.EnsureProfile;
 using OrderSphere.UserProfile.Application.Features.Profile.GetAddresses;
 using OrderSphere.UserProfile.Application.Features.Profile.GetNotificationPreferences;
 using OrderSphere.UserProfile.Application.Features.Profile.OnboardingStatus;
+using OrderSphere.UserProfile.Application.Features.Profile.RequestErasure;
 using OrderSphere.UserProfile.Application.Features.Profile.SetDefaultAddress;
 using OrderSphere.UserProfile.Application.Features.Profile.SkipOnboarding;
 using OrderSphere.UserProfile.Application.Features.Profile.UpdateAddress;
@@ -38,6 +39,7 @@ public static class ProfileEndpoints
         group.MapPut("/addresses/{addressId:guid}", UpdateAddress);
         group.MapDelete("/addresses/{addressId:guid}", DeleteAddress);
         group.MapPost("/addresses/{addressId:guid}/set-default", SetDefaultAddress);
+        group.MapPost("/erasure-request", RequestErasure);
     }
 
     private static async Task<IResult> GetOrCreateProfile(
@@ -201,6 +203,19 @@ public static class ProfileEndpoints
         if (currentUser.Sub is not { } sub) return Results.Unauthorized();
 
         var result = await sender.Send(new SetDefaultAddressCommand(sub, addressId), ct);
+        return result.ToHttpResult();
+    }
+
+    // D1 — GDPR right-to-erasure. Self-service only: a customer erases their own data,
+    // triggering anonymization here and a fan-out event to every other PII-holding service.
+    private static async Task<IResult> RequestErasure(
+        ICurrentUser currentUser,
+        ISender sender,
+        CancellationToken ct)
+    {
+        if (currentUser.Sub is not { } sub) return Results.Unauthorized();
+
+        var result = await sender.Send(new RequestErasureCommand(sub), ct);
         return result.ToHttpResult();
     }
 }

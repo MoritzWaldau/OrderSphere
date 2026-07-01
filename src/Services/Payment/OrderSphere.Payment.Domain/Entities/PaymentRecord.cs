@@ -66,4 +66,11 @@ public class PaymentRecord : AuditableEntity<PaymentId>, IAggregateRoot
     {
         Status = PaymentStatus.Refunded;
     }
+
+    /// <summary>GDPR right-to-erasure: overwrites the customer email, keeping the payment
+    /// record (amount, status, transaction id) for financial retention.</summary>
+    public void AnonymizeCustomerEmail()
+    {
+        CustomerEmail = $"erased-{Id.Value}@erased.invalid";
+    }
 }

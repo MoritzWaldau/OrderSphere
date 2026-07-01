@@ -36,10 +36,11 @@ builder.AddAzureServiceBusClient("azure-service-bus");
 builder.Services.AddScoped<IInboxStore, EfInboxStore<InvoicingDbContext>>();
 
 builder.Services.AddHostedService<InvoiceProcessor>();
+builder.Services.AddHostedService<CustomerErasureProcessor>();
 
 // DLQ admin surface: admin-protected dead-letter reader/replay for the invoice-generation queue,
 // plus the ordersphere.dlq.depth gauge. Reuses the AdminPolicy already registered above.
-builder.Services.AddDlqAdmin("invoice-generation");
+builder.Services.AddDlqAdmin("invoice-generation", "erasure-invoicing");
 
 var app = builder.Build();
 

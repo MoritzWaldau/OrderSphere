@@ -17,6 +17,7 @@
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Auditing/OrderSphere.BuildingBlocks.Auditing.csproj" />
     <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Contracts/OrderSphere.BuildingBlocks.Contracts.csproj" />
     <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.Domain/OrderSphere.BuildingBlocks.csproj" />
     <Project Path="src/BuildingBlocks/OrderSphere.BuildingBlocks.EventBus.AzureServiceBus/OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.csproj" />

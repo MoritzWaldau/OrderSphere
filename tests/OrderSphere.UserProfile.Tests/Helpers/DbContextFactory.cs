@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.UserProfile.Infrastructure.Persistence;
 
 namespace OrderSphere.UserProfile.Tests.Helpers;
@@ -16,6 +17,6 @@ internal static class DbContextFactory
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
-        return new UserProfileDbContext(options, NullPublisher.Instance);
+        return new UserProfileDbContext(options, NullPublisher.Instance, NullCurrentUser.Instance);
     }
 }

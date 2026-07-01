@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
+using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Ordering.Domain.Entities;
@@ -40,7 +41,7 @@ public sealed class OrderEventStoreTests : IDisposable
 
     public void Dispose() => _connection.Dispose();
 
-    private OrderingDbContext NewContext() => new(_options, Substitute.For<IPublisher>());
+    private OrderingDbContext NewContext() => new(_options, Substitute.For<IPublisher>(), NullCurrentUser.Instance);
 
     private static Order NewOrder() => Order.Create(
         CustomerId.New(),

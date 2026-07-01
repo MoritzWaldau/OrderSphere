@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
+using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 using OrderSphere.Ordering.Worker.Workers;
 using Xunit;
@@ -40,7 +41,7 @@ public sealed class OrderHistoryProjectionTests : IDisposable
 
     public void Dispose() => _connection.Dispose();
 
-    private OrderingDbContext NewContext() => new(_options, Substitute.For<IPublisher>());
+    private OrderingDbContext NewContext() => new(_options, Substitute.For<IPublisher>(), NullCurrentUser.Instance);
 
     private static OrderHistoryProjector NewProjector()
         => new(

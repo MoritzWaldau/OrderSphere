@@ -10,6 +10,7 @@ using NSubstitute;
 using OrderSphere.BuildingBlocks.Contracts.Events;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.BuildingBlocks.Primitives;
+using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.Ordering.Application.Abstractions;
 using OrderSphere.Ordering.Domain.Enums;
@@ -55,7 +56,7 @@ public sealed class PaymentResultToOrderFlowTests : IDisposable
     public void Dispose() => _connection.Dispose();
 
     private OrderingDbContext NewContext() =>
-        new(_options, Substitute.For<IPublisher>());
+        new(_options, Substitute.For<IPublisher>(), NullCurrentUser.Instance);
 
     private static PaymentResultProcessor NewProcessor()
         => new(

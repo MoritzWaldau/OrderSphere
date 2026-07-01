@@ -35,6 +35,7 @@
   <ItemGroup>
     <ProjectReference Include="..\OrderSphere.Basket.Application\OrderSphere.Basket.Application.csproj" />
     <ProjectReference Include="..\OrderSphere.Basket.Domain\OrderSphere.Basket.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.Auditing\OrderSphere.BuildingBlocks.Auditing.csproj" />
   </ItemGroup>
 
 </Project>

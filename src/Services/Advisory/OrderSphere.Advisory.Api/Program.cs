@@ -7,6 +7,7 @@ using OrderSphere.Advisory.Api.Voice;
 using OrderSphere.Advisory.Api.Workers;
 using OrderSphere.Advisory.Infrastructure;
 using OrderSphere.Advisory.Infrastructure.Persistence;
+using OrderSphere.BuildingBlocks.Auditing;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Inbox;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 
@@ -52,10 +53,15 @@ builder.Services.AddHostedService<CustomerErasureProcessor>();
 // hence the no-audience overload (ValidateAudience = false).
 builder.AddOrderSphereJwtAuth();
 builder.Services.AddCurrentUser();
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
 
 builder.AddOrderSphereExceptionHandling();
 builder.Services.AddAdvisoryApiVersioning();
 builder.Services.AddAdvisorRateLimiting();
+
+// D2 — queryable audit trail: admin-protected read of AuditLogEntry rows written by AdvisoryDbContext.
+builder.Services.AddScoped<IAuditLogQuery, EfAuditLogQuery<AdvisoryDbContext>>();
 
 // Shared Foundry chat-client pipeline (credential, history reducer, GenAI telemetry).
 builder.Services.AddSingleton<IAdvisorChatClientFactory, FoundryChatClientFactory>();
@@ -94,5 +100,8 @@ app.UseOrderSphereRequestLogging();
 
 app.MapDefaultEndpoints();
 app.MapAdvisorEndpoints();
+
+// Admin audit-log surface — the gateway forwards /api/v1/admin/advisory/audit-log/** here.
+app.MapAuditLogAdminEndpoints("api/v1/admin/advisory/audit-log", "AdminPolicy");
 
 app.Run();

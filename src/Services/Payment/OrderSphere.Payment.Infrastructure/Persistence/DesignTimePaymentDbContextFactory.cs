@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.Security;
 
 namespace OrderSphere.Payment.Infrastructure.Persistence;
 
@@ -16,6 +17,6 @@ public sealed class DesignTimePaymentDbContextFactory : IDesignTimeDbContextFact
             .UseNpgsql("Host=localhost;Port=5432;Database=payment-db;Username=postgres;Password=postgres")
             .Options;
 
-        return new PaymentDbContext(options, NullPublisher.Instance);
+        return new PaymentDbContext(options, NullPublisher.Instance, NullCurrentUser.Instance);
     }
 }

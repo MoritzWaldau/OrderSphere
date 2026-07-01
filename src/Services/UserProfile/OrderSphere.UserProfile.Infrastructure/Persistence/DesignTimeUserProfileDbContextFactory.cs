@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.Security;
 
 namespace OrderSphere.UserProfile.Infrastructure.Persistence;
 
@@ -16,6 +17,6 @@ public sealed class DesignTimeUserProfileDbContextFactory : IDesignTimeDbContext
             .UseNpgsql("Host=localhost;Database=userprofile-db;Username=postgres;Password=postgres")
             .Options;
 
-        return new UserProfileDbContext(options, NullPublisher.Instance);
+        return new UserProfileDbContext(options, NullPublisher.Instance, NullCurrentUser.Instance);
     }
 }

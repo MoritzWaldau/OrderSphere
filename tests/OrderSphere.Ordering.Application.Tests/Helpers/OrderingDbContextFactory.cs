@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.Ordering.Infrastructure.Persistence;
 
 namespace OrderSphere.Ordering.Application.Tests.Helpers;
@@ -13,7 +14,9 @@ namespace OrderSphere.Ordering.Application.Tests.Helpers;
 /// </summary>
 internal static class OrderingDbContextFactory
 {
-    internal static OrderingDbContext Create()
+    internal static OrderingDbContext Create() => Create(NullCurrentUser.Instance);
+
+    internal static OrderingDbContext Create(ICurrentUser currentUser)
     {
         var connection = new SqliteConnection("Data Source=:memory:");
         connection.Open();
@@ -22,7 +25,7 @@ internal static class OrderingDbContextFactory
             .UseSqlite(connection)
             .Options;
 
-        var context = new OrderingDbContext(options, NullPublisher.Instance);
+        var context = new OrderingDbContext(options, NullPublisher.Instance, currentUser);
         context.Database.EnsureCreated();
         return context;
     }

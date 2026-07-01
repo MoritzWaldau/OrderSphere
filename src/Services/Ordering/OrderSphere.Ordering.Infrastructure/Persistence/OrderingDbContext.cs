@@ -3,10 +3,12 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using OrderSphere.BuildingBlocks.Abstraction;
+using OrderSphere.BuildingBlocks.Auditing;
 using OrderSphere.BuildingBlocks.EventBus.AzureServiceBus.Outbox;
 using OrderSphere.BuildingBlocks.EventBus.Inbox;
 using OrderSphere.BuildingBlocks.EventBus.Outbox;
 using OrderSphere.BuildingBlocks.Extensions;
+using OrderSphere.BuildingBlocks.Security;
 using OrderSphere.BuildingBlocks.StronglyTypedIds;
 using OrderSphere.BuildingBlocks.ValueObjects;
 using OrderSphere.Ordering.Application.Abstractions;
@@ -18,7 +20,8 @@ namespace OrderSphere.Ordering.Infrastructure.Persistence;
 
 public sealed class OrderingDbContext(
     DbContextOptions<OrderingDbContext> options,
-    IPublisher publisher)
+    IPublisher publisher,
+    ICurrentUser currentUser)
     : DbContext(options), IOrderingDbContext
 {
     public DbSet<OrderView> Orders => Set<OrderView>();
@@ -29,6 +32,7 @@ public sealed class OrderingDbContext(
     public DbSet<OrderHistoryEntry> OrderHistory => Set<OrderHistoryEntry>();
     public DbSet<ReturnRequest> ReturnRequests => Set<ReturnRequest>();
     internal DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    internal DbSet<AuditLogEntry> AuditLogEntries => Set<AuditLogEntry>();
 
     public void AddOutboxMessage(string type, string content)
         => OutboxMessages.Add(new OutboxMessage
@@ -90,6 +94,7 @@ public sealed class OrderingDbContext(
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         ChangeTracker.ApplyAuditFields();
+        ChangeTracker.CaptureAuditLog(currentUser);
 
         var events = ChangeTracker.Entries()
             .Select(e => e.Entity)
@@ -120,6 +125,7 @@ public sealed class OrderingDbContext(
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(OrderingDbContext).Assembly);
         modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
+        modelBuilder.ApplyConfiguration(new AuditLogEntryConfiguration());
 
         // xmin is a PostgreSQL system column — only configure it when the provider is Npgsql.
         // SQLite (used in tests) and other providers do not support the xid column type.

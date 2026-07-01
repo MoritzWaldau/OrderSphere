@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore.Storage;
+using OrderSphere.BuildingBlocks.Auditing;
 using OrderSphere.BuildingBlocks.Extensions;
+using OrderSphere.BuildingBlocks.Security;
 
 namespace OrderSphere.Invoicing.Infrastructure.Persistence;
 
-public sealed class InvoicingDbContext(DbContextOptions<InvoicingDbContext> options)
+public sealed class InvoicingDbContext(DbContextOptions<InvoicingDbContext> options, ICurrentUser currentUser)
     : DbContext(options), IInvoicingDbContext
 {
     public DbSet<Invoice> Invoices => Set<Invoice>();
@@ -11,6 +13,7 @@ public sealed class InvoicingDbContext(DbContextOptions<InvoicingDbContext> opti
 
     // Infrastructure-only counter backing the gapless invoice number sequence; not on the interface.
     internal DbSet<InvoiceNumberCounter> InvoiceNumberCounters => Set<InvoiceNumberCounter>();
+    internal DbSet<AuditLogEntry> AuditLogEntries => Set<AuditLogEntry>();
 
     private IDbContextTransaction? _transaction;
 
@@ -62,6 +65,7 @@ public sealed class InvoicingDbContext(DbContextOptions<InvoicingDbContext> opti
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         ChangeTracker.ApplyAuditFields();
+        ChangeTracker.CaptureAuditLog(currentUser);
         return await base.SaveChangesAsync(cancellationToken);
     }
 
@@ -72,5 +76,8 @@ public sealed class InvoicingDbContext(DbContextOptions<InvoicingDbContext> opti
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-        => modelBuilder.ApplyConfigurationsFromAssembly(typeof(InvoicingDbContext).Assembly);
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(InvoicingDbContext).Assembly);
+        modelBuilder.ApplyConfiguration(new AuditLogEntryConfiguration());
+    }
 }

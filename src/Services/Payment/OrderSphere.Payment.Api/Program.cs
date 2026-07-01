@@ -37,6 +37,7 @@ builder.AddOrderSphereExceptionHandling();
 builder.Services.AddPaymentApiVersioning();
 
 builder.AddOrderSphereJwtAuth("payment-api");
+builder.Services.AddCurrentUser();
 
 var app = builder.Build();
 

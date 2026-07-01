@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // Redis distributed cache (Entra ID auth against Azure Managed Redis) — L2 for HybridCache.
-await builder.AddOrderSphereRedisAsync();
+var redisMultiplexer = await builder.AddOrderSphereRedisAsync();
 // Leader-election lock so ReservationSweeper runs on exactly one Catalog replica.
 builder.Services.AddOrderSphereDistributedLocking();
 
@@ -37,7 +37,7 @@ builder.Services.AddHttpClient<IOrderingClient, HttpOrderingClient>(client =>
 // Cross-cutting concerns
 builder.Services.AddCatalogApiVersioning();
 builder.Services.AddCatalogSwagger();
-builder.Services.AddCatalogRateLimiting();
+builder.Services.AddCatalogRateLimiting(redisMultiplexer);
 builder.AddCatalogAuthentication();     // Auth0 JWT; audience "catalog-api"
 builder.Services.AddCatalogAuthorization();                          // CatalogAdminPolicy
 builder.Services.AddCurrentUser();

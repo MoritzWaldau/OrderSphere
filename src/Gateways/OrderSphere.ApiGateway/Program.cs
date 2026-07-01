@@ -9,26 +9,22 @@ builder.AddOrderSphereJwtAuth();
 
 builder.Services.AddAuthorization();
 
+// D3 — distributed rate-limiting: gateway limiters share their quota counters across
+// every gateway instance via Redis instead of counting in-process.
+var redisMultiplexer = await builder.AddOrderSphereRedisAsync();
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
     // Named limiters available for endpoint-level policies via [EnableRateLimiting].
-    options.AddFixedWindowLimiter("gateway-global", cfg =>
-    {
-        cfg.PermitLimit = 200;
-        cfg.Window = TimeSpan.FromMinutes(1);
-        cfg.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        cfg.QueueLimit = 10;
-    });
+    options.AddPolicy("gateway-global", _ =>
+        RedisRateLimitPartition.GetRedisFixedWindowLimiter(
+            "gateway-global", redisMultiplexer, permitLimit: 200, window: TimeSpan.FromMinutes(1)));
 
-    options.AddFixedWindowLimiter("gateway-authenticated", cfg =>
-    {
-        cfg.PermitLimit = 100;
-        cfg.Window = TimeSpan.FromMinutes(1);
-        cfg.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        cfg.QueueLimit = 5;
-    });
+    options.AddPolicy("gateway-authenticated", _ =>
+        RedisRateLimitPartition.GetRedisFixedWindowLimiter(
+            "gateway-authenticated", redisMultiplexer, permitLimit: 100, window: TimeSpan.FromMinutes(1)));
 
     // Global limiter runs after UseAuthentication() so the sub claim is available.
     // Authenticated users are partitioned per user-id (120 req/min) to prevent a
@@ -39,21 +35,13 @@ builder.Services.AddRateLimiter(options =>
         var sub = context.User.FindFirst("sub")?.Value;
         if (sub is not null)
         {
-            return RateLimitPartition.GetFixedWindowLimiter($"user:{sub}", _ =>
-                new FixedWindowRateLimiterOptions
-                {
-                    PermitLimit = 120,
-                    Window = TimeSpan.FromMinutes(1)
-                });
+            return RedisRateLimitPartition.GetRedisFixedWindowLimiter(
+                $"user:{sub}", redisMultiplexer, permitLimit: 120, window: TimeSpan.FromMinutes(1));
         }
 
         var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        return RateLimitPartition.GetFixedWindowLimiter($"ip:{clientIp}", _ =>
-            new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 30,
-                Window = TimeSpan.FromMinutes(1)
-            });
+        return RedisRateLimitPartition.GetRedisFixedWindowLimiter(
+            $"ip:{clientIp}", redisMultiplexer, permitLimit: 30, window: TimeSpan.FromMinutes(1));
     });
 });
 

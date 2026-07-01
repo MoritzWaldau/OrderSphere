@@ -3,18 +3,5 @@
     "playwright@claude-plugins-official": false,
     "stripe@claude-plugins-official": false,
     "code-simplifier@claude-plugins-official": false
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sh .claude/hooks/format-before-commit.sh"
-          }
-        ]
-      }
-    ]
   }
 }

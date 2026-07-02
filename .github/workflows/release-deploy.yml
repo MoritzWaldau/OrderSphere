@@ -81,6 +81,27 @@ jobs:
           git push origin "v${{ inputs.version }}"
           echo "tag=v${{ inputs.version }}" >> "$GITHUB_OUTPUT"
 
+      # D5 — SBOM covering exactly the dependency graph of the tagged revision.
+      - name: Setup .NET + NuGet cache
+        uses: ./.github/actions/setup-dotnet-cache
+
+      - name: Restore .NET tools (CycloneDX)
+        run: dotnet tool restore
+
+      - name: Generate CycloneDX SBOM
+        run: >
+          dotnet tool run dotnet-CycloneDX OrderSphere.slnx
+          -o ./sbom -F Json -fn ordersphere.cdx.json
+
+      - name: Create GitHub Release with SBOM attached
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.tag.outputs.tag }}" \
+            --title "${{ steps.tag.outputs.tag }}" \
+            --generate-notes \
+            ./sbom/ordersphere.cdx.json
+
   # ── Provision + deploy to Azure DEV ─────────────────────────────────────────────
   deploy:
     name: Provision & Deploy (DEV)
@@ -159,3 +180,30 @@ jobs:
 
       - name: Deploy services
         run: azd deploy --no-prompt
+
+      # D5 — keyless signing (Sigstore/cosign via GitHub OIDC, no key material to manage
+      # or rotate). Signs every image azd just pushed to the environment's ACR, by digest.
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Log in to Azure CLI (OIDC federated credentials)
+        uses: azure/login@93381592711f247e165c389ebb30b596c84cdc48 # v3.0.0
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign deployed container images (keyless)
+        run: |
+          set -euo pipefail
+          ACR_ENDPOINT="$(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)"
+          ACR_NAME="${ACR_ENDPOINT%%.*}"
+          az acr login --name "$ACR_NAME"
+
+          for repo in $(az acr repository list --name "$ACR_NAME" -o tsv); do
+            digest=$(az acr repository show-manifests \
+              --name "$ACR_NAME" --repository "$repo" \
+              --orderby time_desc --top 1 --query "[0].digest" -o tsv)
+            echo "Signing $ACR_ENDPOINT/$repo@$digest"
+            cosign sign --yes "$ACR_ENDPOINT/$repo@$digest"
+          done

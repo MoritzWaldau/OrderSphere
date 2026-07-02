@@ -307,6 +307,22 @@ the new one is confirmed live. Auth0 M2M client IDs are not secret and are hardc
 `AppHost.cs`. Redis avoids this class of secret entirely — `RedisExtensions.cs` authenticates via
 Managed Identity (`DefaultAzureCredential`), so there is no password to rotate.
 
+## Supply-chain hardening (SBOM + image signing)
+
+Every CI run (`ci.yml`, `sbom` job) generates a CycloneDX JSON SBOM for `OrderSphere.slnx` using the
+`dotnet-CycloneDX` local tool (`.config/dotnet-tools.json`), uploaded as a build artifact. Every
+tagged release (`release-deploy.yml`, `release` job) regenerates the SBOM for the tagged revision
+and attaches it to the corresponding GitHub Release.
+
+Container images are built and pushed implicitly by `azd deploy` from the Aspire manifest — there is
+no hand-written Dockerfile or registry-push step in CI. After `azd deploy` succeeds, the `deploy` job
+signs every image in the environment's Azure Container Registry (resolved via
+`azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT`) by digest, using `cosign sign --yes` in keyless
+mode: the signature is backed by a short-lived certificate issued by Sigstore's public Fulcio CA to
+the job's GitHub Actions OIDC identity, transparency-logged in Rekor, with no signing key to store or
+rotate. This reuses the same `id-token: write` permission and federated-credential trust the job
+already has for `azd auth login`.
+
 ## EF Migrations
 
 Each service owns its migrations. Pattern: `-p <Infrastructure project> -s <Api project>`.

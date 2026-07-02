@@ -24,7 +24,10 @@ public static class EndpointMappingExtensions
         v1.MapReturnEndpoints();
         v1.MapSagaEndpoints();
 
+        // D4 — internal endpoints require a valid client-credentials token (any authenticated
+        // caller); M2M tokens carry no role claims, so no role-based policy is applied here.
         app.MapGroup("internal")
+            .RequireAuthorization()
             .MapInternalPurchaseEndpoints();
     }
 }

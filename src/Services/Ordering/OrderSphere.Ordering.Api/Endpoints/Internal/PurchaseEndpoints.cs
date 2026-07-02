@@ -7,7 +7,8 @@ namespace OrderSphere.Ordering.Api.Endpoints.Internal;
 
 /// <summary>
 /// Service-to-service endpoints consumed by Catalog.Api (review eligibility).
-/// Not exposed through the public API gateway — protected by network policy at the cluster level.
+/// Not exposed through the public API gateway. D4 — the mounting route group requires a
+/// valid client-credentials (M2M) bearer token; see <c>EndpointMappingExtensions</c>.
 /// </summary>
 public static class PurchaseEndpoints
 {

@@ -57,13 +57,18 @@ public static class EndpointMappingExtensions
             .RequireRateLimiting(RateLimitingExtensions.AdminPolicy)
             .MapAdminReviewEndpoints();
 
+        // D4 — internal endpoints require a valid client-credentials token (any authenticated
+        // caller); M2M tokens carry no role claims, so no role-based policy is applied here.
         app.MapGroup("internal/products")
+            .RequireAuthorization()
             .MapInternalProductEndpoints();
 
         app.MapGroup("internal/reservations")
+            .RequireAuthorization()
             .MapInternalReservationEndpoints();
 
-        app.MapGrpcService<CatalogGrpcService>();
+        app.MapGrpcService<CatalogGrpcService>()
+            .RequireAuthorization();
 
         return app;
     }

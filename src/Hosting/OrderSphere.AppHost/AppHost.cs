@@ -8,6 +8,11 @@ var bffClientSecret = builder.AddParameter("bff-client-secret", secret: true);
 var orderingWorkerSecret = builder.AddParameter("ordering-worker-secret", secret: true);
 var notificationWorkerSecret = builder.AddParameter("notification-worker-secret", secret: true);
 var paymentWorkerSecret = builder.AddParameter("payment-worker-secret", secret: true);
+// D4 — Catalog's own M2M identity for its outbound call to Ordering's internal
+// purchase-verification endpoint. Requires a new Auth0 machine-to-machine application
+// (client_credentials grant, audience = OidcAudience below); set the secret locally via:
+//   dotnet user-secrets set "Parameters:catalog-client-secret" "<value>" --project src/Hosting/OrderSphere.AppHost
+var catalogClientSecret = builder.AddParameter("catalog-client-secret", secret: true);
 
 // Stripe (test mode) — optional. Resolved from AppHost configuration / user-secrets so local
 // runs work without it; when unset the Payment service falls back to the simulated provider.
@@ -197,7 +202,11 @@ var catalog = builder.AddProject<Projects.OrderSphere_Catalog_Api>("ordersphere-
     .WaitFor(catalogDb)
     .WaitFor(redis)
     .WithEnvironment("Oidc__Authority", oidcAuthority)
-    .WithEnvironment("Oidc__Audience", OidcAudience);
+    .WithEnvironment("Oidc__Audience", OidcAudience)
+    // D4 — Catalog's own M2M identity, used to call Ordering's internal purchase-verification
+    // endpoint. Placeholder client ID: replace with the real Auth0 M2M application's Client ID.
+    .WithEnvironment("Oidc__ClientId", "REPLACE_WITH_CATALOG_M2M_CLIENT_ID")
+    .WithEnvironment("Oidc__ClientSecret", catalogClientSecret);
 
 var basket = builder.AddProject<Projects.OrderSphere_Basket_Api>("ordersphere-basket")
     .WithReference(basketDb)
@@ -211,6 +220,9 @@ var basket = builder.AddProject<Projects.OrderSphere_Basket_Api>("ordersphere-ba
     .WithHttpHealthCheck("/health")
     .WithEnvironment("Oidc__Authority", oidcAuthority)
     .WithEnvironment("Oidc__Audience", OidcAudience)
+    // D4 — Basket's own outbound call (the gRPC client to Catalog) reuses Ordering's M2M
+    // identity rather than provisioning a fourth Auth0 application; acceptable since these
+    // are all internal, non-user-facing service accounts on the same trust boundary.
     .WithEnvironment("Oidc__ClientId", "xY2Mgok7H98OsgFswj8JLC0gcgA6Oegy")
     .WithEnvironment("Oidc__ClientSecret", orderingWorkerSecret);
 

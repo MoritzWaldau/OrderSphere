@@ -45,13 +45,15 @@ builder.Services.AddScoped<INotificationChannel, SmsNotificationChannel>();
 builder.Services.AddScoped<INotificationChannel, PushNotificationChannel>();
 
 // UserProfile client — fetches per-user channel opt-in state before dispatching.
+// D4 — ClientCredentialsTokenHandler attaches a Bearer token acquired with this worker's
+// own Oidc:ClientId/ClientSecret; UserProfile's internal endpoint now requires it.
 var userProfileUrl = builder.Configuration["Services:UserProfile:BaseUrl"];
 if (!string.IsNullOrWhiteSpace(userProfileUrl))
 {
     builder.Services.AddHttpClient<IUserProfileClient, HttpUserProfileClient>(client =>
     {
         client.BaseAddress = new Uri(userProfileUrl);
-    });
+    }).AddClientCredentialsHandler();
 }
 else
 {

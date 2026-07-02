@@ -82,3 +82,36 @@ jobs:
             ./TestResults/**/*.trx
             ./CoverageReport/**
           retention-days: 14
+
+  # ── Software Bill of Materials (D5) ─────────────────────────────────────────────
+  sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup .NET + NuGet cache
+        uses: ./.github/actions/setup-dotnet-cache
+
+      - name: Restore .NET tools (CycloneDX)
+        run: dotnet tool restore
+
+      - name: Generate CycloneDX SBOM
+        run: >
+          dotnet tool run dotnet-CycloneDX OrderSphere.slnx
+          -o ./sbom -F Json -fn ordersphere.cdx.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sbom
+          path: ./sbom/ordersphere.cdx.json
+          retention-days: 90

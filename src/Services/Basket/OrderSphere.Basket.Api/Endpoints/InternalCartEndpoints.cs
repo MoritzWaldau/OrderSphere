@@ -10,7 +10,9 @@ public static class InternalCartEndpoints
 {
     public static void MapInternalCartEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/internal/cart");
+        // D4 — requires a valid client-credentials token (any authenticated caller); M2M
+        // tokens carry no role claims, so no role-based policy is applied here.
+        var group = app.MapGroup("/internal/cart").RequireAuthorization();
 
         group.MapGet("/{customerId:guid}", async (Guid customerId, IMediator mediator, CancellationToken ct) =>
         {

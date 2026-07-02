@@ -25,14 +25,14 @@ builder.AddCatalogInfrastructure();          // EF Core, ICatalogDbContext, Hybr
 builder.Services.AddCatalogApplication();    // MediatR + Behaviors + FluentValidation
 
 // HTTP client for Ordering service (review purchase-verification).
-// Ordering's /internal endpoints are network-protected (no auth), matching the
-// internal-call pattern Catalog itself exposes; no client-credentials handler needed.
+// D4 — Ordering's /internal endpoints now require a valid client-credentials token;
+// ClientCredentialsTokenHandler acquires one using Catalog's own Oidc:ClientId/ClientSecret.
 builder.Services.AddHttpClient<IOrderingClient, HttpOrderingClient>(client =>
 {
     var orderingUrl = builder.Configuration["Services:Ordering:BaseUrl"]
         ?? "https://ordersphere-ordering";
     client.BaseAddress = new Uri(orderingUrl);
-});
+}).AddClientCredentialsHandler();
 
 // Cross-cutting concerns
 builder.Services.AddCatalogApiVersioning();

@@ -11,8 +11,9 @@ using Xunit;
 namespace OrderSphere.IntegrationTests.Api;
 
 /// <summary>
-/// Exercises the Payment Minimal-API surface: the authenticated read endpoints, the unauthenticated
-/// internal lookup, and the <c>Result&lt;T&gt;</c>→HTTP mapping for found/not-found payments.
+/// Exercises the Payment Minimal-API surface: the authenticated read endpoints, the internal
+/// lookup (D4 — now requires a client-credentials token), and the <c>Result&lt;T&gt;</c>→HTTP
+/// mapping for found/not-found payments.
 /// </summary>
 public sealed class PaymentApiTests : IClassFixture<PaymentApiFactory>
 {
@@ -80,13 +81,26 @@ public sealed class PaymentApiTests : IClassFixture<PaymentApiFactory>
     }
 
     [Fact]
-    public async Task Internal_endpoint_is_reachable_without_authentication()
+    public async Task Internal_endpoint_accepts_an_authenticated_service_caller()
     {
         var (_, orderId) = await SeedPaymentAsync();
 
-        // No bearer/test header — the internal lookup is network-protected, not auth-protected.
-        var response = await _factory.CreateClient().GetAsync($"internal/payments/by-order/{orderId}");
+        // D4 — any authenticated caller is accepted (no role required); simulates the M2M
+        // identity a future internal caller would authenticate as.
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.SubHeader, "service|internal-caller");
+        var response = await client.GetAsync($"internal/payments/by-order/{orderId}");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Internal_endpoint_challenges_anonymous_with_401()
+    {
+        var (_, orderId) = await SeedPaymentAsync();
+
+        var response = await _factory.CreateClient().GetAsync($"internal/payments/by-order/{orderId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }

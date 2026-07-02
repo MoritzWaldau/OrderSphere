@@ -36,6 +36,8 @@
     <ProjectReference Include="..\OrderSphere.Basket.Application\OrderSphere.Basket.Application.csproj" />
     <ProjectReference Include="..\OrderSphere.Basket.Domain\OrderSphere.Basket.Domain.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\OrderSphere.BuildingBlocks.Auditing\OrderSphere.BuildingBlocks.Auditing.csproj" />
+    <!-- D4: ClientCredentialsTokenHandler for the internal gRPC client to Catalog. -->
+    <ProjectReference Include="..\..\..\Hosting\OrderSphere.ServiceDefaults\OrderSphere.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

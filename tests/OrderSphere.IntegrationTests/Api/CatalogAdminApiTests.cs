@@ -32,6 +32,15 @@ public sealed class CatalogAdminApiTests : IClassFixture<CatalogApiFactory>
         return client;
     }
 
+    /// <summary>D4 — internal endpoints require an authenticated caller (any client-credentials
+    /// token) but no role; simulates the M2M identity Ordering's HttpCatalogClient authenticates as.</summary>
+    private HttpClient InternalCaller()
+    {
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.SubHeader, "service|ordering");
+        return client;
+    }
+
     private static async Task<Guid> CreatedIdAsync(HttpResponseMessage response)
     {
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -133,19 +142,34 @@ public sealed class CatalogAdminApiTests : IClassFixture<CatalogApiFactory>
         var categoryId = await CreateCategoryAsync(admin);
         var productId = await CreateProductAsync(admin, categoryId, stock: 40);
 
-        var anon = _factory.CreateClient(); // internal endpoints are network-protected, not auth-protected
+        var internalCaller = InternalCaller();
 
-        (await anon.GetAsync($"internal/products/{productId}")).StatusCode.Should().Be(HttpStatusCode.OK);
-        (await anon.GetAsync($"internal/products/names?ids={productId}")).StatusCode.Should().Be(HttpStatusCode.OK);
-        (await anon.GetAsync($"internal/products/infos?ids={productId}")).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await internalCaller.GetAsync($"internal/products/{productId}")).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await internalCaller.GetAsync($"internal/products/names?ids={productId}")).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await internalCaller.GetAsync($"internal/products/infos?ids={productId}")).StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var decrement = await anon.PostAsJsonAsync($"internal/products/{productId}/decrement-stock", new { quantity = 10 });
+        var decrement = await internalCaller.PostAsJsonAsync($"internal/products/{productId}/decrement-stock", new { quantity = 10 });
         decrement.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        var restore = await anon.PostAsJsonAsync($"internal/products/{productId}/restore-stock", new { quantity = 5 });
+        var restore = await internalCaller.PostAsJsonAsync($"internal/products/{productId}/restore-stock", new { quantity = 5 });
         restore.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        (await anon.GetAsync($"internal/products/{Guid.NewGuid()}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await internalCaller.GetAsync($"internal/products/{Guid.NewGuid()}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Internal_endpoints_reject_anonymous_callers()
+    {
+        var admin = Admin();
+        var categoryId = await CreateCategoryAsync(admin);
+        var productId = await CreateProductAsync(admin, categoryId, stock: 40);
+
+        var anon = _factory.CreateClient();
+
+        (await anon.GetAsync($"internal/products/{productId}")).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        (await anon.PostAsJsonAsync("internal/reservations",
+            new { correlationId = Guid.NewGuid(), items = new[] { new { productId, quantity = 1 } } }))
+            .StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -154,22 +178,22 @@ public sealed class CatalogAdminApiTests : IClassFixture<CatalogApiFactory>
         var admin = Admin();
         var categoryId = await CreateCategoryAsync(admin);
         var productId = await CreateProductAsync(admin, categoryId, stock: 10);
-        var anon = _factory.CreateClient();
+        var internalCaller = InternalCaller();
 
         // Reserve within stock, then confirm (deducts stock).
         var corr1 = Guid.NewGuid();
-        var reserve = await anon.PostAsJsonAsync("internal/reservations",
+        var reserve = await internalCaller.PostAsJsonAsync("internal/reservations",
             new { correlationId = corr1, items = new[] { new { productId, quantity = 3 } } });
         reserve.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var confirm = await anon.PostAsync($"internal/reservations/{corr1}/confirm", content: null);
+        var confirm = await internalCaller.PostAsync($"internal/reservations/{corr1}/confirm", content: null);
         confirm.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Reserve again, then release (returns the hold without deducting).
         var corr2 = Guid.NewGuid();
-        await anon.PostAsJsonAsync("internal/reservations",
+        await internalCaller.PostAsJsonAsync("internal/reservations",
             new { correlationId = corr2, items = new[] { new { productId, quantity = 2 } } });
-        var release = await anon.PostAsync($"internal/reservations/{corr2}/release", content: null);
+        var release = await internalCaller.PostAsync($"internal/reservations/{corr2}/release", content: null);
         release.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
@@ -179,9 +203,9 @@ public sealed class CatalogAdminApiTests : IClassFixture<CatalogApiFactory>
         var admin = Admin();
         var categoryId = await CreateCategoryAsync(admin);
         var productId = await CreateProductAsync(admin, categoryId, stock: 2);
-        var anon = _factory.CreateClient();
+        var internalCaller = InternalCaller();
 
-        var response = await anon.PostAsJsonAsync("internal/reservations",
+        var response = await internalCaller.PostAsJsonAsync("internal/reservations",
             new { correlationId = Guid.NewGuid(), items = new[] { new { productId, quantity = 99 } } });
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);

@@ -218,12 +218,23 @@ public sealed class OrderingApiTests : IClassFixture<OrderingApiFactory>
 
 
     [Fact]
-    public async Task Internal_purchase_check_is_reachable_without_auth_and_reports_false()
+    public async Task Internal_purchase_check_accepts_an_authenticated_service_caller_and_reports_false()
     {
-        var response = await _factory.CreateClient().GetAsync(
+        // D4 — the endpoint now requires a valid client-credentials token; simulates the M2M
+        // identity Catalog's HttpOrderingClient authenticates as. No role required.
+        var response = await Client("service|catalog", roles: null).GetAsync(
             $"internal/customers/{Guid.NewGuid()}/purchased/{Guid.NewGuid()}");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         (await response.Content.ReadAsStringAsync()).Should().Be("false");
+    }
+
+    [Fact]
+    public async Task Internal_purchase_check_challenges_anonymous_with_401()
+    {
+        var response = await _factory.CreateClient().GetAsync(
+            $"internal/customers/{Guid.NewGuid()}/purchased/{Guid.NewGuid()}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }

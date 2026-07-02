@@ -12,7 +12,9 @@ public static class InternalProfileEndpoints
 {
     public static void MapInternalProfileEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("internal/profiles");
+        // D4 — requires a valid client-credentials token (any authenticated caller); M2M
+        // tokens carry no role claims, so no role-based policy is applied here.
+        var group = app.MapGroup("internal/profiles").RequireAuthorization();
 
         // Notification.Worker calls this to decide which channels to activate.
         // Lookup is by customer email; returns defaults (email-only) when profile not found.

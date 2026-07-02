@@ -269,6 +269,44 @@ agent degrades gracefully (returns a "not configured" message) so local runs wor
 locally via user-secrets on the AppHost; authenticate with `az login`. Auth0 defines a public PKCE
 application `advisory-mcp` for external MCP clients.
 
+## Internal service-to-service authentication
+
+Every internal (non-gateway) HTTP and gRPC call between services is authenticated with an OAuth2
+`client_credentials` (M2M) token, acquired and cached by `ClientCredentialsTokenHandler`
+(`ServiceDefaults/Authentication/ClientCredentialsTokenHandler.cs`) and attached via
+`.AddClientCredentialsHandler()` on the calling `IHttpClientBuilder`. Because ASP.NET Core's gRPC
+client factory (`AddGrpcClient<T>`) also returns an `IHttpClientBuilder`, the same extension method
+secures both HTTP clients and the one gRPC client (Basket → Catalog) without separate gRPC-specific
+plumbing.
+
+All services validate against the same Auth0 tenant and the same audience (`OidcAudience` constant
+in `AppHost.cs`, `https://api.ordersphere.dev`) — there is no per-service audience segmentation, so
+an M2M token acquired by any service passes JWT-bearer validation on any other. M2M tokens carry no
+`https://ordersphere.dev/roles` claim, so internal endpoints authorize with a bare
+`.RequireAuthorization()` (any authenticated caller), never a role-based policy — a role policy would
+always reject an M2M caller.
+
+| Caller → Callee | Protocol | Caller credential |
+|---|---|---|
+| Ordering.Api/Worker → Catalog | HTTP | Ordering's own M2M app |
+| Ordering.Api → Basket | HTTP | Ordering's own M2M app |
+| Catalog.Api → Ordering | HTTP | Catalog's own M2M app |
+| Basket.Api → Catalog | gRPC | Reuses Ordering's M2M app (no separate Auth0 application provisioned) |
+| Notification.Worker → UserProfile | HTTP | Notification's own M2M app |
+
+Secured internal endpoint groups: Catalog `internal/products`, `internal/reservations`, and the
+`CatalogGrpcService` gRPC service; Ordering `internal` (purchase verification); Basket
+`/internal/cart`; UserProfile `internal/profiles`; Payment `/internal/payments`.
+
+**Secret rotation**: `Oidc:ClientSecret` per service and the Stripe API keys are Aspire parameters
+(`builder.AddParameter(..., secret: true)` in `AppHost.cs`) backed by Azure Key Vault
+(`ordersphere-kv`) in deployed environments and by `dotnet user-secrets` locally — never committed.
+Rotating a secret means: create a new secret version in Key Vault, update the corresponding
+parameter value (azd/CI picks it up on next deploy), then revoke the old Auth0 client secret once
+the new one is confirmed live. Auth0 M2M client IDs are not secret and are hardcoded directly in
+`AppHost.cs`. Redis avoids this class of secret entirely — `RedisExtensions.cs` authenticates via
+Managed Identity (`DefaultAzureCredential`), so there is no password to rotate.
+
 ## EF Migrations
 
 Each service owns its migrations. Pattern: `-p <Infrastructure project> -s <Api project>`.

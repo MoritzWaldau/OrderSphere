@@ -323,6 +323,12 @@ the job's GitHub Actions OIDC identity, transparency-logged in Rekor, with no si
 rotate. This reuses the same `id-token: write` permission and federated-credential trust the job
 already has for `azd auth login`.
 
+## Data classification
+
+Personal and sensitive data at rest, tabulated by sensitivity tier per service, lives in
+[docs/data-classification.md](data-classification.md) — read it before adding a new field that
+might hold PII, or before scoping encryption-at-rest work.
+
 ## EF Migrations
 
 Each service owns its migrations. Pattern: `-p <Infrastructure project> -s <Api project>`.
